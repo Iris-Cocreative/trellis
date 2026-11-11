@@ -2,7 +2,7 @@
 
 Where each planned piece of Trellis stands. One line per item: its state, the commit that last changed it, and the test result that backs it. The plan itself lives outside this repository; this file mirrors its state for anyone, or any agent, reading the code alone. The [changelog](CHANGELOG.md) cites the same items by name.
 
-**Updated 2026-11-11, at `b60f874`.** Version 0.8.0 plus unreleased changes.
+**Updated 2026-11-11, at `150398b`.** Version 0.8.0 plus unreleased changes.
 
 States: **idea** (named, not started) · **planning** (its condition is written) · **underway** · **done** (its condition holds and the evidence is recorded) · **decision** (waiting on the owner; not for a build session to implement).
 
@@ -14,25 +14,25 @@ Everything here lands before the first app pins a version.
 
 | Item | State | Commit | Evidence |
 |---|---|---|---|
-| Report what is already applied | done | `5eec8ef` | The v0.7 suite and the 0.8.0 suite match: same counts, 0 off. |
-| Its own repository | underway | `5bdc537` | Public, CI green, Pages serves the specimen, installs by git address. Waiting on the old location becoming a pointer, and on a decision about the two-commit history. |
-| MIT license | done | `5bdc537` | `LICENSE`; `contract.js` checks it. |
-| Rename to Trellis | underway | `5bdc537` | Layers, package, global, headers and tests renamed; 0.8.0 lists each as breaking. Waiting on the private product layers' side of the rename landing. |
-| Neutral public specimen | done | `5eec8ef` | No product switcher, no web fonts; two example layers in the matrix; one outside layer by address. |
-| Tests in CI | done | `5bdc537` | Every push and pull request, Chromium and WebKit. |
-| Package shape | done | `5bdc537` | A scratch project installed it by git address with no token. |
-| Namespace the cascade layers | done | `5bdc537` | `layers.js`, both engines; `contract.js` fails on a layer outside `trellis`. |
-| One runtime file | done | `5bdc537` | `settle.js` sets the device pixel ratio and fit width itself. |
-| Prose context | done | `5bdc537` | `align.js`: 0 of 90 prose blocks off (89 in WebKit). |
-| Post type layouts | done | `5bdc537` | `layout.js`, both engines, wide and phone. |
-| Wave 1 primitives | done | `5bdc537` | `layout.js` checks inputs on touch and opens the modal and the sheet. |
-| Three rule conflicts | done | `5bdc537` | Gap utilities reach clusters only; rule 5 and the cluster comment say what they should. |
-| Settle performance test | done | `5bdc537` | `perf.js` in CI: inside its budgets, 0 of 5,000 off. |
-| Version contract | done | `5bdc537` | Changelog from 0.2.0; the README's Public API, checked by `contract.js`. |
-| React contract | done | `5bdc537` | `REACT.md`. |
-| Split card padding | done | `73d2025` | `layout.js` checks the default, each knob alone and the shorthand. |
-| Token source | done | `4cd7cf8` | `contract.js` fails on a stale `core.css`; the specimen renders identically before and after. |
-| Math module | done | `b60f874` | `tests/math.js`: 320 checks, both engines; `contract.js` checks its seed and worked examples. |
+| Report what is already applied | done | `dc57bea` | The v0.7 suite and the 0.8.0 suite match: same counts, 0 off. |
+| Its own repository | done | `dc57bea` | Public, one fresh first commit, CI green, Pages serves the specimen, installs by git address; the old location is a pointer and redirects here. |
+| MIT license | done | `dc57bea` | `LICENSE`; `contract.js` checks it. |
+| Rename to Trellis | done | `dc57bea` | Layers, package, global, headers and tests renamed; 0.8.0 lists each as breaking; the private product layers declare the new layer name. |
+| Neutral public specimen | done | `dc57bea` | No product switcher, no web fonts; two example layers in the matrix; one outside layer by address. |
+| Tests in CI | done | `dc57bea` | Every push and pull request, Chromium and WebKit. |
+| Package shape | done | `dc57bea` | A scratch project installed it by git address with no token. |
+| Namespace the cascade layers | done | `dc57bea` | `layers.js`, both engines; `contract.js` fails on a layer outside `trellis`. |
+| One runtime file | done | `dc57bea` | `settle.js` sets the device pixel ratio and fit width itself. |
+| Prose context | done | `dc57bea` | `align.js`: 0 of 90 prose blocks off (89 in WebKit). |
+| Post type layouts | done | `dc57bea` | `layout.js`, both engines, wide and phone. |
+| Wave 1 primitives | done | `dc57bea` | `layout.js` checks inputs on touch and opens the modal and the sheet. |
+| Three rule conflicts | done | `dc57bea` | Gap utilities reach clusters only; rule 5 and the cluster comment say what they should. |
+| Settle performance test | done | `dc57bea` | `perf.js` in CI: inside its budgets, 0 of 5,000 off. |
+| Version contract | done | `dc57bea` | Changelog from 0.2.0; the README's Public API, checked by `contract.js`. |
+| React contract | done | `dc57bea` | `REACT.md`. |
+| Split card padding | done | `7751fba` | `layout.js` checks the default, each knob alone and the shorthand. |
+| Token source | done | `08086e2` | `contract.js` fails on a stale `core.css`; the specimen renders identically before and after. |
+| Math module | done | `150398b` | `tests/math.js`: 320 checks, both engines; `contract.js` checks its seed and worked examples. |
 | Five ways to meet a line | decision | | |
 | Cap on the cell | decision | | |
 | Perf on a quiet laptop | idea | | Rerun `perf.js webkit` with nothing else running. |
@@ -125,8 +125,8 @@ The repository is public from the start. This is the release, and it waits until
 
 | Item | State | Commit | Evidence |
 |---|---|---|---|
-| Connect the build session | planning | | |
-| Status file in the repository | done | this commit | This file. |
+| Connect the build session | done | | |
+| Status file in the repository | done | `0b7e2c6` | This file. |
 | Review the workflow | idea | | |
 
 ## Keeping this file
