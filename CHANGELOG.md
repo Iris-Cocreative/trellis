@@ -2,6 +2,14 @@
 
 Semver, staying 0.x until two apps ship on the same version. A 0.x minor may break, and must say so here. The public API is defined in the [README](README.md#public-api). Changing the rhythm model is a major entry, with a note in the specimen's history.
 
+## Unreleased
+
+**Breaking**
+- **Split card padding:** `--card-pad` is no longer defined on every card. It is now the shorthand a variant or context sets for both directions. A stylesheet that read `var(--card-pad)` reads `--card-pad-inline` or `--card-pad-block` instead.
+
+**Added**
+- **Split card padding:** two knobs, `--density-card-pad-inline` and `--density-card-pad-block`. Both follow `--density-card-pad`, so padding stays equal unless a product splits it. On a card, `--card-pad-inline` and `--card-pad-block`. The Almanac example tightens its sides to one cell. `layout.js` checks the default, each knob alone, and the shorthand.
+
 ## 0.8.0 · 2026-11-11
 
 The foundation is renamed Trellis and moves to its own public repository, starting from one fresh commit. Nothing consumed the files yet, so the renames break no one in practice; they are listed as breaking because every one changes the public API.

@@ -440,7 +440,7 @@
   // Inspector: hover any element while Measure is on
   var hot = null;
   var VARS = {
-    card: ['--card-pad', '--card-radius'], button: ['--btn-h', '--btn-radius', '--btn-fs'],
+    card: ['--card-pad-inline', '--card-pad-block', '--card-radius'], button: ['--btn-h', '--btn-radius', '--btn-fs'],
     tag: ['--tag-h', '--tag-radius', '--tag-pad', '--tag-fs'], avatar: ['--av-n', '--av-gap', '--av-ring'],
     float: ['--float-pad', '--float-radius'], stack: ['--stack-gap'], cluster: ['--cluster-gap'], grid: ['--grid-min', '--grid-gap']
   };

@@ -197,7 +197,7 @@ Our apps carry rich content from editors and markdown, which arrives as bare tag
 | `.avatar` | The photo is the box, on whole cells. Gap and ring are spread shadows outside it, concentric at every size. **Shape is kind**: circle = person, rounded square (corner = size ÷ 4) = group. Initials on a wash of the ring color. Sizes u · 2u · 3u · 4u · 6u · 8u · 12u. `.avatar-dot`, `.avatar-stack`. |
 | `.tag` | **The archetype**: a height; a corner; padding equal to the corner (½u to u); a hairline edge and a tint mixed from one kind color; a label trimmed to its capitals. Kind, emphasis, size, state and context change variables only. By default, and in Almanac: pills. In Quarry: ¼u corners, uppercase. |
 | `.button`, `.icon-button` | Heights 1½u · 2u · 2½u · 3u · 4u; padding half the height; label trimmed to cap height; hit area ≥ 44px on touch. |
-| `.card` | Padding from `--density-card-pad`, corner from `--shape-card`, nested corners concentric, an edge plane, a container for its own type. |
+| `.card` | Padding from two knobs, `--density-card-pad-inline` (the sides) and `--density-card-pad-block` (top and bottom). Both follow `--density-card-pad`, so they are equal unless a product splits them: trimmed text makes equal padding optically equal, and a product may still tighten the sides and keep the vertical rhythm. Corner from `--shape-card`, nested corners concentric, an edge plane, a container for its own type. |
 | `.float` | `.options-card` (16u wide, ≤ 24u tall), `.tooltip`. Motion defined once on `.float[popover]`. |
 | Scrollbars | One archetype (`--scrollbar-width`, `--scrollbar-size`, `--scrollbar-thumb`, `--scrollbar-track`); variants `.cc-scroll-thick`, `.cc-scroll-none`. |
 | Layout | See Layout: `.frame`, `.section`, `.stack`, `.cluster`, `.cols`, `.split`, `.grid`, `.cells`, `.rail`, `.context`, `--hang`. |
@@ -230,7 +230,7 @@ Two invented layers in `examples/` show the range, and keep the mechanism tested
 | Type | system sans | Helvetica, heavier headings | a serif for headlines over a humanist sans |
 | Ratio | 1.2 → 1.333 | 1.125 → 1.25 | 1.333 → 1.5 |
 | Shapes | soft cards, pills | ¼u corners everywhere, uppercase tags | round cards, pill tags |
-| Density | comfortable | one notch denser | comfortable, a narrower measure |
+| Density | comfortable | one notch denser | comfortable, card sides tighter than top and bottom, a narrower measure |
 
 **The specimen takes one layer by address.** `?layer=examples/quarry.css&product=quarry` loads that stylesheet and sets `data-product`. A layer on another origin loads only when the specimen is served from localhost, so a product's private layer can be seen, and run through the tests, from where it lives ([`tests/README.md`](tests/README.md)).
 
@@ -275,7 +275,7 @@ This is what a consumer may rely on. Anything here changing is a changelog entry
 | `.row`, `.col`, `.context` | | `--row-gap` |
 | `.list` | `.list-item`, `.list-body`, `.list-end`, `.list-link` | `--list-pad-y`, `--list-gap`, `--list-rule`, `--list-hang` |
 | `.board` | `.board-lane`, `.board-lane-head` | `--board-lane-w`, `--board-gap`, `--board-lane-gap` |
-| `.card` | `.card-media` | `--card-pad`, `--card-radius`, `--card-border` |
+| `.card` | `.card-media` | `--card-pad` (sets both), `--card-pad-inline`, `--card-pad-block`, `--card-radius`, `--card-border` |
 | `.button`, `.icon-button` | `.button-label`, `.cc-primary`, `.cc-ghost`, `.cc-sm`, `.cc-md`, `.cc-lg` | `--btn-h`, `--btn-fs`, `--btn-radius`, `--btn-bg`, `--btn-ink`, `--btn-border`, `--btn-tracking` |
 | `.icon` | `.cc-end` | `--icon-size`, `--icon-stroke` |
 | `.tag` | `.tag-label`, `.tag-dot`, `.tag-remove` · kinds `.cc-person`, `.cc-group`, `.cc-event`, `.cc-course`, `.cc-ok`, `.cc-warn`, `.cc-alert` · `.cc-outline`, `.cc-solid` · `.cc-sm`, `.cc-md`, `.cc-lg` | `--tag-h`, `--tag-fs`, `--tag-color`, `--tag-radius`, `--tag-pad`, `--tag-fill`, `--tag-edge`, `--tag-ink`, `--tag-gap` |

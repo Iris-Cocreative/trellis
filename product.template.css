@@ -69,7 +69,9 @@
     --shape-control: var(--r-round);                     /* buttons and segmented tabs */
     --shape-input: var(--r-h);                           /* inputs, selects, textareas */
     --shape-float: var(--r-1);                           /* popovers and options cards */
-    --density-card-pad: var(--sp-2);                     /* a card's padding */
+    --density-card-pad: var(--sp-2);                     /* a card's padding, both ways */
+    --density-card-pad-inline: var(--density-card-pad);  /* its sides, if they differ */
+    --density-card-pad-block: var(--density-card-pad);   /* its top and bottom, if they differ */
     --density-control-h: var(--size-control-lg);         /* a default button or input's height */
     --density-control-fs: var(--fs-control);             /* a default button or input's type */
     --hang: 1;                                           /* cells a surface steps out; 0 turns it off */

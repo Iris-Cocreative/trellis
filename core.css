@@ -215,6 +215,11 @@
     --shape-input: var(--r-h);   /* an input holds a sentence: pills suit buttons, not this */
     --shape-float: var(--r-1);
     --density-card-pad: var(--sp-2);
+    /* Two knobs, equal unless a product splits them. Trimmed text makes equal
+       padding optically equal, so equal is the default; a product may tighten
+       the sides and keep the vertical rhythm. */
+    --density-card-pad-inline: var(--density-card-pad);
+    --density-card-pad-block: var(--density-card-pad);
     --density-control-h: var(--size-control-lg);
     --density-control-fs: var(--fs-control);
     --tag-default-h: var(--size-control-sm);
@@ -986,7 +991,12 @@
 
   /* Card --------------------------------------------------------------- */
   .card {
-    --card-pad: var(--density-card-pad);
+    /* Padding is two variables, sides and top-and-bottom. --card-pad is the
+       shorthand a variant or context sets for both; it starts empty on every
+       card, so a nested card doesn't inherit its parent's. */
+    --card-pad: initial;
+    --card-pad-inline: var(--card-pad, var(--density-card-pad-inline));
+    --card-pad-block: var(--card-pad, var(--density-card-pad-block));
     --card-radius: var(--shape-card);
     --card-border: var(--border-subtle);
     --surface: var(--bg-raised);
@@ -994,7 +1004,7 @@
     container-type: inline-size;
     background: var(--surface);
     border-radius: var(--card-radius);
-    padding: var(--card-pad);
+    padding: var(--card-pad-block) var(--card-pad-inline);
   }
   .card::after {
     content: "";
@@ -1005,7 +1015,8 @@
     pointer-events: none;
   }
   .card-media {
-    border-radius: max(var(--r-q), calc(var(--card-radius) - var(--card-pad)));
+    /* Concentric with the card's corner, from the nearer of its two paddings. */
+    border-radius: max(var(--r-q), calc(var(--card-radius) - min(var(--card-pad-inline), var(--card-pad-block))));
     overflow: hidden;
   }
   .cc-dense .card, .card.cc-dense { --card-pad: var(--sp-1); --card-radius: var(--r-1); }

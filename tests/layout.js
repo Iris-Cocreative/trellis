@@ -37,6 +37,35 @@ const ready = require('./ready');
     expect(Math.abs(box(rows[0].firstElementChild).left - box(list.parentElement).left) < 1, "a row's content is not on the column's edge");
     expect(body && whole(box(body).top - box(rows[0]).top), "a row's body does not start on a line");
 
+    // Card padding: two knobs that default to equal, and a shorthand for contexts.
+    {
+      const root = document.documentElement, host = document.createElement('div');
+      host.innerHTML = '<div class="card" id="pad-a">a</div><div class="card cc-dense" id="pad-b">b</div><div class="card" id="pad-c" style="--card-pad-block: 0px">c</div>';
+      document.body.appendChild(host);
+      const pad = id => { const cs = getComputedStyle(document.getElementById(id)); return [cs.paddingLeft, cs.paddingRight, cs.paddingTop, cs.paddingBottom].map(parseFloat); };
+      const near = (a, b) => Math.abs(a - b) < .05;
+      let p = pad('pad-a');
+      expect(p.every(v => near(v, p[0])) && p[0] > 0, `a card's padding is not equal by default: ${p}`);
+      const was = p[0];
+      root.style.setProperty('--density-card-pad-inline', 'var(--sp-1)');
+      p = pad('pad-a');
+      expect(near(p[0], u) && near(p[1], u) && near(p[2], was) && near(p[3], was), `the inline knob should set the sides alone: ${p}`);
+      root.style.removeProperty('--density-card-pad-inline');
+      root.style.setProperty('--density-card-pad-block', 'var(--sp-1)');
+      p = pad('pad-a');
+      expect(near(p[2], u) && near(p[3], u) && near(p[0], was) && near(p[1], was), `the block knob should set top and bottom alone: ${p}`);
+      root.style.setProperty('--density-card-pad', 'var(--sp-4)');
+      p = pad('pad-a');
+      expect(near(p[0], 4 * u) && near(p[2], u), `the one knob should move whichever side is not split: ${p}`);
+      root.style.removeProperty('--density-card-pad-block');
+      root.style.removeProperty('--density-card-pad');
+      p = pad('pad-b');
+      expect(p.every(v => near(v, u)), `a dense card's shorthand should set both: ${p}`);
+      p = pad('pad-c');
+      expect(near(p[2], 0) && near(p[0], was), `a context should be able to set one side: ${p}`);
+      host.remove();
+    }
+
     // Shell: same markup, same window, two widths.
     const nav = id => getComputedStyle($(id + ' .shell-nav')).flexDirection;
     const narrow = $('#demo-shell-narrow');
