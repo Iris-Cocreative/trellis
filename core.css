@@ -1,0 +1,1611 @@
+/* ==========================================================================
+   Trellis · core · v0.8 · 2026-11-11
+
+   Two seeds, and how they meet the world:
+     the CELL      u = 0.75rem: a whole even pixel, or fitted to the screen.
+                   Space is counted in cells. It doubles and halves.
+     the RATIO     type sizes step by a ratio that itself grows with the space.
+     RESPONSE      both answer to the screen: the cell fits it, the ratio opens
+                   with it, and the reader's dial scales them together.
+     CONTEXT       both answer to the box they're in: type sizes come from the
+                   container, contexts change variables, so anything nests.
+
+   Headlines stand on the cells; other text hangs from a cell line and
+   settles to whole cells. The cell is the only line on the page.
+
+   This file is product-agnostic. Product layers branch from it by changing
+   variables, never by redrawing a primitive.
+   ========================================================================== */
+
+/* One namespace, so nothing merges with a framework's layers of the same name
+   (Tailwind v4 also declares theme, base and utilities). A project that loads
+   Tailwind states the order first, before either stylesheet:
+     @layer theme, base, trellis, components, utilities;
+   See README, Adoption: without that line, neither import order is safe. */
+@layer trellis.reset, trellis.tokens, trellis.theme, trellis.base, trellis.layout, trellis.primitives, trellis.product, trellis.utilities;
+
+/* --u and --cells are deliberately NOT registered properties.
+   - Chrome passes a registered length on as its serialization, rounded to six
+     significant digits, so a fitted 10.03125px arrives as 10.0312px and the
+     error adds up down a page.
+   - WebKit (every iPhone browser) can't compute a registered number from a
+     length ratio: --cells came out 0, the unit infinite, the page blank.
+   Unregistered, they stay expressions; everything in them (rem, vw) resolves
+   the same on every element. --u-px is a registered copy for scripts to
+   read; never build layout from it. */
+@property --u-px {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 12px;
+}
+/* What settle.js writes belongs to one box. Unregistered, it would inherit: a
+   blockquote's cell count would also hold every paragraph inside it open. */
+@property --settle-n {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+@property --settle {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --settle-start {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+/* --------------------------------------------------------------------------
+   RESET
+   -------------------------------------------------------------------------- */
+@layer trellis.reset {
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  body, h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd, ul, ol { margin: 0; }
+  ul[role="list"], ol[role="list"] { list-style: none; padding: 0; }
+  img, svg, video, canvas { display: block; max-width: 100%; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { background: none; border: 0; padding: 0; cursor: pointer; }
+}
+
+/* --------------------------------------------------------------------------
+   TOKENS
+   -------------------------------------------------------------------------- */
+@layer trellis.tokens {
+  :root {
+    /* ---- The cell -------------------------------------------------------
+       The target follows the reader's font-size setting and the screen:
+       10px (0.625rem) up to a 500px screen, rising to 12px at 1000px.
+       --u-scale is the accessibility and density dial. On a wide screen the
+       target rounds to an even pixel, which keeps every half-unit whole; on
+       a touch screen it is fitted instead (below). */
+    --u-base: clamp(0.625rem, calc(0.5rem + 0.4vw), 0.75rem);
+    --u-scale: 1;
+    --u-target: calc(var(--u-base) * var(--u-scale));
+    --u: round(nearest, var(--u-target), 2px);
+    --u-px: var(--u);
+
+    /* Point, line, plane. Lines never scale with the unit.
+       --line is one logical pixel; --hair is one device pixel (⅓px on a 3x
+       screen, ½px on 2x), the thinnest mark a screen can make. A line is a
+       plane: it occupies the pixels just after its coordinate (right of it,
+       below it), so N cells drawn with their edges need N cells plus one. */
+    --line: 1px;
+    --dpr: 1;
+    --hair: calc(1px / var(--dpr));
+
+    /* ---- Octaves: halving and doubling the unit --------------------------- */
+    --sp-q:  max(var(--line), round(nearest, calc(var(--u) / 4), 1px));  /* ¼u  3   */
+    --sp-q2: calc(var(--sp-h) - var(--sp-q));      /* the other quarter: ¼u + this is exactly ½u at any unit */
+    --sp-h:  calc(var(--u) / 2);                                          /* ½u  6   */
+    --sp-1:  var(--u);                                                    /* u   12  */
+    --sp-1h: calc(var(--u) * 1.5);                                        /* 1½u 18  */
+    --sp-2:  calc(var(--u) * 2);                                          /* 2u  24  */
+    --sp-3:  calc(var(--u) * 3);                                          /* 3u  36  */
+    --sp-4:  calc(var(--u) * 4);                                          /* 4u  48  */
+    --sp-6:  calc(var(--u) * 6);                                          /* 6u  72  */
+    --sp-8:  calc(var(--u) * 8);                                          /* 8u  96  */
+    --sp-12: calc(var(--u) * 12);                                         /* 12u 144 */
+    --sp-16: calc(var(--u) * 16);                                         /* 16u 192 */
+
+    /* ---- Control type: fixed sizes, deliberately not fluid. Controls sit
+       in rows of a fixed height, so their labels don't scale with the
+       container. The only font sizes outside the type roles. */
+    --fs-control-xs: .6875rem;
+    --fs-control-sm: .75rem;
+    --fs-control-md: .8125rem;
+    --fs-control:    .875rem;
+    --fs-control-lg: 1rem;
+
+    /* ---- The only raw neutrals: ink on a solid color or a photo. */
+    --white: #fff;
+    --black: #000;
+
+    /* ---- Touch: on a coarse pointer every control's hit area is at least
+       this, whatever it draws (Apple's 44pt). */
+    --hit-min: 44px;
+
+    /* ---- The frame: the page's outer box. It holds a FIELD of whole modules
+       (4 cells each) with a gutter of whole cells either side, and it is
+       centered, so the strongest lines are symmetric about the screen.
+       On a wide screen the frame steps by a module and the gutter by two
+       cells; fitted (below), the frame steps by two cells and the gutter
+       takes 2 or 3 cells so the field stays whole modules. Gutters clear the
+       phone's safe areas (the notch, in landscape). */
+    --frame-max-n: 100;
+    --frame-max: calc(var(--u) * var(--frame-max-n));
+    --frame-step: calc(var(--u) * 4);
+    --gutter: max(
+      round(down, clamp(var(--sp-2), 4vw, var(--sp-4)), var(--sp-2)),
+      round(up, env(safe-area-inset-left, 0px), var(--sp-2)),
+      round(up, env(safe-area-inset-right, 0px), var(--sp-2)));
+
+    /* ---- Sizes: named roles, each an octave or an octave plus a hairline --- */
+    --size-icon-sm: var(--sp-1);                              /* 12            */
+    --size-icon:    calc(var(--sp-1) + var(--line) * 2);      /* 14 = 12 + line */
+    --size-icon-md: var(--sp-1h);                             /* 18            */
+    --size-icon-lg: var(--sp-2);                              /* 24            */
+    --size-control-xs: var(--sp-1h);                          /* 18 */
+    --size-control-sm: var(--sp-2);                           /* 24 */
+    --size-control-md: calc(var(--u) * 2.5);                  /* 30 */
+    --size-control-lg: var(--sp-3);                           /* 36 */
+    --size-control-xl: var(--sp-4);                           /* 48 */
+
+    /* ---- Radii: octaves too. Nested radius = outer radius − padding. ------- */
+    --r-q: var(--sp-q);
+    --r-h: var(--sp-h);
+    --r-1: var(--sp-1);
+    --r-1h: var(--sp-1h);
+    --r-2: var(--sp-2);
+    --r-round: 999px;
+
+    /* ---- Layers: one scale for everything that stacks -------------------- */
+    --z-raised: 10;
+    --z-sticky: 100;
+    --z-overlay: 1000;
+    --z-float: 1100;
+    --z-toast: 1200;
+
+    /* ---- Motion: enter slower than exit (the modal standard) -------------- */
+    --dur-out: 150ms;
+    --dur-in: 200ms;
+    --dur-in-slow: 250ms;
+    --dur-sheet-in: 350ms;
+    --dur-sheet-out: 300ms;
+    --dur-skeleton: 1.4s;
+    --ease-in: cubic-bezier(.4, 0, 1, 1);
+    --ease-out: cubic-bezier(0, 0, .2, 1);
+    --ease-spring: cubic-bezier(.32, .72, 0, 1);
+
+    /* ---- The ratio: fluid, fractal type ---------------------------------
+       Every size is clamp(min, slope × container + intercept, max). The two
+       anchors are H1 and body; everything else steps from them by a ratio.
+       The ratio has a min and a max too, so hierarchy is compressed in a
+       narrow space and opens up in a wide one. Numbers are rem, unitless.
+       Products set these; the values here are neutral defaults. */
+    --c-min: 20;            /* 320px  narrow context */
+    --c-max: 90;            /* 1440px wide context   */
+    --h1-min: 2.25;  --h1-max: 4;
+    --rh-min: 1.2;   --rh-max: 1.333;
+    --body-min: 1;   --body-max: 1.125;
+    --rp-min: 1.125; --rp-max: 1.2;
+    --label-min: .6875; --label-max: .75;
+
+    --lh-h1: 1.05;   --lh-h-step: .05;     /* each smaller heading opens by a step */
+    --mb-h1: .33;    --mb-h-step: .11;     /* space after a heading, in its own ems */
+    --lh-body: 1.45; --lh-p-step: .03;     /* each larger paragraph closes by a step */
+    --lh-label: 1.2;
+
+    --font-sans: ui-sans-serif, system-ui, sans-serif;
+    --font-serif: Georgia, serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    --font-heading: var(--font-sans);
+    --fw-body: 400; --fw-heading: 500; --fw-label: 500; --fw-strong: 600;
+    --label-tracking: .08em;
+    --label-case: uppercase;
+
+    /* ---- Product knobs: products change these on :root and nothing else.
+       Primitives read them; variants and contexts set the primitive's own
+       variables, so a product never overrides a variant by accident. */
+    --shape-card: var(--r-1h);
+    --hang: 1;                   /* cells a card steps out into the space around it */
+    --prose-measure: calc(var(--u) * 56);   /* the widest a column of running text gets */
+    --shape-control: var(--r-round);
+    --shape-input: var(--r-h);   /* an input holds a sentence: pills suit buttons, not this */
+    --shape-float: var(--r-1);
+    --density-card-pad: var(--sp-2);
+    --density-control-h: var(--size-control-lg);
+    --density-control-fs: var(--fs-control);
+    --tag-default-h: var(--size-control-sm);
+    --tag-default-fs: var(--tag-fs-md);
+    --tag-fs-sm: .6875rem;
+    --tag-fs-md: .75rem;
+    --tag-fs-lg: .8125rem;
+    --tag-r-fixed: 0px;          /* a fixed corner, or …            */
+    --tag-r-ratio: .5;           /* … a share of the height (.5 = pill) */
+    --tag-case: none;
+    --tag-tracking: 0;
+
+    /* Isometric lattice: a 2:1 slope, so every lattice point is a cell corner. */
+    --iso-dx: var(--sp-2);
+    --iso-dy: var(--sp-1);
+  }
+}
+
+/* Device pixels. 2x and 3x cover phones and most laptops; a script may set
+   --dpr exactly (2.625 on some Android phones). */
+@layer trellis.tokens {
+  @media (min-resolution: 2dppx) { :root { --dpr: 2; } }
+  @media (min-resolution: 3dppx) { :root { --dpr: 3; } }
+}
+
+
+/* Fit. Where the screen's edge frames the page (touch screens: phones in
+   either orientation, foldables, tablets), the cell is fitted to the screen.
+   - The count is even, so the screen's center is a line, and it follows the
+     reader's target: N = the even number nearest (width - hair) / target.
+     The cell strays at most ~2.5% from the target.
+   - The cell is (width - hair) / N: N cells plus the one hair that the last
+     line needs, since a line occupies the pixel after its coordinate.
+   - The gutter takes 2 or 3 cells (more beside a notch) so the field between
+     the gutters is whole modules of 4: the strongest lines are then the
+     field's edges and every 4th cell in from them, symmetric on the screen.
+     How --gutter-n gets there: field = cells - 2 × gutter must divide by 4,
+     so the gutter must have the same parity as cells / 2.
+       40 cells: 40/2 = 20 is even, gutter 2, field 36 = 9 modules.
+       42 cells: 42/2 = 21 is odd,  gutter 3, field 36 = 9 modules.
+     Beside a notch the gutter must clear the safe area: the smallest count
+     of cells that does, nudged up by one if its parity is wrong. The count
+     is the frame's, so a frame capped at 100 cells uses 100.
+   - The cell becomes fractional; lines never do (--line, --hair).
+   - Rounding to 1/32px keeps every half-unit exact in the browser's 1/64px
+     layout grid, so baselines never drift; what's left over (under a pixel
+     or so) is split between the two edges.
+   - 1x screens never fit: a fractional cell would draw equal gaps as 5px and
+     6px. Desktop windows don't fit by default, or every space would breathe
+     while the window is dragged. data-unit-fit="on" forces it, "off" refuses.
+   - The clamp is a guard: a fitted cell is always near its target, so a
+     browser that gets the math wrong still lays out a sane page.
+   - The 1/4096px nudge keeps an exact fit exact (820 / 82 is 10, not the
+     9.99999 floating point can make of it, which would round down a step).
+   - --fit-width lets a script pass the exact width where 100vw would include
+     a classic scrollbar.
+   - The count needs typed division (a length divided by a length). Where a
+     browser lacks it, @supports keeps the whole unit. Don't swap in the older
+     tan(atan2()) trick: WebKit computes it wrongly with viewport units (0 or
+     4.14 where 81.66 is right), which blanked every iPhone in v0.3.0. */
+@layer trellis.tokens {
+  @supports (width: calc(100vw / 1px * 1px)) {
+    @media (pointer: coarse) and (min-resolution: 1.5dppx) {
+      :root:not([data-unit-fit="off"]) {
+        --fit-w: calc(var(--fit-width, 100vw) - var(--hair));
+        --cells: calc(2 * round(nearest, var(--fit-w) / (var(--u-target) * 2), 1));
+        --u: clamp(calc(var(--u-target) * 0.8),
+                   round(down, calc(var(--fit-w) / max(var(--cells), 2) + 1px / 4096), 1px / 32),
+                   calc(var(--u-target) * 1.25));
+        --frame-step: calc(var(--u) * 2);
+        --gutter-safe: round(up, max(env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) / var(--u), 1);
+        --gutter-n: max(calc(2 + mod(min(var(--cells), var(--frame-max-n)) / 2, 2)),
+                        calc(var(--gutter-safe) + mod(min(var(--cells), var(--frame-max-n)) / 2 - var(--gutter-safe), 2)));
+        --gutter: calc(var(--u) * var(--gutter-n));
+      }
+    }
+    :root[data-unit-fit="on"] {
+      --fit-w: calc(var(--fit-width, 100vw) - var(--hair));
+      --cells: calc(2 * round(nearest, var(--fit-w) / (var(--u-target) * 2), 1));
+      --u: clamp(calc(var(--u-target) * 0.8),
+                 round(down, calc(var(--fit-w) / max(var(--cells), 2) + 1px / 4096), 1px / 32),
+                 calc(var(--u-target) * 1.25));
+      --frame-step: calc(var(--u) * 2);
+      --gutter-safe: round(up, max(env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)) / var(--u), 1);
+      --gutter-n: max(calc(2 + mod(min(var(--cells), var(--frame-max-n)) / 2, 2)),
+                      calc(var(--gutter-safe) + mod(min(var(--cells), var(--frame-max-n)) / 2 - var(--gutter-safe), 2)));
+      --gutter: calc(var(--u) * var(--gutter-n));
+    }
+  }
+}
+
+/* --------------------------------------------------------------------------
+   THEME: semantic roles. light-dark() reads color-scheme, so one declaration
+   per role carries both themes and nothing can drift between them.
+   -------------------------------------------------------------------------- */
+@layer trellis.theme {
+  :root { color-scheme: light dark; }
+  :root[data-theme="light"] { color-scheme: light; }
+  :root[data-theme="dark"]  { color-scheme: dark; }
+
+  :root {
+    --bg:             light-dark(#f6f6f4, #101111);
+    --bg-raised:      light-dark(#ffffff, #18191a);
+    --bg-sunken:      light-dark(#ececea, #0a0b0b);
+    --bg-hover:       light-dark(#eaeae7, #242526);
+    --text:           light-dark(#18191a, #f4f4f2);
+    --text-secondary: light-dark(#45474a, #c4c5c6);
+    --text-tertiary:  light-dark(#6d7074, #8e9195);
+    --text-faint:     light-dark(#9a9da1, #5f6266);
+    --border:         light-dark(#d6d7d8, #2e3032);
+    --border-subtle:  light-dark(#e4e5e6, #222425);
+    --border-strong:  light-dark(#a9abae, #4a4d50);
+    --accent:         light-dark(#2c6fd1, #6aa5f5);
+    --accent-ink:     #ffffff;
+    --focus:          light-dark(#2c6fd1, #6aa5f5);
+
+    /* Kinds: what sort of thing this is. Shape and color both follow kind. */
+    --kind-person: light-dark(#b8740a, #f5a524);
+    --kind-group:  light-dark(#1f8394, #3db3c5);
+    --kind-event:  light-dark(#7e3e9c, #b77ad6);
+    --kind-course: light-dark(#0b7d45, #2fb874);
+    --kind-topic:  light-dark(#1b62c0, #5b9cf0);
+
+    --ok:    light-dark(#0a8f4a, #2cc574);
+    --warn:  light-dark(#a86a00, #f5a524);
+    --alert: light-dark(#c2441f, #ef6c44);
+
+    --lift: 0 var(--sp-h) var(--sp-2) light-dark(rgb(16 20 22 / .12), rgb(0 0 0 / .55)),
+            0 0 0 var(--line) light-dark(rgb(16 20 22 / .04), rgb(0 0 0 / .3));
+
+    /* Scrollbars: one archetype. A variant changes a variable, never the rule. */
+    --scrollbar-width: thin;
+    --scrollbar-size: var(--sp-h);
+    --scrollbar-thumb: color-mix(in oklab, var(--text) 22%, transparent);
+    --scrollbar-thumb-hover: color-mix(in oklab, var(--text) 40%, transparent);
+    --scrollbar-track: transparent;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   BASE
+   -------------------------------------------------------------------------- */
+@layer trellis.base {
+  :root { --surface: var(--bg); }
+
+  body {
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-weight: var(--fw-body);
+    font-size: 1rem;
+    line-height: var(--sp-2);
+    font-synthesis: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible { outline: calc(var(--line) * 2) solid var(--focus); outline-offset: var(--line); }
+
+  /* Scrollbars ------------------------------------------------------------ */
+  * {
+    scrollbar-width: var(--scrollbar-width);
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
+  @supports not (scrollbar-color: auto) {
+    ::-webkit-scrollbar { width: var(--scrollbar-size); height: var(--scrollbar-size); }
+    ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+    ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: var(--r-round); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
+  }
+
+  /* Type roles ------------------------------------------------------------
+     Each role sets its min, max and line-height ratio; one rule turns them
+     into a fluid size. How a role meets the grid depends on its kind:
+     - HEADLINES (h1, h2, h3) stand on the cells: the line height rounds to
+       whole cells and every baseline lands on a cell line.
+     - TEXT (h4 to h6, the paragraph roles, the label) runs on its own
+       proportional line. It hangs from a cell line (the top of its
+       capitals) and its block rounds up to whole cells, so whatever follows
+       starts on a line.
+     The cell stays the only line on the page. Type answers to it where it
+     is large enough to be seen doing so. */
+  .t-h1, :where(.prose h1) { --t-min: var(--h1-min); --t-max: var(--h1-max); --t-lh: var(--lh-h1); --t-mb: var(--mb-h1); }
+  .t-h2, :where(.prose h2) { --t-min: calc(var(--h1-min) / var(--rh-min)); --t-max: calc(var(--h1-max) / var(--rh-max)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step)); --t-mb: calc(var(--mb-h1) + var(--mb-h-step)); }
+  .t-h3, :where(.prose h3) { --t-min: calc(var(--h1-min) / pow(var(--rh-min), 2)); --t-max: calc(var(--h1-max) / pow(var(--rh-max), 2)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step) * 2); --t-mb: calc(var(--mb-h1) + var(--mb-h-step) * 2); }
+  .t-h4, :where(.prose h4) { --t-min: calc(var(--h1-min) / pow(var(--rh-min), 3)); --t-max: calc(var(--h1-max) / pow(var(--rh-max), 3)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step) * 3); --t-mb: calc(var(--mb-h1) + var(--mb-h-step) * 3); }
+  .t-h5, :where(.prose h5) { --t-min: calc(var(--h1-min) / pow(var(--rh-min), 4)); --t-max: calc(var(--h1-max) / pow(var(--rh-max), 4)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step) * 4); --t-mb: calc(var(--mb-h1) + var(--mb-h-step) * 4); }
+  .t-h6, :where(.prose h6) { --t-min: calc(var(--h1-min) / pow(var(--rh-min), 5)); --t-max: calc(var(--h1-max) / pow(var(--rh-max), 5)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step) * 5); --t-mb: calc(var(--mb-h1) + var(--mb-h-step) * 5); }
+  .t-xl { --t-min: calc(var(--body-min) * pow(var(--rp-min), 2)); --t-max: calc(var(--body-max) * pow(var(--rp-max), 2)); --t-lh: calc(var(--lh-body) - var(--lh-p-step) * 2); }
+  .t-lg, :where(.prose blockquote), :where(.prose) blockquote :is(p, li) { --t-min: calc(var(--body-min) * var(--rp-min)); --t-max: calc(var(--body-max) * var(--rp-max)); --t-lh: calc(var(--lh-body) - var(--lh-p-step)); }
+  .t-body, :where(.prose :is(p, li, dt, dd, summary), .prose div:not([class], :has(> :is(p, div, ul, ol, dl, h1, h2, h3, h4, h5, h6, blockquote, pre, table, figure, hr, details, img, video, iframe)))) { --t-min: var(--body-min); --t-max: var(--body-max); --t-lh: var(--lh-body); }
+  .t-sm, :where(.prose :is(figcaption, caption, td)), :where(.prose) blockquote > :is(footer, cite) { --t-min: calc(var(--body-min) / var(--rp-min)); --t-max: calc(var(--body-max) / var(--rp-max)); --t-lh: calc(var(--lh-body) + var(--lh-p-step)); }
+  .t-xs { --t-min: calc(var(--body-min) / pow(var(--rp-min), 2)); --t-max: calc(var(--body-max) / pow(var(--rp-max), 2)); --t-lh: calc(var(--lh-body) + var(--lh-p-step) * 2); }
+  .t-label, :where(.prose th) { --t-min: var(--label-min); --t-max: var(--label-max); --t-lh: var(--lh-label); }
+
+  :where(.t-h1, .t-h2, .t-h3, .t-h4, .t-h5, .t-h6, .t-xl, .t-lg, .t-body, .t-sm, .t-xs, .t-label,
+         .prose :is(h1, h2, h3, h4, h5, h6, th, td), .prose :is(p, li, dt, dd, summary, blockquote, figcaption, caption), .prose blockquote > :is(footer, cite), .prose div:not([class], :has(> :is(p, div, ul, ol, dl, h1, h2, h3, h4, h5, h6, blockquote, pre, table, figure, hr, details, img, video, iframe)))) {
+    --t-slope: calc((var(--t-max) - var(--t-min)) / (var(--c-max) - var(--c-min)));
+    --t-fs: clamp(
+      calc(var(--t-min) * 1rem),
+      calc((var(--t-min) - var(--t-slope) * var(--c-min)) * 1rem + var(--t-slope) * 100cqi),
+      calc(var(--t-max) * 1rem));
+    --t-line: calc(1em * var(--t-lh));
+    font-size: var(--t-fs);
+    line-height: var(--t-line);
+  }
+  :where(.t-h1, .t-h2, .t-h3, .prose :is(h1, h2, h3)) { --t-line: round(nearest, calc(1em * var(--t-lh)), var(--u)); }
+  :where(.t-h1, .t-h2, .t-h3, .t-h4, .t-h5, .t-h6, .prose :is(h1, h2, h3, h4, h5, h6)) { font-family: var(--font-heading); font-weight: var(--fw-heading); text-wrap: balance; letter-spacing: var(--heading-tracking, -.01em); }
+  /* A heading carries its own space after it, proportional to its size and
+     settled on the cells. In a stack it is the larger of that space and the
+     stack's gap, never the sum. */
+  :where(.t-h1, .t-h2, .t-h3, .t-h4, .t-h5, .t-h6, .prose :is(h1, h2, h3, h4, h5, h6)):not(:last-child) {
+    --t-own: round(nearest, calc(1em * var(--t-mb)), var(--u));
+    margin-block-end: var(--t-own);
+  }
+  :is(.stack, .member-tile-body, .modal-body, .cover-body, .list-body) > :where(.t-h1, .t-h2, .t-h3, .t-h4, .t-h5, .t-h6):not(:last-child) {
+    margin-block-end: max(0px, calc(var(--t-own) - var(--stack-gap, var(--sp-1))));
+  }
+  :where(.prose, .prose div:not([class])) > :where(.t-h1, .t-h2, .t-h3, .t-h4, .t-h5, .t-h6, h1, h2, h3, h4, h5, h6):not(:last-child) {
+    --prose-after: max(0px, calc(var(--t-own) - var(--stack-gap, var(--sp-1))));
+    margin-block-end: var(--prose-after);
+  }
+  a { color: inherit; text-decoration-thickness: var(--line); text-underline-offset: .22em; text-decoration-color: color-mix(in oklab, currentColor 40%, transparent); }
+  a:hover { text-decoration-color: currentColor; }
+  :where(.t-xl, .t-lg, .t-body, .t-sm, .t-xs, .prose :is(p, li, dt, dd, summary, blockquote, figcaption, caption), .prose blockquote > :is(footer, cite), .prose div:not([class], :has(> :is(p, div, ul, ol, dl, h1, h2, h3, h4, h5, h6, blockquote, pre, table, figure, hr, details, img, video, iframe)))) { text-wrap: pretty; }
+  .t-label, :where(.prose th) { font-weight: var(--fw-label); letter-spacing: var(--label-tracking); text-transform: var(--label-case); }
+  /* Marks inside running text never stretch its line. */
+  :where(.t-h1, .t-h2, .t-h3, .t-h4, .t-h5, .t-h6, .t-xl, .t-lg, .t-body, .t-sm, .t-xs, .t-label, p, .prose :is(li, dt, dd, summary, blockquote, figcaption, caption, th, td, h1, h2, h3, h4, h5, h6, div)) :where(code, .t-mono, b, strong, em, i, a, sub, sup, kbd, mark, small, cite, abbr, q, s, del, ins, u, var, samp, dfn, time) { line-height: 0; }
+  .t-serif { font-family: var(--font-serif); font-weight: var(--fw-serif, 400); }
+  .t-mono  { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  /* Settling. CSS trims a text box to its real edges: the top of the
+     capitals and the alphabetic baseline. */
+  @supports (text-box: trim-both cap alphabetic) {
+    :where(.t-h1, .t-h2, .t-h3, .t-h4, .t-h5, .t-h6, .t-xl, .t-lg, .t-body, .t-sm, .t-xs, .t-label, .snap,
+           .prose :is(h1, h2, h3, h4, h5, h6), .prose :is(p, li, dt, dd, summary, blockquote, figcaption, caption), .prose blockquote > :is(footer, cite), .prose div:not([class], :has(> :is(p, div, ul, ol, dl, h1, h2, h3, h4, h5, h6, blockquote, pre, table, figure, hr, details, img, video, iframe)))) { text-box: trim-both cap alphabetic; }
+    /* A headline pads its top so the block is whole cells. Its bottom edge
+       is its last baseline, every line above it is one line-height (whole
+       cells) up: every baseline on a line. Layout stores the trimmed box in
+       1/64px units; quantize the cap the same way, or the drift adds up. */
+    :where(.t-h1, .t-h2, .t-h3, .prose :is(h1, h2, h3)) {
+      --t-stand: calc(round(up, 1cap, var(--u)) - round(down, 1cap, 0.015625px));
+      padding-block-start: var(--t-stand);
+    }
+    /* Beside a control, text centers its capitals on the control. */
+    .cap-center { padding-block: 0; align-self: center; height: auto; }
+    /* x-height edge: lowercase text that aligns with a mark beside it. */
+    .snap-x { text-box: trim-both ex alphabetic; }
+  }
+  /* Text hangs from its top line and rounds its block up to whole cells;
+     a headline rounds to the nearest (it is whole cells already, this only
+     absorbs sub-pixel error). */
+  @supports (height: calc-size(fit-content, size)) and (text-box: trim-both cap alphabetic) {
+    :where(.t-h4, .t-h5, .t-h6, .t-xl, .t-lg, .t-body, .t-sm, .t-xs, .t-label, .snap, .snap-x,
+           .prose :is(h4, h5, h6), .prose :is(p, li, dt, dd, summary, blockquote, figcaption, caption), .prose blockquote > :is(footer, cite), .prose div:not([class], :has(> :is(p, div, ul, ol, dl, h1, h2, h3, h4, h5, h6, blockquote, pre, table, figure, hr, details, img, video, iframe)))) { height: calc-size(fit-content, round(up, size, var(--u))); }
+    /* A cluster (a wrapping row of tags, chips, avatars) settles like text:
+       inside, it keeps its own half-cell rhythm, as letters do in a word;
+       its block rounds up to whole cells. */
+    .settle, .field, :where(.prose :is(pre, table, figure, details, dl, video, audio), .prose > :not(h1, h2, h3, h4, h5, h6, p, ul, ol, hr, blockquote, iframe, div:not([class]))) { height: calc-size(fit-content, round(up, size, var(--u))); }
+    /* A cluster rounds to the nearest whole cell, halves down (at least one
+       cell): a row of 1½-cell tags takes one cell and lets the rest sit in
+       the gap after it. So its content can overflow into that gap by up to half
+       a cell. That is safe only because the gap is always whole cells and at
+       least one (rule 6), which is why .u-gap-q and .u-gap-h don't reach a stack.
+       Don't follow a cluster with less than a cell. */
+    .cluster { height: calc-size(fit-content, max(var(--u), round(down, calc(size + var(--sp-h) - 0.5px), var(--u)))); }
+    :where(.t-h1, .t-h2, .t-h3, .prose :is(h1, h2, h3)) { height: calc-size(fit-content, round(nearest, size, var(--u))); }
+  }
+  /* Without calc-size (Safari today) settle.js counts the cells each text block
+     needs and writes the count, and the block's least height is exactly that many
+     cells. A count, not a measured gap: WebKit's trimmed heights jitter by 1/64px
+     with where a box sits, and a box held at whole cells has nothing to add up. */
+  @supports not (height: calc-size(fit-content, size)) {
+    :where(.t-h4, .t-h5, .t-h6, .t-xl, .t-lg, .t-body, .t-sm, .t-xs, .t-label, .snap, .snap-x,
+           .prose :is(h4, h5, h6), .prose :is(p, li, dt, dd, summary, blockquote, figcaption, caption), .prose blockquote > :is(footer, cite), .prose div:not([class], :has(> :is(p, div, ul, ol, dl, h1, h2, h3, h4, h5, h6, blockquote, pre, table, figure, hr, details, img, video, iframe)))) { min-height: calc(var(--u) * var(--settle-n, 0)); }
+  }
+}
+
+/* --------------------------------------------------------------------------
+   LAYOUT: the anatomy of a page, and the compositions inside it.
+
+   PAGE         .frame      the field of modules and its gutters, centered
+                .shell      navigation, main, aside; a tab bar when narrow
+   SECTION      .section    a band of the page: a head and a body
+                  .cc-split   the head beside the body, when there is room
+                  .cc-band    the band's surface reaches the screen's edges
+                .cover      a full-screen opening: media to the edges, words in the field
+   COMPOSITION  how a region arranges what it holds
+                .stack      one above another
+                .cluster    a wrapping row: tags, chips, avatars, actions
+                .cols       n equal columns
+                .split      two columns at a ratio (2 : 1 by default)
+                .grid       as many fixed tracks as fit
+                .cells      the lattice itself: place things by cell
+                .rail       a sideways strip that scrolls and snaps
+                .list       rows divided by hairlines
+                .board      lanes of cards in a sideways scroller
+                .prose      bare tags from an editor, mapped to the roles
+   SURFACE      .card       a plane with padding, an edge and its own type
+   ELEMENT      the primitives: type roles, tag, button, avatar, float …
+
+   Rules every composition keeps: children start on cells; space between
+   blocks is whole cells; it responds to its container, never the window,
+   so it behaves the same in a sidebar, a card or a page; and it changes
+   variables, never markup, from one context to the next.
+   -------------------------------------------------------------------------- */
+@layer trellis.layout {
+  /* PAGE. The frame: whole cells wide (plus the hair its last line needs)
+     and centered, so the grid fits whatever frames the page: the screen's
+     edges when fitted, the frame's own edges on a wide screen, where the
+     margins take the rest. The 1/16px tolerance stops an exact fit losing a
+     step. */
+  .frame {
+    --frame-w: min(round(down, calc(100% - var(--hair) + 1px / 16), var(--frame-step)), var(--frame-max));
+    width: var(--frame-w);
+    margin-inline: calc((100% - var(--frame-w) - var(--hair)) / 2);
+    padding-inline: var(--gutter);
+  }
+
+  /* SECTION. A band: a head (label, title, a line of intro) and a body. */
+  .section { display: grid; gap: var(--sp-2) var(--sp-4); grid-template-columns: minmax(0, 1fr); align-items: start; }
+  .section-head { --stack-gap: var(--sp-1); }
+  .section-body { --stack-gap: var(--sp-3); min-width: 0; }
+  /* Split: on a wide enough page the head sits beside the body, 22 cells wide. */
+  @container (width > 54rem) {
+    .section.cc-split { grid-template-columns: var(--section-head-w, calc(var(--u) * 22)) minmax(0, 1fr); }
+  }
+  /* Band: the section's surface reaches the screen's edges while its content
+     stays in the field. Painted with an outset border image, so it never
+     widens the page or adds sideways scroll. */
+  .section.cc-band {
+    padding-block: var(--sp-6);
+    border-image: conic-gradient(var(--band-bg, var(--bg-sunken)) 0 0) fill 0 // 0 100vw;
+  }
+
+  /* COMPOSITIONS */
+  .stack   { display: flex; flex-direction: column; gap: var(--stack-gap, var(--sp-1)); }
+  .cluster { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cluster-gap, var(--sp-h)); }
+  /* Columns: a count, each track rounded down to whole cells, so every
+     column's left edge lands on a line. The last right edge is free. */
+  .cols {
+    --cols: 2;
+    --cols-gap: var(--sp-2);
+    display: grid;
+    gap: var(--cols-gap);
+    grid-template-columns: repeat(var(--cols), round(down, calc((100% - (var(--cols) - 1) * var(--cols-gap)) / var(--cols)), var(--u)));
+  }
+  /* Split: two columns at a ratio, the first rounded down to whole cells.
+     Below 36rem of container it becomes one column. */
+  .split {
+    --split-a: 2;
+    --split-b: 1;
+    --split-gap: var(--sp-2);
+    display: grid;
+    gap: var(--split-gap);
+    align-items: start;
+    grid-template-columns: round(down, calc((100% - var(--split-gap)) * var(--split-a) / (var(--split-a) + var(--split-b))), var(--u)) minmax(0, 1fr);
+  }
+  @container (width < 36rem) { .split { grid-template-columns: minmax(0, 1fr); } }
+  /* As many fixed tracks as fit. Tracks don't stretch; the remainder is space. */
+  .grid {
+    display: grid;
+    gap: var(--grid-gap, var(--sp-2));
+    grid-template-columns: repeat(auto-fill, min(var(--grid-min, var(--sp-16)), 100%));
+  }
+  /* Cells: the lattice as a layout. Every track is one cell; a child is
+     placed by --cell-x / --cell-y (1-based, or auto) and sized by --cell-w /
+     --cell-h, in cells. For compositions that are drawn rather than flowed:
+     Mondrian panels, collages, a hero's free arrangement. Re-place children
+     in container queries; never in pixels. */
+  .cells { display: grid; grid-template-columns: repeat(auto-fill, var(--u)); grid-auto-rows: var(--u); }
+  .cells > * {
+    grid-column: var(--cell-x, auto) / span var(--cell-w, 4);
+    grid-row: var(--cell-y, auto) / span var(--cell-h, 4);
+    min-width: 0;
+  }
+  /* Rail: a sideways strip that scrolls and snaps: galleries, case studies,
+     a row of boards. Items are --rail-item wide (24 cells by default). */
+  .rail {
+    display: grid; grid-auto-flow: column;
+    grid-auto-columns: var(--rail-item, calc(var(--u) * 24));
+    gap: var(--rail-gap, var(--sp-2));
+    overflow-x: auto; overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    padding-block-end: var(--sp-1);
+  }
+  .rail > * { scroll-snap-align: start; }
+  .row { display: flex; flex-wrap: wrap; gap: var(--row-gap, var(--sp-2)); }
+  .col { flex: 1 1 0; min-width: 0; }
+  .context { container-type: inline-size; }
+
+  /* PROSE: the CMS layer. Content arrives from editors and markdown as bare
+     tags with no classes; .prose maps each tag to its role and settles every
+     block to whole cells. All of it has zero specificity against a class, so
+     a class on a tag wins. The same two rules as everywhere: headlines stand,
+     text hangs. README, Prose, has the whole map and what it does with things
+     an editor emits that have no role. */
+  .prose {
+    --stack-gap: var(--sp-2);
+    --prose-inner-gap: var(--sp-1);
+    container-type: inline-size;
+    display: flex; flex-direction: column;
+    gap: var(--stack-gap);
+    max-inline-size: var(--prose-measure);
+    min-width: 0;
+    overflow-wrap: break-word;
+  }
+  /* A heading keeps more space before it than after, so it belongs to what it
+     introduces. Whole cells added to the gap; none right after another heading. */
+  :where(.prose, .prose div:not([class])) > :where(h1, h2):not(:first-child) { --prose-before: var(--sp-4); margin-block-start: var(--prose-before); }
+  :where(.prose, .prose div:not([class])) > :where(h3):not(:first-child) { --prose-before: var(--sp-2); margin-block-start: var(--prose-before); }
+  :where(.prose, .prose div:not([class])) > :where(h4, h5, h6):not(:first-child) { --prose-before: var(--sp-1); margin-block-start: var(--prose-before); }
+  :where(.prose, .prose div:not([class])) > :where(h1, h2, h3, h4, h5) + :where(h2, h3, h4, h5, h6) { --prose-before: 0px; margin-block-start: 0px; }
+
+  /* Lists: whole cells between items, the marker in a whole-cell margin. */
+  .prose :where(ul, ol) {
+    display: flex; flex-direction: column;
+    gap: var(--prose-inner-gap);
+    padding-inline-start: var(--sp-2);
+    margin: 0;
+  }
+  .prose :where(ol) { padding-inline-start: var(--sp-3); }
+  .prose :where(li)::marker { color: var(--text-tertiary); }
+  .prose :where(li:has(> input[type="checkbox"])) { list-style: none; }
+  .prose :where(li > input[type="checkbox"]) { margin: 0; margin-inline-end: var(--sp-h); vertical-align: baseline; }
+
+  /* Blocks that nest. What follows text or an image inside them can't be
+     rounded in CSS: the text is an anonymous box, the image any height. So
+     settle.js measures and writes --settle-start, in every browser. Without
+     it the outer block still rounds to whole cells. */
+  .prose :where(li, blockquote, figure, details) > * { margin-block-start: var(--settle-start, 0px); }
+  .prose :where(li, blockquote, details) > :where(p, ul, ol, dl, pre, blockquote, figure, table, details, h1, h2, h3, h4, h5, h6, footer):not(:first-child),
+  .prose :where(li) > :where(ul, ol),
+  .prose :where(blockquote) > :where(footer, cite),
+  .prose :where(figure) > figcaption,
+  .prose :where(details) > :not(summary) {
+    margin-block-start: calc(var(--prose-inner-gap) + var(--settle-start, 0px));
+  }
+
+  /* Quotation: a line after its coordinate, text on the second cell. */
+  .prose :where(blockquote) {
+    margin: 0;
+    padding-inline-start: calc(var(--sp-2) - var(--line));
+    border-inline-start: var(--line) solid var(--border-strong);
+  }
+  .prose :where(blockquote > cite) { display: block; font-style: normal; }
+  .prose :where(blockquote > footer, blockquote > cite, figcaption, caption) { color: var(--text-secondary); }
+
+  /* Code: a surface with one cell of padding, so it hangs like a card. */
+  .prose :where(pre) {
+    margin-block: 0;
+    padding: var(--sp-1);
+    overflow-x: auto;
+    border-radius: var(--r-h);
+    background: var(--bg-sunken);
+    font-family: var(--font-mono);
+    font-size: var(--fs-control-md);
+    line-height: var(--sp-2);
+    tab-size: 2;
+  }
+  .prose > :where(pre) { margin-inline: calc(var(--hang) * var(--u) * -1); }
+  .prose :where(pre code) { font: inherit; background: none; padding: 0; }
+  .prose :where(code, kbd, samp) { font-family: var(--font-mono); font-size: .9em; }
+  .prose :where(:not(pre) > code, kbd) {
+    padding-inline: var(--sp-q);
+    border-radius: var(--r-q);
+    background: color-mix(in oklab, var(--text) 9%, transparent);
+    box-decoration-break: clone; -webkit-box-decoration-break: clone;
+  }
+  .prose :where(kbd) { outline: var(--line) solid var(--border); outline-offset: calc(var(--line) * -1); }
+  .prose :where(mark) { color: inherit; background: color-mix(in oklab, var(--accent) 24%, transparent); }
+  .prose :where(small) { font-size: .8em; }
+  .prose :where(strong, b) { font-weight: var(--fw-strong); }
+  /* Moved, not baseline-shifted, so a superscript can't push its line apart. */
+  .prose :where(sub, sup) { font-size: .72em; vertical-align: baseline; position: relative; }
+  .prose :where(sup) { inset-block-start: -.4em; }
+  .prose :where(sub) { inset-block-start: .25em; }
+
+  /* A line is a plane: it takes the pixels after its coordinate and gives them
+     back, so what follows is still on a line. */
+  .prose :where(hr) {
+    height: var(--line);
+    margin-block: var(--sp-2) calc(var(--sp-2) - var(--line));
+    margin-inline: 0;   /* the browser's auto margins would collapse it to nothing in a flex column */
+    border: 0;
+    background: var(--border);
+  }
+
+  /* Tables are a lattice: every line of a cell is whole cells, so rows stand on
+     the grid with no measuring, and a row's rule is given back in its padding.
+     Displayed as a block so a wide one scrolls inside itself. */
+  .prose :where(table) {
+    display: block;
+    width: max-content; max-width: 100%;
+    overflow-x: auto;
+    border-collapse: separate; border-spacing: 0;
+  }
+  .prose :where(caption) { caption-side: top; text-align: start; margin-block-end: var(--sp-1); }
+  .prose :where(th, td) {
+    --t-line: round(up, calc(1em * var(--t-lh)), var(--u));
+    padding-block: var(--sp-h) calc(var(--sp-h) - var(--line));
+    padding-inline: 0 var(--sp-2);
+    border-block-end: var(--line) solid var(--border-subtle);
+    text-align: start;
+    vertical-align: top;
+  }
+  .prose :where(th) { border-block-end-color: var(--border-strong); color: var(--text-secondary); }
+  .prose :where(th:last-child, td:last-child) { padding-inline-end: 0; }
+
+  /* Media. Corners from the card knob; a caption hangs from the next line. */
+  .prose :where(figure) { margin: 0; }
+  .prose :where(img, video) { width: 100%; height: auto; border-radius: var(--shape-card); }
+  .prose :where(iframe) {
+    display: block;
+    width: 100%;
+    height: round(up, calc(100cqi * var(--embed-h, 9) / var(--embed-w, 16)), var(--u));
+    border: 0;
+    border-radius: var(--shape-card);
+  }
+  /* Gallery: two or more images side by side, in a figure or a paragraph (what
+     markdown emits for images on one line). Tracks are whole cells and squares,
+     so nothing in it needs measuring. */
+  .prose :where(figure, p):where(:has(> :is(img, a) ~ :is(img, a))) {
+    --cols: 3;
+    --cols-gap: var(--sp-1);
+    display: grid;
+    gap: var(--cols-gap);
+    grid-template-columns: repeat(var(--cols), round(down, calc((100% - (var(--cols) - 1) * var(--cols-gap)) / var(--cols)), var(--u)));
+  }
+  @container (width < 36rem) { .prose :where(figure, p):where(:has(> :is(img, a) ~ :is(img, a))) { --cols: 2; } }
+  .prose :where(figure, p):where(:has(> :is(img, a) ~ :is(img, a))) > :where(img, a > img) { aspect-ratio: 1; object-fit: cover; }
+  .prose :where(figure):where(:has(> :is(img, a) ~ :is(img, a))) > figcaption { grid-column: 1 / -1; margin-block-start: 0; }
+
+  .prose :where(details) { margin: 0; }
+  .prose :where(summary) { cursor: pointer; font-weight: var(--fw-label); }
+  .prose :where(dl) { margin: 0; display: grid; gap: var(--prose-inner-gap); }
+  .prose :where(dt) { font-weight: var(--fw-strong); }
+  .prose :where(dd + dt) { margin-block-start: var(--sp-1); }   /* a term belongs to its definition */
+  .prose :where(dd) { margin: 0; }
+
+  /* What an editor emits that has no role. README, Prose, has the reasoning. */
+  /* A nested div from a paste is transparent: its children join the column. A
+     div holding only text and marks is a paragraph (see the role map above). */
+  :where(.prose div:not([class]):has(> :is(p, div, ul, ol, dl, h1, h2, h3, h4, h5, h6, blockquote, pre, table, figure, hr, details, img, video, iframe))) { display: contents; }
+  /* An empty block is not space. :empty catches what CSS can see; settle.js
+     marks a lone <br> or &nbsp;, which CSS can't tell from real content. */
+  .prose :where(h1, h2, h3, h4, h5, h6, p, li, blockquote, div:not([class])):empty,
+  .prose [data-prose-empty] { display: none; }
+  /* A style attribute may keep emphasis and alignment; it does not get type,
+     color or space. !important is what beats an inline style. The selector
+     skips styles that only set variables (rule: inline styles set variables),
+     which is all settle.js ever writes. */
+  .prose :where(span, font, a, em, strong, b, i, u)[style]:not([style^="--"]), .prose :where(font) {
+    font-size: inherit !important; font-family: inherit !important; line-height: inherit !important;
+    letter-spacing: inherit !important;
+    color: inherit !important; background: none !important;
+    margin: 0 !important; padding: 0 !important;
+  }
+  .prose :where(h1, h2, h3, h4, h5, h6, p, li, blockquote, div:not([class]))[style]:not([style^="--"]) {
+    font-size: var(--t-fs) !important;
+    line-height: var(--t-line) !important;
+    letter-spacing: normal !important; text-indent: 0 !important;
+    color: inherit !important; background: none !important;
+    margin-block-start: var(--prose-before, 0px) !important;
+    margin-block-end: var(--prose-after, 0px) !important;
+    margin-inline: 0 !important;
+    padding-inline: 0 !important;
+    padding-block-start: var(--t-stand, 0px) !important;
+    padding-block-end: 0 !important;
+    float: none !important;
+  }
+  .prose :where(h1, h2, h3, h4, h5, h6)[style]:not([style^="--"]) { font-family: var(--font-heading) !important; }
+  .prose :where(p, li, div:not([class]))[style]:not([style^="--"]) { font-family: var(--font-sans) !important; }
+  .prose :where(th, td)[style]:not([style^="--"]) {
+    font-size: var(--t-fs) !important; color: inherit !important; background: none !important;
+    width: auto !important; height: auto !important;
+  }
+  .prose :where(img)[style]:not([style^="--"]) { float: none !important; width: 100% !important; height: auto !important; margin: 0 !important; }
+
+  /* LIST: rows divided by hairlines: chats, actions, members, post indexes.
+     A row's height is whole cells (its padding is, and everything in it
+     settles), and its rule is a plane after its bottom coordinate, so rules
+     never add height. Rows hang like cards: the hover surface steps out while
+     the text stays on the column's edge. Markup: ul.list > li.list-item >
+     leading mark, .list-body, .list-end. */
+  .list {
+    --list-pad-y: var(--sp-1);
+    --list-gap: var(--sp-1);
+    --list-rule: var(--border-subtle);
+    --list-hang: calc(var(--hang) * var(--u));
+    display: flex; flex-direction: column;
+    margin: 0; padding: 0;
+    margin-inline: calc(var(--list-hang) * -1);
+    list-style: none;
+    min-width: 0;
+  }
+  .list-item {
+    position: relative;
+    display: flex; align-items: flex-start; gap: var(--list-gap);
+    padding-block: var(--list-pad-y);
+    padding-inline: var(--list-hang);
+    min-width: 0;
+    color: inherit; text-decoration: none;
+  }
+  .list-item:not(:last-child)::after {
+    content: ""; position: absolute;
+    inset-inline: var(--list-hang);
+    inset-block-end: calc(var(--hair) * -1);
+    height: var(--hair);
+    background: var(--list-rule);
+    pointer-events: none;
+  }
+  :where(a, button).list-item { width: 100%; text-align: start; cursor: pointer; }
+  :where(a, button).list-item:hover, .list-item:has(> a.list-link:hover) { background: var(--bg-hover); }
+  .list-body { --stack-gap: var(--sp-1); flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--stack-gap); }
+  .list-end { flex: none; display: flex; align-items: flex-start; gap: var(--sp-h); }
+  /* A whole row that links somewhere, from a link inside it. */
+  .list-link { color: inherit; text-decoration: none; }
+  .list-link::before { content: ""; position: absolute; inset: 0; }
+  /* A dense row is one thing: its edges stay on lines and its contents keep a
+     half-cell rhythm, as in a button or a cluster. */
+  .cc-dense .list, .list.cc-dense { --list-pad-y: var(--sp-h); --list-gap: var(--sp-h); }
+
+  /* SHELL: navigation, main, an aside. It answers to its own width, not the
+     window: three columns, then the aside under main, then a tab bar. A query
+     can't restyle the container it asks, so .shell is the container and
+     .shell-grid does the layout. Markup: .shell > .shell-grid > .shell-nav,
+     .shell-main, .shell-aside. */
+  .shell { container: shell / inline-size; }
+  .shell-grid {
+    --shell-nav-w: calc(var(--u) * 20);
+    --shell-aside-w: calc(var(--u) * 24);
+    --shell-pad: var(--sp-2);
+    display: grid;
+    min-height: var(--shell-h, 100svh);
+    grid-template-columns: var(--shell-nav-w) minmax(0, 1fr) var(--shell-aside-w);
+    grid-template-areas: "nav main aside";
+  }
+  .shell-nav {
+    grid-area: nav;
+    position: sticky; inset-block-start: 0;
+    align-self: start;
+    height: var(--shell-h, 100svh);
+    display: flex; flex-direction: column; gap: var(--sp-q2);
+    padding: var(--sp-1);
+    background: var(--surface);
+    box-shadow: var(--line) 0 0 var(--border-subtle);
+    z-index: var(--z-raised);
+  }
+  .shell-main { grid-area: main; min-width: 0; padding: var(--shell-pad); }
+  .shell-aside { grid-area: aside; min-width: 0; padding: var(--shell-pad); }
+  .shell-link {
+    display: flex; align-items: center; gap: var(--sp-h);
+    min-height: var(--size-control-md);
+    padding-inline: var(--sp-h);
+    border-radius: var(--r-h);
+    color: var(--text-secondary); text-decoration: none;
+    font-size: var(--fs-control); font-weight: var(--fw-label);
+  }
+  .shell-link:hover { background: var(--bg-hover); color: var(--text); }
+  .shell-link[aria-current="page"] { background: var(--bg-hover); color: var(--text); }
+  @container shell (width < 72rem) {
+    .shell-grid {
+      grid-template-columns: var(--shell-nav-w) minmax(0, 1fr);
+      grid-template-areas: "nav main" "nav aside";
+      grid-template-rows: 1fr auto;
+    }
+  }
+  @container shell (width < 48rem) {
+    .shell-grid {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: "main" "aside" "nav";
+      grid-template-rows: 1fr auto auto;
+    }
+    .shell-nav {
+      position: sticky; inset-block: auto 0;
+      height: auto;
+      flex-direction: row; justify-content: space-around; gap: 0;
+      /* Whole cells, so a tab bar never pushes what follows off the lines. */
+      padding-block: 0 round(up, env(safe-area-inset-bottom, 0px), var(--u));
+      padding-inline: var(--sp-h);
+      box-shadow: inset 0 var(--line) 0 var(--border-subtle);
+    }
+    .shell-link {
+      flex: 1 1 0; flex-direction: column; justify-content: center; gap: var(--sp-q);
+      min-height: round(up, max(var(--sp-4), var(--hit-min)), var(--u));
+      padding-inline: 0;
+      font-size: var(--fs-control-xs);
+    }
+  }
+
+  /* COVER: a full-screen opening. Media to the edges, words in the field. The
+     media reaches the screen through --fit-width, the real width settle.js
+     publishes, so a classic scrollbar can't add sideways scroll. Its height is
+     whole cells, so what follows is on a line. Markup: .cover > .cover-media +
+     .cover-body. */
+  .cover {
+    --cover-h: round(up, 100svh, var(--u));
+    --cover-pad: var(--sp-6);
+    --cover-scrim: color-mix(in oklab, var(--black) 72%, transparent);
+    position: relative;
+    isolation: isolate;
+    display: grid; align-content: end;
+    min-height: var(--cover-h);
+    padding-block: var(--cover-pad);
+    color: var(--white);
+  }
+  .cover-media {
+    position: absolute; z-index: -1;
+    inset-block: 0;
+    inset-inline: calc((100% - var(--fit-width, 100vw)) / 2);
+    overflow: hidden;
+    background: var(--bg-sunken);
+  }
+  .cover-media > :where(img, video) { width: 100%; height: 100%; object-fit: cover; border-radius: 0; }
+  .cover-media::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(to top, var(--cover-scrim), transparent 70%);
+    pointer-events: none;
+  }
+  .cover-body { --stack-gap: var(--sp-2); display: flex; flex-direction: column; gap: var(--stack-gap); max-inline-size: var(--prose-measure); min-width: 0; }
+
+  /* BOARD: lanes of cards in a sideways scroller. Markup: .board > .board-lane
+     > .board-lane-head + cards. A lane clips nothing; the board keeps a line
+     spare at its end and a cell below, or it would cut off the last card's edge
+     plane and scrollbar. */
+  .board {
+    --board-lane-w: calc(var(--u) * 24);
+    --board-gap: var(--sp-2);
+    display: grid; grid-auto-flow: column;
+    grid-auto-columns: var(--board-lane-w);
+    gap: var(--board-gap);
+    align-items: start;
+    overflow-x: auto; overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    padding-inline-end: var(--line);
+    padding-block-end: var(--sp-1);
+  }
+  .board-lane { display: flex; flex-direction: column; gap: var(--board-lane-gap, var(--sp-1)); min-width: 0; scroll-snap-align: start; }
+  .board-lane-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-h); min-height: var(--sp-2); }
+  .cc-dense .board, .board.cc-dense { --board-lane-w: calc(var(--u) * 20); --board-gap: var(--sp-1); --board-lane-gap: var(--sp-h); }
+
+  /* SURFACES hang. A card steps out --hang cells (a product knob, 1 by
+     default) into the space around it, so the text inside a card with a
+     one-cell padding lines up with the text outside; a card with more
+     padding still steps out one cell. A row hangs as a whole, but only when
+     it holds nothing but cards: a text column beside a card never moves,
+     and a card inside one column of a row stays in its column.
+     Gutters are at least two cells, so a hanging card never reaches the
+     screen's edge. Nested, a card hangs into its parent's padding. Hang is
+     clipped by any ancestor with hidden overflow (a scroll pane, a clipped
+     section): a card there silently loses its step-out. Give that ancestor
+     --hang: 0, or a cell of inline padding. */
+  :where(.stack, .section-body):not(:where(.cols, .split, .grid, .rail) > *) > .card { margin-inline: calc(var(--hang) * var(--u) * -1); }
+  :where(.cols, .grid, .split, .rail):has(> .card):not(:has(> :not(.card))) { margin-inline: calc(var(--hang) * var(--u) * -1); }
+}
+
+/* --------------------------------------------------------------------------
+   PRIMITIVES. Each exposes variables; context and products retune them.
+   A surface's edge is a plane one line thick that sits after its
+   coordinate, like every line: inside the box on the left and top, just
+   outside it on the right and bottom (an ::after frame one line larger).
+   So each edge lies on the same device pixels as the grid line it stands
+   on, and it never changes the box's size or moves its content. Surfaces
+   that scroll clip their own children, so they keep an inset outline.
+   Controls with a fixed height keep a real border and give its width back
+   in their padding.
+   -------------------------------------------------------------------------- */
+@layer trellis.primitives {
+
+  /* Card --------------------------------------------------------------- */
+  .card {
+    --card-pad: var(--density-card-pad);
+    --card-radius: var(--shape-card);
+    --card-border: var(--border-subtle);
+    --surface: var(--bg-raised);
+    position: relative;
+    container-type: inline-size;
+    background: var(--surface);
+    border-radius: var(--card-radius);
+    padding: var(--card-pad);
+  }
+  .card::after {
+    content: "";
+    position: absolute;
+    inset: 0 calc(var(--line) * -1) calc(var(--line) * -1) 0;
+    border: var(--line) solid var(--card-border);
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  .card-media {
+    border-radius: max(var(--r-q), calc(var(--card-radius) - var(--card-pad)));
+    overflow: hidden;
+  }
+  .cc-dense .card, .card.cc-dense { --card-pad: var(--sp-1); --card-radius: var(--r-1); }
+
+  /* Labels inside controls: the text box is trimmed to the cap height, so
+     centering the box centers the capitals exactly. */
+  .button-label, .tag-label, .options-card-label {
+    display: block;
+    white-space: nowrap;
+  }
+  @supports (text-box: trim-both cap alphabetic) {
+    .button-label, .tag-label, .avatar-initials { text-box: trim-both cap alphabetic; line-height: 1; }
+  }
+
+  /* Button ------------------------------------------------------------- */
+  .button {
+    --btn-h: var(--density-control-h);
+    --btn-fs: var(--density-control-fs);
+    --btn-radius: var(--shape-control);
+    --btn-bg: transparent;
+    --btn-ink: var(--text);
+    --btn-border: var(--border-strong);
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-h);
+    height: var(--btn-h);
+    padding-inline: calc(round(down, var(--btn-h) / 2, var(--sp-h)) - var(--line));   /* half its height, in half cells: 30px gets 12 */
+    border: var(--line) solid var(--btn-border);
+    border-radius: var(--btn-radius);
+    background: var(--btn-bg);
+    color: var(--btn-ink);
+    font-size: var(--btn-fs);
+    font-weight: var(--fw-label);
+    letter-spacing: var(--btn-tracking, 0);
+    transition: background var(--dur-out) var(--ease-in), border-color var(--dur-out) var(--ease-in);
+  }
+  .button:hover { --btn-bg: var(--bg-hover); }
+  .button.cc-primary { --btn-bg: var(--accent); --btn-border: var(--accent); --btn-ink: var(--accent-ink); }
+  .button.cc-primary:hover { --btn-bg: color-mix(in oklab, var(--accent) 88%, var(--text)); }
+  .button.cc-ghost { --btn-border: transparent; }
+  .button.cc-sm { --btn-h: var(--size-control-sm); --btn-fs: var(--fs-control-sm); }
+  .button.cc-md { --btn-h: var(--size-control-md); --btn-fs: var(--fs-control-md); }
+  .button.cc-lg { --btn-h: var(--size-control-xl); --btn-fs: var(--fs-control-lg); }
+  .button[aria-pressed="true"] { --btn-bg: var(--bg-hover); --btn-border: var(--text-tertiary); }
+  .icon-button { padding-inline: 0; width: var(--btn-h); }
+  .cc-dense .button { --btn-h: var(--size-control-md); --btn-fs: var(--fs-control-md); }
+
+  /* Where the browser can round an intrinsic size, controls take a width of
+     whole half-units, so a row of them keeps every edge on a line. The label
+     stays centered in the extra space. */
+  @supports (width: calc-size(fit-content, size)) {
+    .button:not(.icon-button), .tag {
+      width: calc-size(fit-content, round(up, size, var(--sp-h)));
+      justify-content: center;
+    }
+  }
+
+  .icon { width: var(--icon-size, var(--size-icon)); height: var(--icon-size, var(--size-icon)); flex: none; fill: none; stroke: currentColor; stroke-width: var(--icon-stroke, 1.5); stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Tag: the archetype ---------------------------------------------------
+     One anatomy: height, a padding equal to its corner (so the label starts
+     where the curve ends), a hairline border and a tint, both mixed from
+     one kind color. Kinds, emphases, sizes and contexts only change those
+     variables. */
+  .tag {
+    --tag-h: var(--tag-default-h);
+    --tag-fs: var(--tag-default-fs);
+    --tag-color: var(--kind-topic);
+    --tag-radius: max(var(--tag-r-fixed), calc(var(--tag-h) * var(--tag-r-ratio)));
+    --tag-pad: clamp(var(--sp-h), round(down, var(--tag-radius), var(--sp-h)), var(--sp-1));
+    --tag-fill: 14%;
+    --tag-edge: 42%;
+    --tag-ink: var(--text);
+    --tag-gap: var(--sp-h);
+    display: inline-flex; align-items: center; gap: var(--tag-gap);
+    height: var(--tag-h);
+    padding-inline: calc(var(--tag-pad) - var(--line));
+    border: var(--line) solid color-mix(in oklab, var(--tag-color) var(--tag-edge), transparent);
+    border-radius: var(--tag-radius);
+    background: color-mix(in oklab, var(--tag-color) var(--tag-fill), transparent);
+    color: var(--tag-ink);
+    font-size: var(--tag-fs);
+    font-weight: var(--fw-label);
+    letter-spacing: var(--tag-tracking);
+    text-transform: var(--tag-case);
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+  /* kind */
+  .tag.cc-person { --tag-color: var(--kind-person); }
+  .tag.cc-group  { --tag-color: var(--kind-group); }
+  .tag.cc-event  { --tag-color: var(--kind-event); }
+  .tag.cc-course { --tag-color: var(--kind-course); }
+  .tag.cc-ok     { --tag-color: var(--ok); }
+  .tag.cc-warn   { --tag-color: var(--warn); }
+  .tag.cc-alert  { --tag-color: var(--alert); }
+  /* emphasis */
+  .tag.cc-outline { --tag-fill: 0%; }
+  .tag.cc-solid, .tag[aria-pressed="true"] {
+    --tag-fill: 100%; --tag-edge: 100%;
+    --tag-ink: light-dark(var(--white), color-mix(in oklab, var(--tag-color) 18%, var(--black)));
+  }
+  /* size */
+  .tag.cc-sm { --tag-h: var(--size-control-xs); --tag-fs: var(--tag-fs-sm); --tag-gap: var(--sp-q); }
+  .tag.cc-md { --tag-h: var(--size-control-sm); --tag-fs: var(--tag-fs-md); }
+  .tag.cc-lg { --tag-h: var(--size-control-md); --tag-fs: var(--tag-fs-lg); }
+  /* parts */
+  .tag-dot { width: var(--sp-h); height: var(--sp-h); border-radius: 50%; background: var(--tag-color); flex: none; }
+  .tag[aria-pressed="true"] .tag-dot { background: currentColor; }
+  .tag-remove {
+    display: grid; place-items: center; flex: none;
+    width: calc(var(--tag-h) - var(--sp-h)); height: calc(var(--tag-h) - var(--sp-h));
+    margin-inline-end: calc((var(--tag-pad) - var(--sp-q) - var(--line)) * -1);
+    border-radius: max(var(--r-q), calc(var(--tag-radius) - var(--sp-q)));
+    color: inherit; opacity: .7;
+  }
+  .tag-remove:hover { opacity: 1; background: color-mix(in oklab, var(--tag-color) 22%, transparent); }
+  .tag-remove .icon { --icon-size: var(--size-icon-sm); }
+  button.tag { cursor: pointer; }
+  /* context */
+  .cc-dense .tag { --tag-h: var(--size-control-xs); --tag-fs: var(--tag-fs-sm); --tag-gap: var(--sp-q); }
+  .cc-on-media .tag {
+    --tag-fill: 100%;
+    background: color-mix(in oklab, var(--black) 55%, transparent);
+    border-color: color-mix(in oklab, var(--white) 28%, transparent);
+    --tag-ink: var(--white);
+    backdrop-filter: blur(var(--sp-h));
+  }
+
+  /* Avatar ---------------------------------------------------------------
+     The photo is the box, and it sits exactly on the cells. The gap and the
+     ring are spread shadows outside it, drawn by the same geometry as the
+     photo, so they are concentric all the way round at every size. */
+  .avatar {
+    --av-n: 2;
+    --av-size: calc(var(--u) * var(--av-n));
+    --av-gap: var(--line);
+    --av-ring: calc(var(--line) * 2);
+    --av-knock: 0px;
+    --av-color: var(--kind-person);
+    --av-radius: 50%;
+    --av-hue: 30;
+    position: relative;
+    display: inline-grid; place-items: center; flex: none;
+    width: var(--av-size); height: var(--av-size);
+    border-radius: var(--av-radius);
+    background-color: color-mix(in oklab, var(--av-color) 26%, var(--surface));
+    background-size: cover; background-position: center;
+    object-fit: cover;
+    box-shadow:
+      0 0 0 var(--av-gap) var(--surface),
+      0 0 0 calc(var(--av-gap) + var(--av-ring)) var(--av-color),
+      0 0 0 calc(var(--av-gap) + var(--av-ring) + var(--av-knock)) var(--surface);
+    color: var(--text);
+    font-size: calc(var(--av-size) * .38);
+    font-weight: var(--fw-label);
+    letter-spacing: .02em;
+  }
+  .avatar.cc-xs  { --av-n: 1; }
+  .avatar.cc-sm  { --av-n: 2; }
+  .avatar.cc-md  { --av-n: 3; }
+  .avatar.cc-lg  { --av-n: 4; --av-gap: var(--sp-q); --av-ring: var(--sp-q); }
+  .avatar.cc-xl  { --av-n: 6; --av-gap: var(--sp-q); --av-ring: var(--sp-q); }
+  .avatar.cc-xxl { --av-n: 8; --av-gap: var(--sp-q); --av-ring: var(--sp-q); }
+  .avatar.cc-hero { --av-n: 12; --av-gap: var(--sp-q); --av-ring: var(--sp-q); }
+  .avatar.cc-group { --av-radius: calc(var(--av-size) / 4); --av-color: var(--kind-group); }
+  .avatar-dot {
+    position: absolute;
+    width: var(--sp-h); height: var(--sp-h);
+    border-radius: 50%;
+    background: var(--ok);
+    box-shadow: 0 0 0 calc(var(--line) * 2) var(--surface);
+    right:  calc(var(--av-size) * .1464 - var(--sp-h) / 2);
+    bottom: calc(var(--av-size) * .1464 - var(--sp-h) / 2);
+  }
+  .avatar-stack { display: inline-flex; align-items: center; }
+  .avatar-stack > .avatar { --av-knock: calc(var(--line) * 2); }
+  .avatar-stack > * + * { margin-inline-start: calc(var(--sp-h) * -1); }
+  .avatar-more {
+    display: inline-grid; place-items: center;
+    min-width: var(--av-size, var(--sp-2)); height: var(--av-size, var(--sp-2));
+    padding-inline: var(--sp-q);
+    border-radius: var(--r-round);
+    background: var(--bg-sunken);
+    box-shadow: 0 0 0 var(--line) var(--border), 0 0 0 calc(var(--line) * 3) var(--surface);
+    font-size: var(--fs-control-xs); font-weight: var(--fw-label); color: var(--text-secondary);
+  }
+
+  /* Touch: on a coarse pointer a control's hit area grows to --hit-min
+     around what it draws, so density never costs a missed tap. */
+  @media (pointer: coarse) {
+    :where(.button, .icon-button, button.tag, a.tag) { position: relative; }
+    :where(.button, .icon-button, button.tag, a.tag)::before {
+      content: ""; position: absolute;
+      inset: min(0px, calc((100% - var(--hit-min)) / 2));
+    }
+  }
+
+  /* Floating surfaces -----------------------------------------------------
+     One surface for every popover, options card and tooltip. They open in
+     the top layer, follow their anchor, and close when it scrolls away. */
+  .float {
+    --float-pad: var(--sp-h);
+    --float-radius: var(--shape-float);
+    --surface: var(--bg-raised);
+    background: var(--surface);
+    color: var(--text);
+    outline: var(--line) solid var(--border);
+    outline-offset: calc(var(--line) * -1);
+    border: 0;
+    border-radius: var(--float-radius);
+    box-shadow: var(--lift);
+    padding: var(--float-pad);
+  }
+  .float[popover] {
+    position: fixed; inset: auto; margin: 0;
+    z-index: var(--z-float);
+    opacity: 0; scale: .98;
+    transition: opacity var(--dur-out) var(--ease-in), scale var(--dur-out) var(--ease-in),
+                display var(--dur-out) allow-discrete, overlay var(--dur-out) allow-discrete;
+  }
+  .float[popover]:popover-open { opacity: 1; scale: 1; transition-duration: var(--dur-in); transition-timing-function: var(--ease-out); }
+  @starting-style { .float[popover]:popover-open { opacity: 0; scale: .98; } }
+
+  .options-card {
+    --float-pad: var(--sp-q);
+    display: flex; flex-direction: column;
+    width: var(--sp-16);
+    max-height: calc(var(--u) * 24);
+    overflow-y: auto;
+  }
+  .options-card-item {
+    display: flex; align-items: center; gap: var(--sp-h);
+    width: 100%;
+    min-height: var(--size-control-md);
+    padding-inline: var(--sp-h);
+    border-radius: max(var(--r-q), calc(var(--float-radius) - var(--float-pad)));
+    font-size: var(--fs-control);
+    text-align: start;
+    color: var(--text);
+  }
+  .options-card-item:hover, .options-card-item[aria-selected="true"] { background: var(--bg-hover); }
+  .options-card-item .icon.cc-end { margin-inline-start: auto; color: var(--accent); }
+  /* Inside a float everything sums to whole half-cells: heading ¼u + text +
+     ¼u, rule ½u including its line, items 2½u. */
+  /* The heading's capitals sit one cell below the card's edge. */
+  .options-card-heading { padding-inline: var(--sp-h); padding-block-start: calc(var(--sp-1) - var(--float-pad)); margin-block: 0; color: var(--text-tertiary); }
+  .options-card-rule { height: var(--line); margin-block: calc((var(--sp-h) - var(--line)) / 2); background: var(--border-subtle); }
+
+  .tooltip {
+    --float-pad: var(--sp-q);
+    --float-radius: var(--r-q);
+    --surface: var(--text);
+    color: var(--bg);
+    outline-color: transparent;
+    padding-inline: var(--sp-h);
+    font-size: var(--fs-control-sm);
+  }
+
+  /* Field and input: the archetype for everything typed or chosen ------------
+     One box for input, select and textarea: it occupies whole cells, so a field
+     in a stack keeps what follows on a line; a real border given back in its
+     padding; a label that hangs above it.
+     States change variables. Markup: .field > label.field-label + .input +
+     p.field-hint. */
+  .field {
+    --stack-gap: var(--sp-1);
+    display: flex; flex-direction: column;
+    gap: var(--stack-gap);
+    min-width: 0;
+  }
+  .field-label { color: var(--text-secondary); }
+  .field-hint { color: var(--text-tertiary); }
+  .field:has(.input[aria-invalid="true"]) .field-hint { color: var(--alert); }
+  .input {
+    --input-h: var(--density-control-h);
+    --input-fs: var(--density-control-fs);
+    --input-radius: var(--shape-input);
+    --input-bg: var(--bg-raised);
+    --input-ink: var(--text);
+    --input-border: var(--border);
+    --input-pad: var(--sp-1);
+    --input-hit: 0px;
+    --input-draw: max(var(--input-h), var(--input-hit));
+    display: block;
+    width: 100%;
+    height: var(--input-draw);
+    /* It draws at the product's control height, so it matches a button beside it,
+       and occupies whole cells, so what follows stays on a line. */
+    margin-block-end: calc(round(up, var(--input-draw), var(--u)) - var(--input-draw));
+    padding: 0 calc(var(--input-pad) - var(--line));
+    border: var(--line) solid var(--input-border);
+    border-radius: var(--input-radius);
+    background-color: var(--input-bg);
+    color: var(--input-ink);
+    font-size: var(--input-fs);
+    transition: border-color var(--dur-out) var(--ease-in), background-color var(--dur-out) var(--ease-in);
+  }
+  .input::placeholder { color: var(--text-tertiary); opacity: 1; }
+  .input:hover { --input-border: var(--border-strong); }
+  .input:focus-visible { --input-border: var(--focus); }
+  .input:disabled { --input-bg: var(--bg-sunken); --input-ink: var(--text-tertiary); --input-border: var(--border-subtle); cursor: not-allowed; }
+  .input:read-only:not(select) { --input-bg: var(--bg-sunken); }
+  .input[aria-invalid="true"] { --input-border: var(--alert); }
+  .input.cc-sm { --input-h: var(--size-control-sm); --input-fs: var(--fs-control-sm); --input-pad: var(--sp-h); }
+  .input.cc-lg { --input-h: var(--size-control-xl); --input-fs: var(--fs-control-lg); }
+  .cc-dense .input { --input-h: var(--size-control-sm); --input-fs: var(--fs-control-sm); --input-pad: var(--sp-h); }
+  /* Lines of a textarea are whole cells, so its height is too: 1 cell of padding
+     plus 2 cells a line. */
+  textarea.input {
+    --input-rows: 3;
+    height: auto;
+    margin-block-end: 0;
+    min-height: max(calc(var(--sp-2) * var(--input-rows) + var(--sp-1)), var(--input-hit));
+    padding-block: calc(var(--sp-h) - var(--line));
+    line-height: var(--sp-2);
+    resize: vertical;
+    field-sizing: content;
+  }
+  /* A chevron drawn from two gradients, so it follows the ink in both themes. */
+  select.input {
+    appearance: none; -webkit-appearance: none;
+    --chevron: calc(var(--sp-q) + var(--line) * 2);
+    padding-inline-end: var(--sp-3);
+    background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position: right calc(var(--sp-1) + var(--chevron)) center, right var(--sp-1) center;
+    background-size: var(--chevron) var(--chevron);
+    background-repeat: no-repeat;
+    cursor: pointer;
+  }
+  /* Touch. A replaced element has no ::before to grow, so the box itself reaches
+     the target, in whole cells. And iOS zooms the page when a focused input's
+     type is under 16px. */
+  @media (pointer: coarse) {
+    .input { --input-hit: round(up, var(--hit-min), var(--u)); font-size: max(1rem, var(--input-fs)); }
+  }
+
+  /* Tabs: whole cells tall, on a baseline that is a plane after its coordinate.
+     The selected tab's indicator sits on that plane. .cc-seg is the same tabs
+     as a segmented control. Markup: .tabs[role=tablist] > button.tab. */
+  .tabs {
+    --tab-h: var(--size-control-lg);
+    --tab-fs: var(--fs-control);
+    --tab-pad: var(--sp-1);
+    --tab-rule: var(--border-subtle);
+    --tab-mark: var(--text);
+    --tab-mark-h: calc(var(--line) * 2);
+    --tab-on-bg: transparent;
+    --tab-radius: 0px;
+    display: flex; gap: var(--tab-gap, 0px);
+    overflow-x: auto; overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    box-shadow: inset 0 calc(var(--line) * -1) 0 var(--tab-rule);
+  }
+  .tab {
+    position: relative; flex: none;
+    display: inline-flex; align-items: center; gap: var(--sp-h);
+    height: var(--tab-h);
+    padding-inline: var(--tab-pad);
+    border-radius: var(--tab-radius);
+    color: var(--text-secondary);
+    font-size: var(--tab-fs); font-weight: var(--fw-label);
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); }
+  .tab[aria-selected="true"] { color: var(--text); background: var(--tab-on-bg); }
+  .tab[aria-selected="true"]::after {
+    content: ""; position: absolute;
+    inset-inline: 0; inset-block-end: 0;
+    height: var(--tab-mark-h);
+    background: var(--tab-mark);
+  }
+  .tabs.cc-seg {
+    --tab-h: var(--size-control-sm); --tab-fs: var(--fs-control-sm); --tab-mark-h: 0px; --tab-on-bg: var(--bg-raised);
+    --tab-radius: max(var(--r-q), calc(var(--shape-control) - var(--sp-q)));
+    --tab-gap: var(--line);
+    width: fit-content; max-width: 100%;
+    height: var(--size-control-lg);
+    padding: calc((var(--size-control-lg) - var(--size-control-sm)) / 2);
+    border-radius: var(--shape-control);
+    background: var(--bg-sunken);
+    box-shadow: inset 0 0 0 var(--line) var(--border-subtle);
+  }
+  .cc-dense .tabs { --tab-h: var(--size-control-sm); --tab-fs: var(--fs-control-sm); --tab-pad: var(--sp-h); }
+
+  /* Chat item: an avatar and a body, for messages, walls and system lines. The
+     bubble hangs its text from a cell. .cc-own, .cc-wall and .cc-system only
+     change variables. Markup: .chat-item > .avatar + .chat-item-body >
+     .chat-item-meta + .chat-item-bubble. */
+  .chat-item {
+    --chat-dir: row;
+    --chat-align: flex-start;
+    --chat-bg: var(--bg-raised);
+    --chat-edge: var(--border-subtle);
+    --chat-pad: var(--sp-1);
+    --chat-radius: var(--shape-card);
+    --chat-measure: calc(var(--u) * 40);
+    display: flex; flex-direction: var(--chat-dir); align-items: flex-start;
+    gap: var(--sp-1);
+    min-width: 0;
+  }
+  .chat-item-body { display: flex; flex-direction: column; align-items: var(--chat-align); gap: var(--sp-1); min-width: 0; flex: 0 1 var(--chat-measure); }
+  .chat-item-meta { display: flex; align-items: baseline; gap: var(--sp-h); color: var(--text-tertiary); }
+  .chat-item-bubble {
+    position: relative;
+    max-width: 100%;
+    padding: var(--chat-pad);
+    border-radius: var(--chat-radius);
+    background: var(--chat-bg);
+    outline: var(--line) solid var(--chat-edge);
+    outline-offset: calc(var(--line) * -1);
+  }
+  .chat-item.cc-own { --chat-dir: row-reverse; --chat-align: flex-end; --chat-bg: color-mix(in oklab, var(--accent) 18%, var(--surface)); --chat-edge: transparent; }
+  .chat-item.cc-wall { --chat-bg: transparent; --chat-edge: transparent; --chat-pad: 0px; --chat-measure: 100%; }
+  .chat-item.cc-system { --chat-bg: transparent; --chat-edge: transparent; --chat-pad: 0px; --chat-measure: 100%; color: var(--text-tertiary); }
+  .chat-item.cc-system .chat-item-body { align-items: center; }
+  .cc-dense .chat-item { --chat-pad: var(--sp-h); --chat-radius: var(--r-1); }
+
+  /* Member tile: a card with a person in it. A column by default; .cc-row puts
+     the avatar beside the words. Markup: .card.member-tile > .avatar +
+     .member-tile-body + .cluster. */
+  .member-tile { --tile-dir: column; --tile-align: flex-start; display: flex; flex-direction: var(--tile-dir); align-items: var(--tile-align); gap: var(--sp-2); }
+  .member-tile.cc-row { --tile-dir: row; }
+  .member-tile-body { --stack-gap: var(--sp-1); display: flex; flex-direction: column; gap: var(--stack-gap); flex: 1 1 auto; min-width: 0; align-self: stretch; }
+  .cc-dense .member-tile { gap: var(--sp-1); }
+
+  /* Badge and dot: a count, and the smallest mark of a state. */
+  .badge {
+    --badge-color: var(--alert);
+    --badge-ink: var(--white);
+    --badge-h: var(--size-control-xs);
+    display: inline-flex; align-items: center; justify-content: center; flex: none;
+    min-width: var(--badge-h); height: var(--badge-h);
+    padding-inline: var(--sp-q);
+    border-radius: var(--r-round);
+    background: var(--badge-color);
+    color: var(--badge-ink);
+    font-size: var(--fs-control-xs); font-weight: var(--fw-strong);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .badge.cc-quiet { --badge-color: var(--bg-hover); --badge-ink: var(--text-secondary); }
+  .badge.cc-accent { --badge-color: var(--accent); --badge-ink: var(--accent-ink); }
+  .dot {
+    --dot-color: var(--alert);
+    --dot-size: var(--sp-h);
+    display: inline-block; flex: none;
+    width: var(--dot-size); height: var(--dot-size);
+    border-radius: 50%;
+    background: var(--dot-color);
+  }
+  .dot.cc-ok { --dot-color: var(--ok); }
+  .dot.cc-warn { --dot-color: var(--warn); }
+  .dot.cc-quiet { --dot-color: var(--text-faint); }
+
+  /* Skeleton: a surface's real structure, shimmering, while its data is on its
+     way. A text slot keeps its role, so its block settles to the same cells and
+     nothing moves when the words arrive; it needs placeholder copy. The shimmer
+     clips to the content box, so it covers the words and not the settling space.
+     Anything that draws itself (a button, an avatar ring, an icon) can't be a
+     text slot: use .cc-block in its place, sized in cells. */
+  .skeleton {
+    --skel-lo: color-mix(in oklab, var(--text) 8%, transparent);
+    --skel-hi: color-mix(in oklab, var(--text) 16%, transparent);
+    --skel-radius: var(--r-q);
+    color: transparent;
+    background-image: linear-gradient(90deg, var(--skel-lo), var(--skel-hi), var(--skel-lo));
+    background-size: 200% 100%;
+    background-clip: content-box;
+    border-radius: var(--skel-radius);
+    animation: trellis-skeleton var(--dur-skeleton) linear infinite;
+    user-select: none;
+    pointer-events: none;
+  }
+  .skeleton * { visibility: hidden; }
+  .skeleton.cc-block { display: block; width: var(--skel-w, 100%); height: var(--skel-h, var(--sp-1)); }
+  @keyframes trellis-skeleton { to { background-position: -200% 0; } }
+
+  /* Modal and sheet: one archetype, on the native <dialog>, opened with
+     showModal(). That gives the top layer, the focus trap, Escape and an inert
+     page for nothing. Its motion:
+     the card fades and scales from .96 in 200ms, the backdrop fades slower at
+     250ms, everything leaves in 150ms, and on a narrow screen it is a bottom
+     sheet on the spring curve. A sheet only changes variables. The dialog is the
+     full-screen scroller, so a modal taller than the screen scrolls to its top
+     (margin: auto, not align-items: center). Markup: dialog.modal > .modal-inner
+     > .modal-header + .modal-body + .modal-footer. */
+  .modal {
+    --modal-w: calc(var(--u) * 40);
+    --modal-pad: var(--sp-2);
+    --modal-gutter: var(--sp-2);
+    --modal-radius: var(--shape-card);
+    --modal-margin: auto;
+    --modal-from: scale(.96);
+    --modal-from-opacity: 0;
+    --modal-in: var(--dur-in);
+    --modal-in-ease: var(--ease-out);
+    --modal-out: var(--dur-out);
+    --modal-out-ease: var(--ease-in);
+    --modal-scrim: color-mix(in oklab, var(--black) 60%, transparent);
+    --surface: var(--bg-raised);
+    position: fixed; inset: 0;
+    width: 100%; max-width: none;
+    height: 100%; max-height: none;
+    margin: 0;
+    padding: var(--modal-gutter);
+    border: 0;
+    overflow-y: auto; overscroll-behavior: contain;
+    background: transparent;
+    color: var(--text);
+    transition: display var(--modal-out) allow-discrete, overlay var(--modal-out) allow-discrete;
+  }
+  .modal[open] { display: flex; }
+  .modal::backdrop {
+    background: var(--modal-scrim);
+    opacity: 0;
+    transition: opacity var(--modal-out) var(--modal-out-ease), display var(--modal-out) allow-discrete, overlay var(--modal-out) allow-discrete;
+  }
+  .modal[open]::backdrop { opacity: 1; transition: opacity var(--dur-in-slow) var(--ease-out), display var(--modal-out) allow-discrete, overlay var(--modal-out) allow-discrete; }
+  .modal-inner {
+    position: relative;
+    container-type: inline-size;
+    display: flex; flex-direction: column;
+    width: min(100%, var(--modal-w));
+    margin: var(--modal-margin);
+    border-radius: var(--modal-radius);
+    background: var(--surface);
+    outline: var(--line) solid var(--border);
+    outline-offset: calc(var(--line) * -1);
+    box-shadow: var(--lift);
+    opacity: var(--modal-from-opacity);
+    transform: var(--modal-from);
+    transition: opacity var(--modal-out) var(--modal-out-ease), transform var(--modal-out) var(--modal-out-ease);
+  }
+  .modal[open] .modal-inner { opacity: 1; transform: none; transition: opacity var(--modal-in) var(--modal-in-ease), transform var(--modal-in) var(--modal-in-ease); }
+  @starting-style {
+    .modal[open] .modal-inner { opacity: var(--modal-from-opacity); transform: var(--modal-from); }
+    .modal[open]::backdrop { opacity: 0; }
+  }
+  .modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-1); padding: var(--modal-pad); padding-block-end: var(--sp-1); }
+  .modal-body { --stack-gap: var(--sp-1); display: flex; flex-direction: column; gap: var(--stack-gap); padding-inline: var(--modal-pad); padding-block: var(--sp-1); min-height: 0; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: var(--sp-h); padding: var(--modal-pad); padding-block-start: var(--sp-1); }
+  /* A sheet changes variables: it sits at the bottom, edge to edge, on the spring. */
+  .modal.cc-sheet {
+    --modal-w: 100%; --modal-gutter: 0px; --modal-margin: auto 0 0;
+    --modal-from: translateY(100%); --modal-from-opacity: 1;
+    --modal-in: var(--dur-sheet-in); --modal-in-ease: var(--ease-spring);
+    --modal-out: var(--dur-sheet-out); --modal-out-ease: var(--ease-spring);
+  }
+  .modal.cc-sheet .modal-inner { border-end-start-radius: 0; border-end-end-radius: 0; max-height: 90svh; }
+  .modal.cc-sheet .modal-body { overflow-y: auto; }
+  /* A modal is measured against the screen it covers, so this asks the window. */
+  @media (width < 48rem) {
+    .modal {
+      --modal-w: 100%; --modal-gutter: 0px; --modal-margin: auto 0 0;
+      --modal-from: translateY(100%); --modal-from-opacity: 1;
+      --modal-in: var(--dur-sheet-in); --modal-in-ease: var(--ease-spring);
+      --modal-out: var(--dur-sheet-out); --modal-out-ease: var(--ease-spring);
+    }
+    .modal .modal-inner { border-end-start-radius: 0; border-end-end-radius: 0; max-height: 90svh; }
+    .modal .modal-body { overflow-y: auto; }
+    .modal-footer { padding-block-end: max(var(--modal-pad), env(safe-area-inset-bottom, 0px)); }
+  }
+  /* The page behind holds still, for any number of open modals, with no counting.
+     On <html> only: locking <body> too would make it a scroller and every sticky
+     nav would stick to it. The gutter stops the page jumping as its scrollbar goes. */
+  html:has(.modal[open]) { overflow: hidden; scrollbar-gutter: stable; }
+}
+
+/* --------------------------------------------------------------------------
+   UTILITIES: a small fixed set, each a token
+   -------------------------------------------------------------------------- */
+@layer trellis.utilities {
+  .u-text-secondary { color: var(--text-secondary); }
+  .u-text-tertiary { color: var(--text-tertiary); }
+  /* Truncation clips sideways only: a trimmed text box ends at the baseline,
+     so overflow: hidden would cut off every descender. */
+  .u-truncate { overflow-x: clip; overflow-y: visible; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .u-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .u-align-end { align-items: end; }
+  /* Half and quarter gaps are for clusters only. Between stacked blocks, space
+     is whole cells (rule 6), so these don't reach a stack. */
+  .u-gap-q  { --cluster-gap: var(--sp-q); }
+  /* .settle: any block (a code sample, a figure) rounds its height up to whole
+     cells, so what follows starts on a line. Defined with the type rules.
+     Without calc-size, settle.js gives clusters and .settle blocks the missing
+     space as end margin: important, because their own padding is theirs. */
+  @supports not (height: calc-size(fit-content, size)) {
+    .cluster, .settle, .field, :where(.prose :is(pre, table, figure, details, dl, video, audio), .prose > :not(h1, h2, h3, h4, h5, h6, p, ul, ol, hr, blockquote, iframe, div:not([class]))) { margin-block-end: var(--settle, 0px) !important; }
+  }
+  .u-gap-h  { --cluster-gap: var(--sp-h); }
+  .u-gap-1  { --stack-gap: var(--sp-1);  --cluster-gap: var(--sp-1); }
+  .u-gap-2  { --stack-gap: var(--sp-2);  --cluster-gap: var(--sp-2); }
+  .u-gap-4  { --stack-gap: var(--sp-4);  --cluster-gap: var(--sp-4); }
+  .cc-scroll-thick { --scrollbar-width: auto; --scrollbar-size: var(--sp-1); }
+  .cc-scroll-none  { --scrollbar-width: none; --scrollbar-size: 0px; }
+}
+
+/* High-contrast modes drop shadows but keep outlines; nothing more needed. */
+
+@layer trellis.tokens {
+  @media (prefers-reduced-motion: reduce) {
+    :root { --dur-out: 1ms; --dur-in: 1ms; --dur-in-slow: 1ms; --dur-sheet-in: 1ms; --dur-sheet-out: 1ms; --dur-skeleton: 0s; }
+  }
+}

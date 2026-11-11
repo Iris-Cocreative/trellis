@@ -1,0 +1,858 @@
+<!doctype html>
+<html lang="en" data-grid>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trellis</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 18 18%27%3E%3Crect x=%27.5%27 y=%27.5%27 width=%2717%27 height=%2717%27 rx=%274.5%27 fill=%27%23101111%27 stroke=%27%236aa5f5%27/%3E%3Cline x1=%27.5%27 y1=%2712.5%27 x2=%2717.5%27 y2=%2712.5%27 stroke=%27%236aa5f5%27/%3E%3Ccircle cx=%276%27 cy=%276%27 r=%272%27 fill=%27%23f4f4f2%27/%3E%3C/svg%3E">
+<meta name="description" content="Trellis: a CSS framework from a cell and a ratio, in context.">
+<link rel="stylesheet" href="core.css?v=0.8.0">
+<link rel="stylesheet" id="product-layer">
+<script>
+  // Before first paint, so nothing flashes: the saved view settings, and one
+  // product layer by address. ?layer=examples/quarry.css&product=quarry loads
+  // that stylesheet and sets data-product. With no layer the page is core's
+  // own defaults, the neutral theme. A layer on another origin loads only when
+  // this page is served from localhost, which is how a product's private layer
+  // is run through the tests from where it lives.
+  (function () {
+    var d = document.documentElement, s = {};
+    try { s = JSON.parse(localStorage.getItem('trellis') || '{}'); } catch (e) {}
+    var q = new URLSearchParams(location.search), layer = q.get('layer'), product = q.get('product');
+    if (layer && product && /^[a-z][a-z0-9-]*$/.test(product)) {
+      try {
+        var u = new URL(layer, location.href), local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+        if (/\.css$/.test(u.pathname) && /^https?:$/.test(u.protocol) && (u.origin === location.origin || local)) {
+          document.getElementById('product-layer').href = u.href;
+          d.setAttribute('data-product', product);
+          window.TRELLIS_LAYER = { href: u.href, product: product };
+        }
+      } catch (e) {}
+    }
+    var theme = q.get('theme') || s.theme || 'auto';
+    if (theme === 'light' || theme === 'dark') d.setAttribute('data-theme', theme);
+    if (s.grid === false) d.removeAttribute('data-grid');
+    if (s.hang === false) d.setAttribute('data-no-hang', '');
+    if (s.dial) d.style.setProperty('--u-scale', String(s.dial / 12));
+    if (s.fit === 'on' || s.fit === 'off') d.setAttribute('data-unit-fit', s.fit);
+  })();
+</script>
+<link rel="stylesheet" href="specimen.css?v=0.8.0">
+</head>
+<body>
+
+<canvas class="grid-canvas" id="grid-canvas" aria-hidden="true"></canvas>
+
+<header class="nav">
+  <div class="nav-inner cc-scroll-none">
+    <a class="wordmark" href="#top" aria-label="Trellis, back to top">
+      <svg class="wordmark-mark" viewBox="0 0 18 18" aria-hidden="true">
+        <rect x="0.5" y="0.5" width="17" height="17" rx="4.5" fill="none" stroke="currentColor"></rect>
+        <line x1="0.5" y1="12.5" x2="17.5" y2="12.5" stroke="currentColor"></line>
+        <circle cx="6" cy="6" r="2" fill="currentColor"></circle>
+      </svg>
+      <span>Trellis</span>
+    </a>
+    <div class="nav-controls">
+      <div class="control">
+        <span class="t-label control-name">Theme</span>
+        <div class="seg" role="group" aria-label="Theme">
+          <button class="button" type="button" data-set="theme" data-value="light"><span class="button-label">Light</span></button>
+          <button class="button" type="button" data-set="theme" data-value="dark"><span class="button-label">Dark</span></button>
+          <button class="button" type="button" data-set="theme" data-value="auto"><span class="button-label">Auto</span></button>
+        </div>
+      </div>
+      <div class="control">
+        <span class="t-label control-name">Unit</span>
+        <div class="seg" role="group" aria-label="Unit size">
+          <button class="button icon-button" type="button" data-step="-1" aria-label="Smaller unit"><svg class="icon" viewBox="0 0 14 14"><path d="M3 7h8"></path></svg></button>
+          <span class="stepper-value t-mono" id="unit-value" aria-live="polite">12px</span>
+          <button class="button icon-button" type="button" data-step="1" aria-label="Larger unit"><svg class="icon" viewBox="0 0 14 14"><path d="M3 7h8M7 3v8"></path></svg></button>
+        </div>
+      </div>
+      <div class="control">
+        <span class="t-label control-name">Fit</span>
+        <div class="seg" role="group" aria-label="Fit the unit to the screen">
+          <button class="button" type="button" data-set="fit" data-value="auto" title="Fit on touch screens"><span class="button-label">Auto</span></button>
+          <button class="button" type="button" data-set="fit" data-value="on"><span class="button-label">On</span></button>
+          <button class="button" type="button" data-set="fit" data-value="off"><span class="button-label">Off</span></button>
+        </div>
+      </div>
+      <div class="seg" role="group" aria-label="Overlays">
+        <button class="button" type="button" data-toggle="hang"><span class="button-label">Hang</span></button>
+        <button class="button" type="button" data-toggle="grid"><span class="button-label">Grid</span></button>
+        <button class="button" type="button" data-toggle="measure"><span class="button-label">Measure</span></button>
+        <button class="button" type="button" data-toggle="css"><span class="button-label">CSS</span></button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="page frame" id="top">
+  <div class="measure-layer" id="measure-layer" aria-hidden="true" data-settle-skip></div>
+
+  <!-- ============================================================ HERO -->
+  <section class="hero stack">
+    <p class="t-label faint">Trellis · v0.8 · 11 November 2026</p>
+    <h1 class="t-h1">A cell and a ratio, <em>in context</em>.</h1>
+    <p class="t-lg hero-lead">One seed for every product that grows from it. The cell measures space; the ratio measures type. Both respond to the screen they're on and to the box they're in, so anything built from them can be nested anywhere and still look like itself. Use the bar above to switch theme and cell size, and turn on Measure to see every space on this page named in cells.</p>
+    <div class="cols seeds">
+      <article class="card seed stack">
+        <p class="t-label">The cell</p>
+        <p class="t-h3 seed-value" id="seed-u">12px</p>
+        <p class="t-sm muted" id="seed-u-note">The measure of space. Every gap, inset, control, corner and avatar is made of cells: it halves and doubles, ¼, ½, 1, 2, 4, 8.</p>
+      </article>
+      <article class="card seed stack">
+        <p class="t-label">The ratio</p>
+        <p class="t-h3 seed-value" id="seed-r">1.33</p>
+        <p class="t-sm muted" id="seed-r-note">The measure of type. Headings step down from H1 by a ratio, paragraphs step out from body by another.</p>
+      </article>
+      <article class="card seed stack">
+        <p class="t-label">Response</p>
+        <p class="t-h3 seed-value" id="seed-resp">100 cells</p>
+        <p class="t-sm muted" id="seed-resp-note">Both answer to the screen. It sets how many cells there are and how far the ratio opens; the reader's dial scales the cell, and with it every space.</p>
+      </article>
+      <article class="card seed stack">
+        <p class="t-label">Context</p>
+        <p class="t-h3 seed-value" id="seed-ctx">816px</p>
+        <p class="t-sm muted" id="seed-ctx-note">Both answer to the box they're in. Type sizes come from the container, not the window, and a context changes variables, never markup, so a component nests at any depth.</p>
+      </article>
+    </div>
+    <p class="t-sm muted hero-more">Grown from these four: lines are planes · edges land on lines · headlines stand on the cells, text hangs from them · one concept, one archetype · products turn knobs.</p>
+  </section>
+
+  <!-- ============================================================ ELEMENTS -->
+  <section class="section cc-split" id="elements">
+    <header class="section-head stack">
+      <p class="t-label">Elements</p>
+      <h2 class="t-h4">Point, line, plane +</h2>
+      <p class="t-sm muted">Kandinsky's three elements are the three measures of the system: every mark on the screen is one of them. An experiment carries them on: the plane extruded into a solid, the solid in motion, and one solid transforming into another.</p>
+    </header>
+    <div class="section-body stack">
+      <div class="plate">
+        <div class="cols plp">
+          <div class="plp-cell stack">
+            <div class="plp-art"><span class="plp-point"></span></div>
+            <p class="t-label">Point</p>
+            <p class="t-sm muted">The hairline and the dot. A line is one device pixel and never scales; a dot is ½ cell.</p>
+          </div>
+          <div class="plp-cell stack">
+            <div class="plp-art"><span class="plp-line"></span></div>
+            <p class="t-label">Line</p>
+            <p class="t-sm muted">The edge of a cell. Rhythm in one direction: rows of headlines, rules, the edges of things.</p>
+          </div>
+          <div class="plp-cell stack">
+            <div class="plp-art"><span class="plp-plane"></span></div>
+            <p class="t-label">Plane</p>
+            <p class="t-sm muted">The cell, and every surface built from cells: cards, panels, the page.</p>
+          </div>
+        </div>
+        <div class="plp-rule" role="separator"><span class="t-label">+</span></div>
+        <div class="cols plp">
+          <div class="plp-cell solid-cell stack">
+            <canvas class="solid-art" data-solid="solid" aria-label="A cube drawn on the 2:1 lattice"></canvas>
+            <p class="t-label">Solid</p>
+            <p class="t-sm muted">The plane, extruded. A cube is six planes, twelve lines and eight points: everything above, in three dimensions, drawn at the lattice's 2:1 slope.</p>
+          </div>
+          <div class="plp-cell solid-cell stack">
+            <canvas class="solid-art" data-solid="motion" aria-label="The cube turning"></canvas>
+            <p class="t-label">Motion</p>
+            <p class="t-sm muted">The solid turns and shows another face. Motion moves the rest state, never the layout: it starts and ends on the lattice, and stops for readers who ask for less motion.</p>
+          </div>
+          <div class="plp-cell solid-cell stack">
+            <div class="solid-stage"><canvas class="solid-art" data-solid="transform" aria-label="The cube becoming other Platonic solids"></canvas><p class="solid-name" data-solid-name aria-live="off">Cube</p></div>
+            <p class="t-label">Transformation</p>
+            <p class="t-sm muted">One form becomes another by moving its points. The cube lifts into the dodecahedron, gives up half its corners to the tetrahedron, and truncates through Fuller's vector equilibrium into the octahedron, which grows into the icosahedron.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ UNIT -->
+  <section class="section cc-split" id="unit">
+    <header class="section-head stack">
+      <p class="t-label">The unit</p>
+      <h2 class="t-h4">It halves and doubles</h2>
+      <p class="t-sm muted">The unit is 0.75rem, so it follows the reader's font-size setting. On a wide screen it's rounded to an even pixel, so every half unit is whole. On a touch screen, in either orientation, it's fitted instead: an even number of cells spans the screen exactly, whole modules of four between the gutters, and the cell stretches by a percent or two to fill it. Lines never stretch: a hairline is one device pixel. Its target is 10px on a phone, rising to 12px on a wide screen. Step the cell in the bar above and every space, control, corner and avatar on this page follows.</p>
+    </header>
+    <div class="section-body stack">
+      <div class="plate">
+        <div class="ladder stack">
+          <div class="ladder-row"><span class="t-mono snap">line</span><span class="bar cc-hair" style="--w: var(--line)"></span><span class="t-sm muted">1px. Borders, rules, rings. The one value that never scales.</span></div>
+          <div class="ladder-rule"></div>
+          <div class="ladder-row"><span class="t-mono snap" data-px="0.25">¼u</span><span class="bar" style="--w: var(--sp-q)"></span><span class="t-sm muted">Insets, the gap inside a tag, an avatar's ring.</span></div>
+          <div class="ladder-row"><span class="t-mono snap" data-px="0.5">½u</span><span class="bar" style="--w: var(--sp-h)"></span><span class="t-sm muted">Half a cell. The space between things that belong together.</span></div>
+          <div class="ladder-row"><span class="t-mono snap" data-px="1">u</span><span class="bar" style="--w: var(--sp-1)"></span><span class="t-sm muted">Padding in dense places; the gap between groups.</span></div>
+          <div class="ladder-row"><span class="t-mono snap" data-px="1.5">1½u</span><span class="bar" style="--w: var(--sp-1h)"></span><span class="t-sm muted">Small controls and icons.</span></div>
+          <div class="ladder-row"><span class="t-mono snap" data-px="2">2u</span><span class="bar" style="--w: var(--sp-2)"></span><span class="t-sm muted">Card padding, standard controls, a body line.</span></div>
+          <div class="ladder-row"><span class="t-mono snap" data-px="3">3u</span><span class="bar" style="--w: var(--sp-3)"></span><span class="t-sm muted">Large controls; the space between blocks.</span></div>
+          <div class="ladder-row"><span class="t-mono snap" data-px="4">4u</span><span class="bar" style="--w: var(--sp-4)"></span><span class="t-sm muted">The nav; the space between groups of blocks.</span></div>
+          <div class="ladder-row"><span class="t-mono snap" data-px="6">6u</span><span class="bar" style="--w: var(--sp-6)"></span><span class="t-sm muted">Page padding.</span></div>
+          <div class="ladder-row"><span class="t-mono snap" data-px="8">8u</span><span class="bar" style="--w: var(--sp-8)"></span><span class="t-sm muted">Section rhythm.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ RATIO -->
+  <section class="section cc-split" id="ratio">
+    <header class="section-head stack">
+      <p class="t-label">The ratio</p>
+      <h2 class="t-h4">Type grows with its space</h2>
+      <p class="t-sm muted">From the <a href="https://lab.iriscocreative.com/tools/type-scale-generator.html">Type Scale Generator</a>: two anchors, H1 and body, each with a size for a narrow space and one for a wide space. Headings step down from H1 by one ratio, paragraphs step out from body by another, and both ratios grow with the space. A narrow space compresses the hierarchy; a wide one opens it. The live sizes are measured at this width.</p>
+      <div class="cluster"><button class="button cc-sm" type="button" data-toggle="math"><span class="button-label">Show the math</span></button></div>
+    </header>
+    <div class="section-body stack">
+      <div class="type-list stack">
+        <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>h1</b> anchor</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-h1 type-sample">Trellis</p><div class="type-math stack" data-math-out></div></div>
+        <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>h2</b> h1 ÷ r</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-h2 type-sample">Community seed library</p><div class="type-math stack" data-math-out></div></div>
+        <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>h3</b> h1 ÷ r²</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-h3 type-sample">Garden Stewards Circle</p><div class="type-math stack" data-math-out></div></div>
+        <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>h4</b> h1 ÷ r³</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-h4 type-sample">Upcoming gatherings</p><div class="type-math stack" data-math-out></div></div>
+        <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>h5</b> h1 ÷ r⁴</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-h5 type-sample">Resources and gallery</p><div class="type-math stack" data-math-out></div></div>
+        <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>h6</b> h1 ÷ r⁵</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-h6 type-sample">Members of this circle</p><div class="type-math stack" data-math-out></div></div>
+        <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>xl</b> body × p²</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-xl type-sample">A living map of the people and groups tending the same ground.</p><div class="type-math stack" data-math-out></div></div>
+        <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>lg</b> body × p</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-lg type-sample">Join a circle to meet the people working on what you care about.</p><div class="type-math stack" data-math-out></div></div>
+        <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>body</b> anchor</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-body type-sample">Circles are small groups organized around a shared purpose. Each one has a wall for conversation, a library of resources and a room for live calls.</p><div class="type-math stack" data-math-out></div></div>
+        <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>sm</b> body ÷ p</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-sm type-sample">Posted in the Seed Library by a member of the Thursday circle.</p><div class="type-math stack" data-math-out></div></div>
+        <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>xs</b> body ÷ p²</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-xs type-sample">Last active 2 hours ago</p><div class="type-math stack" data-math-out></div></div>
+        <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>label</b> anchor</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-label type-sample">Seeking · Offering · 12 members</p><div class="type-math stack" data-math-out></div></div>
+      </div>
+      <div class="split">
+        <article class="card stack">
+          <p class="t-label faint">A wide card</p>
+          <h3 class="t-h3">Garden Stewards Circle</h3>
+          <p class="t-body muted">The same roles inside a card scale to the card's own width, because each card is a container. <span class="t-mono" data-ctx-readout></span></p>
+        </article>
+        <article class="card stack">
+          <p class="t-label faint">A narrow card</p>
+          <h3 class="t-h3">Garden Stewards Circle</h3>
+          <p class="t-body muted">Same markup, smaller space, compressed hierarchy. <span class="t-mono" data-ctx-readout></span></p>
+        </article>
+      </div>
+<pre class="code settle"><span class="k">font-size</span>: clamp(min, (min − slope × 20rem) + slope × 100cqi, max);   <span>/* slope = (max − min) ÷ 70rem */</span>
+<span class="k">line-height</span>: 1em × ratio;          <span>/* headlines: round(nearest, 1em × ratio, var(--u)) */</span></pre>
+    </div>
+  </section>
+
+  <!-- ============================================================ BASELINE -->
+  <section class="section cc-split" id="type-cell">
+    <header class="section-head stack">
+      <p class="t-label">Type on the cell</p>
+      <h2 class="t-h4">Headlines stand, text hangs</h2>
+      <p class="t-sm muted">The cell is the only line on the page. Headlines are large enough to be seen keeping it: their line height rounds to whole cells and every baseline lands on a cell line. Smaller text runs on its own proportional line, which reads better than any grid could make it. It hangs from a cell line by the top of its capitals, and its block rounds up to whole cells, so whatever comes next starts on a line.</p>
+    </header>
+    <div class="section-body stack">
+      <div class="plate">
+        <div class="edges">
+          <p class="edge-word">Holxg<span class="edge-line cc-cap"><span>cap</span></span><span class="edge-line cc-ex"><span>x-height</span></span><span class="edge-line cc-base"><span>baseline</span></span></p>
+        </div>
+      </div>
+      <div class="split">
+        <div class="stack">
+          <h3 class="t-h3">Lines that stand</h3>
+          <p class="t-body muted">This paragraph hangs from a cell line by the tops of its capitals. Its lines are its own: body size on a body line, with no grid pulling them apart. The block rounds up to whole cells, so the card beside it and the next section both start on a line.</p>
+          <p class="t-body muted">Turn on the grid: each of the headline's baselines sits on a cell line, every paragraph's capitals start on one, and the space after each block is whole cells.</p>
+        </div>
+        <article class="card stack">
+          <p class="t-label faint">Sidebar</p>
+          <p class="t-sm">Seed Library</p>
+          <p class="t-sm muted">12 members · 3 circles</p>
+          <p class="t-sm muted">Next gathering Thursday</p>
+          <p class="t-xs faint">Updated 2 hours ago</p>
+        </article>
+      </div>
+      <div class="plate">
+        <div class="icon-rows stack">
+          <div class="icon-row"><svg class="icon" viewBox="0 0 14 14"><rect x="2" y="2" width="10" height="10" rx="2.5"></rect></svg><span class="lbl cc-cap">CIRCLES 12</span></div>
+          <div class="icon-row"><svg class="icon" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5"></circle></svg><span class="lbl cc-ex">messages and replies</span></div>
+          <p class="t-xs faint">Beside capitals or numbers, an icon centers on the cap height. Beside lowercase text, it centers on the x-height.</p>
+        </div>
+      </div>
+<pre class="code settle"><span>/* headlines (h1–h3) stand on the cells */</span>
+<span class="k">line-height</span>: round(nearest, 1em × ratio, var(--u));
+<span class="k">padding-block-start</span>: calc(round(up, 1cap, var(--u)) − 1cap);
+<span>/* text hangs from a line and settles to whole cells */</span>
+<span class="k">text-box</span>: trim-both cap alphabetic;
+<span class="k">height</span>: calc-size(fit-content, round(up, size, var(--u)));</pre>
+    </div>
+  </section>
+
+  <!-- ============================================================ LAYOUT -->
+  <section class="section cc-split" id="layout">
+    <header class="section-head stack">
+      <p class="t-label">Layout</p>
+      <h2 class="t-h4">Page, section, composition, surface, element</h2>
+      <p class="t-sm muted">Five levels, each with a few named parts. A page holds sections; a section holds compositions; a composition arranges surfaces and elements. Every part starts on the cells, spaces blocks in whole cells and asks its container, not the window, how much room it has. A unique design changes variables at any level; it doesn't invent a sixth.</p>
+    </header>
+    <div class="section-body stack">
+      <div class="plate">
+        <div class="lay cc-page">
+          <p class="lay-name">Page · <code>.frame</code></p>
+          <div class="lay cc-section">
+            <p class="lay-name">Section · <code>.section</code> <span class="faint">.cc-split · .cc-band</span></p>
+            <div class="lay cc-comp">
+              <p class="lay-name">Composition · <code>.stack .cluster .cols .split .grid .cells .rail</code></p>
+              <div class="cols lay-cols">
+                <div class="lay cc-surface"><p class="lay-name">Surface · <code>.card</code></p><div class="lay cc-el"><p class="lay-name">Element</p></div><div class="lay cc-el"><p class="lay-name">Element</p></div></div>
+                <div class="lay cc-surface"><p class="lay-name">Surface · <code>.card</code></p><div class="lay cc-el"><p class="lay-name">Element</p></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cols rules">
+        <div class="rule stack"><p class="t-label">.stack</p><p class="t-sm">One above another, whole cells apart. Most of a page.</p></div>
+        <div class="rule stack"><p class="t-label">.cluster</p><p class="t-sm">A wrapping row: tags, chips, avatars, actions. Half-cell rhythm inside, whole cells outside.</p></div>
+        <div class="rule stack"><p class="t-label">.cols</p><p class="t-sm">n equal columns, each rounded down to whole cells. Seeds, member cards, options.</p></div>
+        <div class="rule stack"><p class="t-label">.split</p><p class="t-sm">Two columns at a ratio, 2 : 1 unless told otherwise; one column in a narrow container. Text beside a card, a list beside its detail.</p></div>
+        <div class="rule stack"><p class="t-label">.grid</p><p class="t-sm">As many fixed tracks as fit; the rest is space. Galleries, directories, libraries.</p></div>
+        <div class="rule stack"><p class="t-label">.cells</p><p class="t-sm">The lattice as a layout: each child placed and sized in cells. For compositions that are drawn rather than flowed.</p></div>
+        <div class="rule stack"><p class="t-label">.rail</p><p class="t-sm">A sideways strip that scrolls and snaps. Case studies, boards, a row of events.</p></div>
+        <div class="rule stack"><p class="t-label">.card hangs</p><p class="t-sm">A surface steps one cell out (<code>--hang</code>, a product knob), so the text inside lines up with the text outside. A row hangs only when it is all cards.</p></div>
+      </div>
+      <div class="context mondrian-box">
+        <div class="cells mondrian" aria-label="A composition placed by cell">
+          <div class="m-block cc-a"></div><div class="m-block cc-b"></div><div class="m-block cc-c"></div>
+          <div class="m-block cc-d"></div><div class="m-block cc-e"></div><div class="m-block cc-f"></div><div class="m-block cc-g"></div>
+        </div>
+      </div>
+      <p class="t-xs faint">.cells: seven planes placed by <code>--cell-x</code>, <code>--cell-y</code>, <code>--cell-w</code> and <code>--cell-h</code>, in a few proportions with the empty field doing work. In a narrow container a query re-places them; nothing is in pixels.</p>
+      <div class="rail" style="--rail-item: calc(var(--u) * 18)">
+        <article class="card stack"><p class="t-label faint">Gathering</p><p class="t-sm">Thursday circle</p><p class="t-xs faint">Seed Library</p></article>
+        <article class="card stack"><p class="t-label faint">Course</p><p class="t-sm">Pattern design, part 2</p><p class="t-xs faint">6 sessions</p></article>
+        <article class="card stack"><p class="t-label faint">Gathering</p><p class="t-sm">Seed library swap</p><p class="t-xs faint">Food Systems</p></article>
+        <article class="card stack"><p class="t-label faint">Call</p><p class="t-sm">Garden Stewards</p><p class="t-xs faint">Every other Monday</p></article>
+        <article class="card stack"><p class="t-label faint">Course</p><p class="t-sm">Facilitation basics</p><p class="t-xs faint">Self-paced</p></article>
+      </div>
+      <p class="t-xs faint">.rail: scrolls sideways and snaps; it hangs a cell like any row of cards.</p>
+      <h3 class="t-h5">Free, flowing, moving, and still on the cells</h3>
+      <div class="cols rules">
+        <div class="rule stack"><p class="t-label">Rest on the lattice, move off it</p><p class="t-sm">Layout places things on cells. Motion is transform and opacity only, so it never reflows a page; every motion starts and ends at a rest position on the lattice.</p></div>
+        <div class="rule stack"><p class="t-label">Time has a ratio too</p><p class="t-sm">Durations come from one small set and three easings: enter, exit, move. With reduced motion they collapse, and the rest state is complete on its own.</p></div>
+        <div class="rule stack"><p class="t-label">Free things live in layers</p><p class="t-sm">An organic or animated element sits in its own layer (.cells, a canvas, a positioned layer), its coordinates in cells. The flow around it never depends on it.</p></div>
+        <div class="rule stack"><p class="t-label">Spans, not pixels</p><p class="t-sm">A creative arrangement is written in cells or modules and re-placed by container queries, never by window width.</p></div>
+        <div class="rule stack"><p class="t-label">Content in the field, color to the edge</p><p class="t-sm">Text and controls stay in the field. A band's surface, a photograph or a rail may reach the screen's edges.</p></div>
+        <div class="rule stack"><p class="t-label">Scroll is a timeline</p><p class="t-sm">Scroll scenes use CSS scroll-driven animation, not scroll listeners, so they stay smooth and stop off-screen.</p></div>
+      </div>
+      <h3 class="t-h5">Next</h3>
+      <div class="cols rules">
+        <div class="rule stack"><p class="t-label">.scene</p><p class="t-sm">A pinned stage stepped through by scroll: the story of a practice, a case study.</p></div>
+        <div class="rule stack"><p class="t-label">.canvas</p><p class="t-sm">An endless field: a constellation, a map of work, a web of relationships. The organic layer.</p></div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============================================================ PROSE -->
+  <section class="section cc-split" id="prose">
+    <header class="section-head stack">
+      <p class="t-label">Prose</p>
+      <h2 class="t-h4">A post, with no classes on it</h2>
+      <p class="t-sm muted">Content arrives from editors and markdown as bare tags. One class on the wrapper, <code class="t-mono">.prose</code>, maps every tag to its role and settles every block to whole cells. Everything in this column is what an editor would emit, down to the mess a paste leaves behind at the end. Turn on Grid to check it.</p>
+    </header>
+    <div class="section-body stack">
+      <article class="prose" id="prose-post">
+        <h1>What the seed library taught us about tending</h1>
+        <p>Three winters ago a dozen neighbors began trading seed in a borrowed church hall, with no plan beyond <em>not losing the beans</em>. The library now holds <strong>1,140 varieties</strong> and has outlasted two of the groups that founded it. This is what we learned about keeping a shared thing alive, written down for the next group that tries.</p>
+        <p>None of it is original. Most of it we relearned from <a href="#prose">the people who kept seed before us</a>, and the rest we found by getting it wrong, usually in <abbr title="a period of cold that seeds need before they sprout">stratification</abbr> season, when a mistake takes a full year to show.</p>
+        <figure>
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='713'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23154b52'/%3E%3Cstop offset='1' stop-color='%23c78a2c'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E" alt="A gradient standing in for a photograph of the seed room" width="1200" height="713">
+          <figcaption>The seed room in its second year: shelves by family, not by crop, because that is how the plants cross.</figcaption>
+        </figure>
+        <h2>Start with what can be lost</h2>
+        <p>A library of books survives neglect. A library of seed does not: germination falls every year on the shelf, so the collection is always quietly dying, and the only cure is to plant it out. We keep a simple rule on the wall: anything older than its viability, multiplied by <sup>2</sup>&frasl;<sub>3</sub>, goes in the ground this season. In chemical terms the shelf is fighting H<sub>2</sub>O and O<sub>2</sub>, so jars and silica matter more than labels.</p>
+        <h3>The three questions at intake</h3>
+        <ol>
+          <li>Where was it grown, and for how many generations?</li>
+          <li>What was grown near it? Squash cross within <strong>half a mile</strong>; lettuce barely crosses at all.
+            <ol>
+              <li>If the answer is unknown, it goes in the <em>trial</em> bed before it goes on the shelf.</li>
+              <li>If it crossed, we keep it anyway and rename it. A cross is not a failure; it is a new variety with no history yet, and we would rather know than pretend.</li>
+            </ol>
+          </li>
+          <li>Who will notice if it goes missing? A seed nobody is attached to is a seed that will be lost.</li>
+        </ol>
+        <h3>What we keep on hand</h3>
+        <ul>
+          <li>Glass jars with <code>rubber</code> seals, labeled on the lid so the shelf can be read from above</li>
+          <li>Silica gel, which we dry in the oven at <code>120&deg;C</code> when the color turns
+            <ul>
+              <li>Blue means dry</li>
+              <li>Pink means an afternoon in the oven</li>
+            </ul>
+          </li>
+          <li><p>A logbook. On paper, because the person who needs it in thirty years may not have our passwords.</p><p>Everything in it is copied to a shared folder once a season, which takes about an hour.</p></li>
+        </ul>
+        <blockquote>
+          <p>You don't save a variety by keeping it safe. You save it by growing it where people can argue about how it tastes.</p>
+          <footer>Marisol Vega, <cite>Letters from the Trial Bed</cite></footer>
+        </blockquote>
+        <h2>The log, and why it is boring</h2>
+        <p>Every jar has a line in one file. We resisted anything cleverer for years. To add a variety, press <kbd>Ctrl</kbd> + <kbd>N</kbd> in the sheet, or use the small script below, which refuses a line with no grower's name.</p>
+        <pre><code>function addVariety(log, seed) {
+  if (!seed.grower) throw new Error('Who grew it? A seed with no story gets lost.');
+  log.push({ ...seed, added: new Date().toISOString(), generation: seed.generation ?? 1 });
+  return log;
+}</code></pre>
+        <table>
+          <caption>Viability on the shelf, from our own germination tests, 2023 to 2026.</caption>
+          <thead><tr><th scope="col">Family</th><th scope="col">Years at 80%</th><th scope="col">Plant out by</th><th scope="col">Isolation</th></tr></thead>
+          <tbody>
+            <tr><td>Alliums</td><td>1</td><td>Year 1</td><td>1 mile</td></tr>
+            <tr><td>Legumes</td><td>3</td><td>Year 2</td><td>None needed, in most seasons; beans are close to selfing and we have not seen a cross in the trial bed yet</td></tr>
+            <tr><td>Cucurbits</td><td>5</td><td>Year 3</td><td>&frac12; mile</td></tr>
+            <tr><td>Nightshades</td><td>4</td><td>Year 3</td><td>50 feet</td></tr>
+          </tbody>
+        </table>
+        <h4>A note on the numbers</h4>
+        <p>These are ours, in our climate, in glass, in a cool room. Yours will differ, which is the reason to run your own tests. <mark>A test takes ten seeds and a wet paper towel.</mark></p>
+        <h5>Reading a germination test</h5>
+        <p>Count at seven days and again at fourteen. The second count is the honest one.</p>
+        <h6>Fine print</h6>
+        <p><small>Figures are rounded. No seed was harmed beyond the usual.</small></p>
+        <hr>
+        <h2>A season at the library</h2>
+        <p>The swap is the part people see. It takes one Saturday; the rest of the year is what makes it possible.</p>
+        <figure>
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='533'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23154b52'/%3E%3Cstop offset='1' stop-color='%23279daf'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E" alt="Gradient placeholder: seedlings on a bench">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='800'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%235b3a7a'/%3E%3Cstop offset='1' stop-color='%23c06cc3'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E" alt="Gradient placeholder: a labeled jar">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='800'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23956a1e'/%3E%3Cstop offset='1' stop-color='%23f5a524'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E" alt="Gradient placeholder: drying squash seed">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='500'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230b5d3a'/%3E%3Cstop offset='1' stop-color='%232fb874'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E" alt="Gradient placeholder: the trial bed in June">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='640'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231b3f70'/%3E%3Cstop offset='1' stop-color='%235b9cf0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E" alt="Gradient placeholder: beans sorted on a tray">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='500'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23702a1e'/%3E%3Cstop offset='1' stop-color='%23ef6c44'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E" alt="Gradient placeholder: the swap table">
+          <figcaption>Six months in six frames. Different shapes from the phone; the same squares here.</figcaption>
+        </figure>
+        <figure>
+          <video controls preload="none" poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1280' height='720'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23011012'/%3E%3Cstop offset='1' stop-color='%23279daf'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E" width="1280" height="720"></video>
+          <figcaption>A walk through the trial bed in June.</figcaption>
+        </figure>
+        <iframe title="Map of the trial beds" srcdoc="&lt;!doctype html&gt;&lt;body style='margin:0;display:grid;place-items:center;height:100vh;background:#042;color:#fff;font:16px sans-serif'&gt;An embed&lt;/body&gt;" width="560" height="315"></iframe>
+        <details>
+          <summary>What if a variety fails two years running?</summary>
+          <p>We ask whoever brought it first. If no one is left to ask, it goes to the regional bank with its whole log, and we write down why it failed here so the next grower starts ahead of us.</p>
+        </details>
+        <details open>
+          <summary>Can I take seed without bringing any?</summary>
+          <p>Yes. The first year is a gift. After that we ask you to return a tenth of what you grow, and we'll show you how to dry it.</p>
+          <ul>
+            <li>Bring it in paper, not plastic</li>
+            <li>Write the year on it</li>
+          </ul>
+        </details>
+        <dl>
+          <dt>Landrace</dt>
+          <dd>A variety that has adapted to one place over many generations, and still shows variation.</dd>
+          <dt>Roguing</dt>
+          <dd>Pulling the plants that are off type before they flower.</dd>
+        </dl>
+        <h3>From a paste</h3>
+        <p>Everything from here down is what a word processor leaves behind. It should read as plain, well-set text.</p>
+        <p style="margin-top:12pt;margin-bottom:12pt;line-height:1.38;font-size:11pt;font-family:Arial;color:#000000;background-color:transparent"><span style="font-size:11pt;font-family:Arial;color:#000000;font-weight:400">A paragraph with every style a document editor adds,</span> <span style="font-size:22pt;line-height:3;background-color:#ffff00;font-weight:700">and a loud span</span> <span style="color:#000000;font-style:italic">that keeps only its emphasis.</span></p>
+        <p></p>
+        <p><br></p>
+        <p>&nbsp;</p>
+        <div><div><p>A paragraph buried in two pasted divs joins the column as if they weren't there.</p><ul><li>So does a list</li></ul></div></div>
+        <div>A div with only text in it is a paragraph, which is what a browser's own editor makes of a line.</div>
+        <h4 style="margin:40px 0 30px;font-size:30px;font-family:Times">A heading that asked for its own size</h4>
+        <p>Text after it still lands on a line.</p>
+        <blockquote>A quote with bare text in it, no paragraph, followed by its source.<cite>Anonymous, on a seed packet</cite></blockquote>
+        <p><font size="7" color="red" face="Comic Sans MS">Even a font tag settles down.</font></p>
+        <p>And the last line of the post: whatever comes after <code>.prose</code> starts on a line too.</p>
+      </article>
+      <p class="t-xs faint">End of the post. This line stands on the cell after its last block; align.js checks every block above it.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ LAYOUTS FOR APPS -->
+  <section class="section cc-split" id="apps">
+    <header class="section-head stack">
+      <p class="t-label">Apps and post types</p>
+      <h2 class="t-h4">List, shell, cover, board</h2>
+      <p class="t-sm muted">The layouts content needs, in the order it needs them. A post type is a composition of these plus prose. All four answer to their container: the shell below becomes a tab bar because its box is narrow, not because the window is.</p>
+    </header>
+    <div class="section-body stack">
+      <h3 class="t-h5">.list</h3>
+      <ul class="list" id="demo-list">
+        <li class="list-item"><span class="avatar cc-sm cc-hue-a" aria-hidden="true">MV</span><div class="list-body"><p class="t-sm"><a class="list-link" href="#apps">Marisol Vega</a></p><p class="t-xs muted">Can you bring the squash seed on Saturday? We're short on the Long Island Cheese and I'd like to get it in the trial bed before the frost.</p></div><div class="list-end"><span class="t-xs faint">2m</span></div></li>
+        <li class="list-item"><span class="avatar cc-sm cc-group" aria-hidden="true">FS</span><div class="list-body"><p class="t-sm"><a class="list-link" href="#apps">Food Systems</a></p><p class="t-xs muted">Three new members joined this week.</p></div><div class="list-end"><span class="tag cc-sm"><span class="tag-label">New</span></span></div></li>
+        <li class="list-item"><span class="avatar cc-sm" aria-hidden="true">JB</span><div class="list-body"><p class="t-sm"><a class="list-link" href="#apps">Jonah Baptiste</a></p></div><div class="list-end"><span class="t-xs faint">Yesterday</span></div></li>
+      </ul>
+      <p class="t-xs faint">Rows hang a cell, so the hover surface steps out while the text stays on the column's edge. Each rule is a hairline after its row's bottom coordinate: it adds no height.</p>
+
+      <h3 class="t-h5">.shell</h3>
+      <div class="shell demo-shell" id="demo-shell-wide">
+        <div class="shell-grid">
+          <nav class="shell-nav" aria-label="Example">
+            <a class="shell-link" href="#apps" aria-current="page"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5"></circle></svg><span>Home</span></a>
+            <a class="shell-link" href="#apps"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5"></circle></svg><span>Field</span></a>
+            <a class="shell-link" href="#apps"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5"></circle></svg><span>People</span></a>
+          </nav>
+          <div class="shell-main stack"><p class="t-label faint">Main</p><p class="t-sm">Navigation beside main, with the aside under it or beside it when there is room.</p></div>
+          <aside class="shell-aside stack"><p class="t-label faint">Aside</p><p class="t-xs muted">Details, related posts, members.</p></aside>
+        </div>
+      </div>
+      <div class="shell demo-shell cc-narrow" id="demo-shell-narrow">
+        <div class="shell-grid">
+          <nav class="shell-nav" aria-label="Example, narrow">
+            <a class="shell-link" href="#apps" aria-current="page"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5"></circle></svg><span>Home</span></a>
+            <a class="shell-link" href="#apps"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5"></circle></svg><span>Field</span></a>
+            <a class="shell-link" href="#apps"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5"></circle></svg><span>People</span></a>
+          </nav>
+          <div class="shell-main stack"><p class="t-label faint">Main</p><p class="t-sm">The same markup in a box under 48rem: the navigation is a tab bar.</p></div>
+          <aside class="shell-aside stack"><p class="t-label faint">Aside</p><p class="t-xs muted">Under main.</p></aside>
+        </div>
+      </div>
+
+      <h3 class="t-h5">.board</h3>
+      <div class="board" id="demo-board">
+        <div class="board-lane"><div class="board-lane-head"><p class="t-label">Planting</p><span class="t-xs faint">2</span></div><article class="card stack"><p class="t-sm">Sow the trial bed</p><p class="t-xs faint">Marisol</p></article><article class="card stack"><p class="t-sm">Label the new jars, by family and by the year they were grown</p><p class="t-xs faint">Jonah</p></article></div>
+        <div class="board-lane"><div class="board-lane-head"><p class="t-label">Growing</p><span class="t-xs faint">1</span></div><article class="card stack"><p class="t-sm">Rogue the off-type squash</p><p class="t-xs faint">Marisol</p></article></div>
+        <div class="board-lane"><div class="board-lane-head"><p class="t-label">Saving</p><span class="t-xs faint">1</span></div><article class="card stack"><p class="t-sm">Dry the beans</p><p class="t-xs faint">Ada</p></article></div>
+        <div class="board-lane"><div class="board-lane-head"><p class="t-label">Shared</p><span class="t-xs faint">0</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ A POST TYPE -->
+  <section class="post-type" id="post-type">
+    <div class="cover" id="demo-cover">
+      <div class="cover-media"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23063840'/%3E%3Cstop offset='1' stop-color='%23c78a2c'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E" alt="A gradient standing in for a photograph"></div>
+      <div class="cover-body">
+        <p class="t-label">A post type, worked through</p>
+        <h2 class="t-h1">An article, with a cover and its people</h2>
+        <p class="t-lg">A <code class="t-mono">.cover</code>, then a <code class="t-mono">.split</code> holding <code class="t-mono">.prose</code> and a <code class="t-mono">.list</code> of related posts, then a <code class="t-mono">.list</code> of comments. No layout here that isn't one of those.</p>
+      </div>
+    </div>
+    <div class="split post-type-body">
+      <article class="prose">
+        <p>The cover is the part people remember, and it reaches the screen's edges. The words don't: they stay in the field, on the same left edge as everything below them.</p>
+        <p>The article is plain <code>.prose</code>. It knows nothing about the cover above it or the related posts beside it, so the same content can appear in a feed, an email or a course without changing.</p>
+        <h2>Why the sidebar is a list</h2>
+        <p>Because a related post, a comment and a chat are the same thing to the grid: a row with something at its start, words in the middle and something at its end.</p>
+      </article>
+      <aside class="stack post-type-aside">
+        <p class="t-label">Related</p>
+        <ul class="list cc-dense">
+          <li class="list-item"><div class="list-body"><p class="t-sm"><a class="list-link" href="#post-type">What the seed library taught us</a></p></div></li>
+          <li class="list-item"><div class="list-body"><p class="t-sm"><a class="list-link" href="#post-type">Running your own germination test</a></p></div></li>
+          <li class="list-item"><div class="list-body"><p class="t-sm"><a class="list-link" href="#post-type">A year of the trial bed</a></p></div></li>
+        </ul>
+      </aside>
+    </div>
+    <div class="stack post-type-comments">
+      <h3 class="t-h5">Comments</h3>
+      <ul class="list">
+        <li class="list-item"><span class="avatar cc-sm" aria-hidden="true">AO</span><div class="list-body"><p class="t-sm">Ada Okafor</p><p class="t-sm muted">We tried this with beans first, and it was the right place to start: they forgive nearly everything.</p></div><div class="list-end"><span class="t-xs faint">3h</span></div></li>
+        <li class="list-item"><span class="avatar cc-sm" aria-hidden="true">JB</span><div class="list-body"><p class="t-sm">Jonah Baptiste</p><p class="t-sm muted">The boring log is the whole thing. Ours lasted because nobody could improve it.</p></div><div class="list-end"><span class="t-xs faint">1d</span></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============================================================ PRIMITIVES -->
+  <section class="section cc-split" id="primitives">
+    <header class="section-head stack">
+      <p class="t-label">Primitives</p>
+      <h2 class="t-h4">Fields, tabs, chat, tiles, modal</h2>
+      <p class="t-sm muted">Same discipline as the tag: one archetype, and every variant only changes its variables.</p>
+    </header>
+    <div class="section-body stack">
+      <h3 class="t-h5">.field and .input</h3>
+      <div class="cols demo-fields">
+        <div class="field"><label class="field-label t-label" for="f1">Name</label><input class="input" id="f1" placeholder="Your name"><p class="field-hint t-xs">As you'd like it shown.</p></div>
+        <div class="field"><label class="field-label t-label" for="f2">Circle</label><select class="input" id="f2"><option>Food Systems</option><option>Seed Library</option></select><p class="field-hint t-xs">A select is the same box.</p></div>
+        <div class="field"><label class="field-label t-label" for="f3">Email</label><input class="input" id="f3" aria-invalid="true" value="marisol@"><p class="field-hint t-xs">That doesn't look finished.</p></div>
+        <div class="field"><label class="field-label t-label" for="f4">Membership</label><input class="input" id="f4" disabled value="Founding member"><p class="field-hint t-xs">Disabled.</p></div>
+      </div>
+      <div class="field"><label class="field-label t-label" for="f5">About you</label><textarea class="input" id="f5" placeholder="Lines are whole cells, so this is too."></textarea></div>
+      <div class="cluster demo-inputs"><input class="input cc-sm" aria-label="Small" placeholder="Small, 2 cells"><input class="input" aria-label="Default" placeholder="Default, 3 cells"><input class="input cc-lg" aria-label="Large" placeholder="Large, 4 cells"></div>
+
+      <h3 class="t-h5">.tabs</h3>
+      <div class="tabs" role="tablist" aria-label="Example" id="demo-tabs"><button class="tab" role="tab" aria-selected="true" type="button">Overview</button><button class="tab" role="tab" aria-selected="false" type="button">Members</button><button class="tab" role="tab" aria-selected="false" type="button">Events</button><button class="tab" role="tab" aria-selected="false" type="button">Documents</button></div>
+      <div class="tabs cc-seg" role="tablist" aria-label="Example, segmented"><button class="tab" role="tab" aria-selected="true" type="button">Week</button><button class="tab" role="tab" aria-selected="false" type="button">Month</button><button class="tab" role="tab" aria-selected="false" type="button">Year</button></div>
+
+      <h3 class="t-h5">.chat-item</h3>
+      <div class="stack demo-chat">
+        <div class="chat-item"><span class="avatar cc-sm" aria-hidden="true">MV</span><div class="chat-item-body"><p class="chat-item-meta t-xs"><span>Marisol Vega</span><time>9:41</time></p><div class="chat-item-bubble t-sm">Can you bring the squash seed on Saturday?</div></div></div>
+        <div class="chat-item cc-own"><span class="avatar cc-sm" aria-hidden="true">JB</span><div class="chat-item-body"><p class="chat-item-meta t-xs"><time>9:44</time></p><div class="chat-item-bubble t-sm">Yes. I'll bring the Long Island Cheese and whatever is left of the beans, which isn't much after the swap last month.</div></div></div>
+        <div class="chat-item cc-system"><div class="chat-item-body"><p class="t-xs">Ada Okafor joined Food Systems</p></div></div>
+        <div class="chat-item cc-wall"><span class="avatar cc-sm cc-group" aria-hidden="true">FS</span><div class="chat-item-body"><p class="chat-item-meta t-xs"><span>Food Systems</span><time>Yesterday</time></p><div class="chat-item-bubble t-sm">On a wall there is no bubble: the words sit on the page. The trial bed opens on the first of the month.</div></div></div>
+      </div>
+
+      <h3 class="t-h5">.member-tile, .badge, .dot</h3>
+      <div class="grid demo-tiles">
+        <article class="card member-tile"><span class="avatar cc-lg" aria-hidden="true">MV</span><div class="member-tile-body"><p class="t-h5">Marisol Vega</p><p class="t-sm muted">Keeps the seed log, and everyone honest.</p></div><div class="cluster"><span class="tag cc-sm"><span class="tag-label">Seed saving</span></span><span class="tag cc-sm cc-group"><span class="tag-label">Food Systems</span></span></div></article>
+        <article class="card member-tile"><span class="avatar cc-lg" aria-hidden="true">AO</span><div class="member-tile-body"><p class="t-h5">Ada Okafor</p><p class="t-sm muted">New this week.</p></div><div class="cluster"><span class="badge">3</span><span class="badge cc-quiet">12</span><span class="badge cc-accent">New</span><span class="dot" aria-label="Unread"></span><span class="dot cc-ok" aria-label="Online"></span><span class="dot cc-quiet" aria-label="Away"></span></div></article>
+      </div>
+      <article class="card member-tile cc-row"><span class="avatar cc-md" aria-hidden="true">JB</span><div class="member-tile-body"><p class="t-h6">Jonah Baptiste</p><p class="t-sm muted">.cc-row puts the avatar beside the words.</p></div></article>
+
+      <h3 class="t-h5">.skeleton</h3>
+      <article class="card member-tile" aria-busy="true"><span class="skeleton cc-block demo-skel-avatar"></span><div class="member-tile-body"><p class="t-h5 skeleton">A placeholder name</p><p class="t-sm skeleton">Placeholder copy the length of a real line, shimmering.</p></div></article>
+      <p class="t-xs faint">The structure, shimmering, on the same lines as the real thing, so nothing moves when the words arrive.</p>
+
+      <h3 class="t-h5">.modal</h3>
+      <div class="cluster">
+        <button class="button" type="button" data-open-modal="demo-modal"><span class="button-label">Open a modal</span></button>
+        <button class="button" type="button" data-open-modal="demo-sheet"><span class="button-label">Open a sheet</span></button>
+      </div>
+      <p class="t-xs faint">On the native dialog, so focus, Escape and the inert page come free. A click on the backdrop is left to the app, a line of script: <code class="t-mono">e.target === dialog</code>. On a narrow screen every modal is a sheet.</p>
+    </div>
+    <dialog class="modal" id="demo-modal" aria-labelledby="demo-modal-title">
+      <div class="modal-inner">
+        <header class="modal-header"><h3 class="t-h5" id="demo-modal-title">Bring seed to the swap</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg></button></header>
+        <div class="modal-body"><p class="t-sm">The card fades and scales from .96, the backdrop fades a little slower, and everything leaves faster than it came.</p><div class="field"><label class="field-label t-label" for="f6">How many varieties?</label><input class="input" id="f6" value="4"></div></div>
+        <footer class="modal-footer"><button class="button cc-ghost" type="button" data-close-modal><span class="button-label">Cancel</span></button><button class="button cc-primary" type="button" data-close-modal><span class="button-label">Save</span></button></footer>
+      </div>
+    </dialog>
+    <dialog class="modal cc-sheet" id="demo-sheet" aria-labelledby="demo-sheet-title">
+      <div class="modal-inner">
+        <header class="modal-header"><h3 class="t-h5" id="demo-sheet-title">A sheet</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg></button></header>
+        <div class="modal-body"><p class="t-sm">The same parts. A sheet only changes the variables: it sits at the bottom, edge to edge, on the spring curve.</p></div>
+        <footer class="modal-footer"><button class="button cc-primary" type="button" data-close-modal><span class="button-label">Done</span></button></footer>
+      </div>
+    </dialog>
+  </section>
+
+  <!-- ============================================================ AVATARS -->
+  <section class="section cc-split" id="avatars">
+    <header class="section-head stack">
+      <p class="t-label">Edges</p>
+      <h2 class="t-h4">Photo on the cells, halo in the gutter</h2>
+      <p class="t-sm muted">A box's edges land on lines, or a hairline or quarter unit off them. A box centered on a line is then an even size. A box pinned to something else, like the edge of the screen, takes whatever size lands its free edge on a line. The avatar shows it best: the photo is whole cells, and its gap and ring are drawn outside it by the same geometry, so they stay even all the way round.</p>
+    </header>
+    <div class="section-body stack">
+      <div class="plate"><svg class="anatomy" id="anatomy" role="img" aria-label="A two-unit avatar magnified: the photo fills two cells, a 1px gap and a 2px ring sit outside it, ending a quarter unit past the cell lines."></svg></div>
+      <div class="plate">
+        <div class="stack u-gap-2">
+          <div class="avatar-ladder">
+            <div class="avatar-cell stack"><span class="avatar cc-xs face" style="--av-hue: 200; --av-color: #4fb0c6"></span><span class="t-mono snap">u</span></div>
+            <div class="avatar-cell stack"><span class="avatar cc-sm face" style="--av-hue: 30"></span><span class="t-mono snap">2u</span></div>
+            <div class="avatar-cell stack"><span class="avatar cc-md face" style="--av-hue: 300; --av-color: #c66fd0"><span class="avatar-dot"></span></span><span class="t-mono snap">3u</span></div>
+            <div class="avatar-cell stack"><span class="avatar cc-lg" style="--av-color: #5cc08a"><span class="avatar-initials">TR</span></span><span class="t-mono snap">4u</span></div>
+            <div class="avatar-cell stack"><span class="avatar cc-xl face" style="--av-hue: 15; --av-color: #e07a5a"></span><span class="t-mono snap">6u</span></div>
+            <div class="avatar-cell stack"><span class="avatar cc-xxl face" style="--av-hue: 220; --av-color: #6f9be8"></span><span class="t-mono snap">8u</span></div>
+          </div>
+          <div class="avatar-ladder">
+            <div class="avatar-cell stack"><span class="avatar cc-lg cc-group face" style="--av-hue: 185"></span><span class="t-mono snap">group 4u</span></div>
+            <div class="avatar-cell stack"><span class="avatar cc-md cc-group"><span class="avatar-initials">CC</span></span><span class="t-mono snap">group 3u</span></div>
+            <div class="avatar-cell stack">
+              <span class="avatar-stack" style="--av-size: var(--sp-2)">
+                <span class="avatar cc-sm face" style="--av-hue: 30"></span>
+                <span class="avatar cc-sm face" style="--av-hue: 300; --av-color: #c66fd0"></span>
+                <span class="avatar cc-sm" style="--av-color: #5cc08a"><span class="avatar-initials">T</span></span>
+                <span class="avatar cc-sm face" style="--av-hue: 220; --av-color: #6f9be8"></span>
+                <span class="avatar-more">+8</span>
+              </span>
+              <span class="t-mono snap">stack</span>
+            </div>
+          </div>
+          <p class="t-xs faint">Sample members. Turn on the grid: each photo fills whole cells.</p>
+        </div>
+      </div>
+      <div class="cols rules">
+        <div class="rule stack"><p class="t-label">Always a ring</p><p class="t-sm">At every size. It carries the most specific color the app knows: the person's own color where the app gives people one, the person or group kind color where it doesn't. It never shows status, role or selection.</p></div>
+        <div class="rule stack"><p class="t-label">Always a gap</p><p class="t-sm">1px gap and 2px ring up to 3u; a quarter unit each from 4u. Together they are a quarter or a half unit, so the ring's outer edge lands on a line too.</p></div>
+        <div class="rule stack"><p class="t-label">Shape is kind</p><p class="t-sm">A circle is a person. A rounded square, corner a quarter of its size, is a group: a circle, an organization or a team. Shape never shows size, rank, role or context.</p></div>
+        <div class="rule stack"><p class="t-label">No photo</p><p class="t-sm">Initials on a wash of the ring color: one letter up to 2u, two from 3u. Never a placeholder image, and nobody dropped from a list.</p></div>
+        <div class="rule stack"><p class="t-label">Sizes by place</p><p class="t-sm">u inline in text · 2u rows, chips and stacks · 3u cards and messages · 4u headers · 6u profile cards · 8u page headers · 12u the profile page.</p></div>
+        <div class="rule stack"><p class="t-label">Presence and stacks</p><p class="t-sm">Presence is a ½u dot on the circle's diagonal, only in live places. Stacks overlap by half a unit, knock out with the surface, and always end in a count.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ TAGS -->
+  <section class="section cc-split" id="tags">
+    <header class="section-head stack">
+      <p class="t-label">Tags</p>
+      <h2 class="t-h4">One archetype, many branches</h2>
+      <p class="t-sm muted">A tag is a height; a corner; padding equal to the corner, so the label starts where the curve ends; a hairline edge and a tint mixed from one kind color; and a label trimmed to its capitals so it centers exactly. Kinds, emphases, sizes, states and contexts change those variables and nothing else. Load the Quarry example to watch pills become squared, uppercase labels.</p>
+    </header>
+    <div class="section-body stack">
+      <div class="plate">
+        <div class="matrix stack">
+          <div class="matrix-row"><span class="t-label cap-center">Kind</span><div class="cluster"><span class="tag"><span class="tag-label">Systems design</span></span><span class="tag cc-person"><span class="tag-label">Amara Okafor</span></span><span class="tag cc-group"><span class="tag-label">Seed library</span></span><span class="tag cc-event"><span class="tag-label">Thursday gathering</span></span><span class="tag cc-course"><span class="tag-label">Pattern design</span></span></div></div>
+          <div class="matrix-row"><span class="t-label cap-center">Status</span><div class="cluster"><span class="tag cc-ok"><span class="tag-dot"></span><span class="tag-label">Active</span></span><span class="tag cc-warn"><span class="tag-dot"></span><span class="tag-label">Pending</span></span><span class="tag cc-alert"><span class="tag-dot"></span><span class="tag-label">Blocked</span></span></div></div>
+          <div class="matrix-row"><span class="t-label cap-center">Emphasis</span><div class="cluster"><span class="tag cc-group"><span class="tag-label">Soft</span></span><span class="tag cc-group cc-outline"><span class="tag-label">Outline</span></span><span class="tag cc-group cc-solid"><span class="tag-label">Solid</span></span></div></div>
+          <div class="matrix-row"><span class="t-label cap-center">Size</span><div class="cluster u-align-end"><span class="tag cc-sm"><span class="tag-label">Small</span></span><span class="tag cc-md"><span class="tag-label">Medium</span></span><span class="tag cc-lg"><span class="tag-label">Large</span></span></div></div>
+          <div class="matrix-row"><span class="t-label cap-center">Filter</span><div class="cluster" id="filter-tags"><button class="tag" type="button" aria-pressed="true"><span class="tag-label">Food systems</span></button><button class="tag" type="button" aria-pressed="false"><span class="tag-label">Regenerative finance</span></button><button class="tag" type="button" aria-pressed="false"><span class="tag-label">Facilitation</span></button></div></div>
+          <div class="matrix-row"><span class="t-label cap-center">Removable</span><div class="cluster"><span class="tag cc-person"><span class="tag-label">Lena Vogt</span><button class="tag-remove" type="button" aria-label="Remove Lena Vogt"><svg class="icon" viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6"></path></svg></button></span><span class="tag"><span class="tag-label">Permaculture</span><button class="tag-remove" type="button" aria-label="Remove Permaculture"><svg class="icon" viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6"></path></svg></button></span></div></div>
+          <div class="matrix-row"><span class="t-label cap-center">Dense card</span><div class="card cc-dense"><div class="cluster"><span class="tag"><span class="tag-label">Systems design</span></span><span class="tag cc-group"><span class="tag-label">Commerce</span></span><span class="tag cc-ok"><span class="tag-dot"></span><span class="tag-label">Active</span></span></div></div></div>
+          <div class="matrix-row"><span class="t-label cap-center">On media</span><div class="media-tile cc-on-media"><div class="cluster"><span class="tag"><span class="tag-label">Gallery</span></span><span class="tag"><span class="tag-label">12 photos</span></span></div></div></div>
+        </div>
+      </div>
+<pre class="code settle"><span class="k">.tag</span>            { --tag-h; --tag-radius; --tag-pad: the corner, ½u to u; --tag-color; --tag-fill: 14%; --tag-edge: 42%; }
+<span class="k">.tag.cc-person</span>  { --tag-color: var(--kind-person); }      <span>/* kind     */</span>
+<span class="k">.tag.cc-solid</span>   { --tag-fill: 100%; --tag-edge: 100%; }   <span>/* emphasis */</span>
+<span class="k">.cc-dense .tag</span>  { --tag-h: var(--size-control-xs); }     <span>/* context  */</span>
+<span class="k">:root</span>           { --tag-r-ratio: .5; }  <span>/* one product: a pill */</span>   <span class="k">:root</span> { --tag-r-fixed: ¼u; --tag-case: uppercase; }  <span>/* another: squared, uppercase */</span></pre>
+    </div>
+  </section>
+
+  <!-- ============================================================ CONTROLS + FLOAT -->
+  <section class="section cc-split" id="floating">
+    <header class="section-head stack">
+      <p class="t-label">Floating surfaces</p>
+      <h2 class="t-h4">One surface, anchored</h2>
+      <p class="t-sm muted">Every popover, menu and tooltip is the same surface with different variables. It opens in the browser's top layer, follows its anchor and closes when the anchor scrolls out of view. Without that, one menu follows its button out of the card, one is clipped inside it, and the rest drift when anything scrolls.</p>
+    </header>
+    <div class="section-body stack">
+      <div class="cols compare">
+        <div class="stack">
+          <p class="t-label bad">Today, in the action card</p>
+<pre class="code cc-wrap settle">origin-[var(--transform-origin)] rounded-lg border border-[var(--border)] bg-[var(--bg-raised)] p-3 text-sm text-[var(--text)] shadow-[var(--lift)] outline-none transition-[opacity,scale] duration-100 ease-out data-starting-style:scale-[0.98] data-starting-style:opacity-0 data-ending-style:scale-[0.98] data-ending-style:opacity-0 cardsys flex max-h-[18rem] w-[220px] flex-col gap-0.5 overflow-hidden p-1.5</pre>
+          <p class="t-xs faint">p-3 and p-1.5 both set the padding; Tailwind's stylesheet order decides which wins. 220 is off the grid.</p>
+        </div>
+        <div class="stack">
+          <p class="t-label good">In Trellis</p>
+<pre class="code settle">&lt;div class="<span class="k">float options-card</span>" popover&gt;</pre>
+          <div class="float options-card settle" role="listbox" aria-label="Set role (example)">
+            <p class="t-label options-card-heading">Set role</p>
+            <div class="options-card-item" role="option" aria-selected="true"><svg class="icon" viewBox="0 0 14 14"><circle cx="7" cy="5" r="2.5"></circle><path d="M2.5 12.5c.6-2.3 2.3-3.5 4.5-3.5s3.9 1.2 4.5 3.5"></path></svg><span class="button-label">Owner</span><svg class="icon cc-end" viewBox="0 0 14 14"><path d="M3 7.5 6 10.5 11 4"></path></svg></div>
+            <div class="options-card-item" role="option"><svg class="icon" viewBox="0 0 14 14"><path d="M2.5 7h9M8 3.5 11.5 7 8 10.5"></path></svg><span class="button-label">Assignee</span></div>
+            <div class="options-card-item" role="option"><svg class="icon" viewBox="0 0 14 14"><path d="M11.5 7h-9M6 3.5 2.5 7 6 10.5"></path></svg><span class="button-label">Owed to</span></div>
+            <div class="options-card-rule" role="separator"></div>
+            <div class="options-card-item" role="option"><svg class="icon" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg><span class="button-label">Remove role</span></div>
+          </div>
+          <p class="t-xs faint">16u wide, at most 24u tall. Its corner minus its padding gives the items their corner.</p>
+        </div>
+      </div>
+      <article class="card demo-card">
+        <div class="demo-scroll" id="demo-scroll">
+          <div class="action-row"><span class="t-sm cap-center u-truncate">Draft the platform brief</span><button class="button cc-sm" type="button" popovertarget="roles-menu"><span class="button-label">Roles</span></button></div>
+          <div class="action-row"><span class="t-sm cap-center u-truncate">Extract the color tokens</span><button class="button cc-sm" type="button" popovertarget="roles-menu"><span class="button-label">Roles</span></button></div>
+          <div class="action-row"><span class="t-sm cap-center u-truncate">Avatar audit, both apps</span><button class="button cc-sm" type="button" popovertarget="roles-menu"><span class="button-label">Roles</span></button></div>
+          <div class="action-row"><span class="t-sm cap-center u-truncate">Session notes for the first wave</span><button class="button cc-sm" type="button" popovertarget="roles-menu"><span class="button-label">Roles</span></button></div>
+          <div class="action-row"><span class="t-sm cap-center u-truncate">Lower the DNS TTL</span><button class="button cc-sm" type="button" popovertarget="roles-menu"><span class="button-label">Roles</span></button></div>
+          <div class="action-row"><span class="t-sm cap-center u-truncate">Choose the logo slot</span><button class="button cc-sm" type="button" popovertarget="roles-menu"><span class="button-label">Roles</span></button></div>
+          <div class="action-row"><span class="t-sm cap-center u-truncate">Stripe test key for the test domain</span><button class="button cc-sm" type="button" popovertarget="roles-menu"><span class="button-label">Roles</span></button></div>
+          <div class="action-row"><span class="t-sm cap-center u-truncate">Parity crawl</span><button class="button cc-sm" type="button" popovertarget="roles-menu"><span class="button-label">Roles</span></button></div>
+        </div>
+      </article>
+      <p class="t-xs faint">Open a Roles menu and scroll the card. The menu stays with its button and closes when the button leaves the card.</p>
+      <div class="float options-card" id="roles-menu" popover>
+        <p class="t-label options-card-heading">Set role</p>
+        <button class="options-card-item" type="button" popovertarget="roles-menu" popovertargetaction="hide"><span class="button-label">Owner</span></button>
+        <button class="options-card-item" type="button" popovertarget="roles-menu" popovertargetaction="hide"><span class="button-label">Assignee</span></button>
+        <button class="options-card-item" type="button" popovertarget="roles-menu" popovertargetaction="hide"><span class="button-label">Owed to</span></button>
+        <button class="options-card-item" type="button" popovertarget="roles-menu" popovertargetaction="hide"><span class="button-label">Reviewer</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ SCROLLBARS -->
+  <section class="section cc-split" id="scrollbars">
+    <header class="section-head stack">
+      <p class="t-label">Scrollbars</p>
+      <h2 class="t-h4">One scrollbar, branched</h2>
+      <p class="t-sm muted">Every scroll area uses one archetype: a width, a thumb, a track. A variant changes one variable and lives in the core, so the next large pane reuses the thick bar instead of inventing another. The archetype can be redesigned later in one place.</p>
+    </header>
+    <div class="section-body stack">
+      <div class="cols scrollers">
+        <div class="scroller stack"><p class="t-label faint">Default · thin</p><div class="scroll-pane" tabindex="0"><div class="stack" data-fill-list></div></div></div>
+        <div class="scroller stack"><p class="t-label faint">.cc-scroll-thick</p><div class="scroll-pane cc-scroll-thick" tabindex="0"><div class="stack" data-fill-list></div></div></div>
+        <div class="scroller stack"><p class="t-label faint">.cc-scroll-none</p><div class="scroll-pane cc-scroll-none" tabindex="0"><div class="stack" data-fill-list></div></div></div>
+      </div>
+<pre class="code settle"><span class="k">:root</span>            { --scrollbar-width: thin; --scrollbar-size: ½u; --scrollbar-thumb: text 22%; --scrollbar-track: transparent; }
+<span class="k">.cc-scroll-thick</span> { --scrollbar-width: auto; --scrollbar-size: u; }
+<span class="k">.cc-scroll-none</span>  { --scrollbar-width: none; }</pre>
+    </div>
+  </section>
+
+  <!-- ============================================================ CONTEXT -->
+  <section class="section cc-split" id="context">
+    <header class="section-head stack">
+      <p class="t-label">Context</p>
+      <h2 class="t-h4">Context changes variables, not markup</h2>
+      <p class="t-sm muted">A card in a dense region tightens its padding, corner, controls and tags together. The markup is identical. The same holds for a card in a modal or a narrow column.</p>
+    </header>
+    <div class="section-body stack">
+      <div class="cols contexts">
+        <div class="context-col stack">
+          <p class="t-label">Default</p>
+          <article class="card member-card stack">
+            <div class="member-head"><span class="avatar cc-md face" style="--av-hue: 30"></span><div class="stack"><p class="t-sm">Amara Okafor</p><p class="t-xs faint">Sample member · Lagos</p></div></div>
+            <div class="cluster"><span class="tag cc-group"><span class="tag-label">Regenerative finance</span></span><span class="tag cc-event"><span class="tag-label">Hosts events</span></span></div>
+            <div class="cluster"><button class="button cc-primary" type="button"><span class="button-label">Message</span></button><button class="button" type="button"><span class="button-label">View profile</span></button></div>
+          </article>
+        </div>
+        <div class="context-col stack cc-dense">
+          <p class="t-label">Inside .cc-dense</p>
+          <article class="card member-card stack">
+            <div class="member-head"><span class="avatar cc-md face" style="--av-hue: 30"></span><div class="stack"><p class="t-sm">Amara Okafor</p><p class="t-xs faint">Sample member · Lagos</p></div></div>
+            <div class="cluster"><span class="tag cc-group"><span class="tag-label">Regenerative finance</span></span><span class="tag cc-event"><span class="tag-label">Hosts events</span></span></div>
+            <div class="cluster"><button class="button cc-primary" type="button"><span class="button-label">Message</span></button><button class="button" type="button"><span class="button-label">View profile</span></button></div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ ORGANIC -->
+  <section class="section cc-split" id="organic">
+    <header class="section-head stack">
+      <p class="t-label">Organic</p>
+      <h2 class="t-h4">Grow from the grid</h2>
+      <p class="t-sm muted">A community map, a constellation of people, a field of work and a web of relationships don't sit on a grid, and shouldn't. Their rules branch from the same seed. Positions may be free or sit on a lattice; sizes, strokes and labels still come from the unit, the octaves and the cells. This lattice slopes 2:1, so every lattice point is also a cell corner: the square grid is included, not left behind.</p>
+    </header>
+    <div class="section-body stack">
+      <div class="plate organic"><svg id="organic-art" role="img" aria-label="A constellation of groups and people placed on a 2:1 isometric lattice"></svg></div>
+      <div class="cols masters">
+        <div class="master stack"><p class="t-label">Kandinsky</p><p class="t-sm">Point, line, plane. The dot and hairline, the edge of a cell, the surface. Every mark is one of the three.</p></div>
+        <div class="master stack"><p class="t-label">Mondrian</p><p class="t-sm">A few proportions in asymmetric balance, with the empty field doing work. Columns favor 1:2 over equal halves; space is a component, not leftovers.</p></div>
+        <div class="master stack"><p class="t-label">Frank Lloyd Wright</p><p class="t-sm">The unit system: plans drawn on one module, the whole grown from the part. Organic means part and whole share one principle. That's u.</p></div>
+        <div class="master stack"><p class="t-label">Buckminster Fuller</p><p class="t-sm">Triangulation and growth by frequency. The isometric lattice for maps and constellations; detail added by doubling, never by new numbers.</p></div>
+        <div class="master stack"><p class="t-label">Christopher Alexander</p><p class="t-sm">Levels of scale, strong centers, boundaries. Neighboring sizes differ by about two, every element has a center, and a boundary, like a ring or a border, is proportional to what it bounds.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ KEEPING -->
+  <section class="section cc-split" id="keeping">
+    <header class="section-head stack">
+      <p class="t-label">Keeping it</p>
+      <h2 class="t-h4">Rules a machine checks</h2>
+      <p class="t-sm muted">An interface drifts when nothing stops the drift. Each of these is meant to fail the build, so a person or an agent hears about it before review. The tests in tests/ run in CI today; the rest come as lints, and until then these five are the pull request checklist.</p>
+    </header>
+    <div class="section-body stack">
+      <div class="checks stack">
+        <div class="check"><svg class="icon" viewBox="0 0 18 18"><path d="M4 9.5 7.5 13 14 5.5"></path></svg><p class="t-body"><b>No raw values.</b> A color, size, space, radius, shadow or z-index outside the token layer fails.</p></div>
+        <div class="check"><svg class="icon" viewBox="0 0 18 18"><path d="M4 9.5 7.5 13 14 5.5"></path></svg><p class="t-body"><b>Edges land on lines.</b> A test checks every headline's baseline, every text block's top and every box's edges against the cells, in Chrome and in WebKit; a pixel test checks card edges against their grid lines' device pixels.</p></div>
+        <div class="check"><svg class="icon" viewBox="0 0 18 18"><path d="M4 9.5 7.5 13 14 5.5"></path></svg><p class="t-body"><b>Every class is registered.</b> A class the stylesheet doesn't define, or the style guide doesn't show, fails. That stops a new avatar before it starts.</p></div>
+        <div class="check"><svg class="icon" viewBox="0 0 18 18"><path d="M4 9.5 7.5 13 14 5.5"></path></svg><p class="t-body"><b>Products turn knobs.</b> A product layer may only set variables on the root. Variants and contexts set the primitive's own variables.</p></div>
+        <div class="check"><svg class="icon" viewBox="0 0 18 18"><path d="M4 9.5 7.5 13 14 5.5"></path></svg><p class="t-body"><b>Inline styles set variables only.</b> <code class="t-mono">style="--av-hue: 30"</code> passes; <code class="t-mono">style="padding: 13px"</code> fails.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <p class="t-xs">Trellis v0.8. Source: <a href="https://github.com/Iris-Cocreative/trellis">Iris-Cocreative/trellis</a>: core.css, settle.js, product.template.css, the examples. <a href="CHANGELOG.md">What changed</a>. Type ratios from the <a href="https://lab.iriscocreative.com/tools/type-scale-generator.html">Type Scale Generator</a>. Pre-1.0: it will break between minor versions.</p>
+  </footer>
+</main>
+
+<aside class="float inspector" id="inspector" hidden></aside>
+
+<div class="measure-legend" aria-hidden="true">
+  <span class="lg cc-pad">padding</span><span class="lg cc-gap">gap</span><span class="lg cc-own">own space</span><span class="lg cc-base">type line</span>
+</div>
+
+<aside class="code-panel" id="code-panel" aria-label="Stylesheets" hidden>
+  <div class="code-panel-head">
+    <div class="seg" role="group" aria-label="Stylesheet">
+      <button class="button" type="button" data-file="core.css"><span class="button-label">core</span></button>
+      <button class="button" type="button" data-file="" data-layer-file hidden><span class="button-label">layer</span></button>
+      <button class="button" type="button" data-file="settle.js"><span class="button-label">settle.js</span></button>
+      <button class="button" type="button" data-file="specimen.css"><span class="button-label">specimen</span></button>
+    </div>
+    <input class="code-find" id="code-find" type="search" placeholder="Find" aria-label="Find in stylesheet" autocomplete="off" spellcheck="false">
+    <span class="code-count" id="code-count" aria-live="polite"></span>
+    <button class="button icon-button" type="button" data-toggle="css" aria-label="Close stylesheets"><svg class="icon" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg></button>
+  </div>
+  <p class="code-hint">With Measure on, click anything on the page to find its rule.</p>
+  <pre class="code-panel-body" id="code-body"><code id="code-view"></code></pre>
+</aside>
+
+<script src="settle.js?v=0.8.0"></script>
+<script src="experiments/solids.js?v=0.8.0"></script>
+<script src="specimen.js?v=0.8.0"></script>
+</body>
+</html>

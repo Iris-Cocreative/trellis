@@ -1,0 +1,61 @@
+/* ==========================================================================
+   Almanac · an example product layer · branches from core.css
+   Invented, to show what knobs alone can do. Almanac is slow and editorial:
+   serif headlines over a humanist sans, an open ratio that reaches a perfect
+   fifth, paper and ink with a leaf green, round cards, pill tags, labels in
+   sentence case. System fonts only.
+   Open the specimen with ?layer=examples/almanac.css&product=almanac
+   ========================================================================== */
+@layer trellis.product {
+  :root[data-product="almanac"] {
+    --font-sans: "Gill Sans", "Gill Sans MT", "Trebuchet MS", ui-sans-serif, system-ui, sans-serif;
+    --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --font-heading: var(--font-serif);
+    --fw-body: 400; --fw-heading: 400; --fw-label: 600; --fw-strong: 700; --fw-serif: 400;
+
+    /* The ratio: a perfect fourth opening to a perfect fifth */
+    --h1-min: 2.75;   --h1-max: 5.5;
+    --rh-min: 1.333;  --rh-max: 1.5;
+    --body-min: 1.0625; --body-max: 1.25;
+    --rp-min: 1.125;  --rp-max: 1.2;
+    --label-min: .75; --label-max: .8125;
+    --lh-h1: 1;       --lh-h-step: .06;
+    --lh-body: 1.55;  --lh-p-step: .03;
+    --label-tracking: .01em;
+    --label-case: none;
+    --heading-tracking: -.02em;
+
+    /* Palette: paper and ink, with a leaf green */
+    --bg:             light-dark(#f7f3e8, #1a1d17);
+    --bg-raised:      light-dark(#fffdf6, #22261e);
+    --bg-sunken:      light-dark(#ece6d6, #11130f);
+    --bg-hover:       light-dark(#e9e2cf, #2e3328);
+    --text:           light-dark(#22251d, #f4f0e2);
+    --text-secondary: light-dark(#4b4f41, #cfcab8);
+    --text-tertiary:  light-dark(#74786a, #9a9b89);
+    --text-faint:     light-dark(#a8aa9b, #62665a);
+    --border:         light-dark(#d9d2bd, #363b2f);
+    --border-subtle:  light-dark(#e5dfcc, #292d24);
+    --border-strong:  light-dark(#b3ac95, #575d4c);
+    --accent:         light-dark(#3f6b2a, #9fcf7c);
+    --accent-ink:     light-dark(#fffdf6, #11130f);
+    --focus:          light-dark(#3f6b2a, #9fcf7c);
+
+    --kind-person: light-dark(#a8501a, #e8935a);
+    --kind-group:  light-dark(#3f6b2a, #9fcf7c);
+    --kind-event:  light-dark(#8a3b62, #d992b6);
+    --kind-course: light-dark(#2b6a78, #7fc4d2);
+    --kind-topic:  light-dark(#6b5a1e, #d1bd6a);
+
+    /* Knobs: round cards, pill tags, roomy controls, a narrower measure */
+    --shape-card: var(--r-2);
+    --shape-input: var(--r-h);
+    --shape-control: var(--r-h);
+    --shape-float: var(--r-1);
+    --density-card-pad: var(--sp-2);
+    --density-control-h: var(--size-control-lg);
+    --tag-default-h: var(--size-control-sm);
+    --tag-r-ratio: .5;
+    --prose-measure: calc(var(--u) * 48);
+  }
+}

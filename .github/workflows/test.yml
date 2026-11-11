@@ -1,0 +1,45 @@
+name: Test
+
+# Every push and pull request, in Chromium and WebKit: WebKit is what every
+# iPhone browser draws with, and where settle.js does the rounding.
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    # Pinned, as Playwright is below: these compare pixels, so nothing here should
+    # move on its own. ubuntu-latest became 26.04, which Playwright 1.60 can't install on.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check the contract (no browser)
+        run: node tests/contract.js
+
+      - name: Install Playwright with Chromium and WebKit
+        run: |
+          mkdir -p "$RUNNER_TEMP/pw"
+          npm install --prefix "$RUNNER_TEMP/pw" --no-audit --no-fund playwright@1.60
+          npx --prefix "$RUNNER_TEMP/pw" playwright install --with-deps chromium webkit
+          echo "PLAYWRIGHT=$RUNNER_TEMP/pw/node_modules/playwright" >> "$GITHUB_ENV"
+
+      - name: Serve the repository
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8765/ >/dev/null && exit 0; sleep 1; done
+          echo "The server did not start" && exit 1
+
+      # align.js across the matrix, pixel.js, layout.js, layers.js and perf.js.
+      - name: Run the matrix
+        env:
+          # A shared runner is slower than a laptop, so the timing budgets widen.
+          # Being on the lines doesn't: that check never scales.
+          PERF_SCALE: '4'
+          JOBS: '2'
+        run: node tests/matrix.js http://127.0.0.1:8765/ all

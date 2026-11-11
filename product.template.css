@@ -1,0 +1,89 @@
+/* ==========================================================================
+   A product layer · copy this file, name it for your product, keep the knobs
+   you change and delete the rest.
+
+   A product only sets variables on :root. It never redraws a primitive, and it
+   never adds a class. If a product needs something a knob can't give it, that
+   is a request for a new knob in core, not a rule here.
+
+   Every value below is core's default. tests/contract.js checks that, and that
+   every knob a product sets is listed here.
+
+   Load it after core.css, and put data-product="yours" on <html>.
+   ========================================================================== */
+@layer trellis.product {
+  :root[data-product="yours"] {
+
+    /* ---- Type: the families and weights ---------------------------------- */
+    --font-sans: ui-sans-serif, system-ui, sans-serif;   /* body text and controls */
+    --font-serif: Georgia, serif;                        /* .t-serif */
+    --font-heading: var(--font-sans);                    /* h1 to h6 */
+    --fw-body: 400;                                      /* running text */
+    --fw-heading: 500;                                   /* h1 to h6 */
+    --fw-label: 500;                                     /* labels, buttons, tags */
+    --fw-strong: 600;                                    /* strong and b in prose */
+    --fw-serif: 400;                                     /* .t-serif's weight */
+    --heading-tracking: -.01em;                          /* h1 to h6's letter spacing */
+    --label-tracking: .08em;                             /* .t-label's letter spacing */
+    --label-case: uppercase;                             /* .t-label's case */
+
+    /* ---- The ratio: both anchors, in rem, at a narrow and a wide space --- */
+    --h1-min: 2.25;                                      /* H1 in a narrow space */
+    --h1-max: 4;                                         /* H1 in a wide space */
+    --rh-min: 1.2;                                       /* each heading's step down, narrow */
+    --rh-max: 1.333;                                     /* each heading's step down, wide */
+    --body-min: 1;                                       /* body in a narrow space */
+    --body-max: 1.125;                                   /* body in a wide space */
+    --rp-min: 1.125;                                     /* each paragraph role's step, narrow */
+    --rp-max: 1.2;                                       /* each paragraph role's step, wide */
+    --label-min: .6875;                                  /* .t-label in a narrow space */
+    --label-max: .75;                                    /* .t-label in a wide space */
+    --lh-h1: 1.05;                                       /* H1's line height, before rounding to cells */
+    --lh-h-step: .05;                                    /* how much each smaller heading opens */
+    --lh-body: 1.45;                                     /* body's line height */
+    --lh-p-step: .03;                                    /* how much each larger paragraph role closes */
+
+    /* ---- Palette: each carries both themes through light-dark() ---------- */
+    --bg:             light-dark(#f6f6f4, #101111);      /* the page */
+    --bg-raised:      light-dark(#ffffff, #18191a);      /* cards, floats, inputs */
+    --bg-sunken:      light-dark(#ececea, #0a0b0b);      /* code, bands, disabled */
+    --bg-hover:       light-dark(#eaeae7, #242526);      /* hover and selected */
+    --text:           light-dark(#18191a, #f4f4f2);      /* primary ink */
+    --text-secondary: light-dark(#45474a, #c4c5c6);      /* supporting ink */
+    --text-tertiary:  light-dark(#6d7074, #8e9195);      /* labels and metadata */
+    --text-faint:     light-dark(#9a9da1, #5f6266);      /* the quietest ink */
+    --border:         light-dark(#d6d7d8, #2e3032);      /* the default edge */
+    --border-subtle:  light-dark(#e4e5e6, #222425);      /* cards, rules between rows */
+    --border-strong:  light-dark(#a9abae, #4a4d50);      /* buttons, a quotation's line */
+    --accent:         light-dark(#2c6fd1, #6aa5f5);      /* the primary action */
+    --accent-ink:     #ffffff;                           /* ink on the accent */
+    --focus:          light-dark(#2c6fd1, #6aa5f5);      /* the focus ring */
+    --kind-person:    light-dark(#b8740a, #f5a524);      /* a person: rings and tags */
+    --kind-group:     light-dark(#1f8394, #3db3c5);      /* a group */
+    --kind-event:     light-dark(#7e3e9c, #b77ad6);      /* an event */
+    --kind-course:    light-dark(#0b7d45, #2fb874);      /* a course */
+    --kind-topic:     light-dark(#1b62c0, #5b9cf0);      /* a topic, and the default tag */
+
+    /* ---- Shape and density ----------------------------------------------- */
+    --shape-card: var(--r-1h);                           /* a card's corner; media in prose too */
+    --shape-control: var(--r-round);                     /* buttons and segmented tabs */
+    --shape-input: var(--r-h);                           /* inputs, selects, textareas */
+    --shape-float: var(--r-1);                           /* popovers and options cards */
+    --density-card-pad: var(--sp-2);                     /* a card's padding */
+    --density-control-h: var(--size-control-lg);         /* a default button or input's height */
+    --density-control-fs: var(--fs-control);             /* a default button or input's type */
+    --hang: 1;                                           /* cells a surface steps out; 0 turns it off */
+    --prose-measure: calc(var(--u) * 56);                /* the widest a column of running text gets */
+
+    /* ---- The tag archetype ----------------------------------------------- */
+    --tag-default-h: var(--size-control-sm);             /* a default tag's height */
+    --tag-default-fs: var(--tag-fs-md);                  /* a default tag's type */
+    --tag-fs-sm: .6875rem;                               /* .cc-sm's type */
+    --tag-fs-md: .75rem;                                 /* .cc-md's type */
+    --tag-fs-lg: .8125rem;                               /* .cc-lg's type */
+    --tag-r-fixed: 0px;                                  /* a fixed corner, or */
+    --tag-r-ratio: .5;                                   /* a share of the height (.5 is a pill) */
+    --tag-case: none;                                    /* a tag's case */
+    --tag-tracking: 0;                                   /* a tag's letter spacing */
+  }
+}
