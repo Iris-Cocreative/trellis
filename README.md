@@ -22,6 +22,7 @@
 | `CHANGELOG.md` | What changed in each version, and what broke. |
 | `experiments/solids.js` | An experiment: point, line, plane carried on into solid, motion and transformation (the Platonic solids, morphing by geometry). Not part of the package. |
 | `index.html`, `specimen.css`, `specimen.js` | The specimen. Built only from the foundation, so it is also the first test of it. Controls: theme, the dial (cell size), fit, Hang (the `--hang` knob, switchable), grid, Measure (padding, gap, a heading's own space, the line each text block stands on or hangs from), CSS (every stylesheet in a side panel; with Measure on, click anything to find its rule). The ratio section shows the math behind every type role, recomputed live and checked against the browser. |
+| `STATUS.md` | Where each planned piece stands: its state, the commit that changed it, the test that backs it. |
 | `tests/` | `align.js`, `pixel.js`, `layout.js`, `layers.js`, `math.js`, `perf.js`, `contract.js`, `matrix.js`. They run in CI; see `tests/README.md`. |
 | `LICENSE` | MIT, held by Iris Cocreative. |
 
