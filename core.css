@@ -72,6 +72,125 @@
 /* --------------------------------------------------------------------------
    TOKENS
    -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+   TOKENS, generated. The values every platform shares live in tokens.json, in
+   cells and points. This block is written from it; change a value there and
+   run node tools/build-tokens.js. The hand-written tokens below are formulas
+   and web-only plumbing: the cell's rounding, lines, the frame, the fit.
+   -------------------------------------------------------------------------- */
+/* tokens:start · generated from tokens.json by tools/build-tokens.js · do not edit by hand */
+@layer trellis.tokens {
+  :root {
+    /* The cell's target: 10pt up to a 500pt screen, rising to 12pt at 1000pt. */
+    --u-base: clamp(0.625rem, calc(0.5rem + 0.4vw), 0.75rem);
+    --frame-max-n: 100;
+
+    /* Octaves: the cell halved and doubled */
+    --sp-q: max(var(--line), round(nearest, calc(var(--u) / 4), 1px));   /* ¼u 3 */
+    --sp-q2: calc(var(--sp-h) - var(--sp-q));   /* the other quarter: ¼u + this is exactly ½u at any cell */
+    --sp-h: calc(var(--u) / 2);   /* ½u 6 */
+    --sp-1: var(--u);   /* u 12 */
+    --sp-1h: calc(var(--u) * 1.5);   /* 1.5u 18 */
+    --sp-2: calc(var(--u) * 2);   /* 2u 24 */
+    --sp-3: calc(var(--u) * 3);   /* 3u 36 */
+    --sp-4: calc(var(--u) * 4);   /* 4u 48 */
+    --sp-6: calc(var(--u) * 6);   /* 6u 72 */
+    --sp-8: calc(var(--u) * 8);   /* 8u 96 */
+    --sp-12: calc(var(--u) * 12);   /* 12u 144 */
+    --sp-16: calc(var(--u) * 16);   /* 16u 192 */
+
+    /* Sizes: named roles, each an octave or an octave plus a line */
+    --size-icon-sm: var(--sp-1);   /* 12 */
+    --size-icon: calc(var(--sp-1) + var(--line) * 2);   /* 12 + 2 lines */
+    --size-icon-md: var(--sp-1h);   /* 18 */
+    --size-icon-lg: var(--sp-2);   /* 24 */
+    --size-control-xs: var(--sp-1h);   /* 18 */
+    --size-control-sm: var(--sp-2);   /* 24 */
+    --size-control-md: calc(var(--u) * 2.5);   /* 30 */
+    --size-control-lg: var(--sp-3);   /* 36 */
+    --size-control-xl: var(--sp-4);   /* 48 */
+    --hit-min: 44px;   /* the least hit area on a coarse pointer */
+
+    /* Control type: fixed sizes, deliberately not fluid */
+    --fs-control-xs: 0.6875rem;
+    --fs-control-sm: 0.75rem;
+    --fs-control-md: 0.8125rem;
+    --fs-control: 0.875rem;
+    --fs-control-lg: 1rem;
+
+    /* Radii: octaves too. Nested radius = outer radius − padding */
+    --r-q: var(--sp-q);
+    --r-h: var(--sp-h);
+    --r-1: var(--sp-1);
+    --r-1h: var(--sp-1h);
+    --r-2: var(--sp-2);
+    --r-round: 999px;
+
+    /* Layers: one scale for everything that stacks */
+    --z-raised: 10;
+    --z-sticky: 100;
+    --z-overlay: 1000;
+    --z-float: 1100;
+    --z-toast: 1200;
+
+    /* Motion: enter slower than exit */
+    --dur-out: 150ms;
+    --dur-in: 200ms;
+    --dur-in-slow: 250ms;
+    --dur-sheet-in: 350ms;
+    --dur-sheet-out: 300ms;
+    --dur-skeleton: 1.4s;
+    --ease-in: cubic-bezier(.4, 0, 1, 1);
+    --ease-out: cubic-bezier(0, 0, .2, 1);
+    --ease-spring: cubic-bezier(.32, .72, 0, 1);
+
+    /* The ratio's neutral defaults, in rem, unitless. Products set these */
+    --c-min: 20;   /* 320pt, the narrow space */
+    --c-max: 90;   /* 1440pt, the wide space */
+    --h1-min: 2.25;
+    --h1-max: 4;
+    --body-min: 1;
+    --body-max: 1.125;
+    --label-min: .6875;
+    --label-max: .75;
+    --rh-min: 1.2;
+    --rh-max: 1.333;
+    --rp-min: 1.125;
+    --rp-max: 1.2;
+  }
+}
+@layer trellis.theme {
+  :root {
+    /* Semantic roles. light-dark() reads color-scheme, so one declaration carries both themes. */
+    --bg: light-dark(#f6f6f4, #101111);
+    --bg-raised: light-dark(#ffffff, #18191a);
+    --bg-sunken: light-dark(#ececea, #0a0b0b);
+    --bg-hover: light-dark(#eaeae7, #242526);
+    --text: light-dark(#18191a, #f4f4f2);
+    --text-secondary: light-dark(#45474a, #c4c5c6);
+    --text-tertiary: light-dark(#6d7074, #8e9195);
+    --text-faint: light-dark(#9a9da1, #5f6266);
+    --border: light-dark(#d6d7d8, #2e3032);
+    --border-subtle: light-dark(#e4e5e6, #222425);
+    --border-strong: light-dark(#a9abae, #4a4d50);
+    --accent: light-dark(#2c6fd1, #6aa5f5);
+    --accent-ink: #ffffff;
+    --focus: light-dark(#2c6fd1, #6aa5f5);
+
+    /* Kinds: what sort of thing this is. Shape and color both follow kind */
+    --kind-person: light-dark(#b8740a, #f5a524);
+    --kind-group: light-dark(#1f8394, #3db3c5);
+    --kind-event: light-dark(#7e3e9c, #b77ad6);
+    --kind-course: light-dark(#0b7d45, #2fb874);
+    --kind-topic: light-dark(#1b62c0, #5b9cf0);
+
+    --ok: light-dark(#0a8f4a, #2cc574);
+    --warn: light-dark(#a86a00, #f5a524);
+    --alert: light-dark(#c2441f, #ef6c44);
+  }
+}
+/* tokens:end */
+
 @layer trellis.tokens {
   :root {
     /* ---- The cell -------------------------------------------------------
@@ -80,7 +199,6 @@
        --u-scale is the accessibility and density dial. On a wide screen the
        target rounds to an even pixel, which keeps every half-unit whole; on
        a touch screen it is fitted instead (below). */
-    --u-base: clamp(0.625rem, calc(0.5rem + 0.4vw), 0.75rem);
     --u-scale: 1;
     --u-target: calc(var(--u-base) * var(--u-scale));
     --u: round(nearest, var(--u-target), 2px);
@@ -95,36 +213,9 @@
     --dpr: 1;
     --hair: calc(1px / var(--dpr));
 
-    /* ---- Octaves: halving and doubling the unit --------------------------- */
-    --sp-q:  max(var(--line), round(nearest, calc(var(--u) / 4), 1px));  /* ¼u  3   */
-    --sp-q2: calc(var(--sp-h) - var(--sp-q));      /* the other quarter: ¼u + this is exactly ½u at any unit */
-    --sp-h:  calc(var(--u) / 2);                                          /* ½u  6   */
-    --sp-1:  var(--u);                                                    /* u   12  */
-    --sp-1h: calc(var(--u) * 1.5);                                        /* 1½u 18  */
-    --sp-2:  calc(var(--u) * 2);                                          /* 2u  24  */
-    --sp-3:  calc(var(--u) * 3);                                          /* 3u  36  */
-    --sp-4:  calc(var(--u) * 4);                                          /* 4u  48  */
-    --sp-6:  calc(var(--u) * 6);                                          /* 6u  72  */
-    --sp-8:  calc(var(--u) * 8);                                          /* 8u  96  */
-    --sp-12: calc(var(--u) * 12);                                         /* 12u 144 */
-    --sp-16: calc(var(--u) * 16);                                         /* 16u 192 */
-
-    /* ---- Control type: fixed sizes, deliberately not fluid. Controls sit
-       in rows of a fixed height, so their labels don't scale with the
-       container. The only font sizes outside the type roles. */
-    --fs-control-xs: .6875rem;
-    --fs-control-sm: .75rem;
-    --fs-control-md: .8125rem;
-    --fs-control:    .875rem;
-    --fs-control-lg: 1rem;
-
     /* ---- The only raw neutrals: ink on a solid color or a photo. */
     --white: #fff;
     --black: #000;
-
-    /* ---- Touch: on a coarse pointer every control's hit area is at least
-       this, whatever it draws (Apple's 44pt). */
-    --hit-min: 44px;
 
     /* ---- The frame: the page's outer box. It holds a FIELD of whole modules
        (4 cells each) with a gutter of whole cells either side, and it is
@@ -133,7 +224,6 @@
        cells; fitted (below), the frame steps by two cells and the gutter
        takes 2 or 3 cells so the field stays whole modules. Gutters clear the
        phone's safe areas (the notch, in landscape). */
-    --frame-max-n: 100;
     --frame-max: calc(var(--u) * var(--frame-max-n));
     --frame-step: calc(var(--u) * 4);
     --gutter: max(
@@ -141,56 +231,12 @@
       round(up, env(safe-area-inset-left, 0px), var(--sp-2)),
       round(up, env(safe-area-inset-right, 0px), var(--sp-2)));
 
-    /* ---- Sizes: named roles, each an octave or an octave plus a hairline --- */
-    --size-icon-sm: var(--sp-1);                              /* 12            */
-    --size-icon:    calc(var(--sp-1) + var(--line) * 2);      /* 14 = 12 + line */
-    --size-icon-md: var(--sp-1h);                             /* 18            */
-    --size-icon-lg: var(--sp-2);                              /* 24            */
-    --size-control-xs: var(--sp-1h);                          /* 18 */
-    --size-control-sm: var(--sp-2);                           /* 24 */
-    --size-control-md: calc(var(--u) * 2.5);                  /* 30 */
-    --size-control-lg: var(--sp-3);                           /* 36 */
-    --size-control-xl: var(--sp-4);                           /* 48 */
-
-    /* ---- Radii: octaves too. Nested radius = outer radius − padding. ------- */
-    --r-q: var(--sp-q);
-    --r-h: var(--sp-h);
-    --r-1: var(--sp-1);
-    --r-1h: var(--sp-1h);
-    --r-2: var(--sp-2);
-    --r-round: 999px;
-
-    /* ---- Layers: one scale for everything that stacks -------------------- */
-    --z-raised: 10;
-    --z-sticky: 100;
-    --z-overlay: 1000;
-    --z-float: 1100;
-    --z-toast: 1200;
-
-    /* ---- Motion: enter slower than exit (the modal standard) -------------- */
-    --dur-out: 150ms;
-    --dur-in: 200ms;
-    --dur-in-slow: 250ms;
-    --dur-sheet-in: 350ms;
-    --dur-sheet-out: 300ms;
-    --dur-skeleton: 1.4s;
-    --ease-in: cubic-bezier(.4, 0, 1, 1);
-    --ease-out: cubic-bezier(0, 0, .2, 1);
-    --ease-spring: cubic-bezier(.32, .72, 0, 1);
-
     /* ---- The ratio: fluid, fractal type ---------------------------------
        Every size is clamp(min, slope × container + intercept, max). The two
        anchors are H1 and body; everything else steps from them by a ratio.
        The ratio has a min and a max too, so hierarchy is compressed in a
        narrow space and opens up in a wide one. Numbers are rem, unitless.
        Products set these; the values here are neutral defaults. */
-    --c-min: 20;            /* 320px  narrow context */
-    --c-max: 90;            /* 1440px wide context   */
-    --h1-min: 2.25;  --h1-max: 4;
-    --rh-min: 1.2;   --rh-max: 1.333;
-    --body-min: 1;   --body-max: 1.125;
-    --rp-min: 1.125; --rp-max: 1.2;
-    --label-min: .6875; --label-max: .75;
 
     --lh-h1: 1.05;   --lh-h-step: .05;     /* each smaller heading opens by a step */
     --mb-h1: .33;    --mb-h-step: .11;     /* space after a heading, in its own ems */
@@ -244,7 +290,6 @@
   @media (min-resolution: 2dppx) { :root { --dpr: 2; } }
   @media (min-resolution: 3dppx) { :root { --dpr: 3; } }
 }
-
 
 /* Fit. Where the screen's edge frames the page (touch screens: phones in
    either orientation, foldables, tablets), the cell is fitted to the screen.
@@ -321,31 +366,6 @@
   :root[data-theme="dark"]  { color-scheme: dark; }
 
   :root {
-    --bg:             light-dark(#f6f6f4, #101111);
-    --bg-raised:      light-dark(#ffffff, #18191a);
-    --bg-sunken:      light-dark(#ececea, #0a0b0b);
-    --bg-hover:       light-dark(#eaeae7, #242526);
-    --text:           light-dark(#18191a, #f4f4f2);
-    --text-secondary: light-dark(#45474a, #c4c5c6);
-    --text-tertiary:  light-dark(#6d7074, #8e9195);
-    --text-faint:     light-dark(#9a9da1, #5f6266);
-    --border:         light-dark(#d6d7d8, #2e3032);
-    --border-subtle:  light-dark(#e4e5e6, #222425);
-    --border-strong:  light-dark(#a9abae, #4a4d50);
-    --accent:         light-dark(#2c6fd1, #6aa5f5);
-    --accent-ink:     #ffffff;
-    --focus:          light-dark(#2c6fd1, #6aa5f5);
-
-    /* Kinds: what sort of thing this is. Shape and color both follow kind. */
-    --kind-person: light-dark(#b8740a, #f5a524);
-    --kind-group:  light-dark(#1f8394, #3db3c5);
-    --kind-event:  light-dark(#7e3e9c, #b77ad6);
-    --kind-course: light-dark(#0b7d45, #2fb874);
-    --kind-topic:  light-dark(#1b62c0, #5b9cf0);
-
-    --ok:    light-dark(#0a8f4a, #2cc574);
-    --warn:  light-dark(#a86a00, #f5a524);
-    --alert: light-dark(#c2441f, #ef6c44);
 
     --lift: 0 var(--sp-h) var(--sp-2) light-dark(rgb(16 20 22 / .12), rgb(0 0 0 / .55)),
             0 0 0 var(--line) light-dark(rgb(16 20 22 / .04), rgb(0 0 0 / .3));

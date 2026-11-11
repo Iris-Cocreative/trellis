@@ -13,6 +13,8 @@
 | `core.css` | The foundation: tokens, theme, base, layout, primitives, utilities, in cascade layers. Product-agnostic. |
 | `examples/` | Two invented product layers, `quarry.css` and `almanac.css`. They only turn knobs on `:root`: fonts, ratios, palette, shapes, density. The tests run through them to prove a product can reshape everything that way. |
 | `settle.js` | The runtime, and the only script a consumer loads. Sets the exact device pixels and fit width in every browser; rounds text to whole cells where the browser lacks `calc-size()` (Safari today); settles what CSS can't in `.prose`. |
+| `tokens.json` | The token source, in the W3C Design Tokens format: the cell's target, the octaves, sizes, radii, layers, motion, the ratio's defaults, color roles as light and dark pairs, kind colors. Values are in cells and points, never rem or px, so a native screen and a web screen share one seed. |
+| `tools/build-tokens.js` | The web generator. It writes the generated tokens of `core.css` from `tokens.json`, and holds the rem conversion. `contract.js` fails if the two disagree. |
 | `product.template.css` | Every knob, with its default and a line on what it does. Copy it to start a product layer. |
 | `package.json` | Exports `core.css`, `settle.js` and the template. The product layers aren't exports: products will own them. |
 | `REACT.md` | The contract for a React app, with the pull request checklist. |
@@ -98,6 +100,12 @@ An experiment (`experiments/solids.js`) carries them on: **solid** (the plane ex
 These are variables, not padding values, because inline styles only ever set variables (enforcement rule 5): what the space means stays in the stylesheet. When Safari ships `calc-size()` (or the CSS rhythm property `block-step`, which is exactly this), the Safari half switches itself off and those inline variables disappear.
 
 Everything queued is settled in one pass, in one frame, and it can't be lazy about what's off screen, since a visible block's position is the sum of every block above it. Numbers and what they changed are in [`tests/README.md`](tests/README.md).
+
+### The token source
+
+The values every platform shares live in one file, `tokens.json`, in the [W3C Design Tokens format](https://www.designtokens.org/). Lengths there are in **cells** or in **points**, never rem or px: a point is one CSS pixel at the reader's default text size, one pt on iOS, one dp on Android. Each group says which in `$extensions.trellis.unit`. Colors are light and dark pairs.
+
+`node tools/build-tokens.js` writes the block of `core.css` between `tokens:start` and `tokens:end` from it; the rem conversion lives in that script and nowhere else. To change a shared value, change it in `tokens.json` and run the script. What stays hand-written in `core.css` is formula and web plumbing: the cell's rounding, lines, the frame, the gutter, the fit. `tests/contract.js` fails if `core.css` is out of date, or if a web unit gets into the token file.
 
 ## Layout
 
@@ -251,7 +259,7 @@ This is what a consumer may rely on. Anything here changing is a changelog entry
 
 | Part | The API |
 |---|---|
-| **Files** | `core.css`, `settle.js`, `product.template.css` |
+| **Files** | `core.css`, `settle.js`, `product.template.css`, `tokens.json` |
 | **Layers** | `@layer trellis`, with sublayers `reset`, `tokens`, `theme`, `base`, `layout`, `primitives`, `product`, `utilities`, in that order |
 | **Root attributes** | `data-product` (selects a product layer; absent is the neutral default) · `data-theme` (`light`, `dark`; absent follows the system) · `data-unit-fit` (`on`, `off`; absent fits touch screens) |
 | **Runtime** | `window.Trellis`: `fit()`, `all()`, `observe(el)`, `settled()`. `data-settle-skip` opts an overlay out. It writes `--dpr`, `--fit-width`, `--settle-n`, `--settle`, `--settle-start` and `data-prose-empty`; those are its own. |

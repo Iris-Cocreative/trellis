@@ -14,12 +14,14 @@
     "./core.css": "./core.css",
     "./settle.js": "./settle.js",
     "./product.template.css": "./product.template.css",
+    "./tokens.json": "./tokens.json",
     "./package.json": "./package.json"
   },
   "files": [
     "core.css",
     "settle.js",
     "product.template.css",
+    "tokens.json",
     "README.md",
     "CHANGELOG.md",
     "REACT.md",

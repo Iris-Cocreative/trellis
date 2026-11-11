@@ -30,7 +30,7 @@ check(api, 'README has no Public API section');
 // declarations' numbers and url()s, which the name pattern already excludes.
 const coreRules = core.replace(/@layer[^{;]*[{;]/g, ' ');
 const classes = new Set((coreRules.match(/\.[a-z][a-z0-9_-]*(?=[\s,.:>+~)\[{])/g) || []).map(c => c.slice(1)));
-const inTicks = (api.match(/`[^`]*`/g) || []).filter(t => !/\.(css|js)`$|`window\./.test(t)).join(' ');
+const inTicks = (api.match(/`[^`]*`/g) || []).filter(t => !/\.(css|js|json)`$|`window\./.test(t)).join(' ');
 const documented = new Set((inTicks.match(/\.[a-z][a-z0-9_-]*/g) || []).map(c => c.slice(1)));
 for (const c of classes) check(documented.has(c), `.${c} is in core.css but not in the README's Public API`);
 for (const c of documented) check(classes.has(c), `.${c} is in the README's Public API but not in core.css`);
@@ -89,6 +89,23 @@ const version = (readme.match(/\*\*v(\d+\.\d+(?:\.\d+)?)\b/) || [])[1];
 check(version && pkg.version.startsWith(version), `README says v${version}; package.json says ${pkg.version}`);
 check(read('CHANGELOG.md').includes(`## ${pkg.version}`), `CHANGELOG.md has no entry for ${pkg.version}`);
 check(read('core.css').includes(`· v${version} ·`), `core.css's header doesn't say v${version}`);
+
+// The token source. core.css's generated block is exactly what tokens.json makes,
+// and the template's palette is the token source's.
+const tokens = JSON.parse(read('tokens.json'));
+check(require('../tools/build-tokens.js').check(), 'core.css is out of date with tokens.json: run node tools/build-tokens.js');
+for (const group of ['cell', 'space', 'size', 'radius', 'layer', 'motion', 'color', 'kind'])
+  check(tokens[group], `tokens.json has no ${group} group`);
+for (const [role, t] of Object.entries(tokens.color || {})) {
+  if (role[0] === '$') continue;
+  check(t.light && t.dark && /^#[0-9a-f]{6}$/.test(t.light.$value) && /^#[0-9a-f]{6}$/.test(t.dark.$value), `tokens.json: color.${role} needs a light and a dark value`);
+}
+const walk = (o, at = '') => Object.entries(o).forEach(([k, v]) => {
+  if (k[0] === '$' || typeof v !== 'object' || v === null) return;
+  if ('$value' in v) { const s = JSON.stringify(v.$value); check(!/rem|px|vw/.test(s), `tokens.json: ${at}${k} carries a web unit; values are in cells and points`); }
+  else walk(v, at + k + '.');
+});
+walk(tokens);
 
 // The runtime on a server.
 try {
