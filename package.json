@@ -15,6 +15,7 @@
     "./settle.js": "./settle.js",
     "./product.template.css": "./product.template.css",
     "./tokens.json": "./tokens.json",
+    "./math.js": "./math.js",
     "./package.json": "./package.json"
   },
   "files": [
@@ -22,6 +23,7 @@
     "settle.js",
     "product.template.css",
     "tokens.json",
+    "math.js",
     "README.md",
     "CHANGELOG.md",
     "REACT.md",

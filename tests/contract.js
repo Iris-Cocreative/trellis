@@ -78,7 +78,7 @@ for (const line of read('product.template.css').split('\n')) {
 
 // Package.
 const pkg = JSON.parse(read('package.json'));
-for (const f of ['./core.css', './settle.js', './product.template.css']) {
+for (const f of ['./core.css', './settle.js', './product.template.css', './tokens.json', './math.js']) {
   check(pkg.exports && pkg.exports[f], `package.json doesn't export ${f}`);
   check(fs.existsSync(path.join(dir, f)), `${f} doesn't exist`);
 }
@@ -106,6 +106,23 @@ const walk = (o, at = '') => Object.entries(o).forEach(([k, v]) => {
   else walk(v, at + k + '.');
 });
 walk(tokens);
+
+// The math module: no DOM, and its neutral seed is the token source's and core's.
+const M = require('../math.js');
+const fromTokens = M.seedFromTokens(tokens);
+check(JSON.stringify(fromTokens.cell) === JSON.stringify(M.SEED.cell), "math.js's cell seed is not tokens.json's");
+check(JSON.stringify(fromTokens.type) === JSON.stringify(M.SEED.type), "math.js's type seed is not tokens.json's");
+check(fromTokens.frame.max === M.SEED.frame.max, "math.js's frame seed is not tokens.json's");
+for (const [k, name] of [['lineH1', '--lh-h1'], ['lineHeadingStep', '--lh-h-step'], ['lineBody', '--lh-body'], ['lineParagraphStep', '--lh-p-step'], ['lineLabel', '--lh-label'], ['afterH1', '--mb-h1'], ['afterHeadingStep', '--mb-h-step']])
+  check(parseFloat(coreDefaults.get(name)) === M.SEED.type[k], `math.js's ${k} is ${M.SEED.type[k]}; core's ${name} is ${coreDefaults.get(name)}`);
+// The worked examples in the README, which a native screen must reproduce.
+const fitAt = (width, dial) => M.fit({ width, target: M.cellTarget({ width, dial }), dpr: 3 });
+for (const [width, dial, cells, cell, gutter] of [[393, 1, 40, 9.8125, 2], [440, 1, 44, 9.96875, 2], [375, 1, 38, 9.84375, 3], [852, 1, 74, 11.5, 3], [393, 14 / 12, 34, 11.53125, 3]]) {
+  const f = fitAt(width, dial);
+  check(f.cells === cells && f.cell === cell && f.gutterCells === gutter && Number.isInteger(f.modules), `math.js: a ${width}pt screen should fit ${cells} cells of ${cell} with a ${gutter}-cell gutter; got ${f.cells}, ${f.cell}, ${f.gutterCells}`);
+}
+check(M.gutterCells(40) === 2 && M.gutterCells(42) === 3 && M.gutterCells(40, 5) === 6, 'math.js: the gutter parity rule is off');
+check(M.wholeCell(M.cellTarget({ width: 1440 })) === 12 && M.wideFrame({ width: 1440, cell: 12 }).frameCells === 100, 'math.js: a 1440pt screen should hold a 100-cell frame of 12pt cells');
 
 // The runtime on a server.
 try {

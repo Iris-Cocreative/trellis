@@ -15,13 +15,14 @@
 | `settle.js` | The runtime, and the only script a consumer loads. Sets the exact device pixels and fit width in every browser; rounds text to whole cells where the browser lacks `calc-size()` (Safari today); settles what CSS can't in `.prose`. |
 | `tokens.json` | The token source, in the W3C Design Tokens format: the cell's target, the octaves, sizes, radii, layers, motion, the ratio's defaults, color roles as light and dark pairs, kind colors. Values are in cells and points, never rem or px, so a native screen and a web screen share one seed. |
 | `tools/build-tokens.js` | The web generator. It writes the generated tokens of `core.css` from `tokens.json`, and holds the rem conversion. `contract.js` fails if the two disagree. |
+| `math.js` | The fit, the ratio, standing, hanging and the gutter parity rule as plain functions, in points, with no DOM. The specimen's math view runs on it, and a native screen uses it as is. |
 | `product.template.css` | Every knob, with its default and a line on what it does. Copy it to start a product layer. |
 | `package.json` | Exports `core.css`, `settle.js` and the template. The product layers aren't exports: products will own them. |
 | `REACT.md` | The contract for a React app, with the pull request checklist. |
 | `CHANGELOG.md` | What changed in each version, and what broke. |
 | `experiments/solids.js` | An experiment: point, line, plane carried on into solid, motion and transformation (the Platonic solids, morphing by geometry). Not part of the package. |
 | `index.html`, `specimen.css`, `specimen.js` | The specimen. Built only from the foundation, so it is also the first test of it. Controls: theme, the dial (cell size), fit, Hang (the `--hang` knob, switchable), grid, Measure (padding, gap, a heading's own space, the line each text block stands on or hangs from), CSS (every stylesheet in a side panel; with Measure on, click anything to find its rule). The ratio section shows the math behind every type role, recomputed live and checked against the browser. |
-| `tests/` | `align.js`, `pixel.js`, `layout.js`, `layers.js`, `perf.js`, `contract.js`, `matrix.js`. They run in CI; see `tests/README.md`. |
+| `tests/` | `align.js`, `pixel.js`, `layout.js`, `layers.js`, `math.js`, `perf.js`, `contract.js`, `matrix.js`. They run in CI; see `tests/README.md`. |
 | `LICENSE` | MIT, held by Iris Cocreative. |
 
 ## Why
@@ -55,7 +56,7 @@ Grown from these: lines are planes · edges land on lines · headlines stand on 
 
 **Fitted, on touch screens** (coarse pointer, 1.5× and up: phones in either orientation, foldables, tablets). The screen's edge is the frame, so whole cells must span it.
 - `--cells` = the even number nearest (width − hair) ÷ target, and `--u` = (width − hair) ÷ cells, rounded down to 1/32px. Even, so the screen's center is a line; minus a hair, because the last line needs its pixel.
-- The gutter takes 2 or 3 cells (more beside a notch) so the field stays whole modules: 40 cells on a 393px iPhone (9 modules + 2 + 2, cell 9.81px), 44 on a 440px Pro Max (cell 9.97px), 84 on an iPhone 14 in landscape. The cell strays at most ~2.5% from its target.
+- The gutter takes 2 or 3 cells (more beside a notch) so the field stays whole modules: 40 cells on a 393px iPhone (9 modules + 2 + 2, cell 9.81px), 44 on a 440px Pro Max (cell 9.97px), 74 on an 852px phone in landscape (cell 11.5px, since the target has grown by that width). The cell strays at most ~2.5% from its target.
 - **Lines are counted in device pixels, space in cells.** The cell becomes fractional; lines never do. A 1× screen never fits: there a fractional cell would draw equal gaps as 5px and 6px.
 - **Snapping.** WebKit (every iPhone) draws each box edge at the device pixel its coordinate rounds to, half up; the grid canvas uses the same rounding, so a card's edge and the grid line it stands on are the same physical pixel. Chrome's device emulation snaps to whole CSS pixels instead, so dev tools can't show the micro scale: check WebKit.
 - 1/32px keeps every half cell exact in the browser's 1/64px layout grid, so nothing drifts. The cells fall short of the screen by up to about a pixel, split between the edges.
@@ -100,6 +101,30 @@ An experiment (`experiments/solids.js`) carries them on: **solid** (the plane ex
 These are variables, not padding values, because inline styles only ever set variables (enforcement rule 5): what the space means stays in the stylesheet. When Safari ships `calc-size()` (or the CSS rhythm property `block-step`, which is exactly this), the Safari half switches itself off and those inline variables disappear.
 
 Everything queued is settled in one pass, in one frame, and it can't be lazy about what's off screen, since a visible block's position is the sum of every block above it. Numbers and what they changed are in [`tests/README.md`](tests/README.md).
+
+### The math, in plain words
+
+The same rules without CSS, for any platform. `math.js` is these formulas as functions, and `tests/math.js` checks them against the stylesheet in Chromium and WebKit. Lengths are in points: one CSS pixel at the reader's default text size, one pt on iOS, one dp on Android.
+
+**The cell's target.** `target = clamp(narrow, narrow + (wide − narrow) × (screen − 500) ÷ 500, wide) × text scale × dial`, where narrow is 10 and wide is 12. Ten points up to a 500-point screen, twelve from 1000 points on, a straight line between.
+
+**Whole, where a window frames the page.** `cell = target rounded to the nearest even point`. The frame is the largest whole number of 4-cell modules that fits, at most 100 cells; the gutter is 2 or 4 cells (4 percent of the width, rounded down to two cells).
+
+**Fitted, where the screen's edge frames the page.**
+- `width = screen − hair`, where a hair is one device pixel (1 ÷ pixel ratio). The last line needs its pixel.
+- `count = 2 × round(width ÷ (2 × target))`. Even, so the screen's center is a line.
+- `cell = width ÷ count`, rounded down to 1/32 point, and held between 0.8 and 1.25 of the target.
+- Example: 393 points at 3× gives 40 cells of 9.8125.
+
+**The gutter parity rule.** The field between the gutters must be whole modules of 4 cells. With an even count, that holds when the gutter has the same parity as half the count: `gutter = 2 + (count ÷ 2) mod 2`. So 40 cells take a gutter of 2 (field 36, 9 modules) and 42 take 3 (field 36). Beside a notch, the gutter is the fewest cells that clear the safe area, plus one if its parity is wrong.
+
+**The ratio.** Two anchors, H1 and body, each with a size in a narrow space (320) and a wide one (1440). A heading n steps below H1 has ends `H1 ÷ ratioⁿ`, using the narrow ratio for the narrow end and the wide ratio for the wide end; paragraph roles step out from body the same way. `size = clamp(narrow end, narrow end + (wide end − narrow end) × (space − 320) ÷ 1120, wide end)`, where the space is the container the text sits in, not the window.
+
+**Standing** (h1 to h3). `line height = size × line ratio, rounded to the nearest whole cells`. The box is trimmed to the capitals and the baseline and padded on top by `cap height rounded up to whole cells − cap height`, so the last baseline sits on a cell line and every line above it does too.
+
+**Hanging** (everything else). The line height is `size × line ratio`, unrounded. The top of the capitals sits on a cell line, and `block height = height rounded up to whole cells`, so whatever follows starts on a line. A wrapping row of tags rounds to the nearest cell instead, halves down.
+
+**A heading's own space.** `space after = size × (0.33 + 0.11 per step below H1), rounded to whole cells`. In a stack it is the larger of that and the gap, never the sum.
 
 ### The token source
 
@@ -259,7 +284,7 @@ This is what a consumer may rely on. Anything here changing is a changelog entry
 
 | Part | The API |
 |---|---|
-| **Files** | `core.css`, `settle.js`, `product.template.css`, `tokens.json` |
+| **Files** | `core.css`, `settle.js`, `product.template.css`, `tokens.json`, `math.js` |
 | **Layers** | `@layer trellis`, with sublayers `reset`, `tokens`, `theme`, `base`, `layout`, `primitives`, `product`, `utilities`, in that order |
 | **Root attributes** | `data-product` (selects a product layer; absent is the neutral default) · `data-theme` (`light`, `dark`; absent follows the system) · `data-unit-fit` (`on`, `off`; absent fits touch screens) |
 | **Runtime** | `window.Trellis`: `fit()`, `all()`, `observe(el)`, `settled()`. `data-settle-skip` opts an overlay out. It writes `--dpr`, `--fit-width`, `--settle-n`, `--settle`, `--settle-start` and `data-prose-empty`; those are its own. |
@@ -307,6 +332,7 @@ Today, in CI on every push and pull request ([`tests/README.md`](tests/README.md
 - **`pixel.js`**: in WebKit at 3×, every card edge covers the device pixels of the grid line it stands on.
 - **`layout.js`**: each layout and the modal behave as they say.
 - **`layers.js`**: the required import order holds.
+- **`math.js`**: the math module and the stylesheet agree, in both engines.
 - **`perf.js`**: 5,000 blocks stay on their lines, inside the budgets.
 - **`contract.js`**: the Public API is complete, **products only turn knobs**, the template matches core.
 

@@ -129,7 +129,7 @@
     document.getElementById('unit-value').textContent = px2(u) + 'px';
     document.getElementById('seed-u').textContent = px2(u) + 'px';
     var g = gutterCells(), rem = parseFloat(getComputedStyle(root).fontSize);
-    var target = Math.min(.75 * rem, Math.max(.625 * rem, .5 * rem + .004 * window.innerWidth)) * state.dial / 12;
+    var target = M.cellTarget({ width: window.innerWidth, textScale: rem / 16, dial: state.dial / 12 });
     document.getElementById('seed-u-note').textContent = n
       ? 'The measure of space, fitted to this screen: the ' + px2(target) + 'px target becomes ' + px2(u) +
         'px so whole cells span it. It halves and doubles, ¼, ½, 1, 2, 4, 8, and every gap, inset, control, corner and avatar is made of it.'
@@ -490,8 +490,19 @@
   // ---- Scheduling ----------------------------------------------------------
   var queued = false;
   // ---- The math behind each type role -------------------------------------
-  // Recomputed here from the same root knobs the stylesheet reads, then
-  // checked against what the browser actually set.
+  // Recomputed by math.js from the same root knobs the stylesheet reads, then
+  // checked against what the browser actually set. math.js works in points; a
+  // knob is in rem, so it is 16 points at the default text size.
+  var M = window.TrellisMath;
+  function liveSeed(K) {
+    var pair = function (k) { return [K(k + '-min') * 16, K(k + '-max') * 16]; };
+    return { cell: M.SEED.cell, frame: M.SEED.frame, type: {
+      spaceNarrow: K('c-min') * 16, spaceWide: K('c-max') * 16,
+      h1: pair('h1'), body: pair('body'), label: pair('label'),
+      headingRatio: [K('rh-min'), K('rh-max')], paragraphRatio: [K('rp-min'), K('rp-max')],
+      lineH1: K('lh-h1'), lineHeadingStep: K('lh-h-step'), lineBody: K('lh-body'), lineParagraphStep: K('lh-p-step'), lineLabel: K('lh-label'),
+      afterH1: K('mb-h1'), afterHeadingStep: K('mb-h-step') } };
+  }
   var ROLES = {
     h1: ['anchor', 'h1', '', 0], h2: ['h1 ÷ r', 'h1', 'rh', -1], h3: ['h1 ÷ r²', 'h1', 'rh', -2],
     h4: ['h1 ÷ r³', 'h1', 'rh', -3], h5: ['h1 ÷ r⁴', 'h1', 'rh', -4], h6: ['h1 ÷ r⁵', 'h1', 'rh', -5],
@@ -510,28 +521,24 @@
   function math() {
     if (!state.math) return;
     var cs = getComputedStyle(root), K = function (k) { return parseFloat(cs.getPropertyValue('--' + k)); };
-    var rem = parseFloat(cs.fontSize), b = unitPx() / 2;
+    var rem = parseFloat(cs.fontSize), seed = liveSeed(K), scale = { textScale: rem / 16 };
     var cmin = K('c-min'), cmax = K('c-max');
     document.querySelectorAll('.type-row').forEach(function (row) {
       var s = row.querySelector('.type-sample'), out = row.querySelector('[data-math-out]');
       var role = (s.className.match(/t-(h\d|xl|lg|body|sm|xs|label)/) || [])[1];
       var R = ROLES[role]; if (!R || !out) return;
       var n = R[3], base = R[1], rk = R[2], p = Math.abs(n), op = n < 0 ? ' ÷ ' : ' × ';
-      var ends = ['min', 'max'].map(function (e) {
+      var pts = M.typeEnds(role, seed);
+      var ends = ['min', 'max'].map(function (e, i) {
         var v = K(base + '-' + e), r = rk ? K(rk + '-' + e) : 1;
-        return { v: n ? (n < 0 ? v / Math.pow(r, p) : v * Math.pow(r, p)) : v,
-                 expr: n ? f(v) + op + f(r) + SUP[p] + ' = ' : '' };
+        return { v: pts[i] / 16, expr: n ? f(v) + op + f(r) + SUP[p] + ' = ' : '' };
       });
       var cw = containerWidth(s), slope = (ends[1].v - ends[0].v) / (cmax - cmin);
       var raw = ends[0].v + slope * (cw / rem - cmin);
-      // CSS clamp(MIN, x, MAX) is max(MIN, min(x, MAX)): when MIN > MAX, MIN wins.
-      var sz = Math.max(ends[0].v, Math.min(raw, ends[1].v)), px = sz * rem;
-      var heading = /^h\d$/.test(role), lhk, mbk;
-      if (heading) { lhk = K('lh-h1') + K('lh-h-step') * p; mbk = K('mb-h1') + K('mb-h-step') * p; }
-      else if (role === 'label') lhk = K('lh-label');
-      else lhk = K('lh-body') - K('lh-p-step') * n;
-      var u0 = unitPx(), stands = /^h[123]$/.test(role);
-      var lh = stands ? Math.round(px * lhk / u0) * u0 : px * lhk, mb = heading ? Math.round(px * mbk / u0) * u0 : 0;
+      var px = M.typeSize(role, cw, scale, seed), sz = px / rem;
+      var heading = M.isHeading(role), stands = M.stands(role), u0 = unitPx();
+      var lhk = M.lineRatio(role, seed), mbk = heading ? seed.type.afterH1 + seed.type.afterHeadingStep * p : 0;
+      var lh = M.lineHeight(role, px, u0, seed), mb = M.spaceAfter(role, px, u0, seed);
       var actual = parseFloat(getComputedStyle(s).fontSize);
       var check = Math.abs(actual - px) < .06 ? ' ✓' : ' (browser: ' + f(actual, 2) + 'px)';
       var clamp = ends[0].v > ends[1].v ? ', held at the narrow size, which is larger than the wide one: the ratio grows faster than the anchor'

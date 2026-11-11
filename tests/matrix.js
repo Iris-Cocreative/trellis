@@ -52,12 +52,12 @@ if (LAYER) {
 const jobs = [];
 if (engines !== 'webkit') {
   (quick ? CHROMIUM.slice(0, 2) : CHROMIUM).forEach(a => jobs.push(['align.js', url, ...a]));
-  jobs.push(['layers.js', url], ['layout.js', url, 'chromium', '1440x900'], ['layout.js', url, 'chromium', '393x852', 'touch']);
+  jobs.push(['layers.js', url], ['layout.js', url, 'chromium', '1440x900'], ['layout.js', url, 'chromium', '393x852', 'touch'], ['math.js', url, 'chromium']);
 }
 if (engines !== 'chromium') {
   (quick ? WEBKIT.slice(2, 4) : WEBKIT).forEach(a => jobs.push(['align.js', url, ...a]));
   (quick ? PIXEL.slice(0, 1) : PIXEL).forEach(s => jobs.push(['pixel.js', url, s, 'webkit']));
-  jobs.push(['layers.js', url, 'webkit'], ['layout.js', url, 'webkit', '1440x900'], ['layout.js', url, 'webkit', '393x852', 'touch'], ['perf.js', url, 'webkit']);
+  jobs.push(['layers.js', url, 'webkit'], ['layout.js', url, 'webkit', '1440x900'], ['layout.js', url, 'webkit', '393x852', 'touch'], ['math.js', url, 'webkit'], ['perf.js', url, 'webkit']);
 }
 
 let next = 0, failed = 0, done = 0;

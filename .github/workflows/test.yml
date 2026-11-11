@@ -35,7 +35,7 @@ jobs:
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:8765/ >/dev/null && exit 0; sleep 1; done
           echo "The server did not start" && exit 1
 
-      # align.js across the matrix, pixel.js, layout.js, layers.js and perf.js.
+      # align.js across the matrix, pixel.js, layout.js, layers.js, math.js and perf.js.
       - name: Run the matrix
         env:
           # A shared runner is slower than a laptop, so the timing budgets widen.

@@ -4,11 +4,12 @@ They run in CI on every push and pull request (`.github/workflows/test.yml`), in
 
 | Test | What it proves |
 |---|---|
-| `contract.js` | No browser. Every class in `core.css` is in the README's Public API; product layers only set variables on `:root` (every layer in `examples/`, and any path given as an argument); every knob is in `product.template.css` with core's default; the generated tokens in `core.css` are exactly what `tokens.json` makes, and no web unit is in the token file; the package exports what it should and carries its license; `settle.js` loads on a server. It reads files with either line ending. |
+| `contract.js` | No browser. Every class in `core.css` is in the README's Public API; product layers only set variables on `:root` (every layer in `examples/`, and any path given as an argument); every knob is in `product.template.css` with core's default; the generated tokens in `core.css` are exactly what `tokens.json` makes, and no web unit is in the token file; the package exports what it should and carries its license; `math.js` has no DOM, carries the token source's seed and reproduces the README's worked examples; `settle.js` loads on a server. It reads files with either line ending. |
 | `align.js` | Every edge lands on a cell line: a headline's last baseline, the top of every other text block, the top and left of every box, and every block in the `.prose` post, read from its bare tag. Also fails a block that collapsed, a block past its column, sideways scroll and console errors. Opens every `details` and measures again. |
 | `pixel.js` | Lines are planes: each card's edge covers the same device pixels as the grid line it stands on, one CSS pixel (3 device pixels) wide. |
 | `layout.js` | What a position check can't see: a card's padding is equal by default and each of its two knobs moves one direction alone; a list row is whole cells and its rule adds no height; the same shell markup is a column in a wide box and a tab bar in a narrow one; a cover's media reaches both screen edges with no sideways scroll; a board scrolls; inputs meet the touch target and 16px type on touch; a modal and a sheet really open, lock the page, sit where they should and undo it all on close. |
 | `layers.js` | The import order the README requires. It uses the shape of Tailwind v4's layers (a preflight in `base`, a margin in `utilities`), not Tailwind itself: real Tailwind beside the foundation is a later spike. |
+| `math.js` | `math.js` at the root says in arithmetic what `core.css` says in CSS. This checks that they agree across eight screens and all three layers: the fit's count, cell and gutter; the whole cell, frame and gutter on a wide screen; every type role's size from the live knobs; standing and hanging. 320 checks. |
 | `perf.js` | The runtime under load: see below. |
 | `matrix.js` | Runs all of the browser tests across the list below. |
 | `ready.js` | What they all wait on: the document, then the runtime, then `Trellis.settled()`. `networkidle` doesn't mean parsed. |
@@ -68,7 +69,7 @@ LAYER=mine=http://127.0.0.1:9000/styles/product.css node tests/matrix.js http://
 | Chromium `align.js` | 1440×900 neutral dark · 1440×900 Quarry light, Hang · 1280×800 Almanac dark, math · 1024×768 neutral light, CSS panel · 1280×800 neutral dark, Measure · 768×1024 Quarry dark · 393×852 touch neutral dark · 393×852 touch Almanac light, dial 10 · 375×812 touch Quarry light, Hang · 393×852 touch neutral dark, throttled 6× |
 | WebKit `align.js` | 1440×900 neutral dark · 1280×800 Quarry dark, Hang · 393×852 touch Quarry light · 393×852 touch neutral dark, dial 14 · 440×956 touch Almanac light, math · 375×812 touch neutral dark, Hang · 852×393 touch Almanac dark, math, Hang |
 | WebKit `pixel.js` | 393×852 · 440×956 |
-| Both | `layers.js` · `layout.js` at 1440×900 and 393×852 touch |
+| Both | `layers.js` · `layout.js` at 1440×900 and 393×852 touch · `math.js` |
 | WebKit | `perf.js` |
 
 ## What a pass looked like

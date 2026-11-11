@@ -10,6 +10,10 @@ Semver, staying 0.x until two apps ship on the same version. A 0.x minor may bre
 **Added**
 - **Split card padding:** two knobs, `--density-card-pad-inline` and `--density-card-pad-block`. Both follow `--density-card-pad`, so padding stays equal unless a product splits it. On a card, `--card-pad-inline` and `--card-pad-block`. The Almanac example tightens its sides to one cell. `layout.js` checks the default, each knob alone, and the shorthand.
 - **Token source:** `tokens.json`, in the W3C Design Tokens format, holds the cell's target, the octaves, sizes, control heights, radii, layers, motion, the ratio's defaults, color roles as light and dark pairs, and kind colors, in cells and points. `tools/build-tokens.js` writes the generated tokens of `core.css` from it and holds the rem conversion. Every computed value is the same as before: the specimen renders identically in Chromium and WebKit. `tokens.json` is a package export.
+- **Math module:** `math.js` holds the fit, the ratio, standing, hanging and the gutter parity rule as plain functions in points, with no DOM. The specimen's math view runs on it, the README has the same formulas in words, and `tests/math.js` checks it against the stylesheet in both engines. It is a package export, and sets `window.TrellisMath` in a browser.
+
+**Fixed**
+- The README said an iPhone in landscape fits 84 cells. It fits 74: the cell's target has grown to about 11.4 points by that width.
 
 ## 0.8.0 · 2026-11-11
 
