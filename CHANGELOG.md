@@ -5,6 +5,7 @@ Semver, staying 0.x until two apps ship on the same version. A 0.x minor may bre
 ## Unreleased
 
 **Knowledge base**
+- **Knowledge base, The Seed:** `docs/seed/`, the cell, the ratio, response, context, lines are planes, point line plane, the masters and why relationships replace values (`S1` to `S8`), and the principles above the rules (`P1` to `P6`), each tied to the rules that keep it.
 - **Knowledge base, Anatomy:** `docs/anatomy/`, the five levels (`A1` to `A5`), the two definitions (a composition arranges and paints nothing; a surface paints and is a container) and the five ways anything meets a line (`M1` to `M5`), with where the code doesn't keep the definitions.
 - **Knowledge base, Decisions:** `docs/decisions/`, 53 decision records from 0.2.0 to now, each with context, options considered, decision, consequences, date, who and superseded by. 28 are flagged where the alternatives were never recorded.
 - **Knowledge base, Rules:** `docs/rules/`, one page per rule in one shape (statement, why, the failure it prevents, how it is checked, an example, exceptions): `R1` to `R20` keep the README's numbers, `F1` to `F6` are the rules for free layouts. Five are marked questioned, with what is missing: R8, R12, R16, F2 and F6. `docs/README.md` sets the IDs and page shapes for every chapter.

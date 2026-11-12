@@ -62,7 +62,7 @@ One chapter each. Rules, decisions and primitives will carry stable IDs that the
 | Item | State |
 |---|---|
 | Start Here | idea |
-| The Seed | idea |
+| The Seed | done |
 | Rules | done |
 | Decisions | done |
 | Anatomy | done |
