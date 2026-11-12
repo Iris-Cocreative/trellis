@@ -5,6 +5,7 @@ Semver, staying 0.x until two apps ship on the same version. A 0.x minor may bre
 ## Unreleased
 
 **Knowledge base**
+- **Knowledge base, Decisions:** `docs/decisions/`, 53 decision records from 0.2.0 to now, each with context, options considered, decision, consequences, date, who and superseded by. 28 are flagged where the alternatives were never recorded.
 - **Knowledge base, Rules:** `docs/rules/`, one page per rule in one shape (statement, why, the failure it prevents, how it is checked, an example, exceptions): `R1` to `R20` keep the README's numbers, `F1` to `F6` are the rules for free layouts. Five are marked questioned, with what is missing: R8, R12, R16, F2 and F6. `docs/README.md` sets the IDs and page shapes for every chapter.
 
 **Breaking**
