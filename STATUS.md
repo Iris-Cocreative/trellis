@@ -43,7 +43,8 @@ Everything here lands before the first app pins a version.
 | Perf on a quiet laptop | idea | | Rerun `perf.js webkit` with nothing else running. |
 | Padding clears the corner | idea | | A floor on card padding from its radius. |
 | Private files off the site | idea | | Product layers kept where no public site serves them. |
-| Keyboard reach for scrollers | done | (this commit) | Rule 20: markup for rails and boards, `settle.js` for prose; `align.js` fails a scroller with no way in, 0 in all 21 runs. |
+| Keyboard reach for scrollers | done | `3f5499c` | Rule 20: markup for rails and boards, `settle.js` for prose; `align.js` fails a scroller with no way in, 0 in all 21 runs. |
+| Design feedback on the specimen | underway | (this commit) | The first round of notes on the specimen: copy and styling changed, framework notes waiting on decisions. |
 
 ## Before the second app
 
@@ -88,7 +89,7 @@ Work that grows from the grid or leaves it, and still belongs to it.
 | Zoom as a local dial | idea |
 | Motion proportions | idea |
 | Grow by cells | idea |
-| Mycelium vines | idea |
+| Mycelium vines | underway |
 
 ## Kit
 

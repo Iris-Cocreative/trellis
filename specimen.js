@@ -14,7 +14,8 @@
     // The reader's dial: 12 is 100% of the target (10px on a phone, 12px wide).
     // A new key, so a size saved under the old meaning can't shrink the cell.
     dial: saved.dial || 12,
-    grid: saved.grid !== false,
+    // The grid: lines, dots at the crossings, or off. Dots unless chosen.
+    grid: saved.grid === false || saved.grid === 'off' ? 'off' : saved.grid === 'lines' ? 'lines' : 'dots',
     measure: !!saved.measure,
     outset: saved.outset !== false,   // surfaces step out by default
     fit: saved.fit || 'auto',
@@ -45,10 +46,12 @@
   function fitted() { return canFit && (state.fit === 'on' || (state.fit === 'auto' && touchQuery.matches)); }
 
   // ---- Controls ----------------------------------------------------------
+  var GRID_NAMES = { lines: 'Grid', dots: 'Dots', off: 'No grid' };
+  var GRID_NEXT = { lines: 'dots', dots: 'off', off: 'lines' };
   function apply() {
     if (state.theme === 'auto') root.removeAttribute('data-theme');
     else root.setAttribute('data-theme', resolvedTheme());
-    root.toggleAttribute('data-grid', state.grid);
+    if (state.grid === 'off') root.removeAttribute('data-grid'); else root.setAttribute('data-grid', state.grid);
     root.toggleAttribute('data-measure', state.measure);
     root.toggleAttribute('data-no-outset', !state.outset);
     root.toggleAttribute('data-css', state.css);
@@ -67,7 +70,15 @@
       b.setAttribute('aria-pressed', String(on));
     });
     document.querySelectorAll('[data-toggle]').forEach(function (b) {
-      b.setAttribute('aria-pressed', String(!!state[b.dataset.toggle]));
+      var k = b.dataset.toggle;
+      // Outset and the grid name the state they're in; the others are on or off.
+      if (k === 'grid' || k === 'outset') {
+        var name = k === 'grid' ? GRID_NAMES[state.grid] : state.outset ? 'Outset' : 'Contained';
+        b.querySelector('.button-label').textContent = name;
+        b.setAttribute('aria-label', (k === 'grid' ? 'Grid: ' : 'Cards: ') + name);
+        return;
+      }
+      b.setAttribute('aria-pressed', String(!!state[k]));
     });
     save();
     schedule();
@@ -77,7 +88,8 @@
     var b = e.target.closest('[data-set], [data-toggle], [data-step]');
     if (!b) return;
     if (b.dataset.set) state[b.dataset.set] = b.dataset.value;
-    if (b.dataset.toggle) state[b.dataset.toggle] = !state[b.dataset.toggle];
+    if (b.dataset.toggle === 'grid') state.grid = GRID_NEXT[state.grid];
+    else if (b.dataset.toggle) state[b.dataset.toggle] = !state[b.dataset.toggle];
     // A fitted unit is fractional anyway, so its target moves by 1px; a whole unit stays even.
     if (b.dataset.step) state.dial = Math.min(18, Math.max(9, state.dial + Number(b.dataset.step) * (fitted() ? 1 : 2)));
     if (!fitted() && state.dial % 2) state.dial += 1;
@@ -87,12 +99,75 @@
   touchQuery.addEventListener('change', apply);
 
   // Modals: open and close on the native dialog, a backdrop click included.
+  // A click's target is where the press ended, so a press inside the card
+  // that ends on the backdrop (selecting text, say) would close it: the
+  // backdrop closes only when the press also began there.
+  var pressedOn = null;
+  document.addEventListener('pointerdown', function (e) { pressedOn = e.target; }, true);
   document.addEventListener('click', function (e) {
     var o = e.target.closest('[data-open-modal]');
     if (o) { document.getElementById(o.dataset.openModal).showModal(); return; }
     var dlg = e.target.closest('dialog.modal');
-    if (dlg && (e.target === dlg || e.target.closest('[data-close-modal]'))) dlg.close();
+    if (dlg && ((e.target === dlg && pressedOn === dlg) || e.target.closest('[data-close-modal]'))) dlg.close();
   });
+  // Prose: the same post as the Markdown it could have come from. Written
+  // from the post itself, so the two never disagree. The paste at the end has
+  // no Markdown of its own: only its words survive, which is the point.
+  var NL2 = '\n\n';
+  function md(node, depth) {
+    var out = '';
+    node.childNodes.forEach(function (n) {
+      if (n.nodeType === 3) { out += n.textContent.replace(/\s+/g, ' '); return; }
+      if (n.nodeType !== 1) return;
+      var t = n.tagName.toLowerCase(), inner = function () { return md(n, depth).trim(); };
+      if (/^h[1-6]$/.test(t)) out += NL2 + '######'.slice(0, +t[1]) + ' ' + inner() + NL2;
+      else if (t === 'p' || t === 'div' || t === 'figcaption' || t === 'summary') { var x = inner(); if (x && x !== ' ') out += NL2 + x + NL2; }
+      else if (t === 'ul' || t === 'ol') {
+        var i = 0, pad = '  '.repeat(depth);
+        out += '\n';
+        n.querySelectorAll(':scope > li').forEach(function (li) {
+          i++;
+          out += '\n' + pad + (t === 'ol' ? i + '. ' : '- ') + md(li, depth + 1).trim().replace(/\n\n+/g, '\n');
+        });
+        out += NL2;
+      }
+      else if (t === 'blockquote') out += NL2 + inner().split(/\n+/).map(function (l) { return '> ' + l; }).join('\n>\n') + NL2;
+      else if (t === 'pre') out += NL2 + '```\n' + n.textContent.replace(/\n$/, '') + '\n```' + NL2;
+      else if (t === 'hr') out += NL2 + '---' + NL2;
+      else if (t === 'img') out += '![' + (n.getAttribute('alt') || '') + '](' + n.getAttribute('src') + ')';
+      else if (t === 'figure') out += NL2 + inner().replace(/\n\n+/g, '\n') + NL2;
+      else if (t === 'iframe') out += NL2 + '<iframe src="' + n.getAttribute('src') + '"></iframe>' + NL2;
+      else if (t === 'table') {
+        var rows = Array.prototype.map.call(n.querySelectorAll('tr'), function (tr) {
+          return '| ' + Array.prototype.map.call(tr.children, function (c) { return md(c, depth).trim(); }).join(' | ') + ' |';
+        });
+        if (rows.length) rows.splice(1, 0, rows[0].replace(/[^|]+/g, ' --- '));
+        out += NL2 + rows.join('\n') + NL2;
+      }
+      else if (t === 'dl') out += NL2 + inner() + NL2;
+      else if (t === 'dt') out += '\n**' + inner() + '**';
+      else if (t === 'dd') out += '\n: ' + inner() + '\n';
+      else if (t === 'details') out += NL2 + '<details>' + inner() + '\n</details>' + NL2;
+      else if (t === 'em' || t === 'i' || t === 'cite') out += '_' + inner() + '_';
+      else if (t === 'strong' || t === 'b') out += '**' + inner() + '**';
+      else if (t === 'code' || t === 'kbd') out += '`' + n.textContent + '`';
+      else if (t === 'a') out += '[' + inner() + '](' + n.getAttribute('href') + ')';
+      else if (t === 'br') out += '  \n';
+      else out += md(n, depth);
+    });
+    return out;
+  }
+  var proseBtn = document.querySelector('[data-prose-view]');
+  if (proseBtn) proseBtn.addEventListener('click', function () {
+    var post = document.getElementById('prose-post'), src = document.getElementById('prose-md');
+    var showMd = proseBtn.getAttribute('aria-pressed') !== 'true';
+    if (showMd && !src.textContent) src.textContent = md(post, 0).replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, NL2).trim() + '\n';
+    post.hidden = showMd; src.hidden = !showMd;
+    proseBtn.setAttribute('aria-pressed', String(showMd));
+    proseBtn.querySelector('.button-label').textContent = showMd ? 'Show the post' : 'Show the Markdown';
+    schedule();
+  });
+
   // Tabs: the selected state is all a tab has.
   document.querySelectorAll('.tabs').forEach(function (list) {
     list.addEventListener('click', function (e) {
@@ -128,24 +203,23 @@
     var u = unitPx(), n = cells();
     document.getElementById('unit-value').textContent = px2(u) + 'px';
     document.getElementById('seed-u').textContent = px2(u) + 'px';
-    var g = gutterCells(), rem = parseFloat(getComputedStyle(root).fontSize);
-    var target = M.cellTarget({ width: window.innerWidth, textScale: rem / 16, dial: state.dial / 12 });
-    document.getElementById('seed-u-note').textContent = n
-      ? 'The measure of space, fitted to this screen: the ' + px2(target) + 'px target becomes ' + px2(u) +
-        'px so whole cells span it. It halves and doubles, ¼, ½, 1, 2, 4, 8, and every gap, inset, control, corner and avatar is made of it.'
-      : 'The measure of space: the ' + px2(target) + 'px target, rounded to an even pixel. It halves and doubles, ¼, ½, 1, 2, 4, 8, and every gap, inset, control, corner and avatar is made of it.';
+    var g = gutterCells();
     var frameCells = Math.round(page.getBoundingClientRect().width / u);
-    document.getElementById('seed-resp').textContent = n ? n + ' × ' + px2(u) : frameCells + ' cells';
-    document.getElementById('seed-resp-note').textContent = n
-      ? 'Both answer to the screen. ' + n + ' cells span this one exactly: ' + ((n - 2 * g) / 4) + ' modules of 4 and ' + g +
-        ' cells each side. The screen also sets how far the ratio opens; the reader\'s dial scales the cell, and with it every space.'
-      : 'Both answer to the screen. This frame is ' + frameCells + ' cells, ' + ((frameCells - 2 * g) / 4) +
-        ' modules of 4 between ' + g + '-cell gutters; the screen also sets how far the ratio opens, and the reader\'s dial scales the cell.';
+    document.getElementById('seed-u-note').textContent = n
+      ? n + ' cells span this screen exactly: ' + ((n - 2 * g) / 4) + ' modules of 4 between ' + g + '-cell gutters.'
+      : frameCells + ' cells across this frame: ' + ((frameCells - 2 * g) / 4) + ' modules of 4 between ' + g + '-cell gutters.';
     var cw = Math.round(containerWidth(document.getElementById('seed-ctx')));
     document.getElementById('seed-ctx').textContent = cw + 'px';
-    document.getElementById('seed-ctx-note').textContent = "Both answer to the box they're in. This card is " + cw +
-      'px wide, and its type is sized from that, not from the window. A context changes variables, never markup, so a component nests at any depth.';
+    document.getElementById('seed-ctx-note').textContent = 'The width of this card, which its type is sized from.';
 
+    // The descender of the g, measured in the face that draws it.
+    var ew = document.querySelector('.edge-word');
+    if (ew) {
+      var ecs = getComputedStyle(ew), mc = document.createElement('canvas').getContext('2d');
+      mc.font = ecs.fontWeight + ' ' + ecs.fontSize + ' ' + ecs.fontFamily;
+      var dsc = mc.measureText('g').actualBoundingBoxDescent;
+      if (dsc > 0) ew.style.setProperty('--desc', dsc.toFixed(2) + 'px');
+    }
     var sizes = {};
     document.querySelectorAll('.type-row').forEach(function (row) {
       var s = row.querySelector('.type-sample');
@@ -165,9 +239,7 @@
       document.getElementById('seed-r').textContent = (sizes.h1 / sizes.h2).toFixed(3);
       var rcs = getComputedStyle(root);
       var narrow = +parseFloat(rcs.getPropertyValue('--rh-min')).toFixed(3), wide = +parseFloat(rcs.getPropertyValue('--rh-max')).toFixed(3);
-      document.getElementById('seed-r-note').textContent =
-        'The measure of type. Headings step down from H1 by a ratio that opens with the space, ' + narrow +
-        ' in a narrow one to ' + wide + ' in a wide one. This is the ratio here.';
+      document.getElementById('seed-r-note').textContent = 'H1 to H2, here. It opens from ' + narrow + ' in a narrow space to ' + wide + ' in a wide one.';
     }
     document.querySelectorAll('[data-ctx-readout]').forEach(function (o) {
       var h = o.closest('.card').querySelector('.t-h3');
@@ -197,8 +269,13 @@
     var sp = probe ? spreads(probe) : [1, 3];
     var gap = sp[0] || 1, ring = (sp[1] || 3) - gap;
     var avail = svg.parentNode.clientWidth - 4 * u;
-    var k = Math.max(3, Math.min(8, Math.floor(avail / (7 * u))));   // whole-number magnification
-    var W = 7 * u * k, H = 4 * u * k;
+    // Wide: the notes sit to the right of the drawing. Narrow: they would
+    // run off it, so the drawing takes the width and the notes go below it,
+    // numbered.
+    var narrow = avail < 7 * u * 5;
+    var k = narrow ? Math.max(3, Math.min(8, Math.floor(avail / (4 * u)))) : Math.max(3, Math.min(8, Math.floor(avail / (7 * u))));   // whole-number magnification
+    var D = 4 * u * k, ROW = 40;
+    var W = narrow ? D : 7 * u * k, H = narrow ? Math.ceil((D + 3 * ROW + 28) / u) * u : D;   // whole cells, so what follows stays on its line
     svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
     svg.setAttribute('width', W); svg.setAttribute('height', H);
     svg.innerHTML = '';
@@ -209,6 +286,7 @@
     }
     for (var j = 0; j <= 4 * 2; j++) {
       var y = j * u * k / 2;
+      if (y > D) break;
       el('line', { x1: 0, y1: y, x2: W, y2: y, 'class': j % 2 ? 'an-half' : (j % 4 ? 'an-cell' : 'an-cell2') }, g);
     }
     var cx = 2 * u * k, cy = 2 * u * k, r = u * k;
@@ -216,8 +294,19 @@
     el('circle', { cx: cx, cy: cy, r: r + (gap + ring) * k, 'class': 'an-ring' }, svg);
     el('circle', { cx: cx, cy: cy, r: r + gap * k, 'class': 'an-gap' }, svg);
     el('circle', { cx: cx, cy: cy, r: r, 'class': 'an-photo' }, svg);
-    var lx = 4 * u * k + u * k / 2;
+    var lx = 4 * u * k + u * k / 2, nth = 0;
     function note(y1, x1, title, sub) {
+      if (narrow) {
+        nth++;
+        el('circle', { cx: x1, cy: y1, r: 8, 'class': 'an-dot' }, svg);
+        var m = el('text', { x: x1, y: y1 + 4, 'class': 'an-num' }, svg); m.textContent = nth;
+        var ry = D + 12 + (nth - 1) * ROW;
+        el('circle', { cx: 8, cy: ry + 6, r: 8, 'class': 'an-dot' }, svg);
+        var m2 = el('text', { x: 8, y: ry + 10, 'class': 'an-num' }, svg); m2.textContent = nth;
+        var t2 = el('text', { x: 24, y: ry + 10, 'class': 'an-title' }, svg); t2.textContent = title;
+        var s2 = el('text', { x: 24, y: ry + 28, 'class': 'an-sub' }, svg); s2.textContent = sub;
+        return;
+      }
       el('polyline', { points: x1 + ',' + y1 + ' ' + (lx - 8) + ',' + y1, 'class': 'an-lead' }, svg);
       el('circle', { cx: x1, cy: y1, r: 3, 'class': 'an-dot' }, svg);
       var t = el('text', { x: lx, y: y1 - 4, 'class': 'an-title' }, svg); t.textContent = title;
@@ -227,7 +316,7 @@
     note(cy - (r + (gap + ring / 2) * k) * Math.sin(a), cx + (r + (gap + ring / 2) * k) * Math.cos(a), 'ring · ' + ring + 'px', 'the person’s color');
     note(cy, cx + r + gap * k / 2, 'gap · ' + gap + 'px', 'the surface behind it');
     note(cy + r * 0.55, cx + r * 0.6, 'photo · 2u = ' + (2 * u) + 'px', 'whole cells, on the lines');
-    var e = el('text', { x: u * k, y: H - u * k / 3, 'class': 'an-sub' }, svg);
+    var e = el('text', { x: narrow ? 0 : u * k, y: narrow ? H - 4 : H - u * k / 3, 'class': 'an-sub' }, svg);
     e.textContent = 'outer edge: ' + (gap + ring) + 'px past the cell line';
   }
 
@@ -327,7 +416,7 @@
   var layer = document.getElementById('measure-layer');
   var inspector = document.getElementById('inspector');
   var TEXT_ROLE = /\bt-(h\d|xl|lg|body|sm|xs|label)\b/;
-  var SKIP = 'svg *, .grid-layer, .measure-layer, br, b, em, i, code, a, .edge-line, .edge-line *, [data-fill-list] > p:nth-child(n+4)';
+  var SKIP = 'svg *, .grid-layer, .measure-layer, .frame-intro, .hero-vines, br, b, em, i, code, a, .edge-line, .edge-line *, [data-fill-list] > p:nth-child(n+4)';
 
   function name(v, u) {
     v = Math.round(v * 100) / 100;
@@ -543,19 +632,20 @@
       var check = Math.abs(actual - px) < .06 ? ' ✓' : ' (browser: ' + f(actual, 2) + 'px)';
       var clamp = ends[0].v > ends[1].v ? ', held at the narrow size, which is larger than the wide one: the ratio grows faster than the anchor'
         : raw < ends[0].v ? ', held at the narrow size' : raw > ends[1].v ? ', held at the wide size' : '';
-      var lines = [
-        '<b>' + role + ' = ' + R[0] + '</b>: ' + ends[0].expr + f(ends[0].v) + 'rem in a ' + f(cmin * rem, 0) + 'px space, ' +
-          ends[1].expr + f(ends[1].v) + 'rem in ' + f(cmax * rem, 0) + 'px',
-        '<b>here</b>, ' + f(cw, 1) + 'px: ' + f(ends[0].v) + ' + (' + f(ends[1].v) + ' − ' + f(ends[0].v) + ') × (' + f(cw, 1) + ' − ' +
-          f(cmin * rem, 0) + ') ÷ ' + f((cmax - cmin) * rem, 0) + ' = ' + f(sz) + 'rem = <b>' + f(px, 2) + 'px</b>' + clamp + check,
-        '<b>line</b> ' + f(px, 2) + ' × ' + f(lhk, 2) + ' = ' + f(px * lhk, 2) +
-          (stands ? ' → <b>' + f(lh, 2) + 'px</b>, ' + Math.round(lh / u0) + ' cells: a headline stands on the cells'
-                  : 'px, its own line: text hangs from a cell line and its block rounds up to whole cells') +
-          (heading ? ' · <b>space after</b> ' + f(px, 2) + ' × ' + f(mbk, 2) + ' = ' + f(px * mbk, 2) + ' → <b>' + f(mb, 2) + 'px</b>, ' + Math.round(mb / u0) + ' cells' : '')
+      // One row per step, a name and its working, so nothing runs together.
+      var rows = [
+        ['ends', '<b>' + role + ' = ' + R[0] + '</b> · ' + ends[0].expr + f(ends[0].v) + 'rem at ' + f(cmin * rem, 0) + 'px · ' +
+          ends[1].expr + f(ends[1].v) + 'rem at ' + f(cmax * rem, 0) + 'px'],
+        ['here', f(cw, 1) + 'px wide: ' + f(ends[0].v) + ' + (' + f(ends[1].v) + ' − ' + f(ends[0].v) + ') × (' + f(cw, 1) + ' − ' +
+          f(cmin * rem, 0) + ') ÷ ' + f((cmax - cmin) * rem, 0) + ' = ' + f(sz) + 'rem = <b>' + f(px, 2) + 'px</b>' + check + clamp],
+        ['line', f(px, 2) + ' × ' + f(lhk, 2) + ' = ' + f(px * lhk, 2) +
+          (stands ? ' → <b>' + f(lh, 2) + 'px</b>, ' + Math.round(lh / u0) + ' cells. It stands on the cells.'
+                  : 'px, its own line. It hangs from a cell line, and its block rounds up to whole cells.')]
       ];
+      if (heading) rows.push(['after', f(px, 2) + ' × ' + f(mbk, 2) + ' = ' + f(px * mbk, 2) + ' → <b>' + f(mb, 2) + 'px</b>, ' + Math.round(mb / u0) + ' cells']);
       // Write only when the math changed: new nodes would be settled again,
       // which resizes the page and runs this again.
-      var html = lines.map(function (l) { return '<p class="t-xs">' + l + '</p>'; }).join('');
+      var html = rows.map(function (r) { return '<span class="math-k">' + r[0] + '</span><span class="math-v">' + r[1] + '</span>'; }).join('');
       if (out.dataset.html !== html) { out.dataset.html = html; out.innerHTML = html; }
     });
   }
@@ -687,7 +777,7 @@
   page.appendChild(inkProbe);
   function ink(v) { inkProbe.style.color = 'var(' + v + ')'; return getComputedStyle(inkProbe).color; }
   function drawGrid() {
-    if (!state.grid) return;
+    if (state.grid === 'off') return;
     var dpr = window.devicePixelRatio || 1;
     var cw = grid.clientWidth, ch = grid.clientHeight;
     var bw = Math.round(cw * dpr), bh = Math.round(ch * dpr);
@@ -701,12 +791,28 @@
     var a = function (k) { return Math.min(1, (parseFloat(cs.getPropertyValue(k)) || 0) * dpr); };
     var text = ink('--text'), group = ink('--kind-group');
     var tiers = [[text, a('--grid-a-1')], [group, a('--grid-a-2')], [group, a('--grid-a-4')]];
+    var rank = function (i) { i = ((i % 4) + 4) % 4; return i === 0 ? 2 : i === 2 ? 1 : 0; };
     var tier = function (i) { i = ((i % 4) + 4) % 4; return i === 0 ? tiers[2] : i === 2 ? tiers[1] : tiers[0]; };
     var x0 = pr.left + parseFloat(getComputedStyle(page).paddingLeft);
     var top = Math.max(0, pr.top), bottom = Math.min(ch, pr.bottom);
     if (bottom <= top) return;
     var T = Math.round(top * dpr), B = Math.round(bottom * dpr);
     var k, x, j, y;
+    if (state.grid === 'dots') {
+      // A dot at every crossing, sized by the stronger of its two lines: a
+      // device pixel square, two at every second line, three at every fourth.
+      var k0 = Math.ceil(-x0 / u), j0 = Math.ceil((top - pr.top) / u);
+      for (j = j0; (y = pr.top + j * u) <= bottom; j++) {
+        var Y = Math.round(y * dpr);
+        for (k = k0; (x = x0 + k * u) <= cw; k++) {
+          var s = Math.max(rank(k), rank(j)), d = s + 1, tv2 = tiers[s];
+          ctx.fillStyle = tv2[0]; ctx.globalAlpha = Math.min(1, tv2[1] * 2.5);
+          ctx.fillRect(Math.round(x * dpr) - (d >> 1), Y - (d >> 1), d, d);
+        }
+      }
+      ctx.globalAlpha = 1;
+      return;
+    }
     for (k = Math.ceil(-x0 / u); (x = x0 + k * u) <= cw; k++) {
       var tv = tier(k); ctx.fillStyle = tv[0]; ctx.globalAlpha = tv[1];
       ctx.fillRect(Math.round(x * dpr), T, 1, B - T);
@@ -727,6 +833,7 @@
 
   function refresh() {
     queued = false;
+    placeToc();
     drawGrid();
     readouts();
     math();
@@ -745,6 +852,137 @@
     if (state.measure && e.target !== document && page.contains(e.target)) schedule();
   }, true);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
+
+  // ---- On this page ------------------------------------------------------
+  // The column takes the space left of the field: the margin past the frame
+  // plus the gutter, less a cell so it never touches the text, at most 14
+  // cells, its right edge a cell before the field. Names show
+  // when that is at least ten cells; under two, it steps aside.
+  var toc = document.getElementById('toc');
+  function placeToc() {
+    if (!toc) return;
+    var u = unitPx(), left = page.getBoundingClientRect().left + parseFloat(getComputedStyle(page).paddingLeft);
+    var w = Math.min(Math.floor((left - u) / u), 14) * u;
+    toc.style.setProperty('--toc-w', Math.max(0, w) + 'px');
+    toc.style.setProperty('--toc-x', Math.max(0, left - u - w) + 'px');
+    toc.classList.toggle('cc-labels', w >= 10 * u);
+    toc.classList.toggle('cc-none', w < 2 * u);
+  }
+  if (toc && 'IntersectionObserver' in window) {
+    var tocLinks = {}, seen = {};
+    toc.querySelectorAll('.toc-link').forEach(function (a) { tocLinks[a.getAttribute('href').slice(1)] = a; });
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { seen[e.target.dataset.tocFor] = e.isIntersecting; });
+      // The first section in reading order that is in view is the current one.
+      var cur = null;
+      Object.keys(tocLinks).some(function (id) { if (seen[id]) { cur = id; return true; } return false; });
+      Object.keys(tocLinks).forEach(function (id) {
+        if (id === cur) tocLinks[id].setAttribute('aria-current', 'location');
+        else tocLinks[id].removeAttribute('aria-current');
+      });
+    }, { rootMargin: '-30% 0px -60% 0px' });
+    // The hero stands in for the top of the page.
+    Object.keys(tocLinks).forEach(function (id) {
+      var t = id === 'top' ? page.querySelector('.hero') : document.getElementById(id);
+      if (t) { t.dataset.tocFor = id; io.observe(t); }
+    });
+  }
+
+  // ---- Vines on the trellis (experiments/vines.js) -------------------------
+  var vines = document.getElementById('hero-vines');
+  if (vines && window.TrellisVines) TrellisVines.mount(vines, { seed: 7, edge: 'right', band: 18 });
+
+  // ---- The frame draws itself ---------------------------------------------
+  // On arrival, the frame's own space is drawn as the cells it is made of:
+  // the six cells of padding above the hero, the gutter's cells down each
+  // side, and the headline measured in cells. Then it fades, and comes back
+  // whenever Measure is turned on. It is a canvas in its own layer: nothing
+  // flows around it.
+  var intro = document.createElement('canvas');
+  intro.className = 'frame-intro';
+  intro.setAttribute('aria-hidden', 'true');
+  intro.setAttribute('data-settle-skip', '');
+  page.insertBefore(intro, page.firstChild);
+  var introStart = 0, introRaf = 0;
+  var still = window.matchMedia('(prefers-reduced-motion: reduce)');
+  function ease(t) { t = Math.max(0, Math.min(1, t)); return 1 - Math.pow(1 - t, 3); }
+  function drawIntro(now) {
+    var t = (now - introStart) / 1000;
+    var dpr = window.devicePixelRatio || 1, u = unitPx();
+    var W = page.clientWidth, H = intro.clientHeight;
+    if (intro.width !== Math.round(W * dpr)) intro.width = Math.round(W * dpr);
+    if (intro.height !== Math.round(H * dpr)) intro.height = Math.round(H * dpr);
+    var ctx = intro.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    var pcs = getComputedStyle(page);
+    var padTop = parseFloat(pcs.paddingTop), gut = parseFloat(pcs.paddingLeft);
+    var rows = Math.round(padTop / u), gcols = Math.round(gut / u), cols = Math.round(W / u), drows = Math.floor(H / u);
+    var fade = 1 - ease((t - 3.4) / 0.9);
+    if (fade <= 0 && !state.measure) { ctx.clearRect(0, 0, W, H); introRaf = 0; return; }
+    var alpha = state.measure ? Math.max(fade, 0.55) : fade;
+    var group = ink('--kind-group'), text = ink('--text');
+    ctx.lineWidth = 1 / dpr;
+    function cell(cx, cy, p, k) {
+      if (p <= 0) return;
+      k = k == null ? 1 : k;
+      var x = cx * u, y = cy * u, s = u * p;
+      ctx.globalAlpha = alpha * k * 0.08; ctx.fillStyle = group; ctx.fillRect(x, y, s, s);
+      ctx.globalAlpha = alpha * k * 0.32; ctx.strokeStyle = group; ctx.strokeRect(x + 0.5 / dpr, y + 0.5 / dpr, s - 1 / dpr, s - 1 / dpr);
+    }
+    // The padding above: a wave of cells from the field's center outward.
+    var mid = cols / 2;
+    for (var r = 0; r < rows; r++) for (var c = gcols; c < cols - gcols; c++) {
+      cell(c, r, ease((t - 0.15 - Math.abs(c + 0.5 - mid) * 0.012 - r * 0.05) / 0.35));
+    }
+    // The gutters: down each side, a row at a time.
+    for (var gr = 0; gr < drows; gr++) for (var gc = 0; gc < gcols; gc++) {
+      var p = ease((t - 0.5 - gr * 0.03 - gc * 0.04) / 0.35);
+      var k = 1 - gr / drows;
+      cell(gc, gr, p, k); cell(cols - 1 - gc, gr, p, k);
+    }
+    // Labels, once the cells are in.
+    ctx.font = '600 ' + Math.max(9, Math.round(u * 0.8)) + 'px ' + (getComputedStyle(root).getPropertyValue('--font-mono') || 'monospace');
+    ctx.textBaseline = 'middle';
+    var la = ease((t - 1.1) / 0.4) * alpha;
+    if (la > 0) {
+      ctx.globalAlpha = la; ctx.fillStyle = text;
+      ctx.textAlign = 'left';
+      ctx.fillText(rows + ' cells', (gcols + 0.5) * u, rows * u / 2);
+      ctx.save(); ctx.translate(gcols * u / 2, (rows + 16) * u); ctx.rotate(-Math.PI / 2);
+      ctx.textAlign = 'center'; ctx.fillText(gcols + ' cells', 0, 0); ctx.restore();
+    }
+    // The headline, measured: a bracket of whole cells beside it.
+    var h1 = page.querySelector('.hero .t-h1');
+    if (h1) {
+      var pr = page.getBoundingClientRect(), hr = h1.getBoundingClientRect();
+      var top = hr.top - pr.top, n = Math.round(hr.height / u), hb = ease((t - 1.5) / 0.6);
+      if (hb > 0 && top + n * u <= H) {
+        var bx = gut - u * 1.5;
+        ctx.globalAlpha = alpha; ctx.strokeStyle = text; ctx.fillStyle = text;
+        ctx.beginPath();
+        ctx.moveTo(bx + u * 0.5, top); ctx.lineTo(bx, top); ctx.lineTo(bx, top + n * u * hb); ctx.lineTo(bx + u * 0.5, top + n * u * hb);
+        ctx.stroke();
+        for (var m = 1; m < n * hb; m++) { ctx.fillRect(bx - u * 0.25, top + m * u - 0.5 / dpr, u * 0.25, 1 / dpr); }
+        if (hb >= 1) {
+          ctx.save(); ctx.translate(bx - u * 0.6, top + n * u / 2); ctx.rotate(-Math.PI / 2);
+          ctx.textAlign = 'center'; ctx.fillText(n + ' cells', 0, 0); ctx.restore();
+        }
+      }
+    }
+    ctx.globalAlpha = 1;
+    introRaf = requestAnimationFrame(drawIntro);
+  }
+  function playIntro() {
+    if (still.matches) { introStart = performance.now() - 3000; }
+    else introStart = performance.now();
+    if (!introRaf) introRaf = requestAnimationFrame(drawIntro);
+  }
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('[data-toggle="measure"]') && state.measure) playIntro();
+  });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { setTimeout(playIntro, 150); });
+  else setTimeout(playIntro, 300);
 
   apply();
 })();

@@ -20,8 +20,10 @@
 | `package.json` | Exports `core.css`, `settle.js` and the template. The product layers aren't exports: products will own them. |
 | `REACT.md` | The contract for a React app, with the pull request checklist. |
 | `CHANGELOG.md` | What changed in each version, and what broke. |
-| `experiments/solids.js` | An experiment: point, line, plane carried on into solid, motion and transformation (the Platonic solids, morphing by geometry). Not part of the package. |
-| `index.html`, `specimen.css`, `specimen.js` | The specimen. Built only from the foundation, so it is also the first test of it. Controls: theme, the dial (cell size), fit, Outset (the `--outset` knob, switchable), grid, Measure (padding, gap, a heading's own space, the line each text block stands on or hangs from), CSS (every stylesheet in a side panel; with Measure on, click anything to find its rule). The ratio section shows the math behind every type role, recomputed live and checked against the browser. |
+| `experiments/solids.js` | An experiment: point, line, plane carried on into solid, motion and transformation (the cube turning a quarter at a time, and truncating through the cuboctahedron to the octahedron and back). Not part of the package. |
+| `experiments/vines.js` | An experiment: seeded vines that grow up the lattice, resting on its points and leaving them between, sized in cells and colored from the theme. The specimen's hero grows them up the frame's edge. Not part of the package. |
+| `brand/` | The Trellis mark: a lattice with a vine through it, in one color (`currentColor`), with a solid version for small sizes and a lockup. |
+| `index.html`, `specimen.css`, `specimen.js` | The specimen. Built only from the foundation, so it is also the first test of it. A column beside the field names every section. Controls: theme, the dial (cell size), fit, Outset or Contained (the `--outset` knob, switchable), the grid (lines, dots at the crossings, or off), Measure (padding, gap, a heading's own space, the line each text block stands on or hangs from), CSS (every stylesheet in a side panel; with Measure on, click anything to find its rule). The ratio section shows the math behind every type role, recomputed live and checked against the browser. |
 | `STATUS.md` | Where each planned piece stands: its state, the commit that changed it, the test that backs it. |
 | `tests/` | `align.js`, `pixel.js`, `layout.js`, `layers.js`, `math.js`, `perf.js`, `contract.js`, `matrix.js`. They run in CI; see `tests/README.md`. |
 | `LICENSE` | MIT, held by Iris Cocreative. |
@@ -100,7 +102,7 @@ Through 0.9, Outset was called Hang, so the word meant two things.
 
 Kandinsky's three elements are the three measures: the **point** (the hairline, the ½ cell dot), the **line** (a cell's edge, rhythm in one direction), the **plane** (the cell and every surface built from cells).
 
-An experiment (`experiments/solids.js`) carries them on: **solid** (the plane extruded: a cube, drawn at the lattice's 2:1 slope), **motion** (the solid turns; motion moves rest states, never layout), **transformation** (one Platonic solid becomes another by moving its points: cube → dodecahedron through the pyritohedra, cube → tetrahedron, cube → octahedron through the cuboctahedron, Fuller's vector equilibrium, octahedron → icosahedron along the golden ratio). Where it could go: loading and empty states, transitions between views (a list becoming a field), the organic layer. Kept out of the core until a product needs it.
+An experiment (`experiments/solids.js`) carries them on: **solid** (the plane extruded: a cube, drawn at the lattice's 2:1 slope), **motion** (the solid turns; motion moves rest states, never layout), **transformation** (one form becomes another by moving its points: the cube's corners are cut until it becomes the cuboctahedron, Fuller's vector equilibrium, then the octahedron, and back, each form scaled to keep the same size). Where it could go: loading and empty states, transitions between views (a list becoming a field), the organic layer. Kept out of the core until a product needs it.
 
 ### Settling, and what the runtime writes
 

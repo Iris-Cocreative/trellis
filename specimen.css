@@ -44,7 +44,7 @@
     overflow-x: auto;
   }
   .wordmark { text-decoration: none; display: flex; align-items: center; gap: var(--sp-h); flex: none; font-weight: var(--fw-strong); font-size: .875rem; white-space: nowrap; }
-  .wordmark-mark { width: var(--size-icon-md); height: var(--size-icon-md); flex: none; }
+  .wordmark-mark { width: var(--size-icon-lg); height: var(--size-icon-lg); flex: none; }
   .nav-controls { display: flex; align-items: center; gap: var(--sp-1); margin-inline-start: auto; flex: none; }
   .control { display: flex; align-items: center; gap: var(--sp-h); }
   .control-name { color: var(--text-tertiary); }
@@ -61,14 +61,59 @@
   .seg .icon-button { padding-inline: 0; }
   .stepper-value { min-width: var(--sp-3); text-align: center; font-size: .75rem; }
 
+  /* ---- On this page ------------------------------------------------------
+     A column in the space left of the field: the margin past the frame and
+     the gutter. specimen.js measures that space into --toc-w. Each section is
+     a point (a .dot), its name beside it when there is room; the section in
+     view takes the accent. Rows are whole cells, so the points sit on lines. */
+  .toc {
+    position: fixed; z-index: var(--z-sticky);
+    top: calc(var(--nav-h) + var(--sp-6)); left: var(--toc-x, 0px);
+    width: var(--toc-w, 0px);
+    display: flex; flex-direction: column;
+    padding-inline-start: var(--sp-1);
+  }
+  .toc-link {
+    position: relative;
+    display: flex; align-items: center; gap: var(--sp-h);
+    height: var(--sp-2); min-width: 0;
+    color: var(--text-tertiary); text-decoration: none;
+    font-size: var(--fs-control-sm); font-weight: var(--fw-label);
+    border-radius: var(--r-h);
+  }
+  .toc-link .dot { flex: none; --dot-size: var(--sp-h); }
+  .toc-label { white-space: nowrap; overflow-x: clip; text-overflow: ellipsis; min-width: 0; }
+  .toc-link:hover, .toc-link:focus-visible { color: var(--text); }
+  .toc-link:hover .dot { --dot-color: var(--text-secondary); }
+  .toc-link[aria-current] { color: var(--text); }
+  .toc-link[aria-current] .dot { --dot-color: var(--accent); }
+  /* Too narrow for names: the dots alone, and a name floats beside the one
+     under the pointer or the focus. */
+  .toc:not(.cc-labels) .toc-label {
+    position: absolute; left: calc(var(--sp-1) + var(--sp-h)); top: 50%; translate: 0 -50%;
+    padding: var(--sp-q) var(--sp-h); border-radius: var(--r-h);
+    background: var(--bg-raised); box-shadow: var(--lift); color: var(--text);
+    opacity: 0; pointer-events: none;
+    transition: opacity var(--dur-out) var(--ease-out);
+  }
+  .toc:not(.cc-labels) .toc-link:is(:hover, :focus-visible) .toc-label { opacity: 1; }
+  /* Where there is no margin to speak of (a phone, a narrow window), or the
+     CSS panel covers the page, it steps aside. */
+  .toc.cc-none, html[data-css] .toc { display: none; }
+
   /* ---- Page ------------------------------------------------------------ */
+  /* The frame carries a faint surface of its own, so its edges, and the
+     margins past them on a wide screen, can be seen. */
   .page {
     container: page / inline-size;
     position: relative;
+    --surface: color-mix(in oklab, var(--bg-sunken) 40%, var(--bg));
+    background: var(--surface);
     padding-block: var(--sp-6) var(--sp-4);
     display: flex; flex-direction: column; gap: var(--sp-12);
   }
-  .measure-layer { position: absolute; inset: 0; pointer-events: none; overflow: clip; }   /* boxes for scrolled-away rail items stay inside */
+  .measure-layer { position: absolute; inset: 0; pointer-events: none; overflow: clip; }
+  .frame-intro { position: absolute; inset: 0 0 auto; width: 100%; height: calc(var(--u) * 48); pointer-events: none; z-index: calc(var(--z-raised) + 1); }   /* boxes for scrolled-away rail items stay inside */
   /* The grid is drawn by specimen.js on a canvas at device resolution: every
      line one device pixel, at the device pixel its coordinate rounds to,
      which is where the browser snaps box edges too. A CSS gradient can't do
@@ -99,24 +144,108 @@
 
   .demo-fields { --cols: 2; }
   @container page (width < 576px) { .demo-fields { --cols: 1; } }
-  .demo-inputs .input { width: calc(var(--u) * 14); }
+  .demo-inputs > .input { flex: 1 1 calc(var(--u) * 14); min-width: 0; }
   .demo-chat { --stack-gap: var(--sp-2); }
+  /* A thread: replies step in by the width of a face and its gap; the
+     assistant's mark sits on the face's corner, ringed in the surface so it
+     reads at two cells; resolved spends no color. */
+  .demo-thread { --stack-gap: var(--sp-1); }
+  .demo-reply { margin-inline-start: var(--sp-3); }
+  .demo-agent-mark {
+    position: absolute; right: calc(var(--sp-q) * -1); bottom: calc(var(--sp-q) * -1);
+    width: var(--sp-1); height: var(--sp-1); border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--text); color: var(--bg);
+    box-shadow: 0 0 0 var(--line) var(--surface);
+  }
+  .demo-agent-mark .icon { --icon-size: calc(var(--sp-1) * .75); --icon-stroke: 2; }
+  .demo-done { opacity: .55; }
+  .demo-done .avatar { filter: grayscale(1); }
   .demo-tiles { --grid-min: calc(var(--u) * 28); }
   .demo-skel-avatar { --skel-w: var(--sp-4); --skel-h: var(--sp-4); --skel-radius: 50%; }
 
   /* ---- Hero ------------------------------------------------------------ */
-  .hero { --stack-gap: var(--sp-4); }
-  .hero .t-h1 { max-width: 14ch; }
-  .hero .t-h1 em { font-family: var(--font-serif); font-style: italic; font-weight: var(--fw-serif); color: var(--kind-group); letter-spacing: 0; }
-  .hero-lead { max-width: calc(var(--u) * 52); color: var(--text-secondary); }
+  /* Three cells under the label, five under the headline: a count from the
+     golden series, written in cells. */
+  .hero { --stack-gap: calc(var(--u) * 5); }
+  /* Vines grow up the frame's right edge into the gutter, behind the words,
+     in their own layer (rule F3): a canvas sized in cells that nothing flows
+     around. Where the hero is narrow they would crowd the text, so they go. */
+  .hero { position: relative; isolation: isolate; }
+  .hero-vines {
+    position: absolute; z-index: -1; pointer-events: none;
+    top: 0; right: calc(var(--gutter) * -1);
+    width: min(calc(var(--u) * 40), round(down, calc(100% + var(--gutter) - var(--u) * 56), var(--u)));
+    height: calc(var(--u) * 44);
+  }
+  @container page (width < 900px) { .hero-vines { display: none; } }
+  .hero-head { --stack-gap: var(--sp-3); }
+  .hero-title { --stack-gap: var(--sp-1); margin: 0; }
+  .hero-tagline { font-family: var(--font-serif); font-style: italic; font-weight: var(--fw-serif); color: var(--kind-group); letter-spacing: 0; }
+  .hero-sub { max-width: calc(var(--u) * 44); color: var(--text-secondary); }
+  .hero-lead { max-width: calc(var(--u) * 52); }
   .seeds { --cols: 4; }
   @container page (width < 1100px) { .seeds { --cols: 2; } }
   @container page (width < 576px) { .seeds { --cols: 1; } }
   .hero-more { color: var(--text-tertiary); max-width: calc(var(--u) * 56); }
   .seed { --stack-gap: var(--sp-1); }
-  .seed .seed-value { margin-block-end: var(--sp-1); }   /* a big number gets a cell more air than the stack's gap */
   .seed-value { font-family: var(--font-mono); font-weight: 400; letter-spacing: -.02em; }
   .seed .t-label { color: var(--text-tertiary); }
+  .qualities { --stack-gap: var(--sp-2); }
+  .qualities .rules { --cols: 5; }
+  @container page (width < 1100px) { .qualities .rules { --cols: 2; } }
+  @container page (width < 576px) { .qualities .rules { --cols: 1; } }
+
+  /* The seed cards draw what they name. Each drawing is six cells tall, so
+     the card's text after it stays on its lines; the motion runs once, from
+     nothing to its rest state, and readers who ask for less motion get the
+     rest state. */
+  .seed-art { position: relative; height: var(--sp-6); }
+  .sa-cells { display: flex; align-items: flex-end; gap: var(--sp-h); }
+  .sa-cells i {
+    flex: none; width: var(--s); height: var(--s);
+    background: color-mix(in oklab, var(--kind-group) 22%, transparent);
+    box-shadow: inset 0 0 0 var(--line) var(--kind-group);
+    transform-origin: 0 100%;
+    animation: sa-grow var(--dur-in-slow) var(--ease-out) both;
+  }
+  .sa-cells i:nth-child(1) { --s: var(--sp-q); animation-delay: 200ms; }
+  .sa-cells i:nth-child(2) { --s: var(--sp-h); animation-delay: 350ms; }
+  .sa-cells i:nth-child(3) { --s: var(--sp-1); animation-delay: 500ms; }
+  .sa-cells i:nth-child(4) { --s: var(--sp-2); animation-delay: 650ms; }
+  .sa-cells i:nth-child(5) { --s: var(--sp-4); animation-delay: 800ms; }
+  @keyframes sa-grow { from { transform: scale(0); opacity: 0; } }
+
+  .sa-ratio { display: flex; align-items: last baseline; gap: var(--sp-h); line-height: 1; }
+  .sa-ratio i {
+    font-style: normal; font-family: var(--font-heading); font-weight: var(--fw-heading);
+    font-size: calc(var(--sp-1) * 1.25 * pow(var(--rh-max), var(--n)));
+    color: color-mix(in oklab, var(--text) calc(40% + var(--n) * 15%), transparent);
+    animation: sa-rise var(--dur-in-slow) var(--ease-out) both;
+    animation-delay: calc(200ms + var(--n) * 150ms);
+  }
+  @keyframes sa-rise { from { opacity: 0; translate: 0 var(--sp-h); } }
+
+  /* Three boxes, each a container: the bar inside each is sized from its own
+     box, so as the outer box narrows, every bar follows its box, not the page. */
+  .sa-context > .sa-box { height: 100%; animation: sa-breathe 9s var(--ease-out) 1s infinite; }
+  .sa-box {
+    container-type: inline-size;
+    display: flex; flex-direction: column; gap: var(--sp-q);
+    padding: var(--sp-h);
+    border-radius: var(--r-h);
+    box-shadow: inset 0 0 0 var(--line) color-mix(in oklab, var(--kind-event) 60%, transparent);
+  }
+  .sa-box .sa-box { flex: 1; width: 72%; }
+  .sa-box > i { display: block; flex: none; width: 60%; height: clamp(2px, 5cqi, var(--sp-1)); border-radius: var(--r-q); background: color-mix(in oklab, var(--kind-event) 55%, transparent); }
+  @keyframes sa-breathe { 0%, 30%, 100% { width: 100%; } 55%, 80% { width: 58%; } }
+
+  .sa-expression .sa-quarry { --tag-radius: var(--r-q); }
+  .sa-expression .sa-quarry .tag-label { text-transform: uppercase; letter-spacing: .1em; }
+  .sa-expression .sa-almanac .tag-label { font-family: var(--font-serif); font-style: italic; }
+  @media (prefers-reduced-motion: reduce) {
+    .seed-art, .seed-art * { animation: none !important; }
+  }
 
   /* ---- Plates: surfaces for diagrams ------------------------------------ */
   /* Plates scroll sideways on a phone, so, like every scrolling surface,
@@ -137,9 +266,23 @@
   .plp { --cols: 3; }
   .plp-cell { --stack-gap: var(--sp-1); }
   .plp-art { position: relative; height: var(--sp-6); }
-  .plp-point { position: absolute; left: var(--sp-3); top: var(--sp-3); width: var(--sp-h); height: var(--sp-h); margin: calc(var(--sp-h) / -2); border-radius: 50%; background: var(--text); }
-  .plp-line { position: absolute; left: 0; right: 0; top: var(--sp-4); height: var(--line); background: var(--text); }
-  .plp-plane { position: absolute; left: 0; top: 0; width: var(--sp-6); height: var(--sp-6); background: color-mix(in oklab, var(--kind-group) 30%, transparent); box-shadow: inset 0 0 0 var(--line) var(--kind-group); }
+  /* All three are drawn on the same lines: the point on the line three cells
+     down, the line through it with a point at each end, the plane six cells
+     square with a point at each corner. One ink, one line width. */
+  .plp-art { --dot: var(--sp-h); --ink: var(--text); }
+  .plp-point, .plp-line::before, .plp-line::after, .plp-plane::before, .plp-plane::after {
+    position: absolute; width: var(--dot); height: var(--dot); margin: calc(var(--dot) / -2) 0 0 calc(var(--dot) / -2);
+    border-radius: 50%; background: var(--ink);
+  }
+  .plp-point { left: var(--sp-3); top: calc(var(--sp-3) + var(--line) / 2); }
+  .plp-line { position: absolute; left: var(--sp-h); right: var(--sp-h); top: var(--sp-3); height: var(--line); background: var(--ink); }
+  .plp-line::before, .plp-line::after { content: ""; top: calc(var(--line) / 2); }
+  .plp-line::before { left: 0; }
+  .plp-line::after { left: 100%; }
+  .plp-plane { position: absolute; left: var(--sp-h); top: 0; width: var(--sp-6); height: var(--sp-6); background: color-mix(in oklab, var(--kind-group) 22%, transparent); box-shadow: inset 0 0 0 var(--line) var(--ink); }
+  .plp-plane::before, .plp-plane::after { content: ""; left: calc(var(--line) / 2); box-shadow: calc(var(--sp-6) - var(--line)) 0 0 var(--ink); }
+  .plp-plane::before { top: calc(var(--line) / 2); }
+  .plp-plane::after { top: calc(var(--sp-6) - var(--line) / 2); }
   @container page (width < 576px) { .plp { --cols: 1; } }
 
   /* Octave ladder */
@@ -166,24 +309,34 @@
   .type-row::before {
     content: ""; position: absolute; left: 0; top: var(--cap-offset, 0px);
     width: calc(var(--u) * 12 + var(--sp-2) + var(--sp-6)); height: var(--hair);
-    background: color-mix(in oklab, var(--kind-group) 55%, transparent);
+    background: var(--border-subtle);
   }
   .type-bar { display: block; margin-block-start: var(--sp-h); height: var(--sp-h); }
   /* The math: three lines under each sample, computed live from the same
      knobs the stylesheet reads. */
-  .type-math { grid-column: 1 / -1; display: none; --stack-gap: 0px; }
-  html[data-math] .type-math { display: flex; }
+  /* The math sits under the sample, in its column: a name and its working
+     per row, each working wrapping under itself. The block settles to whole
+     cells. */
+  .type-math {
+    grid-column: 2; display: none;
+    grid-template-columns: var(--sp-3) minmax(0, 1fr); column-gap: var(--sp-1);
+    font-family: var(--font-mono); font-size: .6875rem; line-height: var(--sp-1h);
+    color: var(--text-secondary);
+  }
+  html[data-math] .type-math { display: grid; }
   html[data-math] .type-row { row-gap: var(--sp-1); }
-  .type-math .t-xs { font-family: var(--font-mono); font-size: .6875rem; color: var(--text-secondary); overflow-wrap: anywhere; }
+  .math-k { color: var(--text-tertiary); }
+  .math-v { overflow-wrap: anywhere; }
   .type-math b { color: var(--text); font-weight: 500; }
   @container page (width < 576px) {
     .type-row { grid-template-columns: 1fr; row-gap: var(--sp-1); }
+    .type-math { grid-column: 1; }
     .type-meta { translate: none; }
     .type-row::before { display: none; }
   }
 
   /* Two to one, as Mondrian would: the wide column is rounded to whole units. */
-  .split > .card { --stack-gap: var(--sp-1); }
+  .split > .card, .rail > .card { --stack-gap: var(--sp-1); }
 
   pre.code {
     margin: 0;
@@ -202,7 +355,8 @@
   pre.code.cc-wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
 
   /* Edges diagram */
-  .edges { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--sp-4); }
+  /* Room below for the descender, in whole cells, so the plate never scrolls. */
+  .edges { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--sp-4); padding-block-end: var(--sp-3); }
   .edge-word { position: relative; font-size: calc(var(--u) * 9); line-height: 1; font-weight: var(--fw-heading); letter-spacing: -.02em; padding-inline-end: calc(var(--u) * 7); }
   @supports (text-box: trim-both cap alphabetic) { .edge-word { text-box: trim-both cap alphabetic; } }
   .edge-line { position: absolute; left: 0; right: 0; height: var(--line); }
@@ -213,6 +367,7 @@
   .edge-line.cc-cap { top: calc(round(up, 1cap, var(--u)) - 1cap); background: var(--kind-group); color: var(--kind-group); }
   .edge-line.cc-ex { bottom: 1ex; background: var(--kind-event); color: var(--kind-event); }
   .edge-line.cc-base { bottom: 0; background: var(--m-base); color: var(--m-base); height: calc(var(--line) * 2); }
+  .edge-line.cc-desc { bottom: calc(var(--desc, .21em) * -1); background: var(--text-tertiary); color: var(--text-tertiary); }
 
   .split > .stack { --stack-gap: var(--sp-1); }
   .icon-rows { --stack-gap: var(--sp-1); }
@@ -226,7 +381,9 @@
 
   /* Avatars */
   .anatomy { max-width: none; }
-  .avatar-ladder { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--sp-2); }
+  /* People, then groups and a stack, on one baseline while they fit. */
+  .avatar-rows { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--sp-2) var(--sp-6); }
+  .avatar-ladder { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--sp-2) var(--sp-3); }
   .avatar-cell { --stack-gap: var(--sp-1); align-items: start; }
   .avatar-cell > .t-mono { width: 0; white-space: nowrap; }   /* the label never widens its cell */
   .avatar-cell .t-mono { font-size: .6875rem; line-height: var(--sp-1h); color: var(--text-tertiary); }
@@ -300,6 +457,7 @@
   .an-dot   { fill: var(--text); }
   .an-title { fill: var(--text); font: 500 15px var(--font-mono); }
   .an-sub   { fill: var(--text-tertiary); font: 400 13px var(--font-mono); }
+  .an-num   { fill: var(--bg); font: 600 11px var(--font-mono); text-anchor: middle; }
 
   /* Organic drawing */
   .org-lattice line { stroke: var(--grid-1); }
@@ -435,7 +593,7 @@
   /* ---- Point, line, plane + ------------------------------------------------ */
   .plp-rule { display: flex; align-items: center; gap: var(--sp-1); margin-block: var(--sp-3); }
   .plp-rule::before, .plp-rule::after { content: ""; flex: 1; height: var(--line); background: var(--border-subtle); }
-  .plp-rule .t-label { color: var(--kind-group); }
+  .plp-plus { color: var(--kind-group); font-size: var(--sp-3); line-height: var(--sp-3); font-weight: 300; }
   .solid-art { display: block; width: 100%; height: calc(var(--u) * 16); }
   /* The live name sits over the drawing, so a longer name never moves the layout. */
   .solid-stage { position: relative; }
