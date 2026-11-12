@@ -33,7 +33,7 @@
     return state.theme;
   }
 
-  function unitPx() { return parseFloat(getComputedStyle(root).getPropertyValue('--u-px')) || 12; }
+  function unitPx() { return window.Trellis && Trellis.cell ? Trellis.cell() : parseFloat(getComputedStyle(root).getPropertyValue('--u-px')) || 12; }
   // --cells is an unregistered expression, so count the frame instead.
   function cells() { return fitted() ? Math.round(page.getBoundingClientRect().width / unitPx()) : 0; }
   function gutterCells() { return Math.round(parseFloat(getComputedStyle(page).paddingLeft) / unitPx()); }

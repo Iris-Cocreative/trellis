@@ -23,7 +23,7 @@ const ready = require('./ready');
   await ready(page);
   // eslint-disable-next-line prefer-const
   let fails = await page.evaluate(() => {
-    const fails = [], u = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--u-px'));
+    const fails = [], u = Trellis.cell();
     const whole = v => { const m = ((v % u) + u) % u; return m < .5 || m > u - .5; };
     const $ = s => document.querySelector(s), box = e => e.getBoundingClientRect();
     const expect = (ok, what) => { if (!ok) fails.push(what); };

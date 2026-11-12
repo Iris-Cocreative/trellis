@@ -14,6 +14,7 @@ Semver, staying 0.x until two apps ship on the same version. A 0.x minor may bre
 - **Apply the cap on the cell:** the cell follows the reader's text size up to 1.5 times the default and no further; above that only type grows, and layouts reflow. At default text sizes nothing moves. The cap is `text-scale-max` in `tokens.json`, `cellScale()` in `math.js`, rule 19 in the README; in `core.css` the cell's target is the smaller of its rem line and the same line at the cap in px, so it needs no typed division.
 
 **Fixed**
+- **Read the cell from a probe:** `settle.js` measured the cell from `--u-px`, which WebKit computes against the default text size when a page or app sets the root's font size (how an iOS web view usually scales text), so in Safari every block was rounded with the wrong cell. It now measures one hidden box a cell wide (`[data-trellis-cell]`, on `<html>`, taking no space). `Trellis.cell()` returns that measure for any script; the specimen and the tests use it. `--u-px` stays, as a convenience.
 - The README's formula for the cell's target now matches `math.js` and `core.css`: the reader's text size scales the target's two ends and its intercept, not the screen's share.
 
 **Specimen and tests**

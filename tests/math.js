@@ -37,7 +37,7 @@ const CASES = [
       const near = (a, b, by) => Math.abs(a - b) <= (by || .02);
       let n = 0;
       const expect = (ok, what) => { n++; if (!ok) out.push(what); };
-      const frame = document.getElementById('top'), u = parseFloat(cs.getPropertyValue('--u-px'));
+      const frame = document.getElementById('top'), u = Trellis.cell();
       const scale = parseFloat(root.style.getPropertyValue('--u-scale')) || 1, dpr = window.devicePixelRatio;
       const fitted = matchMedia('(pointer: coarse) and (min-resolution: 1.5dppx)').matches && CSS.supports('width', 'calc(100vw / 1px * 1px)');
       const t = M.cellTarget({ width: window.innerWidth, textScale: rem / 16, dial: scale });

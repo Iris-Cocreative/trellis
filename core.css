@@ -31,8 +31,11 @@
    - WebKit (every iPhone browser) can't compute a registered number from a
      length ratio: --cells came out 0, the unit infinite, the page blank.
    Unregistered, they stay expressions; everything in them (rem, vw) resolves
-   the same on every element. --u-px is a registered copy for scripts to
-   read; never build layout from it. */
+   the same on every element. --u-px is a registered copy, kept for
+   convenience; never build layout from it. Scripts read the cell from the
+   probe below (Trellis.cell()): WebKit computes a registered length on the
+   root against the default text size when a page or app sets the root's
+   font size, so there --u-px is wrong while --u is right. */
 @property --u-px {
   syntax: "<length>";
   inherits: true;
@@ -385,6 +388,14 @@
    -------------------------------------------------------------------------- */
 @layer trellis.base {
   :root { --surface: var(--bg); }
+
+  /* The cell, measured: settle.js keeps one hidden box a cell wide on the
+     root, outside body, and reads the cell from it. It takes no space. */
+  [data-trellis-cell] {
+    position: absolute; top: 0; left: 0;
+    width: var(--u); height: 0;
+    visibility: hidden; pointer-events: none;
+  }
 
   body {
     background: var(--surface);

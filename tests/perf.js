@@ -50,7 +50,7 @@ const BUDGET = { first: 1500 * SCALE, change: 150 * SCALE, add: 1000 * SCALE, ch
 
     const lines = () => {
       const top = document.getElementById('top').getBoundingClientRect().top;
-      const u = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--u-px'));
+      const u = Trellis.cell();
       let off = 0, all = 0;
       document.querySelectorAll('#rows > .list-item, #blocks > p').forEach(e => { all++; const m = (((e.getBoundingClientRect().top - top) % u) + u) % u; if (m > .5 && m < u - .5) off++; });
       return { off, all };
@@ -68,7 +68,7 @@ const BUDGET = { first: 1500 * SCALE, change: 150 * SCALE, add: 1000 * SCALE, ch
     const tall = target.getBoundingClientRect().height;
     await timed(() => { target.textContent = 'Short.'; });
     const short = target.getBoundingClientRect().height;
-    const u = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--u-px'));
+    const u = Trellis.cell();
     const shrank = short < tall && short <= u + .5;
     const afterShrink = lines();
     // And nested in a bigger text change: replaced through the parent, as a framework might.

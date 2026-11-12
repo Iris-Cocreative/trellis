@@ -22,8 +22,13 @@
    nested block can't be rounded in CSS (--settle-start), and a lone <br> or
    &nbsp; can't be told from content (data-prose-empty).
 
-   window.Trellis: fit() · all() re-settles · observe(el) watches more ·
-   settled() a promise for when nothing is left to write. */
+   THE CELL, for any script: cell() measures it from one hidden box on the
+   root ([data-trellis-cell]). Read it there, not from --u-px, which WebKit
+   computes against the default text size when the root's font size is set.
+
+   window.Trellis: fit() · cell() the cell in px · all() re-settles ·
+   observe(el) watches more · settled() a promise for when nothing is left
+   to write. */
 (function () {
   'use strict';
   if (typeof window === 'undefined' || window.Trellis) return;
@@ -52,7 +57,19 @@
   // A scrollbar arriving with the content changes the width, not the window.
   if ('ResizeObserver' in window) new ResizeObserver(fit).observe(root);
 
-  var api = { fit: fit, all: function () {}, observe: function () {}, settled: function () { return Promise.resolve(); } };
+  // ---- The cell, measured: every browser -------------------------------------
+  var probe = null;
+  function cell() {
+    if (!probe || !probe.isConnected) {
+      probe = document.createElement('div');
+      probe.setAttribute('data-trellis-cell', '');
+      probe.setAttribute('aria-hidden', 'true');
+      root.appendChild(probe);   // outside body, so no observer of the page sees it
+    }
+    return probe.getBoundingClientRect().width || 12;
+  }
+
+  var api = { fit: fit, cell: cell, all: function () {}, observe: function () {}, settled: function () { return Promise.resolve(); } };
   window.Trellis = api;
 
   // ---- Settling --------------------------------------------------------------
@@ -174,7 +191,7 @@
       added.clear();
       nodes.forEach(function (n) { if (n.isConnected) observe(n); });
     }
-    var unit = parseFloat(getComputedStyle(root).getPropertyValue('--u-px')) || 12;
+    var unit = cell();
     var batch = [], i, el, k, writes = [];
     queue.forEach(function (q) { if (q.isConnected) batch.push(q); });
     queue.clear();

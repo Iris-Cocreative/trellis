@@ -56,7 +56,7 @@ const target = require('./target');
 
   const r = await page.evaluate(() => {
     const top = document.getElementById('top'), pr = top.getBoundingClientRect();
-    const u = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--u-px'));
+    const u = Trellis.cell();
     const TEXT = /\bt-(h\d|xl|lg|body|sm|xs|label)\b/, STANDS = /\bt-h[123]\b/;
     const BOX = /\b(card|plate|tag|button|avatar|section|stack|cluster|cols|grid|float|row|list|board|shell|cover|field|input|tabs|chat-item|member-tile)\b/;
     const SKIP = '.measure-layer,svg,[popover],.nav,.float,.avatar,.code-panel,.shell-nav';
@@ -131,7 +131,7 @@ const target = require('./target');
     .then(() => ready(page))
     .then(() => page.evaluate(() => {
       const top = document.getElementById('top'), pr = top.getBoundingClientRect();
-      const u = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--u-px'));
+      const u = Trellis.cell();
       const off = (v) => { const m = ((v % u) + u) % u; return m > .5 && m < u - .5; };
       const res = [];
       top.querySelectorAll('.prose > *, .prose details > *, .prose details li').forEach(e => {
