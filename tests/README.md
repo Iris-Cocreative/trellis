@@ -39,7 +39,7 @@ node tests/perf.js http://127.0.0.1:8765/ webkit
 
 `align.js` takes a size, then a layer, then a theme, then flags. The layer is `neutral` (core alone), the name of an example (`quarry`, `almanac`), or `name=<address>` for a layer from outside the repository. The theme is `auto`, `light` or `dark`.
 
-`align.js` flags: `touch` (a 3× phone), `webkit` (the engine of every iPhone browser), `u9`…`u18` (the reader's dial, 12 = 100%), `fit-on` / `fit-off`, `measure`, `math`, `css`, `outset`, `slow` (a CPU throttled 6×, Chromium only), `ax` (the reader's text size at 312%, the largest iOS accessibility size; not in the matrix yet). `VERBOSE=1` lists everything checked; `SHOW=n` lists more of what's off.
+`align.js` flags: `touch` (a 3× phone), `webkit` (the engine of every iPhone browser), `u9`…`u18` (the reader's dial, 12 = 100%), `fit-on` / `fit-off`, `measure`, `math`, `css`, `outset`, `slow` (a CPU throttled 6×, Chromium only), `ax` (the reader's text size at 312%, the largest iOS accessibility size). `VERBOSE=1` lists everything checked; `SHOW=n` lists more of what's off.
 
 Run the WebKit cases: Safari is where `calc-size()` is missing and `settle.js` does the rounding, and Chrome's device emulation snaps edges to whole CSS pixels, so it can't see the micro scale.
 
@@ -66,8 +66,8 @@ LAYER=mine=http://127.0.0.1:9000/styles/product.css node tests/matrix.js http://
 
 | Engine | Screens and settings |
 |---|---|
-| Chromium `align.js` | 1440×900 neutral dark · 1440×900 Quarry light, Outset · 1280×800 Almanac dark, math · 1024×768 neutral light, CSS panel · 1280×800 neutral dark, Measure · 768×1024 Quarry dark · 393×852 touch neutral dark · 393×852 touch Almanac light, dial 10 · 375×812 touch Quarry light, Outset · 393×852 touch neutral dark, throttled 6× |
-| WebKit `align.js` | 1440×900 neutral dark · 1280×800 Quarry dark, Outset · 393×852 touch Quarry light · 393×852 touch neutral dark, dial 14 · 440×956 touch Almanac light, math · 375×812 touch neutral dark, Outset · 852×393 touch Almanac dark, math, Outset |
+| Chromium `align.js` | 1440×900 neutral dark · 1440×900 Quarry light, Outset · 1280×800 Almanac dark, math · 1024×768 neutral light, CSS panel · 1280×800 neutral dark, Measure · 768×1024 Quarry dark · 393×852 touch neutral dark · 393×852 touch Almanac light, dial 10 · 375×812 touch Quarry light, Outset · 393×852 touch neutral dark, throttled 6× · 1440×900 Quarry light, text 312% · 375×812 touch Almanac light, text 312% |
+| WebKit `align.js` | 1440×900 neutral dark · 1280×800 Quarry dark, Outset · 393×852 touch Quarry light · 393×852 touch neutral dark, dial 14 · 440×956 touch Almanac light, math · 375×812 touch neutral dark, Outset · 852×393 touch Almanac dark, math, Outset · 393×852 touch neutral dark, text 312% · 1280×800 Almanac dark, text 312% |
 | WebKit `pixel.js` | 393×852 · 440×956 |
 | Both | `layers.js` · `layout.js` at 1440×900 and 393×852 touch · `math.js` |
 | WebKit | `perf.js` |

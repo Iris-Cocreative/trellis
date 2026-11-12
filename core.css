@@ -406,6 +406,9 @@
     line-height: var(--sp-2);
     font-synthesis: none;
     -webkit-font-smoothing: antialiased;
+    /* A word wider than its line breaks rather than scrolling the page: at the
+       largest text sizes one heading word can outgrow a phone. */
+    overflow-wrap: break-word;
   }
 
   :focus-visible { outline: calc(var(--line) * 2) solid var(--focus); outline-offset: var(--line); }
@@ -1059,6 +1062,8 @@
     display: block;
     white-space: nowrap;
   }
+  /* A tag never wider than its row: a long label truncates sideways (rule 11). */
+  .tag-label { min-width: 0; overflow-x: clip; overflow-y: visible; text-overflow: ellipsis; }
   @supports (text-box: trim-both cap alphabetic) {
     .button-label, .tag-label, .avatar-initials { text-box: trim-both cap alphabetic; line-height: 1; }
   }
@@ -1071,9 +1076,12 @@
     --btn-bg: transparent;
     --btn-ink: var(--text);
     --btn-border: var(--border-strong);
+    /* Never shorter than its own type: past the cell's cap the label can
+       outgrow the height, and then the button grows by whole cells. */
+    --btn-draw: calc(var(--btn-h) + max(0px, round(up, calc(1em - var(--btn-h)), var(--u))));
     display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-h);
-    height: var(--btn-h);
-    padding-inline: calc(round(down, var(--btn-h) / 2, var(--sp-h)) - var(--line));   /* half its height, in half cells: 30px gets 12 */
+    height: var(--btn-draw);
+    padding-inline: calc(round(down, var(--btn-draw) / 2, var(--sp-h)) - var(--line));   /* half its height, in half cells: 30px gets 12 */
     border: var(--line) solid var(--btn-border);
     border-radius: var(--btn-radius);
     background: var(--btn-bg);
@@ -1091,7 +1099,7 @@
   .button.cc-md { --btn-h: var(--size-control-md); --btn-fs: var(--fs-control-md); }
   .button.cc-lg { --btn-h: var(--size-control-xl); --btn-fs: var(--fs-control-lg); }
   .button[aria-pressed="true"] { --btn-bg: var(--bg-hover); --btn-border: var(--text-tertiary); }
-  .icon-button { padding-inline: 0; width: var(--btn-h); }
+  .icon-button { padding-inline: 0; width: var(--btn-draw); }
   .cc-dense .button { --btn-h: var(--size-control-md); --btn-fs: var(--fs-control-md); }
 
   /* Where the browser can round an intrinsic size, controls take a width of
@@ -1115,14 +1123,16 @@
     --tag-h: var(--tag-default-h);
     --tag-fs: var(--tag-default-fs);
     --tag-color: var(--kind-topic);
-    --tag-radius: max(var(--tag-r-fixed), calc(var(--tag-h) * var(--tag-r-ratio)));
+    --tag-draw: calc(var(--tag-h) + max(0px, round(up, calc(1em - var(--tag-h)), var(--u))));   /* never shorter than its own type */
+    --tag-radius: max(var(--tag-r-fixed), calc(var(--tag-draw) * var(--tag-r-ratio)));
     --tag-pad: clamp(var(--sp-h), round(down, var(--tag-radius), var(--sp-h)), var(--sp-1));
     --tag-fill: 14%;
     --tag-edge: 42%;
     --tag-ink: var(--text);
     --tag-gap: var(--sp-h);
     display: inline-flex; align-items: center; gap: var(--tag-gap);
-    height: var(--tag-h);
+    max-width: 100%;
+    height: var(--tag-draw);
     padding-inline: calc(var(--tag-pad) - var(--line));
     border: var(--line) solid color-mix(in oklab, var(--tag-color) var(--tag-edge), transparent);
     border-radius: var(--tag-radius);
@@ -1330,7 +1340,7 @@
     --input-border: var(--border);
     --input-pad: var(--sp-1);
     --input-hit: 0px;
-    --input-draw: max(var(--input-h), var(--input-hit));
+    --input-draw: calc(max(var(--input-h), var(--input-hit)) + max(0px, round(up, calc(1em - max(var(--input-h), var(--input-hit))), var(--u))));   /* never shorter than its own type */
     display: block;
     width: 100%;
     height: var(--input-draw);
@@ -1404,7 +1414,7 @@
   .tab {
     position: relative; flex: none;
     display: inline-flex; align-items: center; gap: var(--sp-h);
-    height: var(--tab-h);
+    height: calc(var(--tab-h) + max(0px, round(up, calc(1em - var(--tab-h)), var(--u))));   /* never shorter than its own type */
     padding-inline: var(--tab-pad);
     border-radius: var(--tab-radius);
     color: var(--text-secondary);
@@ -1424,7 +1434,7 @@
     --tab-radius: max(var(--r-q), calc(var(--shape-control) - var(--sp-q)));
     --tab-gap: var(--line);
     width: fit-content; max-width: 100%;
-    height: var(--size-control-lg);
+    height: auto;   /* its tabs plus the padding: the large control height, until a tab outgrows its own */
     padding: calc((var(--size-control-lg) - var(--size-control-sm)) / 2);
     border-radius: var(--shape-control);
     background: var(--bg-sunken);
@@ -1449,7 +1459,7 @@
     min-width: 0;
   }
   .chat-item-body { display: flex; flex-direction: column; align-items: var(--chat-align); gap: var(--sp-1); min-width: 0; flex: 0 1 var(--chat-measure); }
-  .chat-item-meta { display: flex; align-items: baseline; gap: var(--sp-h); color: var(--text-tertiary); }
+  .chat-item-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--sp-h); color: var(--text-tertiary); }   /* wraps when the reader's text is large */
   .chat-item-bubble {
     position: relative;
     max-width: 100%;
@@ -1479,7 +1489,8 @@
     --badge-ink: var(--white);
     --badge-h: var(--size-control-xs);
     display: inline-flex; align-items: center; justify-content: center; flex: none;
-    min-width: var(--badge-h); height: var(--badge-h);
+    --badge-draw: calc(var(--badge-h) + max(0px, round(up, calc(1em - var(--badge-h)), var(--u))));   /* never shorter than its own type */
+    min-width: var(--badge-draw); height: var(--badge-draw);
     padding-inline: var(--sp-q);
     border-radius: var(--r-round);
     background: var(--badge-color);

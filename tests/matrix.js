@@ -27,6 +27,9 @@ const CHROMIUM = [
   ['393x852', 'almanac', 'light', 'touch', 'u10'],
   ['375x812', 'quarry', 'light', 'touch', 'outset'],
   ['393x852', 'neutral', 'dark', 'touch', 'slow'],
+  // The largest accessibility text size: the cell stops at its cap, type and controls don't.
+  ['1440x900', 'quarry', 'light', 'ax'],
+  ['375x812', 'almanac', 'light', 'touch', 'ax'],
 ];
 const WEBKIT = [
   ['1440x900', 'neutral', 'dark', 'webkit'],
@@ -36,6 +39,8 @@ const WEBKIT = [
   ['440x956', 'almanac', 'light', 'touch', 'webkit', 'math'],
   ['375x812', 'neutral', 'dark', 'touch', 'webkit', 'outset'],
   ['852x393', 'almanac', 'dark', 'touch', 'webkit', 'math', 'outset'],
+  ['393x852', 'neutral', 'dark', 'touch', 'webkit', 'ax'],
+  ['1280x800', 'almanac', 'dark', 'webkit', 'ax'],
 ];
 const PIXEL = ['393x852', '440x956'];
 

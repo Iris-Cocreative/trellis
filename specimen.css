@@ -245,7 +245,8 @@
   .matrix { --stack-gap: var(--sp-2); }
   .matrix-row { display: grid; grid-template-columns: calc(var(--u) * 8) minmax(0, 1fr); column-gap: var(--sp-2); align-items: start; }
   .matrix-row > .t-label { color: var(--text-tertiary); }
-  @container page (width < 576px) {
+  /* In rem, so at a large text size the rows stack before a label has to wrap. */
+  @container page (width < 36rem) {
     .matrix-row { grid-template-columns: 1fr; row-gap: var(--sp-1); }
     /* Stacked above its tags, the label is ordinary text again: it stands on a line. */
     .matrix-row > .cap-center { align-self: start; height: var(--sp-1); padding-block-start: calc(var(--sp-1) - round(down, 1cap, 0.015625px)); }

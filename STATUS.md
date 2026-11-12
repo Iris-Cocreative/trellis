@@ -6,7 +6,7 @@ Where each planned piece of Trellis stands. One line per item: its state, the co
 
 States: **idea** (named, not started) · **planning** (its condition is written) · **underway** · **done** (its condition holds and the evidence is recorded) · **integrated** (the owner has confirmed it) · **decided** (the owner has chosen; the work that follows is its own item).
 
-**The suite, last full run.** `contract.js` ok. Chromium 14/14 and WebKit 14/14 on the development laptop, and green in CI. `align.js` 0 off in 17 runs, `pixel.js` 0 of 60 card edges off, `math.js` 320 checks ok in both engines, `perf.js` 0 of 5,000 blocks off their lines and inside its laptop budgets (first settle 1,219ms in WebKit). Earlier the same day, with the laptop busy, `perf.js` missed those budgets; the timings follow the machine's load.
+**The suite, last full run** (2026-11-12, Unreleased). `contract.js` ok. Chromium 16/16 and WebKit 15/16 on the development laptop: the miss is `perf.js` timing with the machine busy, 0 of 5,000 blocks off. `align.js` 0 off in 21 runs, four of them at 312% text. On 2026-11-11: Chromium 14/14 and WebKit 14/14, and green in CI; `align.js` 0 off in 17 runs, `pixel.js` 0 of 60 card edges off, `math.js` 320 checks ok in both engines, `perf.js` 0 of 5,000 blocks off their lines and inside its laptop budgets (first settle 1,219ms in WebKit). Earlier the same day, with the laptop busy, `perf.js` missed those budgets; the timings follow the machine's load.
 
 ## Before the first app
 
@@ -36,9 +36,10 @@ Everything here lands before the first app pins a version.
 | Five ways to meet a line | decided | | Yes: Stand, Hang, Inset, Outset and Center, and the card behavior called Hang becomes Outset. |
 | Apply the five relations | done | `ddff689` | `--hang` is `--outset` everywhere, the README names all five; `contract.js` ok, suite at baseline. Breaking, under Unreleased. |
 | Cap on the cell | decided | | Yes: the cell follows the reader's text size up to a cap; above it only type grows. |
-| Apply the cap on the cell | underway | `bcc9438` | The cap is in the token source, the math module, core and rule 19. The test at the largest accessibility size waits on a decision about controls. |
-| Read the cell from a probe | done | (this commit) | WebKit at 312% text now reports the cell Chromium does (18 wide, 15.09 on a phone); suite at baseline. |
-| Controls past the cap | idea | | Above the cap a control grows to fit its label, in whole cells. |
+| Apply the cap on the cell | done | `bcc9438`, (this commit) | The cap in the token source, the math module, core and rule 19; `align.js` at 312% in both engines and all three layers: 0 off, no sideways scroll. |
+| Read the cell from a probe | done | `379a604` | WebKit at 312% text now reports the cell Chromium does (18 wide, 15.09 on a phone); suite at baseline. |
+| Controls past the cap | done | (this commit) | Button, icon button, tag, input, tab and badge are never shorter than their type; nothing moves at default sizes. |
+| Cap-centered text that wraps | idea | | A cap-centered label that wraps is not rounded to whole cells. |
 | Perf on a quiet laptop | idea | | Rerun `perf.js webkit` with nothing else running. |
 | Padding clears the corner | idea | | A floor on card padding from its radius. |
 | Private files off the site | idea | | Product layers kept where no public site serves them. |

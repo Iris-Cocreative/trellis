@@ -12,13 +12,16 @@ Semver, staying 0.x until two apps ship on the same version. A 0.x minor may bre
 
 **Changed**
 - **Apply the cap on the cell:** the cell follows the reader's text size up to 1.5 times the default and no further; above that only type grows, and layouts reflow. At default text sizes nothing moves. The cap is `text-scale-max` in `tokens.json`, `cellScale()` in `math.js`, rule 19 in the README; in `core.css` the cell's target is the smaller of its rem line and the same line at the cap in px, so it needs no typed division.
+- **Controls past the cap:** a control is never shorter than its own type. Past the cell's cap a label can outgrow its control, and then the button, icon button, tag, input, tab or badge grows by whole cells from its own height. At default sizes every label is shorter than its control, so nothing moves. Rule 17 says so. A segmented control's track is now its tabs plus its padding, the same height at default sizes.
+- **Controls past the cap:** a word wider than its line breaks instead of scrolling the page (`overflow-wrap: break-word` on `body`); a tag is never wider than its row, and a long label truncates sideways (rule 11); a chat item's meta line wraps.
 
 **Fixed**
 - **Read the cell from a probe:** `settle.js` measured the cell from `--u-px`, which WebKit computes against the default text size when a page or app sets the root's font size (how an iOS web view usually scales text), so in Safari every block was rounded with the wrong cell. It now measures one hidden box a cell wide (`[data-trellis-cell]`, on `<html>`, taking no space). `Trellis.cell()` returns that measure for any script; the specimen and the tests use it. `--u-px` stays, as a convenience.
 - The README's formula for the cell's target now matches `math.js` and `core.css`: the reader's text size scales the target's two ends and its intercept, not the screen's share.
 
 **Specimen and tests**
-- `align.js` takes `ax`: the reader's text size at 312%, the largest iOS accessibility size.
+- **Apply the cap on the cell:** `align.js` takes `ax`, the reader's text size at 312% (the largest iOS accessibility size), and the matrix runs it four times: both engines, all three layers, wide and on a phone. 21 `align.js` runs in all.
+- The specimen's tag matrix stacks its rows below 36rem instead of 576px, the same at default sizes, so a row label never has to wrap.
 - The specimen's Hang control is now Outset, and its saved setting is `outset`. The `align.js` flag `hang` is now `outset`.
 
 ## 0.9.0 · 2026-11-11
