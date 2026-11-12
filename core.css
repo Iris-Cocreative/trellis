@@ -81,8 +81,9 @@
 /* tokens:start · generated from tokens.json by tools/build-tokens.js · do not edit by hand */
 @layer trellis.tokens {
   :root {
-    /* The cell's target: 10pt up to a 500pt screen, rising to 12pt at 1000pt. */
-    --u-base: clamp(0.625rem, calc(0.5rem + 0.4vw), 0.75rem);
+    /* The cell's target: 10pt up to a 500pt screen, rising to 12pt at 1000pt.
+       It follows the reader's text size up to 1.5× and no further: above that only type grows. */
+    --u-base: min(clamp(0.625rem, calc(0.5rem + 0.4vw), 0.75rem), clamp(15px, calc(12px + 0.4vw), 18px));
     --frame-max-n: 100;
 
     /* Octaves: the cell halved and doubled */

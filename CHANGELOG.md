@@ -10,7 +10,14 @@ Semver, staying 0.x until two apps ship on the same version. A 0.x minor may bre
 **Added**
 - **Apply the five relations:** the README names the five ways anything meets a line, with an example each: Stand, Hang, Inset, Outset and Center. Rule 5 and open question 2 use the new name.
 
+**Changed**
+- **Apply the cap on the cell:** the cell follows the reader's text size up to 1.5 times the default and no further; above that only type grows, and layouts reflow. At default text sizes nothing moves. The cap is `text-scale-max` in `tokens.json`, `cellScale()` in `math.js`, rule 19 in the README; in `core.css` the cell's target is the smaller of its rem line and the same line at the cap in px, so it needs no typed division.
+
+**Fixed**
+- The README's formula for the cell's target now matches `math.js` and `core.css`: the reader's text size scales the target's two ends and its intercept, not the screen's share.
+
 **Specimen and tests**
+- `align.js` takes `ax`: the reader's text size at 312%, the largest iOS accessibility size.
 - The specimen's Hang control is now Outset, and its saved setting is `outset`. The `align.js` flag `hang` is now `outset`.
 
 ## 0.9.0 · 2026-11-11

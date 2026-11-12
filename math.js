@@ -21,7 +21,7 @@
   'use strict';
 
   var SEED = {
-    cell: { targetNarrow: 10, targetWide: 12, screenNarrow: 500, screenWide: 1000 },
+    cell: { targetNarrow: 10, targetWide: 12, screenNarrow: 500, screenWide: 1000, textScaleMax: 1.5 },
     frame: { max: 100, module: 4 },
     type: {
       spaceNarrow: 320, spaceWide: 1440,
@@ -47,10 +47,14 @@
 
   // ---- The cell ----------------------------------------------------------
   // Its target grows in a straight line from the narrow screen to the wide
-  // one and holds outside them. It follows the reader's text size, and the
-  // dial scales it.
+  // one and holds outside them. It follows the reader's text size up to the
+  // cap (1.5 by default) and no further: above it only type grows. The dial
+  // scales it after the cap.
+  function cellScale(textScale, seed) {
+    return Math.min(textScale || 1, (seed || SEED).cell.textScaleMax);
+  }
   function cellTarget(o, seed) {
-    var c = (seed || SEED).cell, k = (o.textScale || 1);
+    var c = (seed || SEED).cell, k = cellScale(o.textScale, seed);
     var slope = (c.targetWide - c.targetNarrow) / (c.screenWide - c.screenNarrow);
     var grown = (c.targetNarrow - slope * c.screenNarrow) * k + slope * o.width;
     return clamp(c.targetNarrow * k, grown, c.targetWide * k) * (o.dial || 1);
@@ -164,7 +168,7 @@
   function seedFromTokens(tokens) {
     var v = function (g, k) { return g[k].$value; }, c = tokens.cell, t = tokens.type;
     return {
-      cell: { targetNarrow: v(c, 'target-narrow'), targetWide: v(c, 'target-wide'), screenNarrow: v(c, 'screen-narrow'), screenWide: v(c, 'screen-wide') },
+      cell: { targetNarrow: v(c, 'target-narrow'), targetWide: v(c, 'target-wide'), screenNarrow: v(c, 'screen-narrow'), screenWide: v(c, 'screen-wide'), textScaleMax: v(c, 'text-scale-max') },
       frame: { max: v(tokens.frame, 'max'), module: SEED.frame.module },
       type: Object.assign({}, SEED.type, {
         spaceNarrow: v(t, 'space-narrow'), spaceWide: v(t, 'space-wide'),
@@ -177,7 +181,7 @@
 
   return {
     SEED: SEED, ROLES: ROLES,
-    cellTarget: cellTarget, wholeCell: wholeCell, gutterCells: gutterCells, fit: fit, wideFrame: wideFrame,
+    cellScale: cellScale, cellTarget: cellTarget, wholeCell: wholeCell, gutterCells: gutterCells, fit: fit, wideFrame: wideFrame,
     typeEnds: typeEnds, typeSize: typeSize, lineRatio: lineRatio, lineHeight: lineHeight,
     standPad: standPad, hang: hang, settleCluster: settleCluster, spaceAfter: spaceAfter, spaceAfterInStack: spaceAfterInStack,
     stands: stands, isHeading: isHeading, seedFromTokens: seedFromTokens

@@ -36,8 +36,16 @@ function build(tokens) {
   const c = tokens.cell, lo = val(c, 'target-narrow'), hi = val(c, 'target-wide');
   const slope = (hi - lo) / (val(c, 'screen-wide') - val(c, 'screen-narrow'));
   const intercept = lo - slope * val(c, 'screen-narrow');
-  out.push(`    /* The cell's target: ${lo}pt up to a ${val(c, 'screen-narrow')}pt screen, rising to ${hi}pt at ${val(c, 'screen-wide')}pt. */`);
-  line('u-base', `clamp(${rem(lo)}, calc(${rem(intercept)} + ${n(slope * 100)}vw), ${rem(hi)})`);
+  // The cap: the target follows the reader's text size (rem) up to text-scale-max.
+  // The target only grows with text size, so the capped target is the smaller of
+  // the rem line and the same line at the cap, written in px, which text size
+  // doesn't move. No typed division, so it holds in every browser.
+  const cap = val(c, 'text-scale-max');
+  const px = pt => n(pt) + 'px';
+  out.push(`    /* The cell's target: ${lo}pt up to a ${val(c, 'screen-narrow')}pt screen, rising to ${hi}pt at ${val(c, 'screen-wide')}pt.`,
+    `       It follows the reader's text size up to ${cap}× and no further: above that only type grows. */`);
+  line('u-base', `min(clamp(${rem(lo)}, calc(${rem(intercept)} + ${n(slope * 100)}vw), ${rem(hi)}), ` +
+    `clamp(${px(lo * cap)}, calc(${px(intercept * cap)} + ${n(slope * 100)}vw), ${px(hi * cap)}))`);
   line('frame-max-n', val(tokens.frame, 'max'));
 
   head('Octaves: the cell halved and doubled');

@@ -10,7 +10,9 @@
 //   theme: auto, light or dark
 //   flags: touch (an emulated 3x phone), u9…u18 (the dial; 12 is 100%), fit-on|fit-off,
 //          measure, math, css, outset, webkit (run in WebKit, as an iPhone does),
-//          slow (a CPU throttled 6 times; Chromium only)
+//          slow (a CPU throttled 6 times; Chromium only),
+//          ax (the reader's text size at 312%, the largest iOS accessibility size:
+//          53pt body over the default 17pt; the cell stops at 1.5x, type doesn't)
 // Needs Playwright: set PLAYWRIGHT to its module path if it isn't resolvable,
 // and CHROME to a Chrome binary to use one instead of Playwright's Chromium.
 // Exits 1 if anything is off.
@@ -40,6 +42,12 @@ const target = require('./target');
   await page.addInitScript(s => localStorage.setItem('trellis', JSON.stringify(s)), {
     grid: true, fit, dial: unitFlag ? Number(unitFlag.slice(1)) : 12,
     measure: flags.includes('measure'), math: flags.includes('math'), css: flags.includes('css'), outset: flags.includes('outset')
+  });
+  // The reader's text size, as a browser's default font size would set it: on
+  // the root, before any stylesheet or script runs.
+  if (flags.includes('ax')) await page.addInitScript(() => {
+    const set = () => { if (!document.documentElement) return false; document.documentElement.style.fontSize = '312%'; return true; };
+    if (!set()) new MutationObserver((m, o) => { if (set()) o.disconnect(); }).observe(document, { childList: true });
   });
   // A slow machine, like a cheap phone: everything must still end up on its line.
   if (flags.includes('slow')) await (await page.context().newCDPSession(page)).send('Emulation.setCPUThrottlingRate', { rate: 6 });

@@ -34,9 +34,9 @@ Everything here lands before the first app pins a version.
 | Token source | integrated | `08086e2` | `contract.js` fails on a stale `core.css`; the specimen renders identically before and after. |
 | Math module | integrated | `150398b` | `tests/math.js`: 320 checks, both engines; `contract.js` checks its seed and worked examples. |
 | Five ways to meet a line | decided | | Yes: Stand, Hang, Inset, Outset and Center, and the card behavior called Hang becomes Outset. |
-| Apply the five relations | done | (this commit) | `--hang` is `--outset` everywhere, the README names all five; `contract.js` ok, suite at baseline. Breaking, under Unreleased. |
+| Apply the five relations | done | `ddff689` | `--hang` is `--outset` everywhere, the README names all five; `contract.js` ok, suite at baseline. Breaking, under Unreleased. |
 | Cap on the cell | decided | | Yes: the cell follows the reader's text size up to a cap; above it only type grows. |
-| Apply the cap on the cell | idea | | The cap as a rule, with a test at the largest accessibility size. |
+| Apply the cap on the cell | underway | (this commit) | The cap is in the token source, the math module, core and rule 19. The test at the largest accessibility size waits on a decision about controls. |
 | Perf on a quiet laptop | idea | | Rerun `perf.js webkit` with nothing else running. |
 | Padding clears the corner | idea | | A floor on card padding from its radius. |
 | Private files off the site | idea | | Product layers kept where no public site serves them. |

@@ -39,7 +39,7 @@ node tests/perf.js http://127.0.0.1:8765/ webkit
 
 `align.js` takes a size, then a layer, then a theme, then flags. The layer is `neutral` (core alone), the name of an example (`quarry`, `almanac`), or `name=<address>` for a layer from outside the repository. The theme is `auto`, `light` or `dark`.
 
-`align.js` flags: `touch` (a 3× phone), `webkit` (the engine of every iPhone browser), `u9`…`u18` (the reader's dial, 12 = 100%), `fit-on` / `fit-off`, `measure`, `math`, `css`, `outset`, `slow` (a CPU throttled 6×, Chromium only). `VERBOSE=1` lists everything checked; `SHOW=n` lists more of what's off.
+`align.js` flags: `touch` (a 3× phone), `webkit` (the engine of every iPhone browser), `u9`…`u18` (the reader's dial, 12 = 100%), `fit-on` / `fit-off`, `measure`, `math`, `css`, `outset`, `slow` (a CPU throttled 6×, Chromium only), `ax` (the reader's text size at 312%, the largest iOS accessibility size; not in the matrix yet). `VERBOSE=1` lists everything checked; `SHOW=n` lists more of what's off.
 
 Run the WebKit cases: Safari is where `calc-size()` is missing and `settle.js` does the rounding, and Chrome's device emulation snaps edges to whole CSS pixels, so it can't see the micro scale.
 

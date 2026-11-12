@@ -45,7 +45,8 @@ Grown from these: lines are planes · edges land on lines · headlines stand on 
 
 ### The cell
 
-`--u`. Its target is `clamp(0.625rem, 0.5rem + 0.4vw, 0.75rem) × --u-scale`: 10px on a phone, rising to 12px on a 1000px screen, and following the reader's font-size setting. `--u-scale` is the dial.
+`--u`. Its target is `clamp(0.625rem, 0.5rem + 0.4vw, 0.75rem) × --u-scale`: 10px on a phone, rising to 12px on a 1000px screen, and following the reader's font-size setting **up to 1.5 times the default** (rule 19). `--u-scale` is the dial.
+- **The cap.** Above 1.5× only type grows: the cell stops, so a phone keeps about 26 cells instead of becoming a 13-cell column at the largest accessibility sizes, and layouts reflow because their breakpoints are in rem. `text-scale-max` in `tokens.json`; in CSS the target is the smaller of its rem line and the same line at the cap in px.
 - It halves and doubles. **Home values: 1px, ¼u, ½u, u, 2u** (`--line`, `--sp-q`, `--sp-h`, `--sp-1`, `--sp-2`); multiples 1½u, 3u, 4u, 6u, 8u, 12u, 16u. ½u and ¼u live inside things (a control's padding, a tag's gap); **between blocks, space is whole cells**.
 - ¼u is rounded to a pixel, so where two quarters must add to a half, the second is `--sp-q2` (½u − ¼u), exact at any cell.
 
@@ -121,7 +122,7 @@ Everything queued is settled in one pass, in one frame, and it can't be lazy abo
 
 The same rules without CSS, for any platform. `math.js` is these formulas as functions, and `tests/math.js` checks them against the stylesheet in Chromium and WebKit. Lengths are in points: one CSS pixel at the reader's default text size, one pt on iOS, one dp on Android.
 
-**The cell's target.** `target = clamp(narrow, narrow + (wide − narrow) × (screen − 500) ÷ 500, wide) × text scale × dial`, where narrow is 10 and wide is 12. Ten points up to a 500-point screen, twelve from 1000 points on, a straight line between.
+**The cell's target.** `k = min(text scale, 1.5)`, the reader's text size up to the cap. `target = clamp(narrow × k, (narrow − 500 × slope) × k + slope × screen, wide × k) × dial`, where narrow is 10, wide is 12 and `slope = (wide − narrow) ÷ 500`. At the default text size: ten points up to a 500-point screen, twelve from 1000 points on, a straight line between. Above a text scale of 1.5 the target stops growing; type does not.
 
 **Whole, where a window frames the page.** `cell = target rounded to the nearest even point`. The frame is the largest whole number of 4-cell modules that fits, at most 100 cells; the gutter is 2 or 4 cells (4 percent of the width, rounded down to two cells).
 
@@ -237,6 +238,7 @@ Our apps carry rich content from editors and markdown, which arrives as bare tag
 16. **Floating surfaces align to their anchor, not the page grid.** One `.float` for every popover, options card and tooltip; top layer, follows its anchor, closes when the anchor scrolls away.
 17. **Control type is fixed, and listed.** Controls sit in rows of a fixed height, so their labels don't scale with the container: `--fs-control-xs` … `--fs-control-lg` are the only font sizes outside the type roles. `--white` and `--black` are the only raw neutrals (ink on a solid color or a photo).
 18. **Touch targets.** On a coarse pointer every control's hit area is at least `--hit-min` (44px, Apple's guidance), whatever it draws: an invisible `::before` grows around it, so density never costs a missed tap.
+19. **The reader's text size wins; the cell stops at 1.5×.** Type follows the reader's setting all the way. The cell follows it up to 1.5 times the default (`text-scale-max`), and above that layouts reflow instead of the cells growing. iOS and Android accessibility sizes reach about three times normal, which would turn a 40-cell phone into a 13-cell one.
 
 ## Primitives
 
