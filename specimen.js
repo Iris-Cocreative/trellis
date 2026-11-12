@@ -72,6 +72,8 @@
     document.querySelectorAll('[data-toggle]').forEach(function (b) {
       var k = b.dataset.toggle;
       // Outset and the grid name the state they're in; the others are on or off.
+      var on = k === 'grid' ? state.grid !== 'off' : !!state[k];
+      b.toggleAttribute('data-on', on);
       if (k === 'grid' || k === 'outset') {
         var name = k === 'grid' ? GRID_NAMES[state.grid] : state.outset ? 'Outset' : 'Contained';
         b.querySelector('.button-label').textContent = name;

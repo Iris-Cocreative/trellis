@@ -60,6 +60,14 @@
   .seg .button[aria-pressed="true"] { --btn-bg: var(--bg-raised); --btn-border: var(--border); }
   .seg .icon-button { padding-inline: 0; }
   .stepper-value { min-width: var(--sp-3); text-align: center; font-size: .75rem; }
+  /* The overlays are each on or off (or, for the grid, one of three), so
+     each is its own small control with a point that fills when it is on,
+     not a segment of one choice. */
+  .toggles { display: flex; align-items: center; gap: var(--sp-q); }
+  .toggle { --btn-h: var(--size-control-md); --btn-fs: .75rem; --btn-border: var(--border-subtle); --btn-bg: transparent; gap: var(--sp-h); padding-inline: calc(var(--sp-1) - var(--line)); }
+  .toggle .dot { --dot-size: var(--sp-h); --dot-color: transparent; box-shadow: inset 0 0 0 var(--line) var(--text-tertiary); }
+  .toggle[data-on] .dot { --dot-color: var(--accent); box-shadow: none; }
+  .toggle[data-on] { --btn-border: var(--border); }
 
   /* ---- On this page ------------------------------------------------------
      A column in the space left of the field: the margin past the frame and
@@ -133,7 +141,8 @@
   .faint { color: var(--text-tertiary); }
 
   /* ---- Apps and post types ---------------------------------------------- */
-  .demo-shell { --shell-h: calc(var(--u) * 24); isolation: isolate; outline: var(--line) solid var(--border-subtle); outline-offset: calc(var(--line) * -1); border-radius: var(--shape-card); overflow: clip; }
+  .demo-shell { --shell-h: calc(var(--u) * 24); isolation: isolate; position: relative; border-radius: var(--shape-card); overflow: clip; }
+  .demo-shell::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 var(--line) var(--border-subtle); pointer-events: none; z-index: calc(var(--z-raised) + 1); }
   .demo-shell .shell-grid { --shell-nav-w: calc(var(--u) * 12); --shell-aside-w: calc(var(--u) * 16); }
   .demo-shell.cc-narrow { width: min(100%, calc(var(--u) * 32)); }
   .post-type { display: flex; flex-direction: column; gap: var(--sp-4); }
