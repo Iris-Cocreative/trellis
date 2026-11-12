@@ -36,6 +36,7 @@ The package is `@iris-cocreative/trellis`, and it exports `core.css`, `settle.js
 5. **Inline styles set variables only.** `style={{ '--av-n': 4 }}` passes; `style={{ padding: 13 }}` fails.
 6. **No Tailwind on foundation surfaces.** A surface uses the foundation or Tailwind, not both. If an app loads both while migrating, it states the [import order](README.md#adoption) first.
 7. **CMS content goes in `.prose`, untouched.** `<article className="prose" dangerouslySetInnerHTML={{ __html }} />`. Don't map tags to components to style them: the point of `.prose` is that the content needs no classes. Sanitize it when it's saved; the README says what `.prose` does with what gets through.
+8. **A rail or a board carries its own tab stop.** `<div className="rail" tabIndex={0} role="group" aria-label="…">`: a keyboard scrolls only what it can focus, and Safari doesn't make a scroller focusable on its own. Code and tables in `.prose` get theirs from `settle.js` (rule 20).
 
 ## Things that will catch you out
 
@@ -53,3 +54,4 @@ For every pull request, until the lints exist. These are the five enforcement ru
 - [ ] **Every class is registered.** Is every class here defined in `core.css` and shown in the specimen, or in the product's `/design` page? A class that isn't is a new primitive being started by accident.
 - [ ] **Products turn knobs.** Does the product layer still only set variables on `:root`? Do variants and contexts only set a primitive's own variables?
 - [ ] **Inline styles set variables only.** Does every `style` prop here set a custom property and nothing else?
+- [ ] **Scrollers can be reached.** Does every rail, board or other region that scrolls sideways have `tabIndex={0}`, a role and a label, or something focusable inside?

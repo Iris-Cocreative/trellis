@@ -4,6 +4,7 @@
 //   all other text: the top edge, which is the top of the capitals
 //   boxes (cards, plates, stacks, rows, tags, buttons, …): top and left
 //   prose: every block in a .prose, read from its bare tag, by the same rules
+//   keyboard reach: every region that scrolls sideways can be focused, or holds something that can
 // Usage:
 //   node align.js <url> [WxH] [product] [theme] [flags…]
 //   product: neutral, an example's name, or name=<address> (see target.js)
@@ -119,6 +120,18 @@ const target = require('./target');
         if (off(t) || (!freeLeft && off(l))) out.offBox.push(desc(e) + ' top@' + t.toFixed(1) + ' left@' + l.toFixed(1));
       }
     }
+    // Keyboard reach: a region that scrolls sideways takes focus itself (an
+    // explicit tab stop, since Chrome's automatic one isn't in Safari) or holds
+    // something that does.
+    const FOCUSABLE = 'a[href], button, input, select, textarea, summary, [contenteditable], [tabindex]:not([tabindex="-1"])';
+    out.scrollers = 0; out.noReach = [];
+    for (const e of document.querySelectorAll('body *')) {
+      if (e.scrollWidth <= e.clientWidth + 1 || !e.getClientRects().length) continue;
+      if (!/^(auto|scroll)$/.test(getComputedStyle(e).overflowX)) continue;
+      if (e.closest('[popover]:not(:popover-open), dialog:not([open]), [hidden]')) continue;
+      out.scrollers++;
+      if (!(e.hasAttribute('tabindex') && e.tabIndex >= 0) && !e.querySelector(FOCUSABLE)) out.noReach.push(desc(e));
+    }
     out.frame = +(pr.width / u).toFixed(3);
     out.gutter = +(parseFloat(getComputedStyle(top).paddingLeft) / u).toFixed(3);
     out.scrollW = document.documentElement.scrollWidth; out.vw = innerWidth;
@@ -144,14 +157,15 @@ const target = require('./target');
     }));
   r.offProse.push(...again);
   await browser.close();
-  const bad = r.offText.length + r.offBox.length + r.offProse.length + errors.length + (r.scrollW > r.vw ? 1 : 0);
+  const bad = r.offText.length + r.offBox.length + r.offProse.length + errors.length + r.noReach.length + (r.scrollW > r.vw ? 1 : 0);
   console.log(`${flags.includes('webkit') ? 'webkit' : 'chromium'} ${size} ${product} ${theme} ${flags.join(' ')} :: u=${r.u} frame=${r.frame} gutter=${r.gutter} ` +
-    `text ${r.offText.length}/${r.text} off · boxes ${r.offBox.length}/${r.box} off · prose ${r.offProse.length}/${r.prose} off · scroll ${r.scrollW}/${r.vw} · errors ${errors.length}` +
+    `text ${r.offText.length}/${r.text} off · boxes ${r.offBox.length}/${r.box} off · prose ${r.offProse.length}/${r.prose} off · scroll ${r.scrollW}/${r.vw} · unreachable ${r.noReach.length}/${r.scrollers} · errors ${errors.length}` +
     (r.calcSize ? '' : ' · (no calc-size: settle.js)'));
   if (process.env.VERBOSE || bad) {
     r.offText.slice(0, 12).forEach(x => console.log('  text  ' + x));
     r.offBox.slice(0, 12).forEach(x => console.log('  box   ' + x));
     r.offProse.slice(0, Number(process.env.SHOW || 12)).forEach(x => console.log('  prose ' + x));
+    r.noReach.slice(0, 12).forEach(x => console.log('  reach ' + x + ' scrolls sideways with no way in for a keyboard'));
     errors.slice(0, 5).forEach(x => console.log('  error ' + x));
   }
   process.exit(bad ? 1 : 0);

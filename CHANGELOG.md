@@ -8,6 +8,7 @@ Semver, staying 0.x until two apps ship on the same version. A 0.x minor may bre
 - **Apply the five relations:** the card behavior called Hang is now Outset, so Hang means only text hanging from a line. The knob `--hang` is now `--outset`, and the list's `--list-hang` is now `--list-outset`. A product layer that set `--hang` sets `--outset` instead; there is no alias.
 
 **Added**
+- **Keyboard reach for scrollers:** rule 20, every sideways scroller can be reached by keyboard. A `.rail` and a `.board` carry `tabindex="0"`, `role="group"` and an `aria-label` in their markup (the README and the React contract say so). `settle.js` gives a `pre` or a `table` in `.prose` that overflows, with nothing focusable inside, `tabindex="0"` and `data-trellis-reach`, and takes both back when it no longer overflows; an author's own `tabindex` is left alone. `tests/align.js` fails any region that scrolls sideways with no way in, in all 21 runs. The options card scrolls down and never sideways (`overflow-x: clip`), and a long option label truncates (rule 11): at 312% text it had scrolled sideways with nothing a keyboard could focus.
 - **Apply the five relations:** the README names the five ways anything meets a line, with an example each: Stand, Hang, Inset, Outset and Center. Rule 5 and open question 2 use the new name.
 
 **Changed**
@@ -21,6 +22,7 @@ Semver, staying 0.x until two apps ship on the same version. A 0.x minor may bre
 
 **Specimen and tests**
 - **Apply the cap on the cell:** `align.js` takes `ax`, the reader's text size at 312% (the largest iOS accessibility size), and the matrix runs it four times: both engines, all three layers, wide and on a phone. 21 `align.js` runs in all.
+- The specimen's stylesheet panel and every diagram plate can be reached by keyboard.
 - The specimen's tag matrix stacks its rows below 36rem instead of 576px, the same at default sizes, so a row label never has to wrap.
 - The specimen's Hang control is now Outset, and its saved setting is `outset`. The `align.js` flag `hang` is now `outset`.
 

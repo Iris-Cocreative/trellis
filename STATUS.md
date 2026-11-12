@@ -36,14 +36,14 @@ Everything here lands before the first app pins a version.
 | Five ways to meet a line | decided | | Yes: Stand, Hang, Inset, Outset and Center, and the card behavior called Hang becomes Outset. |
 | Apply the five relations | done | `ddff689` | `--hang` is `--outset` everywhere, the README names all five; `contract.js` ok, suite at baseline. Breaking, under Unreleased. |
 | Cap on the cell | decided | | Yes: the cell follows the reader's text size up to a cap; above it only type grows. |
-| Apply the cap on the cell | done | `bcc9438`, (this commit) | The cap in the token source, the math module, core and rule 19; `align.js` at 312% in both engines and all three layers: 0 off, no sideways scroll. |
+| Apply the cap on the cell | done | `bcc9438`, `f077de3` | The cap in the token source, the math module, core and rule 19; `align.js` at 312% in both engines and all three layers: 0 off, no sideways scroll. |
 | Read the cell from a probe | done | `379a604` | WebKit at 312% text now reports the cell Chromium does (18 wide, 15.09 on a phone); suite at baseline. |
-| Controls past the cap | done | (this commit) | Button, icon button, tag, input, tab and badge are never shorter than their type; nothing moves at default sizes. |
+| Controls past the cap | done | `f077de3` | Button, icon button, tag, input, tab and badge are never shorter than their type; nothing moves at default sizes. |
 | Cap-centered text that wraps | idea | | A cap-centered label that wraps is not rounded to whole cells. |
 | Perf on a quiet laptop | idea | | Rerun `perf.js webkit` with nothing else running. |
 | Padding clears the corner | idea | | A floor on card padding from its radius. |
 | Private files off the site | idea | | Product layers kept where no public site serves them. |
-| Keyboard reach for scrollers | idea | | A rail, a board and a code sample in prose scroll, and a keyboard cannot reach them unless the page adds a tab stop. |
+| Keyboard reach for scrollers | done | (this commit) | Rule 20: markup for rails and boards, `settle.js` for prose; `align.js` fails a scroller with no way in, 0 in all 21 runs. |
 
 ## Before the second app
 

@@ -1062,8 +1062,9 @@
     display: block;
     white-space: nowrap;
   }
-  /* A tag never wider than its row: a long label truncates sideways (rule 11). */
-  .tag-label { min-width: 0; overflow-x: clip; overflow-y: visible; text-overflow: ellipsis; }
+  /* A tag never wider than its row, an option never wider than its card: a
+     long label truncates sideways (rule 11). */
+  .tag-label, .options-card-label { min-width: 0; overflow-x: clip; overflow-y: visible; text-overflow: ellipsis; }
   @supports (text-box: trim-both cap alphabetic) {
     .button-label, .tag-label, .avatar-initials { text-box: trim-both cap alphabetic; line-height: 1; }
   }
@@ -1287,6 +1288,7 @@
     width: var(--sp-16);
     max-height: calc(var(--u) * 24);
     overflow-y: auto;
+    overflow-x: clip;   /* it scrolls down, never sideways: a long label truncates instead */
   }
   .options-card-item {
     display: flex; align-items: center; gap: var(--sp-h);

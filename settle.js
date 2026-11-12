@@ -20,7 +20,10 @@
 
    PROSE needs it in every browser: what follows text or an image inside a
    nested block can't be rounded in CSS (--settle-start), and a lone <br> or
-   &nbsp; can't be told from content (data-prose-empty).
+   &nbsp; can't be told from content (data-prose-empty). A pre or a table that
+   scrolls sideways with nothing focusable inside takes a tab stop
+   (tabindex="0", data-trellis-reach), since content from an editor can't
+   carry one; it is taken back when the block no longer overflows.
 
    THE CELL, for any script: cell() measures it from one hidden box on the
    root ([data-trellis-cell]). Read it there, not from --u-px, which WebKit
@@ -228,7 +231,26 @@
     apply(writes);
     if (again && passes < 3) { again = false; passes++; all(); return; }
     again = false; passes = 0;
+    reach();
     if (!queued && started) waiting.splice(0).forEach(function (done) { done(); });
+  }
+
+  // ---- Keyboard reach: prose, every browser -----------------------------------
+  // A keyboard can only scroll a region it can focus. Safari doesn't make a
+  // scroller focusable on its own, so a pre or a table in prose that overflows,
+  // with nothing focusable inside, takes a tab stop. A rail or a board carries
+  // its own in the markup; an author's tabindex is never touched.
+  var REACH = '.prose :is(pre, table)';
+  var FOCUSABLE = 'a[href], button, input, select, textarea, summary, [contenteditable], [tabindex]:not([tabindex="-1"])';
+  function reach() {
+    var els = document.querySelectorAll(REACH);
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i], ours = el.hasAttribute('data-trellis-reach');
+      if (!ours && el.hasAttribute('tabindex')) continue;
+      var needs = el.scrollWidth > el.clientWidth + 1 && !el.querySelector(FOCUSABLE);
+      if (needs && !ours) { el.setAttribute('tabindex', '0'); el.setAttribute('data-trellis-reach', ''); }
+      else if (!needs && ours) { el.removeAttribute('tabindex'); el.removeAttribute('data-trellis-reach'); }
+    }
   }
   function enqueue(el) {
     queue.add(el);
