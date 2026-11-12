@@ -4,6 +4,9 @@ Semver, staying 0.x until two apps ship on the same version. A 0.x minor may bre
 
 ## Unreleased
 
+**Knowledge base**
+- **Knowledge base, Rules:** `docs/rules/`, one page per rule in one shape (statement, why, the failure it prevents, how it is checked, an example, exceptions): `R1` to `R20` keep the README's numbers, `F1` to `F6` are the rules for free layouts. Five are marked questioned, with what is missing: R8, R12, R16, F2 and F6. `docs/README.md` sets the IDs and page shapes for every chapter.
+
 **Breaking**
 - **Apply the five relations:** the card behavior called Hang is now Outset, so Hang means only text hanging from a line. The knob `--hang` is now `--outset`, and the list's `--list-hang` is now `--list-outset`. A product layer that set `--hang` sets `--outset` instead; there is no alias.
 
