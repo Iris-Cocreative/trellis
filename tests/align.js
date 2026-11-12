@@ -135,6 +135,18 @@ const target = require('./target');
     out.frame = +(pr.width / u).toFixed(3);
     out.gutter = +(parseFloat(getComputedStyle(top).paddingLeft) / u).toFixed(3);
     out.scrollW = document.documentElement.scrollWidth; out.vw = innerWidth;
+    // What makes the page scroll sideways: whatever reaches past the screen with
+    // no clipping ancestor to hold it.
+    out.wide = [];
+    if (out.scrollW > out.vw) {
+      const W = document.documentElement.clientWidth;
+      const held = e => { for (let a = e.parentElement; a && a !== document.body; a = a.parentElement) if (getComputedStyle(a).overflowX !== 'visible') return true; return false; };
+      for (const e of document.querySelectorAll('body *')) {
+        const b = e.getBoundingClientRect();
+        if (b.width && b.right > W + .5 && !held(e) && !e.matches('canvas, .measure-layer *')) out.wide.push(desc(e) + ' right@' + b.right.toFixed(1));
+        if (out.wide.length >= 8) break;
+      }
+    }
     out.trim = CSS.supports('text-box', 'trim-both cap alphabetic');
     out.calcSize = CSS.supports('height', 'calc-size(fit-content, size)');
     return out;
@@ -165,6 +177,7 @@ const target = require('./target');
     r.offText.slice(0, 12).forEach(x => console.log('  text  ' + x));
     r.offBox.slice(0, 12).forEach(x => console.log('  box   ' + x));
     r.offProse.slice(0, Number(process.env.SHOW || 12)).forEach(x => console.log('  prose ' + x));
+    r.wide.forEach(x => console.log('  wide  ' + x + ' reaches past the screen'));
     r.noReach.slice(0, 12).forEach(x => console.log('  reach ' + x + ' scrolls sideways with no way in for a keyboard'));
     errors.slice(0, 5).forEach(x => console.log('  error ' + x));
   }

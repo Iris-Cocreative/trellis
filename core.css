@@ -1062,9 +1062,9 @@
     display: block;
     white-space: nowrap;
   }
-  /* A tag never wider than its row, an option never wider than its card: a
-     long label truncates sideways (rule 11). */
-  .tag-label, .options-card-label { min-width: 0; overflow-x: clip; overflow-y: visible; text-overflow: ellipsis; }
+  /* A button or a tag never wider than its row, an option never wider than its
+     card: a long label truncates sideways (rule 11). */
+  .button-label, .tag-label, .options-card-label { min-width: 0; overflow-x: clip; overflow-y: visible; text-overflow: ellipsis; }
   @supports (text-box: trim-both cap alphabetic) {
     .button-label, .tag-label, .avatar-initials { text-box: trim-both cap alphabetic; line-height: 1; }
   }
@@ -1081,6 +1081,7 @@
        outgrow the height, and then the button grows by whole cells. */
     --btn-draw: calc(var(--btn-h) + max(0px, round(up, calc(1em - var(--btn-h)), var(--u))));
     display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-h);
+    max-width: 100%;
     height: var(--btn-draw);
     padding-inline: calc(round(down, var(--btn-draw) / 2, var(--sp-h)) - var(--line));   /* half its height, in half cells: 30px gets 12 */
     border: var(--line) solid var(--btn-border);
