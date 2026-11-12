@@ -2,7 +2,7 @@
 
 > **Pre-1.0.** Trellis will break between minor versions, and says so in the [changelog](CHANGELOG.md). It is not yet taking contributions. Public is not a release: there is no npm package and no 1.0 until two apps run on it.
 
-**v0.8 · 2026-11-11.** A CSS framework from a cell and a ratio, in context: one design and development seed that a product reshapes by turning knobs, never by redrawing a primitive. From [Iris Cocreative](https://iriscocreative.com). Live specimen: <https://iris-cocreative.github.io/trellis/>. What changed: [CHANGELOG.md](CHANGELOG.md). License: [MIT](LICENSE).
+**v0.9 · 2026-11-11.** A CSS framework from a cell and a ratio, in context: one design and development seed that a product reshapes by turning knobs, never by redrawing a primitive. From [Iris Cocreative](https://iriscocreative.com). Live specimen: <https://iris-cocreative.github.io/trellis/>. What changed: [CHANGELOG.md](CHANGELOG.md). License: [MIT](LICENSE).
 
 **It is CSS plus a small runtime.** Load `core.css`, a product layer, and `settle.js`, once. Safari needs the script for rhythm; every browser needs it for exact device pixels and the fit width.
 
@@ -148,7 +148,7 @@ Five levels, each with a few named parts. A unique design changes variables at a
 Every part: children start on cells; space between blocks is whole cells; responds to its container (`@container`), never the window; context changes variables, never markup.
 
 **Free, flowing, moving, and still on the cells.** The rules that let open, animated, creative layouts stay hyper-responsive:
-1. **Rest on the lattice, move off it.** Layout places things on cells. Motion is `transform` and `opacity` only, so it never reflows; every motion starts and ends at a rest position on the lattice.
+1. **Rest on the lattice, move off it.** Layout places things on cells. Every motion starts and ends at a rest position on the lattice.
 2. **Time has a ratio too.** Durations come from one small set (`--dur-*`) and three easings (enter, exit, move). Reduced motion collapses them; the rest state is complete on its own.
 3. **Free things live in layers.** An organic or animated element sits in its own layer (`.cells`, a canvas, a positioned layer), its coordinates in cells; the flow around it never depends on it.
 4. **Spans, not pixels.** A creative arrangement is written in cells or modules and re-placed by container queries.
@@ -247,7 +247,7 @@ Added in v0.7.
 | `.tabs`, `.tab` | Whole cells tall, on a baseline that's a plane after its coordinate. `[aria-selected]` is the only state. `.cc-seg` is the same tabs as a segmented control. |
 | `.chat-item` | An avatar and a body, for messages, walls and system lines; `.cc-own`, `.cc-wall` and `.cc-system` change variables. |
 | `.member-tile` | A `.card` with a person in it. `.cc-row` puts the avatar beside the words. |
-| `.badge`, `.dot` | A count, and the smallest mark of a state. |
+| `.badge`, `.dot` | A count, and the smallest mark of a state. A dot that carries meaning by itself takes `role="img"` and a label; one beside words that say the same is hidden from assistive technology. |
 | `.skeleton` | A surface's real structure, shimmering. A text slot keeps its role, so it settles to the same cells and nothing moves when the words arrive. Anything that draws itself becomes a `.cc-block`, sized in cells. |
 
 ## Products

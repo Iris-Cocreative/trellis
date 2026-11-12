@@ -6,7 +6,7 @@
 <title>Trellis</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 18 18%27%3E%3Crect x=%27.5%27 y=%27.5%27 width=%2717%27 height=%2717%27 rx=%274.5%27 fill=%27%23101111%27 stroke=%27%236aa5f5%27/%3E%3Cline x1=%27.5%27 y1=%2712.5%27 x2=%2717.5%27 y2=%2712.5%27 stroke=%27%236aa5f5%27/%3E%3Ccircle cx=%276%27 cy=%276%27 r=%272%27 fill=%27%23f4f4f2%27/%3E%3C/svg%3E">
 <meta name="description" content="Trellis: a CSS framework from a cell and a ratio, in context.">
-<link rel="stylesheet" href="core.css?v=0.8.0">
+<link rel="stylesheet" href="core.css?v=0.9.0">
 <link rel="stylesheet" id="product-layer">
 <script>
   // Before first paint, so nothing flashes: the saved view settings, and one
@@ -37,7 +37,7 @@
     if (s.fit === 'on' || s.fit === 'off') d.setAttribute('data-unit-fit', s.fit);
   })();
 </script>
-<link rel="stylesheet" href="specimen.css?v=0.8.0">
+<link rel="stylesheet" href="specimen.css?v=0.9.0">
 </head>
 <body>
 
@@ -93,7 +93,7 @@
 
   <!-- ============================================================ HERO -->
   <section class="hero stack">
-    <p class="t-label faint">Trellis · v0.8 · 11 November 2026</p>
+    <p class="t-label faint">Trellis · v0.9 · 11 November 2026</p>
     <h1 class="t-h1">A cell and a ratio, <em>in context</em>.</h1>
     <p class="t-lg hero-lead">One seed for every product that grows from it. The cell measures space; the ratio measures type. Both respond to the screen they're on and to the box they're in, so anything built from them can be nested anywhere and still look like itself. Use the bar above to switch theme and cell size, and turn on Measure to see every space on this page named in cells.</p>
     <div class="cols seeds">
@@ -150,17 +150,17 @@
         <div class="plp-rule" role="separator"><span class="t-label">+</span></div>
         <div class="cols plp">
           <div class="plp-cell solid-cell stack">
-            <canvas class="solid-art" data-solid="solid" aria-label="A cube drawn on the 2:1 lattice"></canvas>
+            <canvas class="solid-art" data-solid="solid" role="img" aria-label="A cube drawn on the 2:1 lattice"></canvas>
             <p class="t-label">Solid</p>
             <p class="t-sm muted">The plane, extruded. A cube is six planes, twelve lines and eight points: everything above, in three dimensions, drawn at the lattice's 2:1 slope.</p>
           </div>
           <div class="plp-cell solid-cell stack">
-            <canvas class="solid-art" data-solid="motion" aria-label="The cube turning"></canvas>
+            <canvas class="solid-art" data-solid="motion" role="img" aria-label="The cube turning"></canvas>
             <p class="t-label">Motion</p>
             <p class="t-sm muted">The solid turns and shows another face. Motion moves the rest state, never the layout: it starts and ends on the lattice, and stops for readers who ask for less motion.</p>
           </div>
           <div class="plp-cell solid-cell stack">
-            <div class="solid-stage"><canvas class="solid-art" data-solid="transform" aria-label="The cube becoming other Platonic solids"></canvas><p class="solid-name" data-solid-name aria-live="off">Cube</p></div>
+            <div class="solid-stage"><canvas class="solid-art" data-solid="transform" role="img" aria-label="The cube becoming other Platonic solids"></canvas><p class="solid-name" data-solid-name aria-live="off">Cube</p></div>
             <p class="t-label">Transformation</p>
             <p class="t-sm muted">One form becomes another by moving its points. The cube lifts into the dodecahedron, gives up half its corners to the tetrahedron, and truncates through Fuller's vector equilibrium into the octahedron, which grows into the icosahedron.</p>
           </div>
@@ -230,7 +230,7 @@
           <p class="t-body muted">Same markup, smaller space, compressed hierarchy. <span class="t-mono" data-ctx-readout></span></p>
         </article>
       </div>
-<pre class="code settle"><span class="k">font-size</span>: clamp(min, (min − slope × 20rem) + slope × 100cqi, max);   <span>/* slope = (max − min) ÷ 70rem */</span>
+<pre class="code settle" tabindex="0"><span class="k">font-size</span>: clamp(min, (min − slope × 20rem) + slope × 100cqi, max);   <span>/* slope = (max − min) ÷ 70rem */</span>
 <span class="k">line-height</span>: 1em × ratio;          <span>/* headlines: round(nearest, 1em × ratio, var(--u)) */</span></pre>
     </div>
   </section>
@@ -243,7 +243,7 @@
       <p class="t-sm muted">The cell is the only line on the page. Headlines are large enough to be seen keeping it: their line height rounds to whole cells and every baseline lands on a cell line. Smaller text runs on its own proportional line, which reads better than any grid could make it. It hangs from a cell line by the top of its capitals, and its block rounds up to whole cells, so whatever comes next starts on a line.</p>
     </header>
     <div class="section-body stack">
-      <div class="plate">
+      <div class="plate" tabindex="0">
         <div class="edges">
           <p class="edge-word">Holxg<span class="edge-line cc-cap"><span>cap</span></span><span class="edge-line cc-ex"><span>x-height</span></span><span class="edge-line cc-base"><span>baseline</span></span></p>
         </div>
@@ -269,7 +269,7 @@
           <p class="t-xs faint">Beside capitals or numbers, an icon centers on the cap height. Beside lowercase text, it centers on the x-height.</p>
         </div>
       </div>
-<pre class="code settle"><span>/* headlines (h1–h3) stand on the cells */</span>
+<pre class="code settle" tabindex="0"><span>/* headlines (h1–h3) stand on the cells */</span>
 <span class="k">line-height</span>: round(nearest, 1em × ratio, var(--u));
 <span class="k">padding-block-start</span>: calc(round(up, 1cap, var(--u)) − 1cap);
 <span>/* text hangs from a line and settles to whole cells */</span>
@@ -312,13 +312,13 @@
         <div class="rule stack"><p class="t-label">.card hangs</p><p class="t-sm">A surface steps one cell out (<code>--hang</code>, a product knob), so the text inside lines up with the text outside. A row hangs only when it is all cards.</p></div>
       </div>
       <div class="context mondrian-box">
-        <div class="cells mondrian" aria-label="A composition placed by cell">
+        <div class="cells mondrian" role="img" aria-label="A composition placed by cell">
           <div class="m-block cc-a"></div><div class="m-block cc-b"></div><div class="m-block cc-c"></div>
           <div class="m-block cc-d"></div><div class="m-block cc-e"></div><div class="m-block cc-f"></div><div class="m-block cc-g"></div>
         </div>
       </div>
       <p class="t-xs faint">.cells: seven planes placed by <code>--cell-x</code>, <code>--cell-y</code>, <code>--cell-w</code> and <code>--cell-h</code>, in a few proportions with the empty field doing work. In a narrow container a query re-places them; nothing is in pixels.</p>
-      <div class="rail" style="--rail-item: calc(var(--u) * 18)">
+      <div class="rail" tabindex="0" role="group" aria-label="A rail of cards" style="--rail-item: calc(var(--u) * 18)">
         <article class="card stack"><p class="t-label faint">Gathering</p><p class="t-sm">Thursday circle</p><p class="t-xs faint">Seed Library</p></article>
         <article class="card stack"><p class="t-label faint">Course</p><p class="t-sm">Pattern design, part 2</p><p class="t-xs faint">6 sessions</p></article>
         <article class="card stack"><p class="t-label faint">Gathering</p><p class="t-sm">Seed library swap</p><p class="t-xs faint">Food Systems</p></article>
@@ -328,7 +328,7 @@
       <p class="t-xs faint">.rail: scrolls sideways and snaps; it hangs a cell like any row of cards.</p>
       <h3 class="t-h5">Free, flowing, moving, and still on the cells</h3>
       <div class="cols rules">
-        <div class="rule stack"><p class="t-label">Rest on the lattice, move off it</p><p class="t-sm">Layout places things on cells. Motion is transform and opacity only, so it never reflows a page; every motion starts and ends at a rest position on the lattice.</p></div>
+        <div class="rule stack"><p class="t-label">Rest on the lattice, move off it</p><p class="t-sm">Layout places things on cells. Every motion starts and ends at a rest position on the lattice.</p></div>
         <div class="rule stack"><p class="t-label">Time has a ratio too</p><p class="t-sm">Durations come from one small set and three easings: enter, exit, move. With reduced motion they collapse, and the rest state is complete on its own.</p></div>
         <div class="rule stack"><p class="t-label">Free things live in layers</p><p class="t-sm">An organic or animated element sits in its own layer (.cells, a canvas, a positioned layer), its coordinates in cells. The flow around it never depends on it.</p></div>
         <div class="rule stack"><p class="t-label">Spans, not pixels</p><p class="t-sm">A creative arrangement is written in cells or modules and re-placed by container queries, never by window width.</p></div>
@@ -395,6 +395,7 @@
   log.push({ ...seed, added: new Date().toISOString(), generation: seed.generation ?? 1 });
   return log;
 }</code></pre>
+        <h3>How long seed keeps</h3>
         <table>
           <caption>Viability on the shelf, from our own germination tests, 2023 to 2026.</caption>
           <thead><tr><th scope="col">Family</th><th scope="col">Years at 80%</th><th scope="col">Plant out by</th><th scope="col">Isolation</th></tr></thead>
@@ -505,7 +506,7 @@
       </div>
 
       <h3 class="t-h5">.board</h3>
-      <div class="board" id="demo-board">
+      <div class="board" id="demo-board" tabindex="0" role="group" aria-label="A board of lanes">
         <div class="board-lane"><div class="board-lane-head"><p class="t-label">Planting</p><span class="t-xs faint">2</span></div><article class="card stack"><p class="t-sm">Sow the trial bed</p><p class="t-xs faint">Marisol</p></article><article class="card stack"><p class="t-sm">Label the new jars, by family and by the year they were grown</p><p class="t-xs faint">Jonah</p></article></div>
         <div class="board-lane"><div class="board-lane-head"><p class="t-label">Growing</p><span class="t-xs faint">1</span></div><article class="card stack"><p class="t-sm">Rogue the off-type squash</p><p class="t-xs faint">Marisol</p></article></div>
         <div class="board-lane"><div class="board-lane-head"><p class="t-label">Saving</p><span class="t-xs faint">1</span></div><article class="card stack"><p class="t-sm">Dry the beans</p><p class="t-xs faint">Ada</p></article></div>
@@ -582,7 +583,7 @@
       <h3 class="t-h5">.member-tile, .badge, .dot</h3>
       <div class="grid demo-tiles">
         <article class="card member-tile"><span class="avatar cc-lg" aria-hidden="true">MV</span><div class="member-tile-body"><p class="t-h5">Marisol Vega</p><p class="t-sm muted">Keeps the seed log, and everyone honest.</p></div><div class="cluster"><span class="tag cc-sm"><span class="tag-label">Seed saving</span></span><span class="tag cc-sm cc-group"><span class="tag-label">Food Systems</span></span></div></article>
-        <article class="card member-tile"><span class="avatar cc-lg" aria-hidden="true">AO</span><div class="member-tile-body"><p class="t-h5">Ada Okafor</p><p class="t-sm muted">New this week.</p></div><div class="cluster"><span class="badge">3</span><span class="badge cc-quiet">12</span><span class="badge cc-accent">New</span><span class="dot" aria-label="Unread"></span><span class="dot cc-ok" aria-label="Online"></span><span class="dot cc-quiet" aria-label="Away"></span></div></article>
+        <article class="card member-tile"><span class="avatar cc-lg" aria-hidden="true">AO</span><div class="member-tile-body"><p class="t-h5">Ada Okafor</p><p class="t-sm muted">New this week.</p></div><div class="cluster"><span class="badge">3</span><span class="badge cc-quiet">12</span><span class="badge cc-accent">New</span><span class="dot" role="img" aria-label="Unread"></span><span class="dot cc-ok" role="img" aria-label="Online"></span><span class="dot cc-quiet" role="img" aria-label="Away"></span></div></article>
       </div>
       <article class="card member-tile cc-row"><span class="avatar cc-md" aria-hidden="true">JB</span><div class="member-tile-body"><p class="t-h6">Jonah Baptiste</p><p class="t-sm muted">.cc-row puts the avatar beside the words.</p></div></article>
 
@@ -680,7 +681,7 @@
           <div class="matrix-row"><span class="t-label cap-center">On media</span><div class="media-tile cc-on-media"><div class="cluster"><span class="tag"><span class="tag-label">Gallery</span></span><span class="tag"><span class="tag-label">12 photos</span></span></div></div></div>
         </div>
       </div>
-<pre class="code settle"><span class="k">.tag</span>            { --tag-h; --tag-radius; --tag-pad: the corner, ½u to u; --tag-color; --tag-fill: 14%; --tag-edge: 42%; }
+<pre class="code settle" tabindex="0"><span class="k">.tag</span>            { --tag-h; --tag-radius; --tag-pad: the corner, ½u to u; --tag-color; --tag-fill: 14%; --tag-edge: 42%; }
 <span class="k">.tag.cc-person</span>  { --tag-color: var(--kind-person); }      <span>/* kind     */</span>
 <span class="k">.tag.cc-solid</span>   { --tag-fill: 100%; --tag-edge: 100%; }   <span>/* emphasis */</span>
 <span class="k">.cc-dense .tag</span>  { --tag-h: var(--size-control-xs); }     <span>/* context  */</span>
@@ -699,18 +700,18 @@
       <div class="cols compare">
         <div class="stack">
           <p class="t-label bad">Today, in the action card</p>
-<pre class="code cc-wrap settle">origin-[var(--transform-origin)] rounded-lg border border-[var(--border)] bg-[var(--bg-raised)] p-3 text-sm text-[var(--text)] shadow-[var(--lift)] outline-none transition-[opacity,scale] duration-100 ease-out data-starting-style:scale-[0.98] data-starting-style:opacity-0 data-ending-style:scale-[0.98] data-ending-style:opacity-0 cardsys flex max-h-[18rem] w-[220px] flex-col gap-0.5 overflow-hidden p-1.5</pre>
+<pre class="code cc-wrap settle" tabindex="0">origin-[var(--transform-origin)] rounded-lg border border-[var(--border)] bg-[var(--bg-raised)] p-3 text-sm text-[var(--text)] shadow-[var(--lift)] outline-none transition-[opacity,scale] duration-100 ease-out data-starting-style:scale-[0.98] data-starting-style:opacity-0 data-ending-style:scale-[0.98] data-ending-style:opacity-0 cardsys flex max-h-[18rem] w-[220px] flex-col gap-0.5 overflow-hidden p-1.5</pre>
           <p class="t-xs faint">p-3 and p-1.5 both set the padding; Tailwind's stylesheet order decides which wins. 220 is off the grid.</p>
         </div>
         <div class="stack">
           <p class="t-label good">In Trellis</p>
-<pre class="code settle">&lt;div class="<span class="k">float options-card</span>" popover&gt;</pre>
+<pre class="code settle" tabindex="0">&lt;div class="<span class="k">float options-card</span>" popover&gt;</pre>
           <div class="float options-card settle" role="listbox" aria-label="Set role (example)">
             <p class="t-label options-card-heading">Set role</p>
             <div class="options-card-item" role="option" aria-selected="true"><svg class="icon" viewBox="0 0 14 14"><circle cx="7" cy="5" r="2.5"></circle><path d="M2.5 12.5c.6-2.3 2.3-3.5 4.5-3.5s3.9 1.2 4.5 3.5"></path></svg><span class="button-label">Owner</span><svg class="icon cc-end" viewBox="0 0 14 14"><path d="M3 7.5 6 10.5 11 4"></path></svg></div>
             <div class="options-card-item" role="option"><svg class="icon" viewBox="0 0 14 14"><path d="M2.5 7h9M8 3.5 11.5 7 8 10.5"></path></svg><span class="button-label">Assignee</span></div>
             <div class="options-card-item" role="option"><svg class="icon" viewBox="0 0 14 14"><path d="M11.5 7h-9M6 3.5 2.5 7 6 10.5"></path></svg><span class="button-label">Owed to</span></div>
-            <div class="options-card-rule" role="separator"></div>
+            <div class="options-card-rule" aria-hidden="true"></div>
             <div class="options-card-item" role="option"><svg class="icon" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg><span class="button-label">Remove role</span></div>
           </div>
           <p class="t-xs faint">16u wide, at most 24u tall. Its corner minus its padding gives the items their corner.</p>
@@ -752,7 +753,7 @@
         <div class="scroller stack"><p class="t-label faint">.cc-scroll-thick</p><div class="scroll-pane cc-scroll-thick" tabindex="0"><div class="stack" data-fill-list></div></div></div>
         <div class="scroller stack"><p class="t-label faint">.cc-scroll-none</p><div class="scroll-pane cc-scroll-none" tabindex="0"><div class="stack" data-fill-list></div></div></div>
       </div>
-<pre class="code settle"><span class="k">:root</span>            { --scrollbar-width: thin; --scrollbar-size: ½u; --scrollbar-thumb: text 22%; --scrollbar-track: transparent; }
+<pre class="code settle" tabindex="0"><span class="k">:root</span>            { --scrollbar-width: thin; --scrollbar-size: ½u; --scrollbar-thumb: text 22%; --scrollbar-track: transparent; }
 <span class="k">.cc-scroll-thick</span> { --scrollbar-width: auto; --scrollbar-size: u; }
 <span class="k">.cc-scroll-none</span>  { --scrollbar-width: none; }</pre>
     </div>
@@ -825,7 +826,7 @@
   </section>
 
   <footer class="foot">
-    <p class="t-xs">Trellis v0.8. Source: <a href="https://github.com/Iris-Cocreative/trellis">Iris-Cocreative/trellis</a>: core.css, settle.js, product.template.css, the examples. <a href="CHANGELOG.md">What changed</a>. Type ratios from the <a href="https://lab.iriscocreative.com/tools/type-scale-generator.html">Type Scale Generator</a>. Pre-1.0: it will break between minor versions.</p>
+    <p class="t-xs">Trellis v0.9. Source: <a href="https://github.com/Iris-Cocreative/trellis">Iris-Cocreative/trellis</a>: core.css, settle.js, product.template.css, the examples. <a href="CHANGELOG.md">What changed</a>. Type ratios from the <a href="https://lab.iriscocreative.com/tools/type-scale-generator.html">Type Scale Generator</a>. Pre-1.0: it will break between minor versions.</p>
   </footer>
 </main>
 
@@ -851,9 +852,9 @@
   <pre class="code-panel-body" id="code-body"><code id="code-view"></code></pre>
 </aside>
 
-<script src="settle.js?v=0.8.0"></script>
-<script src="math.js?v=0.8.0"></script>
-<script src="experiments/solids.js?v=0.8.0"></script>
-<script src="specimen.js?v=0.8.0"></script>
+<script src="settle.js?v=0.9.0"></script>
+<script src="math.js?v=0.9.0"></script>
+<script src="experiments/solids.js?v=0.9.0"></script>
+<script src="specimen.js?v=0.9.0"></script>
 </body>
 </html>

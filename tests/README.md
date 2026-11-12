@@ -62,7 +62,7 @@ LAYER=mine=http://127.0.0.1:9000/styles/product.css node tests/matrix.js http://
 
 ## The matrix
 
-`matrix.js` holds the list. As of v0.8. Neutral is core alone; Quarry and Almanac are the invented layers in `examples/`.
+`matrix.js` holds the list. As of v0.9. Neutral is core alone; Quarry and Almanac are the invented layers in `examples/`.
 
 | Engine | Screens and settings |
 |---|---|
@@ -76,7 +76,7 @@ LAYER=mine=http://127.0.0.1:9000/styles/product.css node tests/matrix.js http://
 
 **2026-11-11, v0.8,** on a Windows laptop: Chromium through Playwright 1.62, WebKit through Playwright 1.60. The same machine ran v0.7 the same day, before the rename and the move, and every count below matched it.
 
-- `align.js`: 0 off in all 17 runs, with 267 or 303 text blocks, 263 or 275 boxes and 89 or 90 prose blocks each.
+- `align.js`: 0 off in all 17 runs, with 267 or 303 text blocks, 263 or 275 boxes and 89 or 90 prose blocks each (90 or 91 from v0.9, which adds a heading to the sample post).
 - `pixel.js`: 0 of 60 card edges off at both sizes. (The specimen has more cards; those in a rail or a board are skipped, since a scroller clips them.)
 - `layout.js`, `layers.js`, `contract.js`: ok.
 - `perf.js`: 0 of 5,000 blocks off their lines. Its timing budgets failed at the laptop's scale that day, in v0.7 and v0.8 alike, with the machine under other load: see Performance.
@@ -85,7 +85,7 @@ LAYER=mine=http://127.0.0.1:9000/styles/product.css node tests/matrix.js http://
 
 ## Performance
 
-`perf.js`: a page of 2,000 list rows and 2,000 text blocks, with system fonts. Each number is the time until everything is on its line; in brackets, the longest single frame, which is what a reader feels. 5 runs on the same laptop, 2026-11-07, v0.7; a phone will be slower. On 2026-11-11 the same laptop, busy with other work, took 4,000 to 7,700ms for the first settle in WebKit and 1,040ms in Chromium (v0.7 and v0.8 alike, since the runtime did not change), which is over the laptop budget: these timings depend on what else the machine is doing. Blocks off their lines stayed 0 of 5,000.
+`perf.js`: a page of 2,000 list rows and 2,000 text blocks, with system fonts. Each number is the time until everything is on its line; in brackets, the longest single frame, which is what a reader feels. 5 runs on the same laptop, 2026-11-07, v0.7; a phone will be slower. On 2026-11-11 the same laptop, busy with other work, took 4,000 to 7,700ms for the first settle in WebKit and 1,040ms in Chromium (v0.7 and v0.8 alike, since the runtime did not change), which is over the laptop budget: these timings depend on what else the machine is doing. Blocks off their lines stayed 0 of 5,000. Later that day, with the laptop quiet, one WebKit run was back inside the budgets: first settle 1,219ms, one changed row 63ms, 1,000 rows 474ms.
 
 | | WebKit (`settle.js` rounds) | Chromium (CSS rounds) |
 |---|---|---|

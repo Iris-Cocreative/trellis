@@ -2,7 +2,9 @@
 
 Semver, staying 0.x until two apps ship on the same version. A 0.x minor may break, and must say so here. The public API is defined in the [README](README.md#public-api). Changing the rhythm model is a major entry, with a note in the specimen's history.
 
-## Unreleased
+## 0.9.0 · 2026-11-11
+
+The last pieces before the first app pins a version: card padding in two knobs, one token file for every platform, and the math as a module.
 
 **Breaking**
 - **Split card padding:** `--card-pad` is no longer defined on every card. It is now the shorthand a variant or context sets for both directions. A stylesheet that read `var(--card-pad)` reads `--card-pad-inline` or `--card-pad-block` instead.
@@ -12,7 +14,11 @@ Semver, staying 0.x until two apps ship on the same version. A 0.x minor may bre
 - **Token source:** `tokens.json`, in the W3C Design Tokens format, holds the cell's target, the octaves, sizes, control heights, radii, layers, motion, the ratio's defaults, color roles as light and dark pairs, and kind colors, in cells and points. `tools/build-tokens.js` writes the generated tokens of `core.css` from it and holds the rem conversion. Every computed value is the same as before: the specimen renders identically in Chromium and WebKit. `tokens.json` is a package export.
 - **Math module:** `math.js` holds the fit, the ratio, standing, hanging and the gutter parity rule as plain functions in points, with no DOM. The specimen's math view runs on it, the README has the same formulas in words, and `tests/math.js` checks it against the stylesheet in both engines. It is a package export, and sets `window.TrellisMath` in a browser.
 
+**Rules**
+- **Free layouts, rule 1:** "motion is transform and opacity only" is withdrawn. The rule now says only that every motion starts and ends at a rest position on the lattice. What motion may use is still to be written.
+
 **Fixed**
+- **Accessibility in the specimen:** the options card's rule is no longer a separator inside a listbox; the lattice figure and the standalone dots have an image role for their labels; the sample post no longer skips from a second-level heading to a fourth.
 - The README said an iPhone in landscape fits 84 cells. It fits 74: the cell's target has grown to about 11.4 points by that width.
 
 ## 0.8.0 · 2026-11-11

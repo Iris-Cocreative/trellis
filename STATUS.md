@@ -2,11 +2,11 @@
 
 Where each planned piece of Trellis stands. One line per item: its state, the commit that last changed it, and the test result that backs it. The plan itself lives outside this repository; this file mirrors its state for anyone, or any agent, reading the code alone. The [changelog](CHANGELOG.md) cites the same items by name.
 
-**Updated 2026-11-11, at `150398b`.** Version 0.8.0 plus unreleased changes.
+**Updated 2026-11-11.** Version 0.9.0.
 
-States: **idea** (named, not started) · **planning** (its condition is written) · **underway** · **done** (its condition holds and the evidence is recorded) · **decision** (waiting on the owner; not for a build session to implement).
+States: **idea** (named, not started) · **planning** (its condition is written) · **underway** · **done** (its condition holds and the evidence is recorded) · **integrated** (the owner has confirmed it) · **decided** (the owner has chosen; the work that follows is its own item).
 
-**The suite, last full run.** `contract.js` ok. Chromium 14/14. WebKit 13/14 on the development laptop, where `perf.js` missed its timing budgets on a busy machine, and all green in CI at CI's scale. `align.js` 0 off in 17 runs, `pixel.js` 0 of 60 card edges off, `math.js` 320 checks ok in both engines, `perf.js` 0 of 5,000 blocks off their lines.
+**The suite, last full run.** `contract.js` ok. Chromium 14/14 and WebKit 14/14 on the development laptop, and green in CI. `align.js` 0 off in 17 runs, `pixel.js` 0 of 60 card edges off, `math.js` 320 checks ok in both engines, `perf.js` 0 of 5,000 blocks off their lines and inside its laptop budgets (first settle 1,219ms in WebKit). Earlier the same day, with the laptop busy, `perf.js` missed those budgets; the timings follow the machine's load.
 
 ## Before the first app
 
@@ -14,29 +14,33 @@ Everything here lands before the first app pins a version.
 
 | Item | State | Commit | Evidence |
 |---|---|---|---|
-| Report what is already applied | done | `dc57bea` | The v0.7 suite and the 0.8.0 suite match: same counts, 0 off. |
-| Its own repository | done | `dc57bea` | Public, one fresh first commit, CI green, Pages serves the specimen, installs by git address; the old location is a pointer and redirects here. |
-| MIT license | done | `dc57bea` | `LICENSE`; `contract.js` checks it. |
-| Rename to Trellis | done | `dc57bea` | Layers, package, global, headers and tests renamed; 0.8.0 lists each as breaking; the private product layers declare the new layer name. |
-| Neutral public specimen | done | `dc57bea` | No product switcher, no web fonts; two example layers in the matrix; one outside layer by address. |
+| Report what is already applied | integrated | `dc57bea` | The v0.7 suite and the 0.8.0 suite match: same counts, 0 off. |
+| Its own repository | integrated | `dc57bea` | Public, one fresh first commit, CI green, Pages serves the specimen, installs by git address; the old location is a pointer and redirects here. |
+| MIT license | integrated | `dc57bea` | `LICENSE`; `contract.js` checks it. |
+| Rename to Trellis | integrated | `dc57bea` | Layers, package, global, headers and tests renamed; 0.8.0 lists each as breaking; the private product layers declare the new layer name. |
+| Neutral public specimen | integrated | `dc57bea` | No product switcher, no web fonts; two example layers in the matrix; one outside layer by address. |
 | Tests in CI | done | `dc57bea` | Every push and pull request, Chromium and WebKit. |
 | Package shape | done | `dc57bea` | A scratch project installed it by git address with no token. |
-| Namespace the cascade layers | done | `dc57bea` | `layers.js`, both engines; `contract.js` fails on a layer outside `trellis`. |
-| One runtime file | done | `dc57bea` | `settle.js` sets the device pixel ratio and fit width itself. |
-| Prose context | done | `dc57bea` | `align.js`: 0 of 90 prose blocks off (89 in WebKit). |
-| Post type layouts | done | `dc57bea` | `layout.js`, both engines, wide and phone. |
-| Wave 1 primitives | done | `dc57bea` | `layout.js` checks inputs on touch and opens the modal and the sheet. |
+| Namespace the cascade layers | integrated | `dc57bea` | `layers.js`, both engines; `contract.js` fails on a layer outside `trellis`. |
+| One runtime file | integrated | `dc57bea` | `settle.js` sets the device pixel ratio and fit width itself. |
+| Prose context | integrated | `dc57bea` | `align.js`: 0 of 90 prose blocks off (89 in WebKit). |
+| Post type layouts | integrated | `dc57bea` | `layout.js`, both engines, wide and phone. |
+| Wave 1 primitives | integrated | `dc57bea` | `layout.js` checks inputs on touch and opens the modal and the sheet. |
 | Three rule conflicts | done | `dc57bea` | Gap utilities reach clusters only; rule 5 and the cluster comment say what they should. |
-| Settle performance test | done | `dc57bea` | `perf.js` in CI: inside its budgets, 0 of 5,000 off. |
-| Version contract | done | `dc57bea` | Changelog from 0.2.0; the README's Public API, checked by `contract.js`. |
-| React contract | done | `dc57bea` | `REACT.md`. |
-| Split card padding | done | `7751fba` | `layout.js` checks the default, each knob alone and the shorthand. |
-| Token source | done | `08086e2` | `contract.js` fails on a stale `core.css`; the specimen renders identically before and after. |
-| Math module | done | `150398b` | `tests/math.js`: 320 checks, both engines; `contract.js` checks its seed and worked examples. |
-| Five ways to meet a line | decision | | |
-| Cap on the cell | decision | | |
+| Settle performance test | integrated | `dc57bea` | `perf.js` in CI: inside its budgets, 0 of 5,000 off. |
+| Version contract | integrated | `dc57bea` | Changelog from 0.2.0; the README's Public API, checked by `contract.js`. |
+| React contract | integrated | `dc57bea` | `REACT.md`. |
+| Split card padding | integrated | `7751fba` | `layout.js` checks the default, each knob alone and the shorthand. |
+| Token source | integrated | `08086e2` | `contract.js` fails on a stale `core.css`; the specimen renders identically before and after. |
+| Math module | integrated | `150398b` | `tests/math.js`: 320 checks, both engines; `contract.js` checks its seed and worked examples. |
+| Five ways to meet a line | decided | | Yes: Stand, Hang, Inset, Outset and Center, and the card behavior called Hang becomes Outset. |
+| Apply the five relations | idea | | The rename and the vocabulary, in code and in the README. Breaking. |
+| Cap on the cell | decided | | Yes: the cell follows the reader's text size up to a cap; above it only type grows. |
+| Apply the cap on the cell | idea | | The cap as a rule, with a test at the largest accessibility size. |
 | Perf on a quiet laptop | idea | | Rerun `perf.js webkit` with nothing else running. |
 | Padding clears the corner | idea | | A floor on card padding from its radius. |
+| Private files off the site | idea | | Product layers kept where no public site serves them. |
+| Keyboard reach for scrollers | idea | | A rail, a board and a code sample in prose scroll, and a keyboard cannot reach them unless the page adds a tab stop. |
 
 ## Before the second app
 
@@ -46,7 +50,7 @@ Everything here lands before the first app pins a version.
 | Floats that follow and close | idea | | |
 | Density at scale | idea | | |
 | Theme name mapping | idea | | |
-| Person colors | decision | | |
+| Person colors | decided | | No change for now. |
 
 ## Knowledge base
 
@@ -107,7 +111,8 @@ Work that grows from the grid or leaves it, and still belongs to it.
 | React Native theme | idea |
 | Hybrid seam test | idea |
 | Forced colors fallback | idea |
-| Native or web, per surface | decision |
+| Write down the surface default | idea |
+| Native or web, per surface | decided |
 
 ## Release
 
@@ -119,7 +124,7 @@ The repository is public from the start. This is the release, and it waits until
 | Lint rules | idea |
 | Contributing guide | idea |
 | About page | idea |
-| First release | idea |
+| First release | planning |
 
 ## Working together
 
