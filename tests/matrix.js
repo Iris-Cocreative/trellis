@@ -18,24 +18,24 @@ const LIMIT = Number(process.env.JOBS || 4);
 // reshape everything without redrawing anything.
 const CHROMIUM = [
   ['1440x900', 'neutral', 'dark'],
-  ['1440x900', 'quarry', 'light', 'hang'],
+  ['1440x900', 'quarry', 'light', 'outset'],
   ['1280x800', 'almanac', 'dark', 'math'],
   ['1024x768', 'neutral', 'light', 'css'],
   ['1280x800', 'neutral', 'dark', 'measure'],
   ['768x1024', 'quarry', 'dark'],
   ['393x852', 'neutral', 'dark', 'touch'],
   ['393x852', 'almanac', 'light', 'touch', 'u10'],
-  ['375x812', 'quarry', 'light', 'touch', 'hang'],
+  ['375x812', 'quarry', 'light', 'touch', 'outset'],
   ['393x852', 'neutral', 'dark', 'touch', 'slow'],
 ];
 const WEBKIT = [
   ['1440x900', 'neutral', 'dark', 'webkit'],
-  ['1280x800', 'quarry', 'dark', 'webkit', 'hang'],
+  ['1280x800', 'quarry', 'dark', 'webkit', 'outset'],
   ['393x852', 'quarry', 'light', 'touch', 'webkit'],
   ['393x852', 'neutral', 'dark', 'touch', 'webkit', 'u14'],
   ['440x956', 'almanac', 'light', 'touch', 'webkit', 'math'],
-  ['375x812', 'neutral', 'dark', 'touch', 'webkit', 'hang'],
-  ['852x393', 'almanac', 'dark', 'touch', 'webkit', 'math', 'hang'],
+  ['375x812', 'neutral', 'dark', 'touch', 'webkit', 'outset'],
+  ['852x393', 'almanac', 'dark', 'touch', 'webkit', 'math', 'outset'],
 ];
 const PIXEL = ['393x852', '440x956'];
 
@@ -45,8 +45,8 @@ const PIXEL = ['393x852', '440x956'];
 const LAYER = process.env.LAYER;
 if (LAYER) {
   if (!/^[a-z][a-z0-9-]*=.+\.css$/.test(LAYER)) { console.error('LAYER must be name=<address of a .css file>'); process.exit(2); }
-  CHROMIUM.push(['1440x900', LAYER, 'dark', 'hang'], ['1024x768', LAYER, 'light', 'math'], ['393x852', LAYER, 'light', 'touch'], ['375x812', LAYER, 'dark', 'touch', 'hang']);
-  WEBKIT.push(['1280x800', LAYER, 'light', 'webkit', 'hang'], ['393x852', LAYER, 'dark', 'touch', 'webkit'], ['440x956', LAYER, 'light', 'touch', 'webkit', 'math', 'hang']);
+  CHROMIUM.push(['1440x900', LAYER, 'dark', 'outset'], ['1024x768', LAYER, 'light', 'math'], ['393x852', LAYER, 'light', 'touch'], ['375x812', LAYER, 'dark', 'touch', 'outset']);
+  WEBKIT.push(['1280x800', LAYER, 'light', 'webkit', 'outset'], ['393x852', LAYER, 'dark', 'touch', 'webkit'], ['440x956', LAYER, 'light', 'touch', 'webkit', 'math', 'outset']);
 }
 
 const jobs = [];

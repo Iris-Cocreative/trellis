@@ -74,7 +74,7 @@
     --density-card-pad-block: var(--density-card-pad);   /* its top and bottom, if they differ */
     --density-control-h: var(--size-control-lg);         /* a default button or input's height */
     --density-control-fs: var(--fs-control);             /* a default button or input's type */
-    --hang: 1;                                           /* cells a surface steps out; 0 turns it off */
+    --outset: 1;                                         /* cells a surface's edge steps out; 0 turns it off */
     --prose-measure: calc(var(--u) * 56);                /* the widest a column of running text gets */
 
     /* ---- The tag archetype ----------------------------------------------- */

@@ -481,6 +481,6 @@
     .m-block.cc-g { --cell-y: 13; }
   }
 
-  /* Hang can be turned off for the specimen; products set --hang. */
-  :root[data-no-hang] { --hang: 0; }
+  /* Outset can be turned off for the specimen; products set --outset. */
+  :root[data-no-outset] { --outset: 0; }
 }

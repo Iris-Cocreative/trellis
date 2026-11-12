@@ -16,7 +16,7 @@
     dial: saved.dial || 12,
     grid: saved.grid !== false,
     measure: !!saved.measure,
-    hang: saved.hang !== false,   // surfaces hang by default
+    outset: saved.outset !== false,   // surfaces step out by default
     fit: saved.fit || 'auto',
     css: !!saved.css,
     math: !!saved.math,
@@ -50,7 +50,7 @@
     else root.setAttribute('data-theme', resolvedTheme());
     root.toggleAttribute('data-grid', state.grid);
     root.toggleAttribute('data-measure', state.measure);
-    root.toggleAttribute('data-no-hang', !state.hang);
+    root.toggleAttribute('data-no-outset', !state.outset);
     root.toggleAttribute('data-css', state.css);
     root.toggleAttribute('data-math', state.math);
     codePanel.hidden = !state.css;

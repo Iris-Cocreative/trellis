@@ -1,6 +1,6 @@
 // Trellis · layout behavior test
 // What a position check can't see: that each layout responds and behaves.
-//   list    a row is whole cells; its rule adds no height; it hangs a cell
+//   list    a row is whole cells; its rule adds no height; it steps out a cell
 //   shell   its nav is a column in a wide box and a tab bar in a narrow one,
 //           with the same markup, in the same window
 //   cover   its media reaches both screen edges and adds no sideways scroll
@@ -33,7 +33,7 @@ const ready = require('./ready');
     rows.forEach((r, i) => expect(whole(box(r).height), `list row ${i} is ${box(r).height.toFixed(2)}px, not whole cells`));
     expect(Math.abs(box(rows[1]).top - box(rows[0]).bottom) < .1, 'a list rule added height between rows');
     const list = $('#demo-list'), body = rows[0].querySelector('.list-body');
-    expect(Math.abs(box(rows[0]).left - box(list.parentElement).left + u) < 1, 'a list does not hang one cell');
+    expect(Math.abs(box(rows[0]).left - box(list.parentElement).left + u) < 1, 'a list does not step out one cell');
     expect(Math.abs(box(rows[0].firstElementChild).left - box(list.parentElement).left) < 1, "a row's content is not on the column's edge");
     expect(body && whole(box(body).top - box(rows[0]).top), "a row's body does not start on a line");
 

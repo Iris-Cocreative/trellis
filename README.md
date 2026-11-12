@@ -21,7 +21,7 @@
 | `REACT.md` | The contract for a React app, with the pull request checklist. |
 | `CHANGELOG.md` | What changed in each version, and what broke. |
 | `experiments/solids.js` | An experiment: point, line, plane carried on into solid, motion and transformation (the Platonic solids, morphing by geometry). Not part of the package. |
-| `index.html`, `specimen.css`, `specimen.js` | The specimen. Built only from the foundation, so it is also the first test of it. Controls: theme, the dial (cell size), fit, Hang (the `--hang` knob, switchable), grid, Measure (padding, gap, a heading's own space, the line each text block stands on or hangs from), CSS (every stylesheet in a side panel; with Measure on, click anything to find its rule). The ratio section shows the math behind every type role, recomputed live and checked against the browser. |
+| `index.html`, `specimen.css`, `specimen.js` | The specimen. Built only from the foundation, so it is also the first test of it. Controls: theme, the dial (cell size), fit, Outset (the `--outset` knob, switchable), grid, Measure (padding, gap, a heading's own space, the line each text block stands on or hangs from), CSS (every stylesheet in a side panel; with Measure on, click anything to find its rule). The ratio section shows the math behind every type role, recomputed live and checked against the browser. |
 | `STATUS.md` | Where each planned piece stands: its state, the commit that changed it, the test that backs it. |
 | `tests/` | `align.js`, `pixel.js`, `layout.js`, `layers.js`, `math.js`, `perf.js`, `contract.js`, `matrix.js`. They run in CI; see `tests/README.md`. |
 | `LICENSE` | MIT, held by Iris Cocreative. |
@@ -80,6 +80,20 @@ The cell is the only line on the page; the grid draws nothing else.
 - **Headlines stand** (h1, h2, h3): line height rounds to whole cells, the box is trimmed to the capitals and the alphabetic baseline and padded to whole cells, so every baseline lands on a cell line.
 - **Text hangs** (h4–h6, the paragraph roles, the label): its own proportional line height, never forced to the grid. It hangs from a cell line by the top of its capitals, and its block rounds up to whole cells (`calc-size()`, or `settle.js`), so whatever follows starts on a line.
 - **Blocks settle too**: a `.cluster` (a wrapping row of tags or chips) and anything marked `.settle` (a code sample, a figure) round up to whole cells. Inside a cluster, things keep their own half-cell rhythm, like letters in a word.
+
+### Five ways to meet a line
+
+Everything on the page meets a cell line in one of five ways, and each name means one thing. Stand and Hang are how type meets a line; Inset, Outset and Center are how a box does.
+
+| Relation | What meets the line | Example |
+|---|---|---|
+| **Stand** | The last baseline sits on a line. | `.t-h1` to `.t-h3`: line height in whole cells, every baseline on a cell line. |
+| **Hang** | The top of the capitals sits on a line, and the block rounds up to whole cells. | A paragraph, `.t-h4` to `.t-h6`, the label. |
+| **Inset** | Content sits whole cells inside a surface's edge. | A card's padding: one cell in, so its first line starts on a cell line. |
+| **Outset** | A surface's edge steps whole cells outside the line its content keeps. | A card steps `--outset` cells out, so the text inside it lines up with the text beside it (rule 5). `.list` rows and a `pre` in `.prose` do the same. |
+| **Center** | A box straddles a line by the same amount either side. | An icon, a dot or a node on the lattice; a box centered on a line is even (rule 1). |
+
+Through 0.9, Outset was called Hang, so the word meant two things.
 
 ### Point, line, plane +
 
@@ -142,7 +156,7 @@ Five levels, each with a few named parts. A unique design changes variables at a
 | **Page** | `.frame` · `.shell` (navigation, main, an aside; a tab bar when its box is under 48rem, the aside under main when it is under 72rem) | The field of modules and its gutters, centered. `.shell` holds a `.shell-grid`, since a query can't restyle the container it asks. |
 | **Section** | `.section`, `.section-head`, `.section-body`; `.cc-split` (head beside body when the container is wider than 54rem), `.cc-band` (the surface reaches the screen's edges, painted by an outset border image so it never adds scroll) · `.cover` (a full-screen opening: media to the edges, words in the field; its height is whole cells) | A band of the page. |
 | **Composition** | `.stack` (one above another) · `.cluster` (a wrapping row) · `.cols` (n equal columns) · `.split` (two columns at a ratio, `--split-a : --split-b`, 2 : 1 by default; one column under 36rem of container) · `.grid` (as many fixed tracks as fit) · `.cells` (the lattice: children placed by `--cell-x`, `--cell-y`, sized by `--cell-w`, `--cell-h`, in cells) · `.rail` (scrolls sideways and snaps) · `.list` (rows divided by hairlines: chats, actions, members, post indexes) · `.board` (lanes of cards in a sideways scroller) · `.prose` (bare tags from an editor; see Prose) | How a region arranges what it holds. |
-| **Surface** | `.card` | Padding, an edge plane, its own container. Hangs. |
+| **Surface** | `.card` | Padding, an edge plane, its own container. Steps out (Outset). |
 | **Element** | type roles, `.tag`, `.button`, `.avatar`, `.float` … | The primitives. |
 
 Every part: children start on cells; space between blocks is whole cells; responds to its container (`@container`), never the window; context changes variables, never markup.
@@ -172,7 +186,7 @@ Our apps carry rich content from editors and markdown, which arrives as bare tag
 | `figcaption`, `caption`, `td` | `.t-sm` |
 | `th` | `.t-label` |
 | `ul`, `ol` | whole cells between items at every depth; the marker sits in a whole-cell margin |
-| `pre` | a surface with one cell of padding, so it hangs like a card (rule 5) |
+| `pre` | a surface with one cell of padding, so it steps out like a card (rule 5) |
 | `table` | a lattice: every line in a cell is whole cells, so rows stand on the grid; a wide table scrolls inside itself |
 | `figure`, `img`, `video` | full width, corners from `--shape-card`; a caption hangs from the next line |
 | two or more images in a `figure` or a `p` | a gallery of whole-cell squares, cropped (3 across, 2 in a narrow container) |
@@ -203,7 +217,7 @@ Our apps carry rich content from editors and markdown, which arrives as bare tag
 2. **Columns round to cells.** `.cols` rounds every track down to whole cells, so each column's left edge is on a line. `.grid` uses fixed tracks that don't stretch.
 3. **A surface's edge is a plane after its coordinate, and never changes its size.** A card draws its edge as an `::after` frame one line larger: inside the box on the left and top, just outside it on the right and bottom, so each edge lies on its grid line's pixels. A surface that clips (it scrolls, or has `overflow: hidden`) would cut that frame off, so it keeps an inset outline or lets an inner scroller clip. Floats align to anchors, not the grid. Controls with a fixed height keep a real border and give it back in their padding.
 4. **Draw grids in device pixels, never with repeating CSS gradients.** Safari rounds each repeated tile and the error grows across the screen.
-5. **Surfaces hang.** A card steps `--hang` cells (a product knob, 1 by default) out into the space around it, so the text inside a card with a one-cell padding lines up with the text outside; a card with more padding still steps out one cell. A row hangs as a whole only when it holds nothing but cards; a card inside one column of a row stays in its column; nested, a card hangs into its parent's padding. Gutters are at least two cells, so a hanging card never reaches the screen's edge. **Hang is clipped by any ancestor with hidden overflow** (a scroll pane, a clipped section), so a card there silently loses its step-out: give that ancestor `--hang: 0`, or a cell of inline padding. `.list` rows and a `pre` in `.prose` hang by the same rule.
+5. **Surfaces step out (Outset).** A card's edge steps `--outset` cells (a product knob, 1 by default) out into the space around it, so the text inside a card with a one-cell padding lines up with the text outside; a card with more padding still steps out one cell. A row steps out as a whole only when it holds nothing but cards; a card inside one column of a row stays in its column; nested, a card steps out into its parent's padding. Gutters are at least two cells, so a card that steps out never reaches the screen's edge. **Outset is clipped by any ancestor with hidden overflow** (a scroll pane, a clipped section), so a card there silently loses its step-out: give that ancestor `--outset: 0`, or a cell of inline padding. `.list` rows and a `pre` in `.prose` step out by the same rule.
 
 ### Text
 
@@ -234,7 +248,7 @@ Our apps carry rich content from editors and markdown, which arrives as bare tag
 | `.card` | Padding from two knobs, `--density-card-pad-inline` (the sides) and `--density-card-pad-block` (top and bottom). Both follow `--density-card-pad`, so they are equal unless a product splits them: trimmed text makes equal padding optically equal, and a product may still tighten the sides and keep the vertical rhythm. Corner from `--shape-card`, nested corners concentric, an edge plane, a container for its own type. |
 | `.float` | `.options-card` (16u wide, ≤ 24u tall), `.tooltip`. Motion defined once on `.float[popover]`. |
 | Scrollbars | One archetype (`--scrollbar-width`, `--scrollbar-size`, `--scrollbar-thumb`, `--scrollbar-track`); variants `.cc-scroll-thick`, `.cc-scroll-none`. |
-| Layout | See Layout: `.frame`, `.section`, `.stack`, `.cluster`, `.cols`, `.split`, `.grid`, `.cells`, `.rail`, `.context`, `--hang`. |
+| Layout | See Layout: `.frame`, `.section`, `.stack`, `.cluster`, `.cols`, `.split`, `.grid`, `.cells`, `.rail`, `.context`, `--outset`. |
 | Type roles | `.t-h1`…`.t-h6`, `.t-xl`, `.t-lg`, `.t-body`, `.t-sm`, `.t-xs`, `.t-label`, plus `.snap` / `.snap-x` for other text and `.settle` for any block. |
 
 Added in v0.7.
@@ -307,7 +321,7 @@ This is what a consumer may rely on. Anything here changing is a changelog entry
 | `.cells` | | `--cell-x`, `--cell-y`, `--cell-w`, `--cell-h` |
 | `.rail` | | `--rail-item`, `--rail-gap` |
 | `.row`, `.col`, `.context` | | `--row-gap` |
-| `.list` | `.list-item`, `.list-body`, `.list-end`, `.list-link` | `--list-pad-y`, `--list-gap`, `--list-rule`, `--list-hang` |
+| `.list` | `.list-item`, `.list-body`, `.list-end`, `.list-link` | `--list-pad-y`, `--list-gap`, `--list-rule`, `--list-outset` |
 | `.board` | `.board-lane`, `.board-lane-head` | `--board-lane-w`, `--board-gap`, `--board-lane-gap` |
 | `.card` | `.card-media` | `--card-pad` (sets both), `--card-pad-inline`, `--card-pad-block`, `--card-radius`, `--card-border` |
 | `.button`, `.icon-button` | `.button-label`, `.cc-primary`, `.cc-ghost`, `.cc-sm`, `.cc-md`, `.cc-lg` | `--btn-h`, `--btn-fs`, `--btn-radius`, `--btn-bg`, `--btn-ink`, `--btn-border`, `--btn-tracking` |
@@ -371,6 +385,6 @@ Everything degrades to a working layout. Per feature:
 ## Open questions
 
 1. **xs.** Accept a fixed xs, or retune the paragraph ratios so it scales.
-2. **Hang** is on by default (`--hang: 1`). Should a product ever turn it off?
+2. **Outset** is on by default (`--outset: 1`). Should a product ever turn it off?
 3. **Spanned foldables.** On a spanned foldable the frame centers across the hinge; placing content per screen (viewport segments) is a later step.
 4. **Firefox** places text a few pixels off its line until it ships `text-box`.

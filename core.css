@@ -255,7 +255,7 @@
        Primitives read them; variants and contexts set the primitive's own
        variables, so a product never overrides a variant by accident. */
     --shape-card: var(--r-1h);
-    --hang: 1;                   /* cells a card steps out into the space around it */
+    --outset: 1;                 /* cells a card's edge steps out into the space around it */
     --prose-measure: calc(var(--u) * 56);   /* the widest a column of running text gets */
     --shape-control: var(--r-round);
     --shape-input: var(--r-h);   /* an input holds a sentence: pills suit buttons, not this */
@@ -687,7 +687,7 @@
   .prose :where(blockquote > cite) { display: block; font-style: normal; }
   .prose :where(blockquote > footer, blockquote > cite, figcaption, caption) { color: var(--text-secondary); }
 
-  /* Code: a surface with one cell of padding, so it hangs like a card. */
+  /* Code: a surface with one cell of padding, so it steps out like a card (Outset). */
   .prose :where(pre) {
     margin-block: 0;
     padding: var(--sp-1);
@@ -699,7 +699,7 @@
     line-height: var(--sp-2);
     tab-size: 2;
   }
-  .prose > :where(pre) { margin-inline: calc(var(--hang) * var(--u) * -1); }
+  .prose > :where(pre) { margin-inline: calc(var(--outset) * var(--u) * -1); }
   .prose :where(pre code) { font: inherit; background: none; padding: 0; }
   .prose :where(code, kbd, samp) { font-family: var(--font-mono); font-size: .9em; }
   .prose :where(:not(pre) > code, kbd) {
@@ -821,17 +821,17 @@
   /* LIST: rows divided by hairlines: chats, actions, members, post indexes.
      A row's height is whole cells (its padding is, and everything in it
      settles), and its rule is a plane after its bottom coordinate, so rules
-     never add height. Rows hang like cards: the hover surface steps out while
+     never add height. Rows step out like cards (Outset): the hover surface steps out while
      the text stays on the column's edge. Markup: ul.list > li.list-item >
      leading mark, .list-body, .list-end. */
   .list {
     --list-pad-y: var(--sp-1);
     --list-gap: var(--sp-1);
     --list-rule: var(--border-subtle);
-    --list-hang: calc(var(--hang) * var(--u));
+    --list-outset: calc(var(--outset) * var(--u));
     display: flex; flex-direction: column;
     margin: 0; padding: 0;
-    margin-inline: calc(var(--list-hang) * -1);
+    margin-inline: calc(var(--list-outset) * -1);
     list-style: none;
     min-width: 0;
   }
@@ -839,13 +839,13 @@
     position: relative;
     display: flex; align-items: flex-start; gap: var(--list-gap);
     padding-block: var(--list-pad-y);
-    padding-inline: var(--list-hang);
+    padding-inline: var(--list-outset);
     min-width: 0;
     color: inherit; text-decoration: none;
   }
   .list-item:not(:last-child)::after {
     content: ""; position: absolute;
-    inset-inline: var(--list-hang);
+    inset-inline: var(--list-outset);
     inset-block-end: calc(var(--hair) * -1);
     height: var(--hair);
     background: var(--list-rule);
@@ -981,19 +981,19 @@
   .board-lane-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-h); min-height: var(--sp-2); }
   .cc-dense .board, .board.cc-dense { --board-lane-w: calc(var(--u) * 20); --board-gap: var(--sp-1); --board-lane-gap: var(--sp-h); }
 
-  /* SURFACES hang. A card steps out --hang cells (a product knob, 1 by
-     default) into the space around it, so the text inside a card with a
-     one-cell padding lines up with the text outside; a card with more
-     padding still steps out one cell. A row hangs as a whole, but only when
-     it holds nothing but cards: a text column beside a card never moves,
-     and a card inside one column of a row stays in its column.
-     Gutters are at least two cells, so a hanging card never reaches the
-     screen's edge. Nested, a card hangs into its parent's padding. Hang is
-     clipped by any ancestor with hidden overflow (a scroll pane, a clipped
-     section): a card there silently loses its step-out. Give that ancestor
-     --hang: 0, or a cell of inline padding. */
-  :where(.stack, .section-body):not(:where(.cols, .split, .grid, .rail) > *) > .card { margin-inline: calc(var(--hang) * var(--u) * -1); }
-  :where(.cols, .grid, .split, .rail):has(> .card):not(:has(> :not(.card))) { margin-inline: calc(var(--hang) * var(--u) * -1); }
+  /* SURFACES step out (Outset). A card's edge steps --outset cells (a
+     product knob, 1 by default) into the space around it, so the text inside
+     a card with a one-cell padding lines up with the text outside; a card
+     with more padding still steps out one cell. A row steps out as a whole,
+     but only when it holds nothing but cards: a text column beside a card
+     never moves, and a card inside one column of a row stays in its column.
+     Gutters are at least two cells, so a card that steps out never reaches
+     the screen's edge. Nested, a card steps out into its parent's padding.
+     Outset is clipped by any ancestor with hidden overflow (a scroll pane, a
+     clipped section): a card there silently loses its step-out. Give that
+     ancestor --outset: 0, or a cell of inline padding. */
+  :where(.stack, .section-body):not(:where(.cols, .split, .grid, .rail) > *) > .card { margin-inline: calc(var(--outset) * var(--u) * -1); }
+  :where(.cols, .grid, .split, .rail):has(> .card):not(:has(> :not(.card))) { margin-inline: calc(var(--outset) * var(--u) * -1); }
 }
 
 /* --------------------------------------------------------------------------

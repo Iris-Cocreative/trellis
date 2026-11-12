@@ -53,7 +53,7 @@
     --shape-control: var(--r-h);
     --shape-float: var(--r-1);
     --density-card-pad: var(--sp-2);
-    --density-card-pad-inline: var(--sp-1);   /* tighter sides: with a one-cell hang, text in a card lines up with text outside it */
+    --density-card-pad-inline: var(--sp-1);   /* tighter sides: with a one-cell outset, text in a card lines up with text outside it */
     --density-control-h: var(--size-control-lg);
     --tag-default-h: var(--size-control-sm);
     --tag-r-ratio: .5;

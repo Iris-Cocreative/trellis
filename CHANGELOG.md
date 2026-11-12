@@ -2,6 +2,17 @@
 
 Semver, staying 0.x until two apps ship on the same version. A 0.x minor may break, and must say so here. The public API is defined in the [README](README.md#public-api). Changing the rhythm model is a major entry, with a note in the specimen's history.
 
+## Unreleased
+
+**Breaking**
+- **Apply the five relations:** the card behavior called Hang is now Outset, so Hang means only text hanging from a line. The knob `--hang` is now `--outset`, and the list's `--list-hang` is now `--list-outset`. A product layer that set `--hang` sets `--outset` instead; there is no alias.
+
+**Added**
+- **Apply the five relations:** the README names the five ways anything meets a line, with an example each: Stand, Hang, Inset, Outset and Center. Rule 5 and open question 2 use the new name.
+
+**Specimen and tests**
+- The specimen's Hang control is now Outset, and its saved setting is `outset`. The `align.js` flag `hang` is now `outset`.
+
 ## 0.9.0 · 2026-11-11
 
 The last pieces before the first app pins a version: card padding in two knobs, one token file for every platform, and the math as a module.

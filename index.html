@@ -32,7 +32,7 @@
     var theme = q.get('theme') || s.theme || 'auto';
     if (theme === 'light' || theme === 'dark') d.setAttribute('data-theme', theme);
     if (s.grid === false) d.removeAttribute('data-grid');
-    if (s.hang === false) d.setAttribute('data-no-hang', '');
+    if (s.outset === false) d.setAttribute('data-no-outset', '');
     if (s.dial) d.style.setProperty('--u-scale', String(s.dial / 12));
     if (s.fit === 'on' || s.fit === 'off') d.setAttribute('data-unit-fit', s.fit);
   })();
@@ -79,7 +79,7 @@
         </div>
       </div>
       <div class="seg" role="group" aria-label="Overlays">
-        <button class="button" type="button" data-toggle="hang"><span class="button-label">Hang</span></button>
+        <button class="button" type="button" data-toggle="outset"><span class="button-label">Outset</span></button>
         <button class="button" type="button" data-toggle="grid"><span class="button-label">Grid</span></button>
         <button class="button" type="button" data-toggle="measure"><span class="button-label">Measure</span></button>
         <button class="button" type="button" data-toggle="css"><span class="button-label">CSS</span></button>
@@ -309,7 +309,7 @@
         <div class="rule stack"><p class="t-label">.grid</p><p class="t-sm">As many fixed tracks as fit; the rest is space. Galleries, directories, libraries.</p></div>
         <div class="rule stack"><p class="t-label">.cells</p><p class="t-sm">The lattice as a layout: each child placed and sized in cells. For compositions that are drawn rather than flowed.</p></div>
         <div class="rule stack"><p class="t-label">.rail</p><p class="t-sm">A sideways strip that scrolls and snaps. Case studies, boards, a row of events.</p></div>
-        <div class="rule stack"><p class="t-label">.card hangs</p><p class="t-sm">A surface steps one cell out (<code>--hang</code>, a product knob), so the text inside lines up with the text outside. A row hangs only when it is all cards.</p></div>
+        <div class="rule stack"><p class="t-label">.card steps out</p><p class="t-sm">Outset: a surface's edge steps one cell out (<code>--outset</code>, a product knob), so the text inside lines up with the text outside. A row steps out only when it is all cards.</p></div>
       </div>
       <div class="context mondrian-box">
         <div class="cells mondrian" role="img" aria-label="A composition placed by cell">
@@ -325,7 +325,7 @@
         <article class="card stack"><p class="t-label faint">Call</p><p class="t-sm">Garden Stewards</p><p class="t-xs faint">Every other Monday</p></article>
         <article class="card stack"><p class="t-label faint">Course</p><p class="t-sm">Facilitation basics</p><p class="t-xs faint">Self-paced</p></article>
       </div>
-      <p class="t-xs faint">.rail: scrolls sideways and snaps; it hangs a cell like any row of cards.</p>
+      <p class="t-xs faint">.rail: scrolls sideways and snaps; it steps out a cell like any row of cards.</p>
       <h3 class="t-h5">Free, flowing, moving, and still on the cells</h3>
       <div class="cols rules">
         <div class="rule stack"><p class="t-label">Rest on the lattice, move off it</p><p class="t-sm">Layout places things on cells. Every motion starts and ends at a rest position on the lattice.</p></div>
@@ -479,7 +479,7 @@
         <li class="list-item"><span class="avatar cc-sm cc-group" aria-hidden="true">FS</span><div class="list-body"><p class="t-sm"><a class="list-link" href="#apps">Food Systems</a></p><p class="t-xs muted">Three new members joined this week.</p></div><div class="list-end"><span class="tag cc-sm"><span class="tag-label">New</span></span></div></li>
         <li class="list-item"><span class="avatar cc-sm" aria-hidden="true">JB</span><div class="list-body"><p class="t-sm"><a class="list-link" href="#apps">Jonah Baptiste</a></p></div><div class="list-end"><span class="t-xs faint">Yesterday</span></div></li>
       </ul>
-      <p class="t-xs faint">Rows hang a cell, so the hover surface steps out while the text stays on the column's edge. Each rule is a hairline after its row's bottom coordinate: it adds no height.</p>
+      <p class="t-xs faint">Rows step out a cell (Outset), so the hover surface steps out while the text stays on the column's edge. Each rule is a hairline after its row's bottom coordinate: it adds no height.</p>
 
       <h3 class="t-h5">.shell</h3>
       <div class="shell demo-shell" id="demo-shell-wide">

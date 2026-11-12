@@ -9,7 +9,7 @@
 //   product: neutral, an example's name, or name=<address> (see target.js)
 //   theme: auto, light or dark
 //   flags: touch (an emulated 3x phone), u9…u18 (the dial; 12 is 100%), fit-on|fit-off,
-//          measure, math, css, hang, webkit (run in WebKit, as an iPhone does),
+//          measure, math, css, outset, webkit (run in WebKit, as an iPhone does),
 //          slow (a CPU throttled 6 times; Chromium only)
 // Needs Playwright: set PLAYWRIGHT to its module path if it isn't resolvable,
 // and CHROME to a Chrome binary to use one instead of Playwright's Chromium.
@@ -39,7 +39,7 @@ const target = require('./target');
   });
   await page.addInitScript(s => localStorage.setItem('trellis', JSON.stringify(s)), {
     grid: true, fit, dial: unitFlag ? Number(unitFlag.slice(1)) : 12,
-    measure: flags.includes('measure'), math: flags.includes('math'), css: flags.includes('css'), hang: flags.includes('hang')
+    measure: flags.includes('measure'), math: flags.includes('math'), css: flags.includes('css'), outset: flags.includes('outset')
   });
   // A slow machine, like a cheap phone: everything must still end up on its line.
   if (flags.includes('slow')) await (await page.context().newCDPSession(page)).send('Emulation.setCPUThrottlingRate', { rate: 6 });
@@ -73,7 +73,7 @@ const target = require('./target');
       if ((b.width < 1 || b.height < 1) && e.matches(SOLID)) { out.offProse.push(when + pdesc(e) + ' collapsed ' + b.width + 'x' + b.height); continue; }
       if (b.width < 1 || b.height < 1) continue;
       out.prose++;
-      // Nothing but a hanging code sample reaches past the column.
+      // Nothing but a code sample stepping out (Outset) reaches past the column.
       if (!e.closest('pre') && !e.closest('table') && b.right > proseRight(e.closest('.prose')) + 1) out.offProse.push(when + pdesc(e) + ' past the column by ' + (b.right - proseRight(e.closest('.prose'))).toFixed(1));
       const stands = e.matches(P_STANDS), v = (stands ? b.bottom : b.top) - pr.top, l = b.left - pr.left;
       if (off(v)) out.offProse.push(when + pdesc(e) + (stands ? ' baseline@' : ' top@') + v.toFixed(2) + ' (' + (v / u).toFixed(2) + 'u)');
