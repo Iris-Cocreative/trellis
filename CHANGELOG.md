@@ -17,6 +17,7 @@ Semver, staying 0.x until two apps ship on the same version. A 0.x minor may bre
 - **Controls past the cap:** a word wider than its line breaks instead of scrolling the page (`overflow-wrap: break-word` on `body`); a tag is never wider than its row, and a long label truncates sideways (rule 11); a chat item's meta line wraps.
 
 **Fixed**
+- A definition list in `.prose` could widen its column past the frame: its grid track was sized by its longest word, which `overflow-wrap` doesn't shrink. The track may now shrink, so the word breaks. Found by CI at 312% text with Linux fonts.
 - **Read the cell from a probe:** `settle.js` measured the cell from `--u-px`, which WebKit computes against the default text size when a page or app sets the root's font size (how an iOS web view usually scales text), so in Safari every block was rounded with the wrong cell. It now measures one hidden box a cell wide (`[data-trellis-cell]`, on `<html>`, taking no space). `Trellis.cell()` returns that measure for any script; the specimen and the tests use it. `--u-px` stays, as a convenience.
 - The README's formula for the cell's target now matches `math.js` and `core.css`: the reader's text size scales the target's two ends and its intercept, not the screen's share.
 

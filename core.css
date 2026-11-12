@@ -789,7 +789,7 @@
 
   .prose :where(details) { margin: 0; }
   .prose :where(summary) { cursor: pointer; font-weight: var(--fw-label); }
-  .prose :where(dl) { margin: 0; display: grid; gap: var(--prose-inner-gap); }
+  .prose :where(dl) { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--prose-inner-gap); }   /* the track may shrink below its longest word, so a long word breaks instead of widening the column */
   .prose :where(dt) { font-weight: var(--fw-strong); }
   .prose :where(dd + dt) { margin-block-start: var(--sp-1); }   /* a term belongs to its definition */
   .prose :where(dd) { margin: 0; }
