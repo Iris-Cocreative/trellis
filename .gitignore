@@ -1,2 +1,4 @@
 .impeccable/
 node_modules/
+.page-editor/
+*.notes.md
