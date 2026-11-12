@@ -2,7 +2,7 @@
 
 Where each planned piece of Trellis stands. One line per item: its state, the commit that last changed it, and the test result that backs it. The plan itself lives outside this repository; this file mirrors its state for anyone, or any agent, reading the code alone. The [changelog](CHANGELOG.md) cites the same items by name.
 
-**Updated 2026-11-11.** Version 0.9.0.
+**Updated 2026-11-12.** Version 0.9.0, with changes under Unreleased.
 
 States: **idea** (named, not started) · **planning** (its condition is written) · **underway** · **done** (its condition holds and the evidence is recorded) · **integrated** (the owner has confirmed it) · **decided** (the owner has chosen; the work that follows is its own item).
 
@@ -64,7 +64,7 @@ One chapter each. Rules, decisions and primitives will carry stable IDs that the
 | Start Here | idea |
 | The Seed | done |
 | Rules | done |
-| Decisions | done |
+| Decisions | done: every record has its alternatives |
 | Anatomy | done |
 | Type | idea |
 | Primitives | idea |
