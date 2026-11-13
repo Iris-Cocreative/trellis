@@ -71,15 +71,15 @@
     });
     document.querySelectorAll('[data-toggle]').forEach(function (b) {
       var k = b.dataset.toggle;
-      // Outset and the grid name the state they're in; the others are on or off.
+      // The grid has three states and names the one it's in; the rest are switches.
       var on = k === 'grid' ? state.grid !== 'off' : !!state[k];
       b.toggleAttribute('data-on', on);
-      if (k === 'grid' || k === 'outset') {
-        var name = k === 'grid' ? GRID_NAMES[state.grid] : state.outset ? 'Outset' : 'Contained';
-        b.querySelector('.button-label').textContent = name;
-        b.setAttribute('aria-label', (k === 'grid' ? 'Grid: ' : 'Cards: ') + name);
+      if (k === 'grid') {
+        b.querySelector('.button-label').textContent = GRID_NAMES[state.grid];
+        b.setAttribute('aria-label', 'Grid: ' + GRID_NAMES[state.grid]);
         return;
       }
+      if (b.getAttribute('role') === 'switch') { b.setAttribute('aria-checked', String(on)); return; }
       b.setAttribute('aria-pressed', String(!!state[k]));
     });
     save();
@@ -174,6 +174,11 @@
     });
   });
 
+  // Demo switches turn on and off.
+  document.addEventListener('click', function (e) {
+    var s = e.target.closest('[data-demo-switch]');
+    if (s && s.getAttribute('aria-disabled') !== 'true') s.setAttribute('aria-checked', String(s.getAttribute('aria-checked') !== 'true'));
+  });
   // Filter tags toggle
   var filters = document.getElementById('filter-tags');
   if (filters) filters.addEventListener('click', function (e) {

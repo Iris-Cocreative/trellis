@@ -1137,15 +1137,15 @@
 
   /* Labels inside controls: the text box is trimmed to the cap height, so
      centering the box centers the capitals exactly. */
-  .button-label, .tag-label, .options-card-label {
+  .button-label, .tag-label, .options-card-label, .switch-label {
     display: block;
     white-space: nowrap;
   }
   /* A button or a tag never wider than its row, an option never wider than its
      card: a long label truncates sideways (rule 11). */
-  .button-label, .tag-label, .options-card-label { min-width: 0; overflow-x: clip; overflow-y: visible; text-overflow: ellipsis; }
+  .button-label, .tag-label, .options-card-label, .switch-label { min-width: 0; overflow-x: clip; overflow-y: visible; text-overflow: ellipsis; }
   @supports (text-box: trim-both cap alphabetic) {
-    .button-label, .tag-label, .avatar-initials { text-box: trim-both cap alphabetic; line-height: 1; }
+    .button-label, .tag-label, .switch-label, .avatar-initials { text-box: trim-both cap alphabetic; line-height: 1; }
   }
 
   /* Button ------------------------------------------------------------- */
@@ -1191,6 +1191,50 @@
       justify-content: center;
     }
   }
+
+  /* Switch: on or off, now. A button with role="switch" and aria-checked, or a
+     label around a visually hidden checkbox with role="switch" (for a form). The
+     track is 3 × 1½ cells, drawn before the label; the thumb is 1 cell, a quarter
+     cell inside it. On, the thumb moves and the track fills with the accent. The
+     row is whole cells tall and its label's capitals center on the track (rule
+     8). Its states are the shared layer, on the track. Markup:
+     button.switch[role=switch][aria-checked] > .switch-label, or
+     label.switch > input[type=checkbox][role=switch].u-sr-only + .switch-label. */
+  .switch {
+    --switch-w: var(--sp-3);
+    --switch-h: var(--sp-1h);
+    --switch-knob: var(--sp-1);
+    --switch-off: color-mix(in oklab, var(--text) 32%, transparent);
+    --switch-on: var(--accent);
+    --switch-fill: var(--switch-off);
+    --switch-thumb: var(--white);
+    --switch-x: 0%;
+    position: relative;
+    display: inline-flex; align-items: center;
+    max-width: 100%;
+    min-height: calc(var(--size-control-sm) + max(0px, round(up, calc(1em - var(--size-control-sm)), var(--u))));   /* never shorter than its own type */
+    padding-inline-start: calc(var(--switch-w) + var(--sp-h));
+    color: var(--text);
+    font-size: var(--fs-control); font-weight: var(--fw-label);
+    cursor: pointer;
+    user-select: none;
+  }
+  .switch::after {
+    content: ""; position: absolute;
+    inset-inline-start: 0; inset-block-start: calc(50% - var(--switch-h) / 2);
+    width: var(--switch-w); height: var(--switch-h);
+    border-radius: var(--r-round);
+    background:
+      radial-gradient(circle closest-side, var(--switch-thumb) calc(var(--switch-knob) / 2 - var(--line) / 2), transparent calc(var(--switch-knob) / 2 + var(--line) / 2))
+        var(--switch-x) 50% / var(--switch-h) var(--switch-h) no-repeat,
+      color-mix(in oklab, var(--text) var(--state-act), var(--switch-fill));
+    transition: background-position var(--dur-in) var(--ease-spring), background-color var(--dur-out) var(--ease-in);
+  }
+  .switch:is([aria-checked="true"], :has(> input:checked)) { --switch-x: 100%; --switch-fill: var(--switch-on); --switch-thumb: var(--accent-ink); }
+  .switch:is(:disabled, [aria-disabled="true"], :has(> input:disabled)) { --switch-fill: color-mix(in oklab, var(--text) 10%, transparent); --switch-thumb: var(--bg-sunken); color: var(--text-faint); cursor: not-allowed; }
+  .switch:has(> input:focus-visible) { outline: calc(var(--line) * 2) solid var(--focus); outline-offset: var(--line); }
+  [dir="rtl"] .switch { --switch-x: 100%; }
+  [dir="rtl"] .switch:is([aria-checked="true"], :has(> input:checked)) { --switch-x: 0%; }
 
   .icon { width: var(--icon-size, var(--size-icon)); height: var(--icon-size, var(--size-icon)); flex: none; fill: none; stroke: currentColor; stroke-width: var(--icon-stroke, 1.5); stroke-linecap: round; stroke-linejoin: round; }
 
@@ -1329,8 +1373,8 @@
   /* Touch: on a coarse pointer a control's hit area grows to --hit-min
      around what it draws, so density never costs a missed tap. */
   @media (pointer: coarse) {
-    :where(.button, .icon-button, button.tag, a.tag) { position: relative; }
-    :where(.button, .icon-button, button.tag, a.tag)::before {
+    :where(.button, .icon-button, button.tag, a.tag, .switch) { position: relative; }
+    :where(.button, .icon-button, button.tag, a.tag, .switch)::before {
       content: ""; position: absolute;
       inset: min(0px, calc((100% - var(--hit-min)) / 2));
     }
@@ -1720,11 +1764,11 @@
      A control of your own takes the same layer with .u-state: set
      --state-fill and --state-ink on it, and every state follows. */
   @media (hover: hover) {
-    :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .list-item:is(a, button), .options-card-item, .u-state):hover { --state-act: var(--state-hover); }
+    :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .list-item:is(a, button), .options-card-item, .u-state, .switch):hover { --state-act: var(--state-hover); }
   }
-  :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .list-item:is(a, button), .options-card-item, .u-state):active { --state-act: var(--state-press); }
+  :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .list-item:is(a, button), .options-card-item, .u-state, .switch):active { --state-act: var(--state-press); }
   :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .list-item:is(a, button), .options-card-item, .u-state):is([aria-pressed="true"], [aria-checked="true"], [aria-current]:not([aria-current="false"]), [aria-selected="true"]) { --state-on: var(--state-selected); }
-  :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .list-item:is(a, button), .options-card-item, .u-state):is(:disabled, [aria-disabled="true"]) { --state-act: 0%; cursor: not-allowed; }
+  :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .list-item:is(a, button), .options-card-item, .u-state, .switch):is(:disabled, [aria-disabled="true"]) { --state-act: 0%; cursor: not-allowed; }
 }
 
 /* --------------------------------------------------------------------------

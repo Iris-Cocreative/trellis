@@ -63,7 +63,8 @@
   /* The overlays are each on or off (or, for the grid, one of three), so
      each is its own small control with a point that fills when it is on,
      not a segment of one choice. */
-  .toggles { display: flex; align-items: center; gap: var(--sp-q); }
+  .toggles { display: flex; align-items: center; gap: var(--sp-1); }
+  .toggles .switch { font-size: var(--fs-control-sm); }
   .toggle { --btn-h: var(--size-control-md); --btn-fs: .75rem; --btn-border: var(--border-subtle); --btn-bg: transparent; gap: var(--sp-h); padding-inline: calc(var(--sp-1) - var(--line)); }
   .toggle .dot { --dot-size: var(--sp-h); --dot-color: transparent; box-shadow: inset 0 0 0 var(--line) var(--text-tertiary); }
   .toggle[data-on] .dot { --dot-color: var(--accent); box-shadow: none; }

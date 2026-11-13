@@ -49,6 +49,7 @@ Everything here lands before the first app pins a version.
 | Primitive fixes from the specimen | underway | `08bea9a` | Dense cluster at a surface's end rounds up (D55). |
 | Modal dismiss on a drag | done | (this commit) | `settle.js` closes a modal only on a true backdrop click; `tests/layout.js` checks the drag and `data-trellis-stay`, both engines, wide and touch. |
 | Every control has every state | done | (this commit) | One state layer; hover and press measured on primary and ghost buttons, rows and tabs in both engines and both themes. |
+| A switch primitive | done | (this commit) | `.switch` in core, the specimen's bar and a demo; both engines. |
 | Design feedback on the specimen | underway | (this commit) | The first round of notes on the specimen: copy and styling changed, framework notes waiting on decisions. |
 
 ## Before the second app

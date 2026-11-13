@@ -90,10 +90,10 @@
         </div>
       </div>
       <div class="toggles" role="group" aria-label="Overlays">
-        <button class="button toggle" type="button" data-toggle="outset"><span class="dot" aria-hidden="true"></span><span class="button-label">Outset</span></button>
+        <button class="switch" type="button" role="switch" aria-checked="false" data-toggle="outset"><span class="switch-label">Outset</span></button>
         <button class="button toggle" type="button" data-toggle="grid"><span class="dot" aria-hidden="true"></span><span class="button-label">Grid</span></button>
-        <button class="button toggle" type="button" data-toggle="measure"><span class="dot" aria-hidden="true"></span><span class="button-label">Measure</span></button>
-        <button class="button toggle" type="button" data-toggle="css"><span class="dot" aria-hidden="true"></span><span class="button-label">CSS</span></button>
+        <button class="switch" type="button" role="switch" aria-checked="false" data-toggle="measure"><span class="switch-label">Measure</span></button>
+        <button class="switch" type="button" role="switch" aria-checked="false" data-toggle="css"><span class="switch-label">CSS</span></button>
       </div>
     </div>
   </div>
@@ -630,6 +630,11 @@
       <h3 class="t-h5">.tabs</h3>
       <div class="tabs" role="tablist" aria-label="Example" id="demo-tabs"><button class="tab" role="tab" aria-selected="true" type="button">Overview</button><button class="tab" role="tab" aria-selected="false" type="button">Members</button><button class="tab" role="tab" aria-selected="false" type="button">Events</button><button class="tab" role="tab" aria-selected="false" type="button">Documents</button></div>
       <div class="tabs cc-seg" role="tablist" aria-label="Example, segmented"><button class="tab" role="tab" aria-selected="true" type="button">Week</button><button class="tab" role="tab" aria-selected="false" type="button">Month</button><button class="tab" role="tab" aria-selected="false" type="button">Year</button></div>
+
+      <h3 class="t-h5">.switch and every state</h3>
+      <div class="cluster u-gap-2"><button class="switch" type="button" role="switch" aria-checked="true" data-demo-switch><span class="switch-label">Notify me</span></button><button class="switch" type="button" role="switch" aria-checked="false" data-demo-switch><span class="switch-label">Weekly digest</span></button><button class="switch" type="button" role="switch" aria-checked="false" aria-disabled="true"><span class="switch-label">Locked</span></button><label class="switch"><input class="u-sr-only" type="checkbox" role="switch" checked><span class="switch-label">In a form</span></label></div>
+      <div class="cluster"><button class="button" type="button"><span class="button-label">Default</span></button><button class="button" type="button" aria-pressed="true"><span class="button-label">Selected</span></button><button class="button" type="button" disabled><span class="button-label">Disabled</span></button><button class="button cc-primary" type="button"><span class="button-label">Primary</span></button><button class="button cc-primary" type="button" disabled><span class="button-label">Disabled</span></button></div>
+      <p class="t-sm muted">Hover and press mix a control's own ink into its own fill, 6% and 12%, and selected 10% with a mark of its own; hover only where a pointer can hover. The task rows under Floating surfaces are a control of the specimen's own, given the same layer by <code>.u-state</code>.</p>
 
       <h3 class="t-h5">.chat-item</h3>
       <div class="stack demo-chat">

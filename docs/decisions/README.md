@@ -70,3 +70,4 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D56](D56.md) | A heading's own space rounds up | 2026-11-12 | accepted |
 | [D57](D57.md) | The runtime closes a modal on a true backdrop click | 2026-11-12 | accepted |
 | [D58](D58.md) | One relational state layer | 2026-11-12 | accepted |
+| [D59](D59.md) | A switch primitive | 2026-11-12 | accepted |
