@@ -81,7 +81,7 @@ Fluid, fractal type from the [Type Scale Generator](https://lab.iriscocreative.c
 
 The cell is the only line on the page; the grid draws nothing else.
 - **Headlines stand** (h1, h2, h3): line height rounds to whole cells, the box is trimmed to the capitals and the alphabetic baseline and padded to whole cells, so every baseline lands on a cell line.
-- **Text hangs** (h4–h6, the paragraph roles, the label): its own proportional line height, never forced to the grid. It hangs from a cell line by the top of its capitals, and its block rounds up to whole cells (`calc-size()`, or `settle.js`), so whatever follows starts on a line.
+- **Text hangs** (h4–h6, the paragraph roles, the label and the eyebrow): its own proportional line height, never forced to the grid. It hangs from a cell line by the top of its capitals, and its block rounds up to whole cells (`calc-size()`, or `settle.js`), so whatever follows starts on a line.
 - **Blocks settle too**: anything marked `.settle` (a code sample, a figure) rounds up to whole cells, and a `.cluster` (a wrapping row of tags or chips) to the nearest cell, halves down, or up at the end of a surface (rule 6). Inside a cluster, things keep their own half-cell rhythm, like letters in a word.
 
 ### Five ways to meet a line
@@ -91,7 +91,7 @@ Everything on the page meets a cell line in one of five ways, and each name mean
 | Relation | What meets the line | Example |
 |---|---|---|
 | **Stand** | The last baseline sits on a line. | `.t-h1` to `.t-h3`: line height in whole cells, every baseline on a cell line. |
-| **Hang** | The top of the capitals sits on a line, and the block rounds up to whole cells. | A paragraph, `.t-h4` to `.t-h6`, the label. |
+| **Hang** | The top of the capitals sits on a line, and the block rounds up to whole cells. | A paragraph, `.t-h4` to `.t-h6`, the label, the eyebrow. |
 | **Inset** | Content sits whole cells inside a surface's edge. | A card's padding: one cell in, so its first line starts on a cell line. |
 | **Outset** | A surface's edge steps whole cells outside the line its content keeps. | A card steps `--outset` cells out, so the text inside it lines up with the text beside it (rule 5). `.list` rows and a `pre` in `.prose` do the same. |
 | **Center** | A box straddles a line by the same amount either side. | An icon, a dot or a node on the lattice; a box centered on a line is even (rule 1). |
@@ -273,7 +273,7 @@ Every role is `light-dark()` of two relative colors (`oklch(from var(--seed-…)
 | States | **One relational layer for every control.** Hover, press and selected mix the control's own ink into its own fill by a share (`--state-hover` 6%, `--state-press` 12%, `--state-selected` 10%, product knobs), so the same rule works on a light fill, a solid one and none. Hover only where a pointer can hover, so a tap never leaves it stuck. Selected keeps a mark of its own too (a border, an edge, a check, a solid tag, a tab's line), so it never looks merely hovered. Disabled (`:disabled`, `aria-disabled`) drops hover and press and quiets the ink. Focus is the one global ring: an input no longer adds a second cue, a row that links rings the whole row, a scroller's ring is drawn inside it. **A control of your own** takes the same layer with `.u-state`: set `--state-fill` and `--state-ink` on it, and every state follows. |
 | Scrollbars | One archetype (`--scrollbar-width`, `--scrollbar-size`, `--scrollbar-thumb`, `--scrollbar-track`); variants `.cc-scroll-thick`, `.cc-scroll-none`. |
 | Layout | See Layout: `.frame`, `.section`, `.stack`, `.cluster`, `.cols`, `.split`, `.grid`, `.cells`, `.rail`, `.context`, `--outset`. |
-| Type roles | `.t-h1`…`.t-h6`, `.t-xl`, `.t-lg`, `.t-body`, `.t-sm`, `.t-xs`, `.t-label`, plus `.snap` / `.snap-x` for other text and `.settle` for any block. |
+| Type roles | `.t-h1`…`.t-h6`, `.t-xl`, `.t-lg`, `.t-body`, `.t-sm`, `.t-xs`, `.t-label`, `.t-eyebrow` (the label one paragraph step up, for what opens a section), plus `.snap` / `.snap-x` for other text and `.settle` for any block. Label text (`.t-label`, `.t-eyebrow`, a prose `th`) takes `--fw-label-text`, 400; controls keep `--fw-label`. |
 
 Added in v0.7.
 
@@ -334,7 +334,7 @@ This is what a consumer may rely on. Anything here changing is a changelog entry
 
 | Class | Modifiers and parts | Variables |
 |---|---|---|
-| Type roles | `.t-h1`, `.t-h2`, `.t-h3`, `.t-h4`, `.t-h5`, `.t-h6`, `.t-xl`, `.t-lg`, `.t-body`, `.t-sm`, `.t-xs`, `.t-label` · `.t-serif`, `.t-mono` · `.snap`, `.snap-x`, `.settle`, `.cap-center` | |
+| Type roles | `.t-h1`, `.t-h2`, `.t-h3`, `.t-h4`, `.t-h5`, `.t-h6`, `.t-xl`, `.t-lg`, `.t-body`, `.t-sm`, `.t-xs`, `.t-label`, `.t-eyebrow` · `.t-serif`, `.t-mono` · `.snap`, `.snap-x`, `.settle`, `.cap-center` | |
 | `.prose` | | `--prose-inner-gap`, `--stack-gap`, `--embed-w`, `--embed-h` |
 | `.frame` | | |
 | `.section` | `.section-head`, `.section-body`, `.cc-split`, `.cc-band` | `--section-head-w`, `--band-bg` |
@@ -352,7 +352,7 @@ This is what a consumer may rely on. Anything here changing is a changelog entry
 | `.icon` | `.cc-end` | `--icon-size`, `--icon-stroke` |
 | `.tag` | `.tag-label`, `.tag-dot`, `.tag-remove` · kinds `.cc-person`, `.cc-group`, `.cc-event`, `.cc-course`, `.cc-ok`, `.cc-warn`, `.cc-alert` · `.cc-outline`, `.cc-solid` · `.cc-sm`, `.cc-md`, `.cc-lg` | `--tag-h`, `--tag-fs`, `--tag-color`, `--tag-radius`, `--tag-pad`, `--tag-fill`, `--tag-edge`, `--tag-ink`, `--tag-gap` |
 | `.avatar` | `.avatar-initials`, `.avatar-dot`, `.avatar-stack`, `.avatar-more` · sizes `.cc-xs`, `.cc-sm`, `.cc-md`, `.cc-lg`, `.cc-xl`, `.cc-xxl`, `.cc-hero` · `.cc-group` | `--av-n`, `--av-gap`, `--av-ring`, `--av-knock`, `--av-color`, `--av-radius` |
-| `.field`, `.input` | `.field-label`, `.field-hint`, `.cc-sm`, `.cc-lg` · states `[aria-invalid="true"]`, `:disabled`, `:read-only` | `--input-h`, `--input-fs`, `--input-radius`, `--input-bg`, `--input-ink`, `--input-border`, `--input-pad`, `--input-rows` |
+| `.field`, `.input` | `.field-label`, `.field-hint`, `.cc-sm`, `.cc-lg` · states `[aria-invalid="true"]`, `:disabled`, `:read-only` | `--field-inset` (the label's and hint's start: the input's own text inset, a cell, half in `.cc-dense` or beside `.input.cc-sm`), `--input-h`, `--input-fs`, `--input-radius`, `--input-bg`, `--input-ink`, `--input-border`, `--input-pad`, `--input-rows` |
 | `.tabs`, `.tab` | `.cc-seg` · `[aria-selected="true"]` | `--tab-h`, `--tab-fs`, `--tab-pad`, `--tab-rule`, `--tab-mark`, `--tab-mark-h`, `--tab-on-bg`, `--tab-radius`, `--tab-gap` |
 | `.chat-item` | `.chat-item-body`, `.chat-item-meta`, `.chat-item-bubble`, `.cc-own`, `.cc-wall`, `.cc-system` | `--chat-bg`, `--chat-edge`, `--chat-pad`, `--chat-radius`, `--chat-measure` |
 | `.member-tile` | `.member-tile-body`, `.cc-row` | `--tile-dir`, `--tile-align` |

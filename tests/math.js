@@ -62,7 +62,7 @@ const CASES = [
         lineParagraphStep: K('lh-p-step'), lineLabel: K('lh-label'), afterH1: K('mb-h1'), afterHeadingStep: K('mb-h-step') } };
       const space = el => { let c = el.parentElement; while (c && getComputedStyle(c).containerType === 'normal') c = c.parentElement; const s = getComputedStyle(c); return c.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight); };
       document.querySelectorAll('.type-row .type-sample').forEach(el => {
-        const role = (el.className.match(/t-(h\d|xl|lg|body|sm|xs|label)/) || [])[1], s = getComputedStyle(el);
+        const role = (el.className.match(/t-(h\d|xl|lg|body|sm|xs|label|eyebrow)/) || [])[1], s = getComputedStyle(el);
         const size = M.typeSize(role, space(el), { textScale: rem / 16 }, seed), actual = parseFloat(s.fontSize);
         expect(near(size, actual, .06), `ratio: ${role} is ${actual}px, math says ${size.toFixed(3)}`);
         // A heading's own space after it, rounded up to whole cells. The specimen

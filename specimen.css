@@ -137,7 +137,7 @@
   @container page (width > 864px) {
     .section.cc-split > .section-head { position: sticky; top: calc(var(--nav-h) + var(--sp-2)); }
   }
-  .section-head .t-label { color: var(--kind-group); }
+  .section-head .t-eyebrow { color: var(--kind-group); }
   .muted { color: var(--text-secondary); }
   .faint { color: var(--text-tertiary); }
 

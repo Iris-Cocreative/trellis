@@ -234,7 +234,7 @@
       row.style.setProperty('--cap-offset', (parseFloat(cs.paddingTop) || 0) + 'px');
       var bar = row.querySelector('.type-bar');
       if (bar) bar.style.setProperty('--w', fs.toFixed(2) + 'px');
-      var role = (s.className.match(/t-(h\d|xl|lg|body|sm|xs|label)/) || [])[1];
+      var role = (s.className.match(/t-(h\d|xl|lg|body|sm|xs|label|eyebrow)/) || [])[1];
       sizes[role] = fs;
       out.textContent = px(fs) + ' / ' + px(lh) + 'px';
     });
@@ -418,7 +418,7 @@
   // ---- Measure -----------------------------------------------------------
   var layer = document.getElementById('measure-layer');
   var inspector = document.getElementById('inspector');
-  var TEXT_ROLE = /\bt-(h\d|xl|lg|body|sm|xs|label)\b/;
+  var TEXT_ROLE = /\bt-(h\d|xl|lg|body|sm|xs|label|eyebrow)\b/;
   var SKIP = 'svg *, .grid-layer, .measure-layer, .frame-intro, .hero-vines, br, b, em, i, code, a, .edge-line, .edge-line *, [data-fill-list] > p:nth-child(n+4)';
 
   function name(v, u) {
@@ -599,7 +599,8 @@
     h1: ['anchor', 'h1', '', 0], h2: ['h1 ÷ r', 'h1', 'rh', -1], h3: ['h1 ÷ r²', 'h1', 'rh', -2],
     h4: ['h1 ÷ r³', 'h1', 'rh', -3], h5: ['h1 ÷ r⁴', 'h1', 'rh', -4], h6: ['h1 ÷ r⁵', 'h1', 'rh', -5],
     xl: ['body × p²', 'body', 'rp', 2], lg: ['body × p', 'body', 'rp', 1], body: ['anchor', 'body', '', 0],
-    sm: ['body ÷ p', 'body', 'rp', -1], xs: ['body ÷ p²', 'body', 'rp', -2], label: ['anchor', 'label', '', 0]
+    sm: ['body ÷ p', 'body', 'rp', -1], xs: ['body ÷ p²', 'body', 'rp', -2], label: ['anchor', 'label', '', 0],
+    eyebrow: ['label × p', 'label', 'rp', 1]
   };
   var SUP = ['', '', '²', '³', '⁴', '⁵'];
   function f(v, d) { return String(+v.toFixed(d == null ? 3 : d)); }
@@ -617,7 +618,7 @@
     var cmin = K('c-min'), cmax = K('c-max');
     document.querySelectorAll('.type-row').forEach(function (row) {
       var s = row.querySelector('.type-sample'), out = row.querySelector('[data-math-out]');
-      var role = (s.className.match(/t-(h\d|xl|lg|body|sm|xs|label)/) || [])[1];
+      var role = (s.className.match(/t-(h\d|xl|lg|body|sm|xs|label|eyebrow)/) || [])[1];
       var R = ROLES[role]; if (!R || !out) return;
       var n = R[3], base = R[1], rk = R[2], p = Math.abs(n), op = n < 0 ? ' ÷ ' : ' × ';
       var pts = M.typeEnds(role, seed);

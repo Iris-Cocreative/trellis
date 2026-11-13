@@ -49,12 +49,14 @@
     }
   };
 
-  // Steps from an anchor. Headings step down from H1; paragraphs step out from body.
+  // Steps from an anchor. Headings step down from H1; paragraphs step out from
+  // body. The eyebrow is the label one paragraph step up: [anchor, step, ratio].
   var ROLES = {
     h1: ['h1', 0], h2: ['h1', -1], h3: ['h1', -2], h4: ['h1', -3], h5: ['h1', -4], h6: ['h1', -5],
     xl: ['body', 2], lg: ['body', 1], body: ['body', 0], sm: ['body', -1], xs: ['body', -2],
-    label: ['label', 0]
+    label: ['label', 0], eyebrow: ['label', 1, 'paragraphRatio']
   };
+  var RATIO = { h1: 'headingRatio', body: 'paragraphRatio' };
 
   function clamp(lo, v, hi) { return Math.max(lo, Math.min(v, hi)); }   // as CSS: when lo > hi, lo wins
   function mod(a, n) { return ((a % n) + n) % n; }
@@ -127,7 +129,7 @@
   // A role's two ends: its size in the narrow space and in the wide one.
   function typeEnds(role, seed) {
     var t = (seed || SEED).type, r = ROLES[role], anchor = t[r[0]], n = r[1];
-    var ratio = r[0] === 'h1' ? t.headingRatio : r[0] === 'body' ? t.paragraphRatio : [1, 1];
+    var key = r[2] || RATIO[r[0]], ratio = key ? t[key] : [1, 1];
     return [anchor[0] * Math.pow(ratio[0], n), anchor[1] * Math.pow(ratio[1], n)];
   }
 
@@ -144,7 +146,7 @@
   function lineRatio(role, seed) {
     var t = (seed || SEED).type, n = ROLES[role][1];
     if (isHeading(role)) return t.lineH1 + t.lineHeadingStep * -n;
-    if (role === 'label') return t.lineLabel;
+    if (ROLES[role][0] === 'label') return t.lineLabel;
     return t.lineBody - t.lineParagraphStep * n;
   }
 

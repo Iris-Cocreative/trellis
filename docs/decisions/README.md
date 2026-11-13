@@ -71,3 +71,4 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D57](D57.md) | The runtime closes a modal on a true backdrop click | 2026-11-12 | accepted |
 | [D58](D58.md) | One relational state layer | 2026-11-12 | accepted |
 | [D59](D59.md) | A switch primitive | 2026-11-12 | accepted |
+| [D60](D60.md) | An eyebrow, a lighter label, a field inset | 2026-11-12 | accepted |

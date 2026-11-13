@@ -102,7 +102,7 @@
 
   var BLOCKTAGS = 'p, div, ul, ol, dl, h1, h2, h3, h4, h5, h6, blockquote, pre, table, figure, hr, details, img, video, iframe';
   var PDIV = '.prose div:not([class], :has(> :is(' + BLOCKTAGS + ')))';
-  var TEXT = '.t-h4, .t-h5, .t-h6, .t-xl, .t-lg, .t-body, .t-sm, .t-xs, .t-label, .snap, .snap-x, ' +
+  var TEXT = '.t-h4, .t-h5, .t-h6, .t-xl, .t-lg, .t-body, .t-sm, .t-xs, .t-label, .t-eyebrow, .snap, .snap-x, ' +
     '.prose :is(h4, h5, h6, p, li, dt, dd, summary, blockquote, figcaption, caption), .prose blockquote > :is(footer, cite), ' + PDIV;
   var BLOCK = '.cluster, .settle, .field, .prose :is(pre, table, figure, details, dl, video, audio), ' +
     '.prose > :not(h1, h2, h3, h4, h5, h6, p, ul, ol, hr, blockquote, iframe, div:not([class]))';

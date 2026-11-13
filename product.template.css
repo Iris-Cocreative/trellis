@@ -20,12 +20,13 @@
     --font-heading: var(--font-sans);                    /* h1 to h6 */
     --fw-body: 400;                                      /* running text */
     --fw-heading: 500;                                   /* h1 to h6 */
-    --fw-label: 500;                                     /* labels, buttons, tags */
+    --fw-label: 500;                                     /* controls: buttons, tags, tabs */
+    --fw-label-text: 400;                                /* .t-label, .t-eyebrow and a table head */
     --fw-strong: 600;                                    /* strong and b in prose */
     --fw-serif: 400;                                     /* .t-serif's weight */
     --heading-tracking: -.01em;                          /* h1 to h6's letter spacing */
-    --label-tracking: .08em;                             /* .t-label's letter spacing */
-    --label-case: uppercase;                             /* .t-label's case */
+    --label-tracking: .08em;                             /* .t-label's and .t-eyebrow's letter spacing */
+    --label-case: uppercase;                             /* .t-label's and .t-eyebrow's case */
 
     /* ---- The ratio: both anchors, in rem, at a narrow and a wide space --- */
     --h1-min: 2.25;                                      /* H1 in a narrow space */
@@ -36,7 +37,7 @@
     --body-max: 1.125;                                   /* body in a wide space */
     --rp-min: 1.125;                                     /* each paragraph role's step, narrow */
     --rp-max: 1.2;                                       /* each paragraph role's step, wide */
-    --label-min: .6875;                                  /* .t-label in a narrow space */
+    --label-min: .6875;                                  /* .t-label in a narrow space; .t-eyebrow is a paragraph step up */
     --label-max: .75;                                    /* .t-label in a wide space */
     --lh-h1: 1.05;                                       /* H1's line height, before rounding to cells */
     --lh-h-step: .05;                                    /* how much each smaller heading opens */
