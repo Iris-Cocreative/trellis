@@ -25,6 +25,7 @@ Semver, staying 0.x until two apps ship on the same version. A 0.x minor may bre
 - **Controls past the cap:** a word wider than its line breaks instead of scrolling the page (`overflow-wrap: break-word` on `body`); a tag is never wider than its row, and a long label truncates sideways (rule 11); a chat item's meta line wraps.
 
 **Fixed**
+- **Primitive fixes, dense cluster:** a cluster at the end of a surface (the last in a card, a modal body or a member tile) rounds up to whole cells, in CSS and in `settle.js`, so a row of 1.5-cell tags or buttons no longer eats half the surface's bottom padding. Everywhere else a cluster still rounds to the nearest cell (D19). `math.js`'s `settleCluster()` takes `atEnd`. D55.
 - **A relational palette:** ink on the accent was white in both themes, about 2.5:1 on the dark theme's light blue, under AA. It is now computed from the fill: 7.7:1 there, 4.7:1 in the light theme.
 - A button could be wider than its row at large text sizes: it now never is, and a long label truncates sideways (rule 11), as a tag's does. Found by CI at 312% text in WebKit with Linux fonts; clear locally up to 400%. `tests/align.js` now names what reaches past the screen when a page scrolls sideways.
 - A definition list in `.prose` could widen its column past the frame: its grid track was sized by its longest word, which `overflow-wrap` doesn't shrink. The track may now shrink, so the word breaks. Found by CI at 312% text with Linux fonts.

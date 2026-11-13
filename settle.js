@@ -93,6 +93,7 @@
   // What's settled: only what a browser needs. Chrome rounds in CSS, so there it's prose nesting alone.
   var SEL = ROUNDS ? TEXT + ', ' + BLOCK + ', ' + INNER : INNER;
   var SKIP = '[data-settle-skip]';   // an overlay or a layer that moves often: not content, not ours
+  var CLUSTER_END = ':is(.card, .modal-body, .member-tile) > .cluster:last-child';   // a cluster at a surface's end rounds up
 
   // What an element is gets worked out once, when it's first seen. These
   // selectors are not cheap, and a pass visits every block.
@@ -162,7 +163,10 @@
     // down, at least one (as core.css does with calc-size).
     var k = kindOf(el);
     var have = parseFloat(el.style.getPropertyValue('--settle')) || 0;
-    var cells = (k & IS_CLUSTER) ? Math.max(1, Math.ceil(h / unit - 0.5 - 1e-3)) : Math.ceil(h / unit - 1e-3);
+    // At the end of a surface a cluster rounds up, as core.css does: only the
+    // surface's padding follows it.
+    var nearest = (k & IS_CLUSTER) && !el.matches(CLUSTER_END);
+    var cells = nearest ? Math.max(1, Math.ceil(h / unit - 0.5 - 1e-3)) : Math.ceil(h / unit - 1e-3);
     var need = cells * unit - h;
     if (Math.abs(need - have) > 0.02) writes.push([el, '--settle', need]);
   }

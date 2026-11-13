@@ -169,8 +169,11 @@
   function hang(height, cell) { return Math.ceil(height / cell - 1e-3) * cell; }
 
   // A cluster (a wrapping row of tags) rounds to the nearest cell, halves down,
-  // and never to nothing.
-  function settleCluster(height, cell) { return Math.max(cell, Math.floor((height + cell / 2 - 0.5) / cell) * cell); }
+  // and never to nothing. At the end of a surface (atEnd) nothing follows it but
+  // the surface's padding, so there it rounds up, like text.
+  function settleCluster(height, cell, atEnd) {
+    return atEnd ? hang(height, cell) : Math.max(cell, Math.floor((height + cell / 2 - 0.5) / cell) * cell);
+  }
 
   // A heading's own space after it: a share of its size, settled on the cells.
   function spaceAfter(role, size, cell, seed) {

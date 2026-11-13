@@ -82,7 +82,7 @@ Fluid, fractal type from the [Type Scale Generator](https://lab.iriscocreative.c
 The cell is the only line on the page; the grid draws nothing else.
 - **Headlines stand** (h1, h2, h3): line height rounds to whole cells, the box is trimmed to the capitals and the alphabetic baseline and padded to whole cells, so every baseline lands on a cell line.
 - **Text hangs** (h4–h6, the paragraph roles, the label): its own proportional line height, never forced to the grid. It hangs from a cell line by the top of its capitals, and its block rounds up to whole cells (`calc-size()`, or `settle.js`), so whatever follows starts on a line.
-- **Blocks settle too**: a `.cluster` (a wrapping row of tags or chips) and anything marked `.settle` (a code sample, a figure) round up to whole cells. Inside a cluster, things keep their own half-cell rhythm, like letters in a word.
+- **Blocks settle too**: anything marked `.settle` (a code sample, a figure) rounds up to whole cells, and a `.cluster` (a wrapping row of tags or chips) to the nearest cell, halves down, or up at the end of a surface (rule 6). Inside a cluster, things keep their own half-cell rhythm, like letters in a word.
 
 ### Five ways to meet a line
 
@@ -142,7 +142,7 @@ The same rules without CSS, for any platform. `math.js` is these formulas as fun
 
 **Standing** (h1 to h3). `line height = size × line ratio, rounded to the nearest whole cells`. The box is trimmed to the capitals and the baseline and padded on top by `cap height rounded up to whole cells − cap height`, so the last baseline sits on a cell line and every line above it does too.
 
-**Hanging** (everything else). The line height is `size × line ratio`, unrounded. The top of the capitals sits on a cell line, and `block height = height rounded up to whole cells`, so whatever follows starts on a line. A wrapping row of tags rounds to the nearest cell instead, halves down.
+**Hanging** (everything else). The line height is `size × line ratio`, unrounded. The top of the capitals sits on a cell line, and `block height = height rounded up to whole cells`, so whatever follows starts on a line. A wrapping row of tags rounds to the nearest cell instead, halves down, except at the end of a surface, where it rounds up.
 
 **A heading's own space.** `space after = size × (0.33 + 0.11 per step below H1), rounded to whole cells`. In a stack it is the larger of that and the gap, never the sum.
 
@@ -241,7 +241,7 @@ Every role is `light-dark()` of two relative colors (`oklch(from var(--seed-…)
 
 ### Text
 
-6. **Between blocks, space is whole cells.** A ½ or 1½ cell gap between stacked blocks puts everything after it off the grid. So `.u-gap-q` and `.u-gap-h` reach clusters only, never a stack. A cluster rounds its height to the nearest cell, halves down, so its content can overflow into the gap after it by up to half a cell; that is safe only because that gap is whole cells and at least one. A row that holds half-cell padding is one thing, like a button: its edges stay on lines and its contents keep their own rhythm (`.list.cc-dense`).
+6. **Between blocks, space is whole cells.** A ½ or 1½ cell gap between stacked blocks puts everything after it off the grid. So `.u-gap-q` and `.u-gap-h` reach clusters only, never a stack. A cluster rounds its height to the nearest cell, halves down, so its content can overflow into the gap after it by up to half a cell; that is safe only because that gap is whole cells and at least one. At the end of a surface (the last cluster in a card, a modal body or a member tile) nothing follows but the surface's padding, so there it rounds up instead. A row that holds half-cell padding is one thing, like a button: its edges stay on lines and its contents keep their own rhythm (`.list.cc-dense`).
 7. **Center only what differs by an even number of cells**; otherwise align to `start`.
 8. **Beside a control, text centers its capitals on the control** (`.cap-center`): both are trimmed to cap height.
 9. **An icon beside capitals or numbers centers on the cap height; beside lowercase text, on the x-height** (`.snap-x`).
