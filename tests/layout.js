@@ -238,8 +238,9 @@ const ready = require('./ready');
     d(1).showModal(); await settle(); d(2).showModal(); await settle(); d(3).showModal(); await settle();
     const depth = n => d(n).getAttribute('data-trellis-depth');
     if (depth(1) !== '2' || depth(2) !== '1' || depth(3) !== null) fails.push(`tray depths should be 2, 1 and none: ${depth(1)}, ${depth(2)}, ${depth(3)}`);
-    const top = n => d(n).querySelector('.modal-inner').getBoundingClientRect().top;
-    if (Math.abs(top(3) - top(2) - 2 * u) > 1) fails.push(`the tray behind should peek two cells above the front: ${(top(3) - top(2)).toFixed(1)}`);
+    // Each tray behind steps up two cells per level (heights differ with the fonts, so read the step).
+    const step = n => parseFloat((getComputedStyle(d(n).querySelector('.modal-inner')).translate.split(' ')[1]) || 0);
+    if (Math.abs(step(2) + 2 * u) > 1 || Math.abs(step(1) + 4 * u) > 1 || Math.abs(step(3)) > 1) fails.push(`trays behind should step up two cells per level: ${step(1).toFixed(1)}, ${step(2).toFixed(1)}, ${step(3).toFixed(1)}`);
     if (!d(1).querySelector('.modal-grabber').offsetHeight) fails.push('a bottom tray has no grabber');
     d(4).showModal(); await settle();
     if (d(3).open) fails.push('a fourth tray did not replace the third');
