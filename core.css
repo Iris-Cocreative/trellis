@@ -60,6 +60,10 @@
 }
 /* A control's state, as the share of its ink mixed into its fill. Registered
    so a state belongs to one box: a hovered row doesn't hover the button in it. */
+/* The presets' moving values: registered, so they animate (presets below). */
+@property --fade-start { syntax: '<length>'; inherits: false; initial-value: 0px; }
+@property --fade-end { syntax: '<length>'; inherits: false; initial-value: 0px; }
+@property --glow-a { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
 @property --state-act {
   syntax: "<percentage>";
   inherits: false;
@@ -1695,6 +1699,69 @@
   }
   .skip-link:focus { translate: none; }
 
+  /* Interaction presets (D82) ---------------------------------------------------
+     Each is off until an element asks for it with a data attribute. Fade and
+     press are CSS alone; glow, reveal, detents, swipe and share need the
+     optional presets.js. Under reduced motion each still works and nothing
+     travels: the durations collapse, press does not sink, and view
+     transitions stand down. */
+
+  /* Fade: a scroller's edges fade where there is more to see, from a mask
+     that a scroll-driven animation opens and closes. data-trellis-fade="x"
+     or "y"; --fade-size, three cells. Where the browser has no scroll-driven
+     animation there is no fade; on a box that doesn't scroll, none either. */
+  @keyframes trellis-fade-start { from { --fade-start: 0px; } to { --fade-start: var(--fade-size); } }
+  @keyframes trellis-fade-end { from { --fade-end: var(--fade-size); } to { --fade-end: 0px; } }
+  @supports (animation-timeline: scroll()) {
+    [data-trellis-fade] {
+      --fade-size: var(--sp-3);
+      --fade-dir: to right;
+      mask-image: linear-gradient(var(--fade-dir), transparent, #000 var(--fade-start), #000 calc(100% - var(--fade-end)), transparent);
+      animation: trellis-fade-start linear both, trellis-fade-end linear both;
+      animation-timeline: scroll(self x), scroll(self x);
+      animation-range: 0 var(--fade-size), calc(100% - var(--fade-size)) 100%;
+    }
+    [data-trellis-fade="y"] { --fade-dir: to bottom; animation-timeline: scroll(self y), scroll(self y); }
+  }
+
+  /* Press: a pressed control sinks, at once, by --press-scale. It returns
+     the same way, so no transition of the control's is replaced. */
+  [data-trellis-press] { --press-scale: .97; }
+  [data-trellis-press]:active:not(:disabled, [aria-disabled="true"]) { scale: var(--press-scale); }
+  @media (prefers-reduced-motion: reduce) { [data-trellis-press]:active { scale: none; } }
+
+  /* Glow: light under the finger on a field that scrolls (presets.js writes
+     --glow-x and --glow-y). It is the field's own background, so the content
+     never moves; --glow-size, --glow-color. Touch and pen; "all" adds a mouse. */
+  [data-trellis-glow] {
+    --glow-size: calc(var(--u) * 12);
+    --glow-color: var(--accent);
+    background-image: radial-gradient(circle var(--glow-size) at var(--glow-x, 50%) var(--glow-y, 50%), color-mix(in oklab, var(--glow-color) var(--glow-a), transparent), transparent);
+    transition: --glow-a var(--dur-out) var(--ease-in);
+  }
+  [data-trellis-glow][data-trellis-glowing] { --glow-a: 18%; transition-duration: var(--dur-in); }
+
+  /* Reveal: a scrollbar that shows while the field scrolls or a pointer is
+     over it (presets.js marks the scrolling). */
+  [data-trellis-reveal]:not([data-trellis-scrolling], :hover) { --scrollbar-thumb: transparent; --scrollbar-thumb-hover: transparent; }
+
+  /* Swipe: a row slides toward its start to show its actions
+     (.list-item[data-trellis-swipe] > … + .list-actions). The actions wait
+     past the row's end, clipped; presets.js moves everything by --swipe-x. */
+  .list-item[data-trellis-swipe] { overflow-x: clip; touch-action: pan-y; }
+  .list-item[data-trellis-swipe] :where(a, img) { -webkit-user-drag: none; }
+  .list-item[data-trellis-swipe] > * { translate: var(--swipe-x, 0px) 0; transition: translate var(--dur-in) var(--ease-spring); }
+  .list-item[data-trellis-swipe][data-trellis-dragging] > * { transition: none; }
+  .list-actions { position: absolute; inset-block: 0; inset-inline-start: 100%; display: flex; align-items: stretch; }
+  .list-actions > * { height: auto; border-radius: 0; }
+
+  /* Share: an element that carries across a change of view
+     (data-trellis-share="name"; presets.js names it and runs the change). */
+  :root:has([data-trellis-share])::view-transition-group(*) { animation-duration: var(--dur-in-slow); animation-timing-function: var(--ease-spring); }
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none; }
+  }
+
   /* Floating surfaces -----------------------------------------------------
      One surface for every popover, options card and tooltip, in the top layer
      at a fixed position, with its motion defined once. Placing it by its anchor,
@@ -2079,7 +2146,18 @@
     transform: var(--modal-from);
     transition: opacity var(--modal-out) var(--modal-out-ease), transform var(--modal-out) var(--modal-out-ease);
   }
-  .modal[open] .modal-inner { opacity: 1; transform: none; transition: opacity var(--modal-in) var(--modal-in-ease), transform var(--modal-in) var(--modal-in-ease); }
+  /* translate carries what moves an open modal: a detent (--tray-offset, the
+     detents preset) and a step back under another (--modal-step). */
+  .modal[open] .modal-inner {
+    opacity: 1; transform: none;
+    translate: 0 calc(var(--tray-offset, 0px) - var(--sp-2) * var(--modal-step, 0));
+    transition: opacity var(--modal-in) var(--modal-in-ease), transform var(--modal-in) var(--modal-in-ease), translate var(--dur-tray-in) var(--ease-spring);
+  }
+  .modal[data-trellis-dragging] .modal-inner { transition: none; }
+  /* A tray with detents never scrolls as a whole (its body does), or showing
+     what has focus would scroll it back up past its detent. */
+  .modal[data-trellis-detents] { overflow: clip; }
+  .modal[data-trellis-detents] .modal-inner { height: var(--modal-max-h); }
   @starting-style {
     .modal[open] .modal-inner { opacity: var(--modal-from-opacity); transform: var(--modal-from); }
     .modal[open]::backdrop { opacity: 0; }
@@ -2127,7 +2205,7 @@
      top one takes input: the dialog does that. */
   .modal:is(:not(.cc-tray), .cc-tray.cc-bottom)[data-trellis-depth="1"] { --modal-step: 1; }
   .modal:is(:not(.cc-tray), .cc-tray.cc-bottom)[data-trellis-depth="2"] { --modal-step: 2; }
-  .modal[open][data-trellis-depth] .modal-inner { translate: 0 calc(var(--sp-2) * var(--modal-step, 0) * -1); transition: translate var(--dur-in) var(--ease-out); }
+
   .modal:is(.cc-tray.cc-bottom, .cc-sheet) .modal-footer { padding-block-end: max(var(--modal-pad), env(safe-area-inset-bottom, 0px)); }
   /* .cc-sheet is the bottom tray as it was, edge to edge: an alias for one minor.
      Use .cc-tray.cc-bottom. */

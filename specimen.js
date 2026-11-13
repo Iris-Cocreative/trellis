@@ -1053,3 +1053,18 @@
 
   apply();
 })();
+
+// Interaction presets: the shared element moves between shelf and stage
+// inside Trellis.transition, so it carries across where the browser can.
+(function () {
+  var card = document.querySelector('.demo-share-card');
+  if (!card || !window.Trellis || !Trellis.transition) return;
+  card.addEventListener('click', function () {
+    var shelf = document.getElementById('demo-share-shelf'), stage = document.getElementById('demo-share-stage');
+    var toStage = card.parentElement === shelf;
+    Trellis.transition(function () {
+      (toStage ? stage : shelf).prepend(card);
+      card.setAttribute('aria-pressed', String(toStage));
+    });
+  });
+})();

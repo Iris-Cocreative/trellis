@@ -51,7 +51,7 @@
    to write. */
 (function () {
   'use strict';
-  if (typeof window === 'undefined' || window.Trellis) return;
+  if (typeof window === 'undefined' || (window.Trellis && window.Trellis.fit)) return;
   var root = document.documentElement;
 
   // ---- Device pixels and the fit width: every browser ---------------------
@@ -121,7 +121,9 @@
     restack();
   }).observe(document, { subtree: true, attributes: true, attributeFilter: ['open'] });
 
-  var api = { fit: fit, cell: cell, all: function () {}, observe: function () {}, settled: function () { return Promise.resolve(); } };
+  // presets.js may have made the object first: add to it, don't replace it.
+  var api = window.Trellis || {};
+  api.fit = fit; api.cell = cell; api.all = function () {}; api.observe = function () {}; api.settled = function () { return Promise.resolve(); };
   window.Trellis = api;
 
   // ---- Settling --------------------------------------------------------------

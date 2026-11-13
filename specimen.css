@@ -569,8 +569,9 @@
 
   /* Scrollbars */
   .scroller { --stack-gap: var(--sp-1); }
-  .scroll-pane { height: calc(var(--u) * 14); overflow-y: auto; outline: var(--line) solid var(--border-subtle); outline-offset: calc(var(--line) * -1); border-radius: var(--shape-float); padding: var(--sp-1); background: var(--bg-raised); --surface: var(--bg-raised); }
+  .scroll-pane { height: calc(var(--u) * 14); overflow-y: auto; outline: var(--line) solid var(--border-subtle); outline-offset: calc(var(--line) * -1); border-radius: var(--shape-float); padding: var(--sp-1); background-color: var(--bg-raised); --surface: var(--bg-raised); }
   .scroll-pane .stack { --stack-gap: var(--sp-1); }
+  .demo-share-card { width: 100%; text-align: start; cursor: pointer; }
 
   /* Context */
   .context-col { --stack-gap: var(--sp-1); }

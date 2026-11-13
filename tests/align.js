@@ -120,8 +120,8 @@ const target = require('./target');
         if (off(edge)) out.offText.push(desc(e) + (STANDS.test(e.className) ? ' baseline@' : ' top@') + edge.toFixed(1));
       } else if (BOX.test(e.className)) {
         out.box++;
-        // A right-aligned end and bleeding media have a free left edge, by design.
-        const freeLeft = e.closest('.list-end,.cover-media,.chat-item.cc-own,.chat-item.cc-system,.tabs');
+        // A right-aligned end (a row's end, its swipe actions) and bleeding media have a free left edge, by design.
+        const freeLeft = e.closest('.list-end,.list-actions,.cover-media,.chat-item.cc-own,.chat-item.cc-system,.tabs');
         if (off(t) || (!freeLeft && off(l))) out.offBox.push(desc(e) + ' top@' + t.toFixed(1) + ' left@' + l.toFixed(1));
       }
     }

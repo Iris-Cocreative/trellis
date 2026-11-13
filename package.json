@@ -16,6 +16,7 @@
     "./product.template.css": "./product.template.css",
     "./tokens.json": "./tokens.json",
     "./math.js": "./math.js",
+    "./presets.js": "./presets.js",
     "./package.json": "./package.json"
   },
   "files": [
@@ -24,6 +25,7 @@
     "product.template.css",
     "tokens.json",
     "math.js",
+    "presets.js",
     "README.md",
     "CHANGELOG.md",
     "REACT.md",

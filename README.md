@@ -307,6 +307,20 @@ Two invented layers in `examples/` show the range, and keep the mechanism tested
 
 **The specimen takes one layer by address.** `?layer=examples/quarry.css&product=quarry` loads that stylesheet and sets `data-product`. A layer on another origin loads only when the specimen is served from localhost, so a product's private layer can be seen, and run through the tests, from where it lives ([`tests/README.md`](tests/README.md)).
 
+## Interaction presets
+
+Seven behaviors an element asks for by name, each off until it does (D82). Fade and press are CSS alone; the other five need `presets.js`, the one optional file beside `settle.js`. Load it after `settle.js`. Each reads its knobs from `core.css`, and under reduced motion each still works and nothing travels.
+
+| Preset | Ask with | What it does | Knobs |
+|---|---|---|---|
+| Fade | `data-trellis-fade="x"` or `"y"` on a scroller | Its edges fade where there is more to see, from a scroll-driven mask: none at the start, none at the end. Where the browser has no scroll-driven animation, no fade. | `--fade-size` (3 cells) |
+| Press | `data-trellis-press` on a control | It sinks while pressed, at once, on top of the state layer's press. Not under reduced motion. | `--press-scale` (.97) |
+| Glow | `data-trellis-glow` on a field that scrolls (`="all"` adds a mouse) | Light under the finger, following it, fading when it lifts. It is the field's background image: set the field's color with `background-color`, not the `background` shorthand. | `--glow-size`, `--glow-color` |
+| Reveal | `data-trellis-reveal` on a scroller | Its scrollbar shows while it scrolls or a pointer is over it, and steps away after. | |
+| Detents | `data-trellis-detents="half full"` (or fractions, `"0.4 0.9"`) on a bottom tray | It opens at the first detent and rests at the nearest when its grabber or header is let go; dragged four cells below the lowest, it closes. It moves by a translate (D20), so it is as tall as its tallest detent; focus below the screen's edge raises it to full. | |
+| Swipe | `data-trellis-swipe` on a `.list-item` holding a `.list-actions` | Dragged toward its start the row slides to show its actions; past half their width it stays open. Focus in the actions opens it, Escape or a press elsewhere closes it, and a drag never follows the row's link. | |
+| Share | `data-trellis-share="name"` on an element | It carries across a change of view: `Trellis.transition(update)` runs the change in a view transition where the browser has one and motion is wanted, plainly otherwise. Between pages the app adds `@view-transition { navigation: auto; }`. | |
+
 ## Organic interfaces
 
 A community map, a constellation of people, a field of work and a web of relationships are not gridded and shouldn't be. Their rules branch from the same seed:
@@ -324,10 +338,10 @@ This is what a consumer may rely on. Anything here changing is a changelog entry
 
 | Part | The API |
 |---|---|
-| **Files** | `core.css`, `settle.js`, `product.template.css`, `tokens.json`, `math.js` |
+| **Files** | `core.css`, `settle.js`, `product.template.css`, `tokens.json`, `math.js` · optional: `presets.js` |
 | **Layers** | `@layer trellis`, with sublayers `reset`, `tokens`, `theme`, `base`, `layout`, `primitives`, `product`, `utilities`, in that order |
 | **Root attributes** | `data-product` (selects a product layer; absent is the neutral default) · `data-theme` (`light`, `dark`; absent follows the system) · `data-unit-fit` (`on`, `off`; absent fits touch screens) |
-| **Runtime** | `window.Trellis`: `fit()`, `cell()` (the cell in px, measured), `all()`, `observe(el)`, `settled()`. `data-settle-skip` opts an overlay out. It closes a `dialog.modal` on a backdrop click that began and ended on the backdrop; `data-trellis-stay` opts a modal out. It keeps the order of open modals, writing `--modal-index` on each and `data-trellis-depth` on those under the top one, and closes the third when a fourth opens. It writes `--dpr`, `--fit-width`, `--settle-n`, `--settle`, `--settle-start`, `data-prose-empty`, and `tabindex` with `data-trellis-reach` on prose that scrolls; those are its own. |
+| **Runtime** | `window.Trellis`: `fit()`, `cell()` (the cell in px, measured), `all()`, `observe(el)`, `settled()`; with `presets.js`, `presets` (the seven names) and `transition(update)`. `presets.js` writes `--glow-x`, `--glow-y`, `data-trellis-glowing`, `data-trellis-scrolling`, `--tray-offset`, `data-trellis-dragging`, `--swipe-x`, `data-trellis-swiped` and a shared element's `view-transition-name`; those are its own. `data-settle-skip` opts an overlay out. It closes a `dialog.modal` on a backdrop click that began and ended on the backdrop; `data-trellis-stay` opts a modal out. It keeps the order of open modals, writing `--modal-index` on each and `data-trellis-depth` on those under the top one, and closes the third when a fourth opens. It writes `--dpr`, `--fit-width`, `--settle-n`, `--settle`, `--settle-start`, `data-prose-empty`, and `tabindex` with `data-trellis-reach` on prose that scrolls; those are its own. |
 | **Knobs** (products set these on `:root`) | Everything in `product.template.css` |
 | **Tokens** (read them, don't set them) | Space `--u`, `--u-px`, `--u-scale` (the dial; settable) · `--sp-q`, `--sp-q2`, `--sp-h`, `--sp-1`, `--sp-1h`, `--sp-2`, `--sp-3`, `--sp-4`, `--sp-6`, `--sp-8`, `--sp-12`, `--sp-16` · Lines `--line`, `--hair` · Frame `--gutter`, `--frame-max`, `--frame-max-n` · Corners `--r-q`, `--r-h`, `--r-1`, `--r-1h`, `--r-2`, `--r-round` · Sizes `--size-icon-sm`, `--size-icon`, `--size-icon-md`, `--size-icon-lg`, `--size-control-xs`, `--size-control-sm`, `--size-control-md`, `--size-control-lg`, `--size-control-xl` · Control type `--fs-control-xs`, `--fs-control-sm`, `--fs-control-md`, `--fs-control`, `--fs-control-lg` · Motion `--dur-in`, `--dur-in-slow`, `--dur-out`, `--dur-tray-in`, `--dur-tray-out` (`--dur-sheet-in`, `--dur-sheet-out`: aliases for one minor), `--dur-skeleton`, `--ease-in`, `--ease-out`, `--ease-spring` · Stacking `--z-raised`, `--z-sticky`, `--z-overlay`, `--z-float`, `--z-toast` · Theme `--surface`, `--bg`, `--bg-raised`, `--bg-raised-2`, `--bg-raised-3`, `--bg-sunken`, `--bg-hover`, `--text`, `--text-secondary`, `--text-tertiary`, `--text-faint`, `--border`, `--border-subtle`, `--border-strong`, `--accent`, `--accent-ink`, `--focus`, `--kind-person`, `--kind-group`, `--kind-event`, `--kind-course`, `--kind-topic`, `--ok`, `--warn`, `--alert`, `--gradient-accent`, `--gradient-surface`, `--lift`, `--white`, `--black`, `--hit-min`, `--font-mono` · Lattice `--iso-dx`, `--iso-dy` |
 
@@ -349,7 +363,7 @@ This is what a consumer may rely on. Anything here changing is a changelog entry
 | `.cells` | | `--cell-x`, `--cell-y`, `--cell-w`, `--cell-h` |
 | `.rail` | | `--rail-item`, `--rail-gap` |
 | `.row`, `.col`, `.context` | | `--row-gap` |
-| `.list` | `.list-item`, `.list-body`, `.list-end`, `.list-link` · `.cc-group` (the rows share one surface; rules start at the text) | `--list-pad-y`, `--list-gap`, `--list-rule`, `--list-outset` |
+| `.list` | `.list-item`, `.list-body`, `.list-end`, `.list-link`, `.list-actions` (a row's swipe actions) · `.cc-group` (the rows share one surface; rules start at the text) | `--list-pad-y`, `--list-gap`, `--list-rule`, `--list-outset` |
 | `.board` | `.board-lane`, `.board-lane-head` | `--board-lane-w`, `--board-gap`, `--board-lane-gap`, `--board-card-pad` (lane cards' padding and the lane head's sides, a cell) |
 | `.card` | (its level is read from nesting, rule 21) · `.card-media`, `.card-scroll` (a scroller that spans the card's sides inside its block padding, so its scrollbar runs on a straight edge) | `--surface-level` (1 to 3; read it), `--card-scroll-pad`, `--card-pad` (sets both), `--card-pad-inline`, `--card-pad-block`, `--card-radius`, `--card-border` |
 | `.button`, `.icon-button` | `.button-label`, `.cc-primary`, `.cc-ghost`, `.cc-sm`, `.cc-md`, `.cc-lg` | `--btn-h`, `--btn-fs`, `--btn-radius`, `--btn-bg`, `--btn-ink`, `--btn-border`, `--btn-tracking` |
@@ -368,6 +382,7 @@ This is what a consumer may rely on. Anything here changing is a changelog entry
 | Scrollbars | `.cc-scroll-thick`, `.cc-scroll-none` | `--scrollbar-width`, `--scrollbar-size`, `--scrollbar-thumb`, `--scrollbar-thumb-hover`, `--scrollbar-track` |
 | `.switch` | `.switch-label` · `[aria-checked="true"]`, or a checked `input` inside · `[aria-disabled="true"]`, `:disabled` | `--switch-w`, `--switch-h`, `--switch-knob`, `--switch-off`, `--switch-on`, `--switch-thumb` |
 | States | `:hover` (where a pointer hovers), `:active`, `[aria-pressed="true"]`, `[aria-selected="true"]`, `[aria-checked="true"]`, `[aria-current]`, `:disabled`, `[aria-disabled="true"]` · `.u-state` for a control of your own | `--state-fill`, `--state-ink` (on `.u-state`) · `--state-act`, `--state-on` (the shares a control paints with; set by the states, read them) |
+| Presets | `[data-trellis-fade]`, `[data-trellis-press]`, `[data-trellis-glow]`, `[data-trellis-reveal]`, `[data-trellis-detents]`, `[data-trellis-swipe]`, `[data-trellis-share]` | `--fade-size`, `--press-scale`, `--glow-size`, `--glow-color` |
 | Utilities | `.u-text-secondary`, `.u-text-tertiary`, `.u-truncate`, `.u-sr-only`, `.u-align-end`, `.u-state`, `.u-gap-q`, `.u-gap-h`, `.u-gap-1`, `.u-gap-2`, `.u-gap-4` | |
 
 ## Enforcement

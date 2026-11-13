@@ -78,7 +78,7 @@ for (const line of read('product.template.css').split('\n')) {
 
 // Package.
 const pkg = JSON.parse(read('package.json'));
-for (const f of ['./core.css', './settle.js', './product.template.css', './tokens.json', './math.js']) {
+for (const f of ['./core.css', './settle.js', './presets.js', './product.template.css', './tokens.json', './math.js']) {
   check(pkg.exports && pkg.exports[f], `package.json doesn't export ${f}`);
   check(fs.existsSync(path.join(dir, f)), `${f} doesn't exist`);
 }

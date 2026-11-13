@@ -93,3 +93,4 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D79](D79.md) | Proportions: the tuner now, the rest when it shows a need | 2026-11-13 | accepted |
 | [D80](D80.md) | Navigation on the shell | 2026-11-13 | accepted |
 | [D81](D81.md) | Depth is the ground | 2026-11-13 | accepted |
+| [D82](D82.md) | Interaction presets: CSS where it can, one optional file | 2026-11-13 | accepted |

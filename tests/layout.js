@@ -16,6 +16,9 @@
 //           the skip link hidden until it has focus
 //   stacked each nested card a step of the ladder, corners concentric; grouped
 //           rows whole cells with their rules; trays step back, three at most
+//   presets fade at the edges where there is more; glow under a touch; reveal
+//           while scrolling; swipe to the actions and back; detents open at
+//           half, rest full, close when dragged down; share names and runs
 // Usage: node layout.js <url> [webkit] [WxH] [touch]
 // Needs Playwright (PLAYWRIGHT=module path). Exits 1 if anything is off.
 const pw = require(process.env.PLAYWRIGHT || 'playwright');
@@ -246,6 +249,68 @@ const ready = require('./ready');
     return fails;
   });
   fails.push(...stacked);
+
+  // Interaction presets, driven by synthetic pointer events so they run headless.
+  const presets = await page.evaluate(async () => {
+    const fails = [], wait = ms => new Promise(r => setTimeout(r, ms)), frames = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const at = (el, type, x, y, id = 9) => el.dispatchEvent(new PointerEvent(type, { bubbles: true, cancelable: true, pointerId: id, pointerType: 'touch', isPrimary: true, clientX: x, clientY: y }));
+    const val = (el, k) => getComputedStyle(el).getPropertyValue(k).trim();
+    if (!window.Trellis || !Array.isArray(Trellis.presets) || Trellis.presets.length !== 7) fails.push('presets.js did not list seven presets');
+    // Fade: none at the start, the far edge fading; at the end, the reverse.
+    if (CSS.supports('animation-timeline: scroll()')) {
+      const r = document.getElementById('demo-fade');
+      if (r.scrollWidth > r.clientWidth + 1) {
+        r.scrollLeft = 0; await frames();
+        if (parseFloat(val(r, '--fade-start')) !== 0 || !(parseFloat(val(r, '--fade-end')) > 0)) fails.push(`fade at the start should be 0 and more: ${val(r, '--fade-start')}, ${val(r, '--fade-end')}`);
+        r.scrollLeft = r.scrollWidth; await frames();
+        if (!(parseFloat(val(r, '--fade-start')) > 0) || parseFloat(val(r, '--fade-end')) !== 0) fails.push(`fade at the end should be more and 0: ${val(r, '--fade-start')}, ${val(r, '--fade-end')}`);
+        r.scrollLeft = 0;
+      }
+    }
+    // Press: the knob is there for a pressed control to read.
+    if (val(document.querySelector('[data-trellis-press]'), '--press-scale') !== '.97' && val(document.querySelector('[data-trellis-press]'), '--press-scale') !== '0.97') fails.push('a press preset has no --press-scale');
+    // Glow: lit under a touch, dark again when it lifts.
+    const g = document.getElementById('demo-glow'), gb = g.getBoundingClientRect();
+    at(g, 'pointerdown', gb.left + 30, gb.top + 20);
+    if (!g.hasAttribute('data-trellis-glowing') || val(g, '--glow-x') !== '30px') fails.push(`the glow did not light under the touch: ${val(g, '--glow-x')}`);
+    if (getComputedStyle(g).backgroundImage === 'none') fails.push('the glow has no background to draw on');
+    at(g, 'pointerup', gb.left + 30, gb.top + 20);
+    if (g.hasAttribute('data-trellis-glowing')) fails.push('the glow stayed lit after the touch lifted');
+    // Reveal: marked while it scrolls.
+    g.scrollTop = 24; await wait(120);
+    if (!g.hasAttribute('data-trellis-scrolling')) fails.push('a reveal field was not marked while scrolling');
+    g.scrollTop = 0;
+    // Swipe: dragged toward its start it opens by its actions' width; Escape closes it.
+    const row = document.querySelector('#demo-swipe .list-item'), rb = row.getBoundingClientRect(), w = row.querySelector('.list-actions').getBoundingClientRect().width;
+    at(row, 'pointerdown', rb.right - 20, rb.top + 10);
+    for (let i = 1; i <= 8; i++) at(row, 'pointermove', rb.right - 20 - i * 30, rb.top + 10);
+    at(row, 'pointerup', rb.right - 260, rb.top + 10);
+    if (Math.abs(parseFloat(row.style.getPropertyValue('--swipe-x')) + w) > 1) fails.push(`a swiped row should open by its actions (${w.toFixed(0)}): ${row.style.getPropertyValue('--swipe-x')}`);
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    if (parseFloat(row.style.getPropertyValue('--swipe-x')) !== 0) fails.push('Escape did not close a swiped row');
+    row.querySelector('.list-actions button').focus();
+    if (Math.abs(parseFloat(row.style.getPropertyValue('--swipe-x')) + w) > 1) fails.push('focus in a row\'s actions did not open it');
+    row.querySelector('.list-actions button').blur(); document.body.focus();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    // Detents: opens at half, dragged up rests full, dragged well down closes.
+    const d = document.getElementById('demo-detents'), inner = d.querySelector('.modal-inner');
+    d.showModal(); await wait(50);
+    const full = inner.getBoundingClientRect().height, off = () => parseFloat(d.style.getPropertyValue('--tray-offset'));
+    if (Math.abs(off() - (full - innerHeight / 2)) > 1) fails.push(`a tray with detents should open at half: offset ${off()}, want ${(full - innerHeight / 2).toFixed(0)}`);
+    const grab = d.querySelector('.modal-grabber'), gy = grab.getBoundingClientRect().top + 2, gx = grab.getBoundingClientRect().left + 10;
+    at(grab, 'pointerdown', gx, gy, 11); at(grab, 'pointermove', gx, gy - 600, 11); at(grab, 'pointerup', gx, gy - 600, 11);
+    if (off() !== 0) fails.push(`dragged up, the tray should rest full: offset ${off()}`);
+    at(grab, 'pointerdown', gx, gy, 12); at(grab, 'pointermove', gx, gy + innerHeight, 12); at(grab, 'pointerup', gx, gy + innerHeight, 12);
+    await wait(50);
+    if (d.open) { fails.push('dragged well down, the tray did not close'); d.close(); }
+    // Share: named for the transition; the transition runs or falls back.
+    const card = document.querySelector('[data-trellis-share]');
+    if (card.style.viewTransitionName !== card.getAttribute('data-trellis-share')) fails.push('a shared element was not named for the transition');
+    let ran = false; await Trellis.transition(() => { ran = true; });
+    if (!ran) fails.push('Trellis.transition did not run its update');
+    return fails;
+  });
+  fails.push(...presets);
   // Rule 8: a cap-centered label that wraps hangs instead. Built in a stack, so
   // its row starts on a line, and narrow, so its label must wrap.
   fails.push(...await page.evaluate(async () => {

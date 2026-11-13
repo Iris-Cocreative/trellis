@@ -117,6 +117,7 @@
   <a class="toc-link" href="#apps"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Apps</span></a>
   <a class="toc-link" href="#navigation"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Navigation</span></a>
   <a class="toc-link" href="#surfaces"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Surfaces on surfaces</span></a>
+  <a class="toc-link" href="#presets"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Interaction presets</span></a>
   <a class="toc-link" href="#post-type"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">A post type</span></a>
   <a class="toc-link" href="#primitives"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Primitives</span></a>
   <a class="toc-link" href="#avatars"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Edges</span></a>
@@ -887,6 +888,63 @@
     </dialog>
   </section>
 
+  <!-- ============================================================ INTERACTION PRESETS -->
+  <section class="section cc-split" id="presets">
+    <header class="section-head stack">
+      <p class="t-eyebrow">Interaction presets</p>
+      <h2 class="t-h4">Seven, each asked for by name</h2>
+      <p class="t-sm muted">Each preset is off until an element asks for it with a data attribute. Fade and press are CSS alone; the rest need presets.js, the one optional file beside settle.js. Under reduced motion each still works and nothing travels.</p>
+    </header>
+    <div class="section-body stack">
+      <h3 class="t-h5">data-trellis-fade</h3>
+      <div class="rail" id="demo-fade" data-trellis-fade="x" tabindex="0" role="group" aria-label="Seeds, a rail that fades at its edges">
+        <article class="card stack"><p class="t-sm">Long Island Cheese</p><p class="t-xs faint">Saved 2019</p></article>
+        <article class="card stack"><p class="t-sm">Cherokee Trail of Tears</p><p class="t-xs faint">Saved 2020</p></article>
+        <article class="card stack"><p class="t-sm">Moon and Stars</p><p class="t-xs faint">Saved 2021</p></article>
+        <article class="card stack"><p class="t-sm">Hopi Blue</p><p class="t-xs faint">Saved 2022</p></article>
+        <article class="card stack"><p class="t-sm">Glass Gem</p><p class="t-xs faint">Saved 2023</p></article>
+        <article class="card stack"><p class="t-sm">Mortgage Lifter</p><p class="t-xs faint">Saved 2024</p></article>
+        <article class="card stack"><p class="t-sm">Dragon Tongue</p><p class="t-xs faint">Saved 2025</p></article>
+        <article class="card stack"><p class="t-sm">Jacob's Cattle</p><p class="t-xs faint">Saved 2026</p></article>
+      </div>
+      <p class="t-xs faint">The edges fade only where there is more to see: none at the start, then both, then none at the end.</p>
+
+      <h3 class="t-h5">data-trellis-glow, data-trellis-reveal</h3>
+      <div class="scroll-pane stack" id="demo-glow" data-trellis-glow="all" data-trellis-reveal tabindex="0" role="region" aria-label="A field with a glow and a scrollbar that shows while it scrolls"><p class="t-sm">Touch the field and drag: a light follows the finger.</p><p class="t-sm">Its scrollbar shows while it scrolls, then steps away.</p><p class="t-sm">The light is the field's own background, so nothing in it moves.</p><p class="t-sm">With a mouse it lights too, since this one says "all".</p><p class="t-sm">Sow after the last frost, an inch deep.</p><p class="t-sm">Thin to a foot apart once the true leaves show.</p><p class="t-sm">Save from the best plants, never the first to bolt.</p></div>
+
+      <h3 class="t-h5">data-trellis-press</h3>
+      <div class="cluster">
+        <button class="button cc-primary" type="button" data-trellis-press><span class="button-label">Sow</span></button>
+        <button class="button" type="button" data-trellis-press><span class="button-label">Save</span></button>
+        <button class="button cc-ghost" type="button" data-trellis-press><span class="button-label">Share</span></button>
+      </div>
+
+      <h3 class="t-h5">data-trellis-swipe</h3>
+      <ul class="list" id="demo-swipe">
+        <li class="list-item" data-trellis-swipe><span class="avatar cc-sm cc-hue-a" aria-hidden="true">MV</span><div class="list-body"><p class="t-sm"><a class="list-link" href="#presets">Marisol Vega</a></p><p class="t-xs muted">Can you bring the squash seed?</p></div><div class="list-actions"><button class="button cc-ghost" type="button"><span class="button-label">Archive</span></button><button class="button cc-primary" type="button"><span class="button-label">Reply</span></button></div></li>
+        <li class="list-item" data-trellis-swipe><span class="avatar cc-sm cc-group" aria-hidden="true">FS</span><div class="list-body"><p class="t-sm"><a class="list-link" href="#presets">Food Systems</a></p><p class="t-xs muted">Three new members joined.</p></div><div class="list-actions"><button class="button cc-ghost" type="button"><span class="button-label">Archive</span></button><button class="button cc-primary" type="button"><span class="button-label">Reply</span></button></div></li>
+      </ul>
+      <p class="t-xs faint">Drag a row toward its start to show its actions. Tab reaches them too, and Escape puts them away.</p>
+
+      <h3 class="t-h5">data-trellis-detents</h3>
+      <div class="cluster"><button class="button" type="button" data-open-modal="demo-detents"><span class="button-label">Open a tray with detents</span></button></div>
+
+      <h3 class="t-h5">data-trellis-share</h3>
+      <div class="split" id="demo-share" style="--split-a: 1; --split-b: 2">
+        <div class="stack" id="demo-share-shelf"><button class="card stack demo-share-card" type="button" data-trellis-share="demo-seed" aria-pressed="false"><p class="t-label">Glass Gem</p><p class="t-xs faint">Press to move it</p></button></div>
+        <div class="stack" id="demo-share-stage"><p class="t-xs faint">It carries across the change, where the browser can.</p></div>
+      </div>
+    </div>
+    <dialog class="modal cc-tray cc-bottom" id="demo-detents" data-trellis-detents="half full" aria-labelledby="demo-detents-title">
+      <div class="modal-inner">
+        <div class="modal-grabber" aria-hidden="true"></div>
+        <header class="modal-header"><h3 class="t-h5" id="demo-detents-title">Half, then full</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg></button></header>
+        <div class="modal-body"><p class="t-sm">It opens at half the screen. Drag the grabber up for full, down to close.</p><p class="t-sm">Touch the field and drag: a light follows the finger.</p><p class="t-sm">Its scrollbar shows while it scrolls, then steps away.</p><p class="t-sm">The light is the field's own background, so nothing in it moves.</p><p class="t-sm">With a mouse it lights too, since this one says "all".</p><p class="t-sm">Sow after the last frost, an inch deep.</p><p class="t-sm">Thin to a foot apart once the true leaves show.</p><p class="t-sm">Save from the best plants, never the first to bolt.</p></div>
+        <footer class="modal-footer"><button class="button cc-primary" type="button" data-close-modal><span class="button-label">Done</span></button></footer>
+      </div>
+    </dialog>
+  </section>
+
   <!-- ============================================================ A POST TYPE -->
   <section class="post-type" id="post-type">
     <div class="cover" id="demo-cover">
@@ -1308,6 +1366,7 @@
 </aside>
 
 <script src="settle.js?v=0.9.0"></script>
+<script src="presets.js?v=0.9.0"></script>
 <script src="math.js?v=0.9.0"></script>
 <script src="experiments/solids.js?v=0.9.1"></script>
 <script src="experiments/vines.js?v=0.9.1"></script>
