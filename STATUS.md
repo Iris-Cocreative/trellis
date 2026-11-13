@@ -45,7 +45,8 @@ Everything here lands before the first app pins a version.
 | Private files off the site | idea | | Product layers kept where no public site serves them. |
 | Keyboard reach for scrollers | done | `3f5499c` | Rule 20: markup for rails and boards, `settle.js` for prose; `align.js` fails a scroller with no way in, 0 in all 21 runs. |
 | A relational palette | done | (this commit) | Seeds and derived roles; `contract.js` checks contrast for core and both examples in both themes; ink on the dark accent 7.7:1 (was 2.5:1). Suite at baseline. |
-| Primitive fixes from the specimen | underway | (this commit) | Dense cluster at a surface's end rounds up (D55). |
+| Heading space rounds up | done | (this commit) | Rounds up in `core.css` and `math.js`; `tests/math.js` checks every heading's margin, 368 checks in both engines. |
+| Primitive fixes from the specimen | underway | `08bea9a` | Dense cluster at a surface's end rounds up (D55). |
 | Design feedback on the specimen | underway | (this commit) | The first round of notes on the specimen: copy and styling changed, framework notes waiting on decisions. |
 
 ## Before the second app

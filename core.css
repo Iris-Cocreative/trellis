@@ -511,10 +511,10 @@
   :where(.t-h1, .t-h2, .t-h3, .prose :is(h1, h2, h3)) { --t-line: round(nearest, calc(1em * var(--t-lh)), var(--u)); }
   :where(.t-h1, .t-h2, .t-h3, .t-h4, .t-h5, .t-h6, .prose :is(h1, h2, h3, h4, h5, h6)) { font-family: var(--font-heading); font-weight: var(--fw-heading); text-wrap: balance; letter-spacing: var(--heading-tracking, -.01em); }
   /* A heading carries its own space after it, proportional to its size and
-     settled on the cells. In a stack it is the larger of that space and the
+     rounded up to whole cells. In a stack it is the larger of that space and the
      stack's gap, never the sum. */
   :where(.t-h1, .t-h2, .t-h3, .t-h4, .t-h5, .t-h6, .prose :is(h1, h2, h3, h4, h5, h6)):not(:last-child) {
-    --t-own: round(nearest, calc(1em * var(--t-mb)), var(--u));
+    --t-own: round(up, calc(1em * var(--t-mb) - 1px / 64), var(--u));   /* up, or a common size drops a cell; 1/64px absorbs layout's rounding */
     margin-block-end: var(--t-own);
   }
   :is(.stack, .member-tile-body, .modal-body, .cover-body, .list-body) > :where(.t-h1, .t-h2, .t-h3, .t-h4, .t-h5, .t-h6):not(:last-child) {

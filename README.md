@@ -74,7 +74,7 @@ Fluid, fractal type from the [Type Scale Generator](https://lab.iriscocreative.c
 - Two anchors, H1 and body, each with a size for a narrow space (20rem) and a wide one (90rem). Every role is a straight line between its two ends, clamped.
 - Headings step down from H1 by one ratio; paragraphs step out from body by another; **both ratios open with the space**. The default is 1.2 → 1.333; the examples run from 1.125 → 1.25 (Quarry) to 1.333 → 1.5 (Almanac).
 - Sizes respond to their **container** (`100cqi`), so a role inside a card scales to the card: the same structure at every scale of context.
-- A heading carries its own space after it, proportional to its size (H1 0.33em, +0.11em a step), settled on the cells. **In a stack it is the larger of that space and the gap, never the sum.**
+- A heading carries its own space after it, proportional to its size (H1 0.33em, +0.11em a step), rounded up to whole cells. **In a stack it is the larger of that space and the gap, never the sum.**
 - Known wrinkle: in every product, xs is larger in a narrow space than a wide one (the paragraph ratio opens faster than body grows), so CSS holds xs at its narrow size. The math view says so. Either accept a fixed xs or retune the paragraph ratio.
 
 ### Type on the cell
@@ -144,7 +144,7 @@ The same rules without CSS, for any platform. `math.js` is these formulas as fun
 
 **Hanging** (everything else). The line height is `size × line ratio`, unrounded. The top of the capitals sits on a cell line, and `block height = height rounded up to whole cells`, so whatever follows starts on a line. A wrapping row of tags rounds to the nearest cell instead, halves down, except at the end of a surface, where it rounds up.
 
-**A heading's own space.** `space after = size × (0.33 + 0.11 per step below H1), rounded to whole cells`. In a stack it is the larger of that and the gap, never the sum.
+**A heading's own space.** `space after = size × (0.33 + 0.11 per step below H1), rounded up to whole cells`. In a stack it is the larger of that and the gap, never the sum.
 
 ### The token source
 

@@ -175,11 +175,13 @@
     return atEnd ? hang(height, cell) : Math.max(cell, Math.floor((height + cell / 2 - 0.5) / cell) * cell);
   }
 
-  // A heading's own space after it: a share of its size, settled on the cells.
+  // A heading's own space after it: a share of its size, rounded up to whole
+  // cells (to the nearest, a common size drops a cell). 1/64 point absorbs
+  // layout's own rounding, as core.css does.
   function spaceAfter(role, size, cell, seed) {
     if (!isHeading(role)) return 0;
     var t = (seed || SEED).type;
-    return roundTo(size * (t.afterH1 + t.afterHeadingStep * -ROLES[role][1]), cell);
+    return Math.ceil((size * (t.afterH1 + t.afterHeadingStep * -ROLES[role][1]) - 1 / 64) / cell) * cell;
   }
   // In a stack it is the larger of that space and the gap, never the sum.
   function spaceAfterInStack(own, gap) { return Math.max(0, own - gap); }

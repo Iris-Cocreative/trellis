@@ -65,6 +65,19 @@ const CASES = [
         const role = (el.className.match(/t-(h\d|xl|lg|body|sm|xs|label)/) || [])[1], s = getComputedStyle(el);
         const size = M.typeSize(role, space(el), { textScale: rem / 16 }, seed), actual = parseFloat(s.fontSize);
         expect(near(size, actual, .06), `ratio: ${role} is ${actual}px, math says ${size.toFixed(3)}`);
+        // A heading's own space after it, rounded up to whole cells. The specimen
+        // zeroes its samples' margins, so a hidden copy in the same container,
+        // followed by a sibling and outside any stack, is measured instead.
+        if (M.isHeading(role)) {
+          const w = document.createElement('div'), h = document.createElement('p');
+          w.style.cssText = 'position:absolute;visibility:hidden;inset-inline:0';
+          h.className = 't-' + role; h.textContent = 'Seed';
+          w.append(h, document.createElement('span'));
+          el.parentElement.appendChild(w);
+          const mb = M.spaceAfter(role, parseFloat(getComputedStyle(h).fontSize), u, seed), got = parseFloat(getComputedStyle(h).marginBottom);
+          w.remove();
+          expect(near(mb, got, .05), `space after: ${role}'s is ${got}px, math says ${mb.toFixed(3)}`);
+        }
         if (M.stands(role)) {
           const lh = M.lineHeight(role, actual, u, seed);
           expect(near(lh, parseFloat(s.lineHeight), .05), `standing: ${role}'s line is ${s.lineHeight}, math says ${lh.toFixed(3)}`);
