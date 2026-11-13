@@ -11,7 +11,13 @@ Every part of Trellis and every choice behind it, made explicit. The knowledge b
 | [Decisions](decisions/README.md) | Every choice, as a decision record | `D1`, `D2` … in the order they were made |
 | [Anatomy](anatomy/README.md) | The five levels, the two definitions that hold them together, and the five ways anything meets a line | `A1` … `A5` for the levels, `M1` … `M5` for the relations |
 
-The other chapters (Start Here, Type, Primitives, Color and Theme, Products and Platforms, Support and Degradation, Tooling, Adoption, Versioning, Open Questions and Roadmap) come after the audit.
+After the audit:
+
+| Chapter | What it holds | IDs |
+|---|---|---|
+| [Color and Theme](color/README.md) | Seeds and roles, light and dark, kinds, the contrast floors, forced colors | `C1` … `C5` |
+
+The other chapters (Start Here, Type, Primitives, Products and Platforms, Support and Degradation, Tooling, Adoption, Versioning, Open Questions and Roadmap) come after the audit.
 
 ## Stable IDs
 
@@ -27,7 +33,7 @@ Every page opens with frontmatter:
 ---
 id: R5
 title: Surfaces step out
-chapter: rules            # seed, rules, decisions, anatomy
+chapter: rules            # seed, rules, decisions, anatomy, color
 status: settled           # settled, questioned, withdrawn; a decision is accepted or superseded
 since: 0.6.0              # the first version it held in, where the changelog says
 ---
@@ -42,6 +48,8 @@ Then the chapter's shape, in this order, with these headings.
 **A part of the anatomy:** What it is · Its parts · What it owns · How it meets the line · Rules it keeps.
 
 **A page of the seed:** What it is · Why · How it is computed, in plain words · Where it lives in the code.
+
+**A page of Color and Theme:** the seed's shape, then How it is checked. A page whose check is missing is `questioned`, and says what is missing.
 
 ## Writing
 

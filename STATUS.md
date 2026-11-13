@@ -75,7 +75,7 @@ One chapter each. Rules, decisions and primitives will carry stable IDs that the
 | Anatomy | done |
 | Type | idea |
 | Primitives | idea |
-| Color and Theme | idea |
+| Color and Theme | done: `C1` to `C5`; C4 and C5 questioned, with what is missing |
 | Products and Platforms | idea |
 | Support and Degradation | idea |
 | Tooling | idea |
