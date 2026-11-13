@@ -107,6 +107,7 @@
   <a class="toc-link" href="#elements"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Point, line, plane</span></a>
   <a class="toc-link" href="#unit"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">The cell</span></a>
   <a class="toc-link" href="#ratio"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">The ratio</span></a>
+  <a class="toc-link" href="#tune"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Tune it</span></a>
   <a class="toc-link" href="#type-cell"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Type on the cell</span></a>
   <a class="toc-link" href="#color"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Color</span></a>
   <a class="toc-link" href="#layout"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Layout</span></a>
@@ -306,6 +307,38 @@
   </section>
 
   <!-- ============================================================ BASELINE -->
+  <!-- ============================================================ TUNE -->
+  <section class="section cc-split" id="tune">
+    <header class="section-head stack">
+      <p class="t-eyebrow">Tune it</p>
+      <h2 class="t-h4">Turn the knobs, take the layer</h2>
+      <p class="t-sm muted">A product is a few knobs. Choose a proportion and it writes the four type ratios; choose a density; open the fine tuning for every type knob. The graph draws each role's size against its container's width, with the clamps where they hold, and the box below is the real classes, sized by the browser and checked against <code>math.js</code>. Drag its corner. When it feels right, take it away as a product layer.</p>
+    </header>
+    <div class="section-body stack">
+      <div class="cols tune-controls">
+        <div class="field"><label class="field-label t-label" for="tune-proportion">Proportion</label><select class="input" id="tune-proportion" data-tune-proportion><option value="custom">As the page is</option><option value="minor-third">Minor third, 1.2</option><option value="major-third">Major third, 1.25</option><option value="fourth">Perfect fourth, 1.333</option><option value="tritone">Root two, 1.414</option><option value="fifth">Perfect fifth, 1.5</option><option value="golden">Golden, 1.618</option></select><p class="field-hint t-xs" data-tune-series>Headings step by it in a wide space; the other ratios follow from it.</p></div>
+        <div class="field"><label class="field-label t-label" for="tune-density">Density</label><select class="input" id="tune-density" data-tune-density><option value="roomy">Roomy: two-cell cards, large controls</option><option value="dense">Dense: one-cell cards, medium controls</option></select><p class="field-hint t-xs">Card padding and control height, the two density knobs.</p></div>
+      </div>
+      <details class="tune-fine">
+        <summary class="t-sm">Fine tuning: every type knob, in rem and ratios</summary>
+        <div class="cols tune-knobs"><div class="field"><label class="field-label t-label" for="tune-h1-min">H1, narrow</label><input class="input cc-sm" id="tune-h1-min" type="number" step="0.001" min="0.1" data-knob="h1-min"></div><div class="field"><label class="field-label t-label" for="tune-h1-max">H1, wide</label><input class="input cc-sm" id="tune-h1-max" type="number" step="0.001" min="0.1" data-knob="h1-max"></div><div class="field"><label class="field-label t-label" for="tune-body-min">Body, narrow</label><input class="input cc-sm" id="tune-body-min" type="number" step="0.001" min="0.1" data-knob="body-min"></div><div class="field"><label class="field-label t-label" for="tune-body-max">Body, wide</label><input class="input cc-sm" id="tune-body-max" type="number" step="0.001" min="0.1" data-knob="body-max"></div><div class="field"><label class="field-label t-label" for="tune-rh-min">Heading ratio, narrow</label><input class="input cc-sm" id="tune-rh-min" type="number" step="0.001" min="0.1" data-knob="rh-min"></div><div class="field"><label class="field-label t-label" for="tune-rh-max">Heading ratio, wide</label><input class="input cc-sm" id="tune-rh-max" type="number" step="0.001" min="0.1" data-knob="rh-max"></div><div class="field"><label class="field-label t-label" for="tune-rp-min">Paragraph ratio, narrow</label><input class="input cc-sm" id="tune-rp-min" type="number" step="0.001" min="0.1" data-knob="rp-min"></div><div class="field"><label class="field-label t-label" for="tune-rp-max">Paragraph ratio, wide</label><input class="input cc-sm" id="tune-rp-max" type="number" step="0.001" min="0.1" data-knob="rp-max"></div><div class="field"><label class="field-label t-label" for="tune-label-min">Label, narrow</label><input class="input cc-sm" id="tune-label-min" type="number" step="0.001" min="0.1" data-knob="label-min"></div><div class="field"><label class="field-label t-label" for="tune-label-max">Label, wide</label><input class="input cc-sm" id="tune-label-max" type="number" step="0.001" min="0.1" data-knob="label-max"></div></div>
+      </details>
+      <div class="plate tune-plate"><svg class="tune-graph" data-tune-graph role="img" aria-label="Each type role's size against its container's width, from 240 to 1600 pixels: flat where a clamp holds, rising between the narrow and the wide space."></svg></div>
+      <div class="tune-box" data-tune-box>
+        <div class="tune-list stack" data-tune-list></div>
+        <article class="card stack tune-sample"><p class="t-h5">Garden Stewards Circle</p><p class="t-sm muted">Every other Monday, at the trial bed.</p><div class="cluster"><button class="button cc-primary" type="button"><span class="button-label">Join</span></button><button class="button" type="button"><span class="button-label">Later</span></button></div></article>
+      </div>
+      <p class="t-xs faint" data-tune-width></p>
+      <div class="cluster"><button class="switch" type="button" role="switch" aria-checked="false" data-tune-whole><span class="switch-label">Apply to the whole page</span></button><button class="button cc-sm" type="button" data-tune-reset><span class="button-label">Reset</span></button></div>
+      <div class="stack tune-export">
+        <h3 class="t-h6">The product layer</h3>
+        <pre class="code cc-wrap settle" data-tune-export></pre>
+        <div class="cluster"><button class="button cc-sm cc-primary" type="button" data-tune-save><span class="button-label">Save product.css</span></button><button class="button cc-sm" type="button" data-tune-copy><span class="button-label">Copy</span></button></div>
+        <p class="t-xs faint">One <code>:root[data-product]</code> rule of knobs in <code>@layer trellis.product</code>, the shape <code>tests/contract.js</code> checks. The cell itself is the reader's (the Unit control above); a proportion's cell counts are shown, not applied, until counts become tokens.</p>
+      </div>
+    </div>
+  </section>
+
   <section class="section cc-split" id="type-cell">
     <header class="section-head stack">
       <p class="t-eyebrow">Type on the cell</p>
@@ -1108,5 +1141,6 @@
 <script src="experiments/solids.js?v=0.9.1"></script>
 <script src="experiments/vines.js?v=0.9.1"></script>
 <script src="specimen.js?v=0.9.1"></script>
+<script src="tuner.js?v=0.9.1"></script>
 </body>
 </html>

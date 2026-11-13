@@ -427,6 +427,35 @@
 
   .split > .stack { --stack-gap: var(--sp-1); }
 
+  /* ---- Tune it ------------------------------------------------------- */
+  .tune-controls { --cols: 2; }
+  @container page (width < 720px) { .tune-controls { --cols: 1; } }
+  .tune-knobs { --cols: 2; padding-block-start: var(--sp-2); row-gap: var(--sp-1); }
+  .tune-fine > summary { cursor: pointer; color: var(--text-secondary); }
+  .tune-plate { padding: var(--sp-1); }
+  .tune-graph { display: block; width: 100%; height: calc(var(--u) * 24); overflow: visible; }
+  .tune-axis { stroke: var(--border); stroke-width: 1; stroke-dasharray: 2 3; }
+  .tune-now { stroke: var(--accent); stroke-width: 1; }
+  .tune-curve { fill: none; stroke-width: 1.5; }
+  .tune-tick, .tune-role { fill: var(--text-tertiary); font: 400 10px var(--font-mono); }
+  /* The box answers to its own width: drag its corner. It clips, so its cards
+     don't step out (rule 5). */
+  .tune-box {
+    --outset: 0;
+    container-type: inline-size;
+    display: flex; flex-direction: column; gap: var(--sp-3);
+    min-width: calc(var(--u) * 20); max-width: 100%;
+    padding: var(--sp-2);
+    resize: horizontal; overflow: hidden;
+    outline: var(--line) dashed var(--border-strong); outline-offset: calc(var(--line) * -1);
+    border-radius: var(--shape-card);
+  }
+  .tune-list { --stack-gap: var(--sp-1); }
+  .tune-line { display: grid; grid-template-columns: calc(var(--u) * 10) minmax(0, 1fr); column-gap: var(--sp-1); align-items: start; }
+  .tune-meta { font: 400 var(--fs-control-xs) / var(--sp-1) var(--font-mono); color: var(--text-tertiary); }
+  .tune-meta b { font-weight: 600; color: var(--text-secondary); }
+  @container (width < 30rem) { .tune-line { grid-template-columns: minmax(0, 1fr); } }
+
   /* ---- Color ---------------------------------------------------------- */
   .color-part { --stack-gap: var(--sp-1); }
   .swatches { --cols: 5; --cols-gap: var(--sp-1); row-gap: var(--sp-2); }
