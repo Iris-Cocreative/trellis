@@ -68,3 +68,4 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D54](D54.md) | A relational palette | 2026-11-12 | accepted |
 | [D55](D55.md) | A cluster at a surface's end rounds up | 2026-11-12 | accepted |
 | [D56](D56.md) | A heading's own space rounds up | 2026-11-12 | accepted |
+| [D57](D57.md) | The runtime closes a modal on a true backdrop click | 2026-11-12 | accepted |

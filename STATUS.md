@@ -47,6 +47,7 @@ Everything here lands before the first app pins a version.
 | A relational palette | done | (this commit) | Seeds and derived roles; `contract.js` checks contrast for core and both examples in both themes; ink on the dark accent 7.7:1 (was 2.5:1). Suite at baseline. |
 | Heading space rounds up | done | (this commit) | Rounds up in `core.css` and `math.js`; `tests/math.js` checks every heading's margin, 368 checks in both engines. |
 | Primitive fixes from the specimen | underway | `08bea9a` | Dense cluster at a surface's end rounds up (D55). |
+| Modal dismiss on a drag | done | (this commit) | `settle.js` closes a modal only on a true backdrop click; `tests/layout.js` checks the drag and `data-trellis-stay`, both engines, wide and touch. |
 | Design feedback on the specimen | underway | (this commit) | The first round of notes on the specimen: copy and styling changed, framework notes waiting on decisions. |
 
 ## Before the second app

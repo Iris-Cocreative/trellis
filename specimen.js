@@ -100,17 +100,13 @@
   darkQuery.addEventListener('change', function () { if (state.theme === 'auto') apply(); });
   touchQuery.addEventListener('change', apply);
 
-  // Modals: open and close on the native dialog, a backdrop click included.
-  // A click's target is where the press ended, so a press inside the card
-  // that ends on the backdrop (selecting text, say) would close it: the
-  // backdrop closes only when the press also began there.
-  var pressedOn = null;
-  document.addEventListener('pointerdown', function (e) { pressedOn = e.target; }, true);
+  // Modals: open and close on the native dialog. A click on the backdrop is
+  // settle.js's: it closes only when the press began there too.
   document.addEventListener('click', function (e) {
     var o = e.target.closest('[data-open-modal]');
     if (o) { document.getElementById(o.dataset.openModal).showModal(); return; }
     var dlg = e.target.closest('dialog.modal');
-    if (dlg && ((e.target === dlg && pressedOn === dlg) || e.target.closest('[data-close-modal]'))) dlg.close();
+    if (dlg && e.target.closest('[data-close-modal]')) dlg.close();
   });
   // Prose: the same post as the Markdown it could have come from. Written
   // from the post itself, so the two never disagree. The paste at the end has

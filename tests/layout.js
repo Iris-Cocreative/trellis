@@ -137,6 +137,32 @@ const ready = require('./ready');
     return fails;
   });
   fails.push(...m);
+  // A backdrop click closes a modal through the runtime, but only when the press
+  // began on the backdrop too: a press inside the card let go outside it (selecting
+  // text) keeps it open, and data-trellis-stay keeps it open whatever is clicked.
+  const open = () => page.evaluate(() => document.getElementById('demo-modal').open);
+  const show = () => page.evaluate(async () => {
+    const d = document.getElementById('demo-modal'), inner = d.querySelector('.modal-inner');
+    d.showModal();
+    await Promise.all(inner.getAnimations().map(a => a.finished));
+    const r = inner.getBoundingClientRect();
+    return { x: r.left + r.width / 2, inside: r.top + Math.min(r.height / 2, 40), backdrop: r.top / 2 };
+  });
+  const settle = () => page.waitForTimeout(250);
+  let at = await show();
+  if (at.backdrop < 2) fails.push('the modal leaves no backdrop above it to click');
+  else {
+    await page.mouse.move(at.x, at.inside); await page.mouse.down();
+    await page.mouse.move(at.x, at.backdrop, { steps: 4 }); await page.mouse.up(); await settle();
+    if (!(await open())) fails.push('a press inside the modal let go on the backdrop closed it');
+    await page.evaluate(() => document.getElementById('demo-modal').setAttribute('data-trellis-stay', ''));
+    await page.mouse.click(at.x, at.backdrop); await settle();
+    if (!(await open())) fails.push('a backdrop click closed a modal with data-trellis-stay');
+    await page.evaluate(() => document.getElementById('demo-modal').removeAttribute('data-trellis-stay'));
+    await page.mouse.click(at.x, at.backdrop); await settle();
+    if (await open()) fails.push('a backdrop click did not close the modal');
+  }
+  await page.evaluate(() => { const d = document.getElementById('demo-modal'); if (d.open) d.close(); });
   await browser.close();
   console.log(`${engine} ${size}${touch ? ' touch' : ''}: layout ${fails.length ? fails.length + ' FAILED' : 'ok'}`);
   fails.forEach(f => console.log('  ' + f));

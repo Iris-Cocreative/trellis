@@ -25,6 +25,15 @@
    (tabindex="0", data-trellis-reach), since content from an editor can't
    carry one; it is taken back when the block no longer overflows.
 
+   MODALS, in every browser: a .modal is a full-screen dialog whose padding
+   plays the backdrop, so this closes one on a click on the backdrop, but only
+   when the press began there too. A click goes to the common ancestor of where
+   the press began and where it ended, so without that check, selecting text in
+   the card and letting go outside it would close the modal. It asks the dialog
+   to close (requestClose(), so a cancel handler can refuse) where the browser
+   can. data-trellis-stay on the dialog opts it out: a modal that must be
+   answered, or an app that handles the backdrop itself.
+
    THE CELL, for any script: cell() measures it from one hidden box on the
    root ([data-trellis-cell]). Read it there, not from --u-px, which WebKit
    computes against the default text size when the root's font size is set.
@@ -71,6 +80,17 @@
     }
     return probe.getBoundingClientRect().width || 12;
   }
+
+  // ---- Modals: a true backdrop click, every browser ---------------------------
+  var pressedOn = null;
+  document.addEventListener('pointerdown', function (e) { pressedOn = e.target; }, true);
+  document.addEventListener('click', function (e) {
+    var d = e.target;
+    if (d === pressedOn && d.matches && d.matches('dialog.modal[open]:not([data-trellis-stay])')) {
+      if (typeof d.requestClose === 'function') d.requestClose(); else d.close();
+    }
+    pressedOn = null;
+  });
 
   var api = { fit: fit, cell: cell, all: function () {}, observe: function () {}, settled: function () { return Promise.resolve(); } };
   window.Trellis = api;
