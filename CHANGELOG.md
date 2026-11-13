@@ -33,6 +33,7 @@ Semver, staying 0.x until two apps ship on the same version. A 0.x minor may bre
 - **Apply the five relations:** the README names the five ways anything meets a line, with an example each: Stand, Hang, Inset, Outset and Center. Rule 5 and open question 2 use the new name.
 
 **Changed**
+- **Three default seeds a step darker (D83):** `--seed-group` 0.563 to 0.555, `--seed-ok` 0.571 to 0.547, `--seed-warn` 0.578 to 0.572 lightness, so the ink computed from each reads at 4.5:1. Products that copied the template's defaults may update them.
 - **`settle.js`** adds itself to a `window.Trellis` that already exists instead of skipping, so `presets.js` may load first. An open modal's movement is one `translate`, carrying a detent and a step back together.
 - **A card inside a surface** now paints `--bg-raised-2` (or `--bg-raised-3` one level deeper) and takes a concentric corner, where it painted `--bg-raised` and kept its own (D81).
 - **Rule 16:** core places a `.float.cc-anchor` by its anchor where the browser has anchor positioning; following the anchor and closing when it scrolls away stay the app's job (D80).
@@ -46,6 +47,8 @@ Semver, staying 0.x until two apps ship on the same version. A 0.x minor may bre
 - **Controls past the cap:** a word wider than its line breaks instead of scrolling the page (`overflow-wrap: break-word` on `body`); a tag is never wider than its row, and a long label truncates sideways (rule 11); a chat item's meta line wraps.
 
 **Fixed**
+- **Forced colors (D83):** current and selected marks, the switch, dots, a badge's pill and an avatar's ring vanished in a contrast theme; one forced-colors block draws them in system colors. `tests/layout.js` checks it in both engines.
+- **Ink on solid fills (D83):** a solid tag's label and a badge's count are computed from their fill, as the accent's ink is. Four pairs missed 4.5:1 (solid person, group, ok and warn in light; a badge on the alert in dark at 2.57:1). `tests/contract.js` now holds every solid kind and status at 4.5:1, both themes, every layer.
 - **A link styled as a button** (`a.button`) no longer shows a link's underline; nor does a link in an options card.
 - **Cap-centered text that wraps:** a `.cap-center` label that wraps used to stay centered and leave the cells, putting everything after it off its line. `settle.js` now counts the lines of every `.cap-center` in every browser and marks one that wraps with `data-trellis-wrap`; core hangs it from its row's top and rounds it up to whole cells (`calc-size()`, or `--settle-n` in Safari). `tests/align.js` checks a wrapped one as text and `tests/layout.js` builds one in both engines. Rule 8. D67.
 - **Primitive fixes, dense cluster:** a cluster at the end of a surface (the last in a card, a modal body or a member tile) rounds up to whole cells, in CSS and in `settle.js`, so a row of 1.5-cell tags or buttons no longer eats half the surface's bottom padding. Everywhere else a cluster still rounds to the nearest cell (D19). `math.js`'s `settleCluster()` takes `atEnd`. D55.

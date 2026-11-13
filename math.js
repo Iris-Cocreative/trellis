@@ -35,9 +35,9 @@
     color: {
       seeds: {
         neutral: [0.55, 0.004, 100], accent: [0.553, 0.166, 258.4],
-        person: [0.617, 0.132, 68.7], group: [0.563, 0.09, 212], event: [0.487, 0.155, 313.5],
+        person: [0.617, 0.132, 68.7], group: [0.555, 0.09, 212], event: [0.487, 0.155, 313.5],
         course: [0.519, 0.127, 154.1], topic: [0.508, 0.163, 257.5],
-        ok: [0.571, 0.146, 152.3], warn: [0.578, 0.125, 69.8], alert: [0.558, 0.168, 36.3]
+        ok: [0.547, 0.146, 152.3], warn: [0.572, 0.125, 69.8], alert: [0.558, 0.168, 36.3]
       },
       lift: 0.17, flip: 0.58,
       // Neutral roles: the neutral seed's hue and chroma at a lightness for each theme.

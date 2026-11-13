@@ -19,6 +19,8 @@
 //   presets fade at the edges where there is more; glow under a touch; reveal
 //           while scrolling; swipe to the actions and back; detents open at
 //           half, rest full, close when dragged down; share names and runs
+//   forced  in forced colors, current and selected marks, the switch, dots,
+//           badges and avatar rings still draw
 // Usage: node layout.js <url> [webkit] [WxH] [touch]
 // Needs Playwright (PLAYWRIGHT=module path). Exits 1 if anything is off.
 const pw = require(process.env.PLAYWRIGHT || 'playwright');
@@ -312,6 +314,26 @@ const ready = require('./ready');
     return fails;
   });
   fails.push(...presets);
+
+  // Forced colors (C5): what carried meaning with a shadow or a fill alone is
+  // drawn again in system colors. Run where the browser can emulate it.
+  await page.emulateMedia({ forcedColors: 'active' });
+  const forced = await page.evaluate(() => {
+    const fails = [];
+    if (!matchMedia('(forced-colors: active)').matches) return fails;
+    const cs = (s, p) => { const e = document.querySelector(s); return e && getComputedStyle(e, p || null); };
+    const canvas = getComputedStyle(document.body).backgroundColor;
+    const lined = (s, p) => { const c = cs(s, p); return c && c.outlineStyle === 'solid' && parseFloat(c.outlineWidth) > 0; };
+    [['.shell-link[aria-current]'], ['.outline-link[aria-current]'], ['.tabs.cc-seg .tab[aria-selected="true"]'], ['.switch', '::after'], ['.badge'], ['.avatar']].forEach(([s, p]) => { if (!lined(s, p)) fails.push(`forced colors: ${s}${p || ''} draws no outline`); });
+    const mark = cs('.tabs:not(.cc-seg) .tab[aria-selected="true"]', '::after');
+    if (!mark || mark.backgroundColor === canvas) fails.push('forced colors: a selected tab lost its line');
+    if (cs('.dot').backgroundColor === canvas) fails.push('forced colors: a dot vanished');
+    const on = cs('.switch[aria-checked="true"]', '::after'), off = cs('.switch:not([aria-checked="true"])', '::after');
+    if (on && off && on.backgroundColor === off.backgroundColor) fails.push('forced colors: a switch looks the same on and off');
+    return fails;
+  });
+  await page.emulateMedia({ forcedColors: 'none' });
+  fails.push(...forced);
   // Rule 8: a cap-centered label that wraps hangs instead. Built in a stack, so
   // its row starts on a line, and narrow, so its label must wrap.
   fails.push(...await page.evaluate(async () => {

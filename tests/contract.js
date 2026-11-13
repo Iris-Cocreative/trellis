@@ -149,6 +149,11 @@ for (const f of [null, ...PRODUCTS]) {
       const r = M.contrast(p[ink], p[ground]);
       check(r >= floor, `contrast: ${f || 'core'} ${theme}: --${ink} on --${ground} is ${r.toFixed(2)}:1, under ${floor}`);
     }
+    // A solid tag or a badge on a kind or status: ink computed from the fill.
+    for (const k of ['kind-person', 'kind-group', 'kind-event', 'kind-course', 'kind-topic', 'ok', 'warn', 'alert']) {
+      const r = M.contrast(M.ink(p[k], seed), p[k]);
+      check(r >= 4.5, `contrast: ${f || 'core'} ${theme}: ink on a solid --${k} is ${r.toFixed(2)}:1, under 4.5`);
+    }
   }
 }
 for (const [k, name] of [['lineH1', '--lh-h1'], ['lineHeadingStep', '--lh-h-step'], ['lineBody', '--lh-body'], ['lineParagraphStep', '--lh-p-step'], ['lineLabel', '--lh-label'], ['afterH1', '--mb-h1'], ['afterHeadingStep', '--mb-h-step']])

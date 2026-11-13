@@ -185,12 +185,12 @@
     --seed-neutral: oklch(.55 .004 100);
     --seed-accent: oklch(.553 .166 258.4);
     --seed-person: oklch(.617 .132 68.7);
-    --seed-group: oklch(.563 .09 212);
+    --seed-group: oklch(.555 .09 212);
     --seed-event: oklch(.487 .155 313.5);
     --seed-course: oklch(.519 .127 154.1);
     --seed-topic: oklch(.508 .163 257.5);
-    --seed-ok: oklch(.571 .146 152.3);
-    --seed-warn: oklch(.578 .125 69.8);
+    --seed-ok: oklch(.547 .146 152.3);
+    --seed-warn: oklch(.572 .125 69.8);
     --seed-alert: oklch(.558 .168 36.3);
     --color-lift: .17;   /* how much lighter a hue is in the dark theme */
     --ink-flip: .58;   /* ink on a fill: white below this lightness, dark above it */
@@ -249,12 +249,12 @@
       --accent-ink: light-dark(#ffffff, #020c22);
       --focus: light-dark(#2c6fd1, #60a5ff);
       --kind-person: light-dark(#b8740b, #f0a953);
-      --kind-group: light-dark(#1f8394, #5db8ca);
+      --kind-group: light-dark(#1b8192, #5ab5c7);
       --kind-event: light-dark(#7e3e9c, #b371d3);
       --kind-course: light-dark(#0c7d45, #52b276);
       --kind-topic: light-dark(#1b62c0, #5197fa);
-      --ok: light-dark(#0c8f4a, #57c57d);
-      --warn: light-dark(#a86a01, #e09e4c);
+      --ok: light-dark(#008843, #4fbd75);
+      --warn: light-dark(#a66800, #de9c4a);
       --alert: light-dark(#c2441f, #fe7b57);
       --gradient-accent: in oklab, var(--accent), var(--accent);
       --gradient-surface: in oklab, var(--bg-raised), var(--bg-sunken);
@@ -1455,6 +1455,12 @@
     --tag-fill: 100%; --tag-edge: 100%;
     --tag-ink: light-dark(var(--white), color-mix(in oklab, var(--tag-color) 18%, var(--black)));
   }
+  /* Ink on a solid fill is computed from the fill, as the accent's is: white
+     below --ink-flip, a dark ink of the fill's hue above it (C4). */
+  @supports (color: oklch(from red l c h)) {
+    .tag.cc-solid, .tag[aria-pressed="true"] { --tag-ink: oklch(from var(--tag-color) clamp(.16, (var(--ink-flip) - l) * 1000, 1) calc(clamp(0, (l - var(--ink-flip)) * 1000, 1) * c * .3) h); }
+    .badge:not(.cc-quiet, .cc-accent) { --badge-ink: oklch(from var(--badge-color) clamp(.16, (var(--ink-flip) - l) * 1000, 1) calc(clamp(0, (l - var(--ink-flip)) * 1000, 1) * c * .3) h); }
+  }
   /* size */
   .tag.cc-sm { --tag-h: var(--size-control-xs); --tag-fs: var(--tag-fs-sm); --tag-gap: var(--sp-q); }
   .tag.cc-md { --tag-h: var(--size-control-sm); --tag-fs: var(--tag-fs-md); }
@@ -2294,7 +2300,26 @@
   .cc-scroll-none  { --scrollbar-width: none; --scrollbar-size: 0px; }
 }
 
-/* High-contrast modes drop shadows but keep outlines; nothing more needed. */
+/* Forced colors (C5). The system replaces every color and removes every
+   shadow, so whatever carried meaning with a shadow or a fill alone is drawn
+   again here in system colors: current and selected marks (Highlight), the
+   switch, dots, a badge's pill and an avatar's ring (CanvasText). Card edges,
+   focus rings and bordered controls survive on their own. */
+@layer trellis.utilities {
+  @media (forced-colors: active) {
+    :is(.shell-link, .outline-link, .list-item, .tab, .options-card-item):is([aria-current]:not([aria-current="false"]), [aria-selected="true"]),
+    .list-item:has(> .list-link:is([aria-current]:not([aria-current="false"]), [aria-selected="true"])) {
+      outline: calc(var(--line) * 2) solid Highlight; outline-offset: calc(var(--line) * -2);
+    }
+    .tab[aria-selected="true"]::after { forced-color-adjust: none; background: Highlight; }
+    .switch::after { forced-color-adjust: none; outline: var(--line) solid CanvasText; outline-offset: calc(var(--line) * -1); --switch-fill: Canvas; --switch-thumb: CanvasText; }
+    .switch:is([aria-checked="true"], :has(> input:checked))::after { --switch-fill: Highlight; --switch-thumb: HighlightText; outline-color: Highlight; }
+    .switch:is(:disabled, [aria-disabled="true"], :has(> input:disabled))::after { --switch-thumb: GrayText; outline-color: GrayText; }
+    .dot { forced-color-adjust: none; background: CanvasText; }
+    .badge { outline: var(--line) solid CanvasText; outline-offset: calc(var(--line) * -1); }
+    .avatar { outline: var(--av-ring) solid CanvasText; outline-offset: var(--av-gap); }
+  }
+}
 
 @layer trellis.tokens {
   @media (prefers-reduced-motion: reduce) {

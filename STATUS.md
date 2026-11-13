@@ -60,6 +60,7 @@ Everything here lands before the first app pins a version.
 | Navigation templates | done | (this commit) | `.shell.cc-top` with a menu tray, `.float.cc-anchor`, `.shell-foot`, `.outline`, `.crumbs`, `.skip-link` (D80); `tests/layout.js` in both engines, wide and touch. |
 | Stacked surfaces | done | (this commit) | Rule 21: a three-step ground ladder from nesting, concentric corners, `.list.cc-group`, a tray grabber, trays that step back, three at most (D81); `tests/layout.js` and `tests/contract.js`, both engines. |
 | Interaction presets | done | (this commit) | Fade and press in `core.css`; glow, reveal, detents, swipe and share in the optional `presets.js` (D82); `tests/layout.js` drives each, both engines, wide and touch. |
+| Ink on solid fills | done | (this commit) | Computed from the fill; three seeds a step darker; `tests/contract.js` holds every solid kind and status at 4.5:1 (D83). |
 | Floats that follow and close | idea | | |
 | Density at scale | idea | | |
 | Theme name mapping | idea | | |
@@ -78,7 +79,7 @@ One chapter each. Rules, decisions and primitives will carry stable IDs that the
 | Anatomy | done |
 | Type | idea |
 | Primitives | idea |
-| Color and Theme | done: `C1` to `C5`; C4 and C5 questioned, with what is missing |
+| Color and Theme | done: `C1` to `C5` |
 | Products and Platforms | idea |
 | Support and Degradation | idea |
 | Tooling | idea |
@@ -123,7 +124,7 @@ Work that grows from the grid or leaves it, and still belongs to it.
 | Web view host | idea |
 | React Native theme | idea |
 | Hybrid seam test | idea |
-| Forced colors fallback | idea |
+| Forced colors fallback | done: one forced-colors block, checked by `tests/layout.js` (D83) |
 | Write down the surface default | idea |
 | Native or web, per surface | decided |
 
