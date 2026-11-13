@@ -14,6 +14,8 @@
 //           menu button; a dropdown under its button; outline rows whole cells
 //           and a cell in per level; crumbs show only the parent when narrow;
 //           the skip link hidden until it has focus
+//   stacked each nested card a step of the ladder, corners concentric; grouped
+//           rows whole cells with their rules; trays step back, three at most
 // Usage: node layout.js <url> [webkit] [WxH] [touch]
 // Needs Playwright (PLAYWRIGHT=module path). Exits 1 if anything is off.
 const pw = require(process.env.PLAYWRIGHT || 'playwright');
@@ -203,6 +205,47 @@ const ready = require('./ready');
     return fails;
   });
   fails.push(...nav);
+
+  // Surfaces on surfaces: each level a step of the ladder, corners concentric,
+  // grouped rows whole cells with their rules, trays that step back, three at most.
+  const stacked = await page.evaluate(async () => {
+    const fails = [], u = Trellis.cell(), wait = ms => new Promise(r => setTimeout(r, ms));
+    const whole = v => { const m = ((v % u) + u) % u; return m < .5 || m > u - .5; };
+    const cs = id => getComputedStyle(document.getElementById(id));
+    const probe = document.createElement('div'); document.body.appendChild(probe);
+    const color = role => { probe.style.color = `var(--${role})`; return getComputedStyle(probe).color; };
+    [['demo-nest-1', 'bg-raised', '1'], ['demo-nest-2', 'bg-raised-2', '2'], ['demo-nest-3', 'bg-raised-3', '3']].forEach(([id, role, level]) => {
+      if (cs(id).backgroundColor !== color(role)) fails.push(`${id} should be --${role}: ${cs(id).backgroundColor} vs ${color(role)}`);
+      if (cs(id).getPropertyValue('--surface-level').trim() !== level) fails.push(`${id} should be level ${level}`);
+    });
+    probe.remove();
+    const r = id => parseFloat(cs(id).borderTopLeftRadius), pad = id => Math.min(parseFloat(cs(id).paddingLeft), parseFloat(cs(id).paddingTop));
+    const q = Math.max(1, Math.round(u / 4));
+    [['demo-nest-1', 'demo-nest-2'], ['demo-nest-2', 'demo-nest-3']].forEach(([a, b]) => {
+      const want = Math.max(q, r(a) - pad(a));
+      if (Math.abs(r(b) - want) > .5) fails.push(`${b}'s corner is ${r(b)}, not ${a}'s less its padding (${want})`);
+    });
+    const rows = [...document.querySelectorAll('#demo-group > .list-item')];
+    rows.forEach((e, i) => { if (!whole(e.getBoundingClientRect().height)) fails.push(`grouped row ${i} is not whole cells`); });
+    if (getComputedStyle(rows[0].querySelector('.list-body')).borderImageSource === 'none') fails.push('a grouped row has no rule');
+    if (getComputedStyle(rows[rows.length - 1].querySelector('.list-body')).borderImageSource !== 'none') fails.push('the last grouped row has a rule');
+    // Trays over trays.
+    const d = n => document.getElementById('demo-stack-' + n);
+    const settle = async () => { await wait(50); await Promise.all([1, 2, 3, 4].flatMap(n => d(n).querySelector('.modal-inner').getAnimations()).map(a => a.finished.catch(() => {}))); await wait(50); };
+    d(1).showModal(); await settle(); d(2).showModal(); await settle(); d(3).showModal(); await settle();
+    const depth = n => d(n).getAttribute('data-trellis-depth');
+    if (depth(1) !== '2' || depth(2) !== '1' || depth(3) !== null) fails.push(`tray depths should be 2, 1 and none: ${depth(1)}, ${depth(2)}, ${depth(3)}`);
+    const top = n => d(n).querySelector('.modal-inner').getBoundingClientRect().top;
+    if (Math.abs(top(3) - top(2) - 2 * u) > 1) fails.push(`the tray behind should peek two cells above the front: ${(top(3) - top(2)).toFixed(1)}`);
+    if (!d(1).querySelector('.modal-grabber').offsetHeight) fails.push('a bottom tray has no grabber');
+    d(4).showModal(); await settle();
+    if (d(3).open) fails.push('a fourth tray did not replace the third');
+    if (!d(1).open || !d(2).open) fails.push('a fourth tray closed more than the third');
+    [4, 2, 1].forEach(n => d(n).close()); await settle();
+    if ([1, 2, 3, 4].some(n => d(n).hasAttribute('data-trellis-depth'))) fails.push('a closed tray kept its depth');
+    return fails;
+  });
+  fails.push(...stacked);
   // Rule 8: a cap-centered label that wraps hangs instead. Built in a stack, so
   // its row starts on a line, and narrow, so its label must wrap.
   fails.push(...await page.evaluate(async () => {

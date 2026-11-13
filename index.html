@@ -116,6 +116,7 @@
   <a class="toc-link" href="#prose"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Prose</span></a>
   <a class="toc-link" href="#apps"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Apps</span></a>
   <a class="toc-link" href="#navigation"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Navigation</span></a>
+  <a class="toc-link" href="#surfaces"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Surfaces on surfaces</span></a>
   <a class="toc-link" href="#post-type"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">A post type</span></a>
   <a class="toc-link" href="#primitives"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Primitives</span></a>
   <a class="toc-link" href="#avatars"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Edges</span></a>
@@ -814,6 +815,76 @@
       </div>
       <p class="t-xs faint">The links are one element at every width, a popover that shows in the bar when there is room. The outline marks where the reader is; a folding level is a details row. The foot's groups sit on fixed tracks, and its rule is a plane inside its top edge.</p>
     </div>
+  </section>
+
+  <!-- ============================================================ SURFACES ON SURFACES -->
+  <section class="section cc-split" id="surfaces">
+    <header class="section-head stack">
+      <p class="t-eyebrow">Surfaces on surfaces</p>
+      <h2 class="t-h4">Depth is the ground</h2>
+      <p class="t-sm muted">A surface inside a surface takes the next step of the neutral ladder, not a shadow: in light it steps back toward the page, in dark it steps lighter. Three levels, then it stops. Corners nest concentric. Rows in a group share one surface, their rules starting at the text. A tray over a tray lets the one behind peek by two cells.</p>
+    </header>
+    <div class="section-body stack">
+      <h3 class="t-h5">Three levels</h3>
+      <article class="card stack" id="demo-nest-1">
+        <p class="t-label">Level 1 · --bg-raised</p>
+        <p class="t-sm">A card on the page.</p>
+        <div class="card stack" id="demo-nest-2">
+          <p class="t-label">Level 2 · --bg-raised-2</p>
+          <p class="t-sm">Its corner is the one outside it less that card's padding.</p>
+          <div class="card stack" id="demo-nest-3">
+            <p class="t-label">Level 3 · --bg-raised-3</p>
+            <p class="t-sm">The last step. A fourth level stays here.</p>
+          </div>
+        </div>
+      </article>
+
+      <h3 class="t-h5">.list.cc-group</h3>
+      <ul class="list cc-group" id="demo-group">
+        <li class="list-item"><span class="avatar cc-sm cc-hue-a" aria-hidden="true">MV</span><div class="list-body"><p class="t-sm"><a class="list-link" href="#surfaces">Marisol Vega</a></p><p class="t-xs muted">Trial bed, Saturday</p></div><div class="list-end"><span class="t-xs faint">2m</span></div></li>
+        <li class="list-item"><span class="avatar cc-sm cc-group" aria-hidden="true">FS</span><div class="list-body"><p class="t-sm"><a class="list-link" href="#surfaces">Food Systems</a></p><p class="t-xs muted">Three new members</p></div><div class="list-end"><span class="t-xs faint">1h</span></div></li>
+        <li class="list-item"><span class="avatar cc-sm" aria-hidden="true">JB</span><div class="list-body"><p class="t-sm"><a class="list-link" href="#surfaces">Jonah Baptiste</a></p></div><div class="list-end"><span class="t-xs faint">Yesterday</span></div></li>
+      </ul>
+      <p class="t-xs faint">The rows share the surface. Each rule starts at the text, past the avatar, and runs to the surface's edge.</p>
+
+      <h3 class="t-h5">Trays over trays</h3>
+      <div class="cluster">
+        <button class="button" type="button" data-open-modal="demo-stack-1"><span class="button-label">Open a tray</span></button>
+      </div>
+      <p class="t-xs faint">Open one from the next: each tray behind steps up two cells, so it peeks above the one in front. A fourth replaces the third. Only the top one takes input.</p>
+    </div>
+    <dialog class="modal cc-tray cc-bottom" id="demo-stack-1" aria-labelledby="demo-stack-1-title">
+      <div class="modal-inner">
+        <div class="modal-grabber" aria-hidden="true"></div>
+        <header class="modal-header"><h3 class="t-h5" id="demo-stack-1-title">First tray</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg></button></header>
+        <div class="modal-body"><p class="t-sm">A bottom tray keeps a grabber on its top edge.</p><p class="t-sm muted">Seeds, sowing, saving and sharing: enough lines that a tray this tall shows the one behind it peeking above.</p><p class="t-sm muted">The page under every tray holds still.</p></div>
+        <footer class="modal-footer"><button class="button" type="button" data-open-modal="demo-stack-2"><span class="button-label">Open another</span></button><button class="button cc-primary" type="button" data-close-modal><span class="button-label">Done</span></button></footer>
+      </div>
+    </dialog>
+    <dialog class="modal cc-tray cc-bottom" id="demo-stack-2" aria-labelledby="demo-stack-2-title">
+      <div class="modal-inner">
+        <div class="modal-grabber" aria-hidden="true"></div>
+        <header class="modal-header"><h3 class="t-h5" id="demo-stack-2-title">Second tray</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg></button></header>
+        <div class="modal-body"><p class="t-sm">The first peeks above this one by two cells.</p><p class="t-sm muted">Seeds, sowing, saving and sharing: enough lines that a tray this tall shows the one behind it peeking above.</p><p class="t-sm muted">The page under every tray holds still.</p></div>
+        <footer class="modal-footer"><button class="button" type="button" data-open-modal="demo-stack-3"><span class="button-label">Open another</span></button><button class="button cc-primary" type="button" data-close-modal><span class="button-label">Done</span></button></footer>
+      </div>
+    </dialog>
+    <dialog class="modal cc-tray cc-bottom" id="demo-stack-3" aria-labelledby="demo-stack-3-title">
+      <div class="modal-inner">
+        <div class="modal-grabber" aria-hidden="true"></div>
+        <header class="modal-header"><h3 class="t-h5" id="demo-stack-3-title">Third tray</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg></button></header>
+        <div class="modal-body"><p class="t-sm">Three levels: the most there will be.</p><p class="t-sm muted">Seeds, sowing, saving and sharing: enough lines that a tray this tall shows the one behind it peeking above.</p><p class="t-sm muted">The page under every tray holds still.</p></div>
+        <footer class="modal-footer"><button class="button" type="button" data-open-modal="demo-stack-4"><span class="button-label">Open another</span></button><button class="button cc-primary" type="button" data-close-modal><span class="button-label">Done</span></button></footer>
+      </div>
+    </dialog>
+    <dialog class="modal cc-tray cc-bottom" id="demo-stack-4" aria-labelledby="demo-stack-4-title">
+      <div class="modal-inner">
+        <div class="modal-grabber" aria-hidden="true"></div>
+        <header class="modal-header"><h3 class="t-h5" id="demo-stack-4-title">A fourth</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg></button></header>
+        <div class="modal-body"><p class="t-sm">This one replaced the third.</p><p class="t-sm muted">Seeds, sowing, saving and sharing: enough lines that a tray this tall shows the one behind it peeking above.</p><p class="t-sm muted">The page under every tray holds still.</p></div>
+        <footer class="modal-footer"><button class="button cc-primary" type="button" data-close-modal><span class="button-label">Done</span></button></footer>
+      </div>
+    </dialog>
   </section>
 
   <!-- ============================================================ A POST TYPE -->

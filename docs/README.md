@@ -7,7 +7,7 @@ Every part of Trellis and every choice behind it, made explicit. The knowledge b
 | Chapter | What it holds | IDs |
 |---|---|---|
 | [The Seed](seed/README.md) | The cell, the ratio, response and context; lines are planes; point, line, plane; the masters; why relationships replace values; the principles above the rules | `S1`, `S2` … and `P1`, `P2` … for principles |
-| [Rules](rules/README.md) | Every rule, one page each, in one shape | `R1` … `R20` keep the README's numbers; `F1` … `F6` are the rules for free, flowing and moving layouts |
+| [Rules](rules/README.md) | Every rule, one page each, in one shape | `R1` … `R21` keep the README's numbers; `F1` … `F6` are the rules for free, flowing and moving layouts |
 | [Decisions](decisions/README.md) | Every choice, as a decision record | `D1`, `D2` … in the order they were made |
 | [Anatomy](anatomy/README.md) | The five levels, the two definitions that hold them together, and the five ways anything meets a line | `A1` … `A5` for the levels, `M1` … `M5` for the relations |
 
@@ -23,7 +23,7 @@ The other chapters (Start Here, Type, Primitives, Products and Platforms, Suppor
 
 An ID never changes and is never reused. A rule that is withdrawn keeps its page, marked `withdrawn`, with the decision that withdrew it. Tests, the changelog and commit messages cite IDs: "R5", "D14".
 
-The README numbers its rules 1 to 20, and those numbers are the IDs: rule 5 is `R5`. A new rule takes the next number. If the README's list is ever reordered, the IDs stay with their rules.
+The README numbers its rules 1 to 21, and those numbers are the IDs: rule 5 is `R5`. A new rule takes the next number. If the README's list is ever reordered, the IDs stay with their rules.
 
 ## Page shapes
 

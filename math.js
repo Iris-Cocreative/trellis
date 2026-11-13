@@ -42,7 +42,7 @@
       lift: 0.17, flip: 0.58,
       // Neutral roles: the neutral seed's hue and chroma at a lightness for each theme.
       neutrals: {
-        bg: [0.973, 0.176], 'bg-raised': [1, 0.213], 'bg-sunken': [0.943, 0.148], 'bg-hover': [0.936, 0.264],
+        bg: [0.973, 0.176], 'bg-raised': [1, 0.213], 'bg-raised-2': [0.985, 0.245], 'bg-raised-3': [0.97, 0.277], 'bg-sunken': [0.943, 0.148], 'bg-hover': [0.936, 0.264],
         text: [0.213, 0.967], 'text-secondary': [0.397, 0.823], 'text-tertiary': [0.544, 0.655], 'text-faint': [0.695, 0.495],
         border: [0.879, 0.308], 'border-subtle': [0.921, 0.259], 'border-strong': [0.741, 0.419]
       }

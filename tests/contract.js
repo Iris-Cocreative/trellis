@@ -129,6 +129,8 @@ check(JSON.stringify(fromTokens.color) === JSON.stringify(M.SEED.color), "math.j
 const FLOORS = [['text', 'bg', 4.5], ['text', 'bg-raised', 4.5], ['text', 'bg-sunken', 4.5],
   ['text-secondary', 'bg', 4.5], ['text-secondary', 'bg-raised', 4.5], ['text-secondary', 'bg-sunken', 4.5],
   ['text-tertiary', 'bg', 4.5], ['text-tertiary', 'bg-raised', 4.5],
+  ['text', 'bg-raised-2', 4.5], ['text-secondary', 'bg-raised-2', 4.5], ['text-tertiary', 'bg-raised-2', 4.5],
+  ['text', 'bg-raised-3', 4.5], ['text-secondary', 'bg-raised-3', 4.5], ['text-tertiary', 'bg-raised-3', 4.5],
   ['accent-ink', 'accent', 4.5], ['accent', 'bg', 3], ['accent', 'bg-raised', 3]];
 for (const f of [null, ...PRODUCTS]) {
   const seed = JSON.parse(JSON.stringify(M.SEED));

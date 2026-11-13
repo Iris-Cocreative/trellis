@@ -196,6 +196,8 @@
     /* Neutral roles: the neutral seed's hue and chroma at a lightness for each theme */
     --bg: light-dark(oklch(from var(--seed-neutral) .973 c h), oklch(from var(--seed-neutral) .176 c h));
     --bg-raised: light-dark(oklch(from var(--seed-neutral) 1 c h), oklch(from var(--seed-neutral) .213 c h));
+    --bg-raised-2: light-dark(oklch(from var(--seed-neutral) .985 c h), oklch(from var(--seed-neutral) .245 c h));
+    --bg-raised-3: light-dark(oklch(from var(--seed-neutral) .97 c h), oklch(from var(--seed-neutral) .277 c h));
     --bg-sunken: light-dark(oklch(from var(--seed-neutral) .943 c h), oklch(from var(--seed-neutral) .148 c h));
     --bg-hover: light-dark(oklch(from var(--seed-neutral) .936 c h), oklch(from var(--seed-neutral) .264 c h));
     --text: light-dark(oklch(from var(--seed-neutral) .213 c h), oklch(from var(--seed-neutral) .967 c h));
@@ -228,6 +230,8 @@
     :root {
       --bg: light-dark(#f7f6f3, #11110f);
       --bg-raised: light-dark(#fffffc, #191917);
+      --bg-raised-2: light-dark(#fbfaf7, #21201e);
+      --bg-raised-3: light-dark(#f6f5f2, #282826);
       --bg-sunken: light-dark(#edece9, #0b0b09);
       --bg-hover: light-dark(#eaeae7, #252523);
       --text: light-dark(#191917, #f5f4f1);
@@ -1008,6 +1012,32 @@
   /* A whole row that links somewhere, from a link inside it. */
   .list-link { color: inherit; text-decoration: none; }
   .list-link::before { content: ""; position: absolute; inset: 0; }
+  /* Grouped rows (.list.cc-group): the rows share one surface, with a card's
+     ground, edge and corner, stepping out as a card does. Each rule starts at
+     the row's text, past its leading mark, and runs to the surface's edge: an
+     outset border image on the row's body, clipped sideways by the row, so it
+     adds no size and needs no measure of the mark. */
+  .list.cc-group {
+    --surface: var(--bg-raised);
+    position: relative;
+    background: var(--surface);
+    border-radius: var(--shape-card);
+  }
+  .list.cc-group::after {
+    content: ""; position: absolute;
+    inset: 0 calc(var(--line) * -1) calc(var(--line) * -1) 0;
+    border: var(--line) solid var(--border-subtle);
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  .list.cc-group > .list-item { overflow-x: clip; }
+  .list.cc-group > .list-item:first-child { border-start-start-radius: inherit; border-start-end-radius: inherit; }
+  .list.cc-group > .list-item:last-child { border-end-start-radius: inherit; border-end-end-radius: inherit; }
+  .list.cc-group > .list-item::after { content: none; }
+  .list.cc-group > .list-item > .list-body { align-self: stretch; }
+  .list.cc-group > .list-item:not(:last-child) > .list-body {
+    border-image: linear-gradient(to top, var(--list-rule) var(--hair), transparent var(--hair)) fill 0 // 0 100vw calc(var(--list-pad-y) + var(--hair)) 0;
+  }
   /* A dense row is one thing: its edges stay on lines and its contents keep a
      half-cell rhythm, as in a button or a cluster. */
   .cc-dense .list, .list.cc-dense { --list-pad-y: var(--sp-h); --list-gap: var(--sp-h); }
@@ -1240,6 +1270,24 @@
     overflow: hidden;
   }
   .cc-dense .card, .card.cc-dense { --card-pad: var(--sp-1); --card-radius: var(--r-1); }
+  /* Surfaces on surfaces (D81). Depth is the ground, not a shadow: a surface
+     inside a surface (a card, a grouped list, a modal, a float) is one step
+     along the neutral ladder, --bg-raised-2, and one inside that --bg-raised-3,
+     where it stops: three levels at most. --surface-level says which, for
+     anything that reads it. Nesting needs no class. */
+  .card, .list.cc-group { --surface-level: 1; }
+  :is(.card, .list.cc-group, .modal-inner, .float) :is(.card, .list.cc-group) { --surface-level: 2; --surface: var(--bg-raised-2); }
+  :is(.card, .list.cc-group, .modal-inner, .float) :is(.card, .list.cc-group, .modal-inner, .float) :is(.card, .list.cc-group) { --surface-level: 3; --surface: var(--bg-raised-3); }
+  /* Nested corners are concentric: a card in a card takes its parent's corner
+     less its parent's padding, never under a quarter cell. Each level reads
+     the one above from a variable that level alone writes, so none refers to
+     itself. */
+  .card:not(.card .card) { --card-nest-r: max(var(--r-q), calc(var(--card-radius) - min(var(--card-pad-inline), var(--card-pad-block)))); }
+  .card .card:not(.card .card .card) {
+    --card-radius: var(--card-nest-r);
+    --card-nest-r2: max(var(--r-q), calc(var(--card-radius) - min(var(--card-pad-inline), var(--card-pad-block))));
+  }
+  .card .card .card { --card-radius: var(--card-nest-r2); }
   /* A scroller in a card. It spans the card's sides, so its scrollbar runs on
      the card's edge, and stays inside the card's block padding, so the edge it
      runs on is straight: the corners are above and below it. Where a product
@@ -2066,6 +2114,20 @@
   .modal.cc-tray.cc-top { --modal-margin: 0 0 auto; --modal-r-tl: 0px; --modal-r-tr: 0px; --modal-from: translateY(-100%); }
   .modal.cc-tray.cc-bottom { --modal-margin: auto 0 0; --modal-r-bl: 0px; --modal-r-br: 0px; --modal-from: translateY(100%); }
   .modal.cc-tray .modal-body { flex: 1 1 auto; overflow-y: auto; }
+  /* The grabber: a pill on a bottom tray's top edge, a cell tall, where a drag
+     begins (the detents preset). Elsewhere it is not drawn. */
+  .modal-grabber { display: none; flex: none; height: var(--sp-1); align-items: center; justify-content: center; }
+  .modal-grabber::before { content: ""; width: var(--sp-3); height: var(--sp-q); border-radius: var(--r-round); background: color-mix(in oklab, var(--text) 24%, transparent); }
+  .modal:is(.cc-tray.cc-bottom, .cc-sheet) .modal-grabber { display: flex; }
+  /* Trays over trays. settle.js numbers the open modals in the order they
+     opened (--modal-index) and marks those under the top one
+     (data-trellis-depth, 1 and 2); a fourth replaces the third. A modal or a
+     bottom tray under another steps up two cells for each level, so it peeks
+     above the one in front by whole cells. A side tray stays put. Only the
+     top one takes input: the dialog does that. */
+  .modal:is(:not(.cc-tray), .cc-tray.cc-bottom)[data-trellis-depth="1"] { --modal-step: 1; }
+  .modal:is(:not(.cc-tray), .cc-tray.cc-bottom)[data-trellis-depth="2"] { --modal-step: 2; }
+  .modal[open][data-trellis-depth] .modal-inner { translate: 0 calc(var(--sp-2) * var(--modal-step, 0) * -1); transition: translate var(--dur-in) var(--ease-out); }
   .modal:is(.cc-tray.cc-bottom, .cc-sheet) .modal-footer { padding-block-end: max(var(--modal-pad), env(safe-area-inset-bottom, 0px)); }
   /* .cc-sheet is the bottom tray as it was, edge to edge: an alias for one minor.
      Use .cc-tray.cc-bottom. */
@@ -2091,6 +2153,7 @@
       --modal-out: var(--dur-tray-out); --modal-out-ease: var(--ease-spring);
     }
     .modal:not(.cc-tray, .cc-sheet) .modal-body { overflow-y: auto; }
+    .modal:not(.cc-tray, .cc-sheet) .modal-grabber { display: flex; }
     .modal:not(.cc-tray, .cc-sheet) .modal-footer { padding-block-end: max(var(--modal-pad), env(safe-area-inset-bottom, 0px)); }
     .modal.cc-tray:not(.cc-top, .cc-bottom) { --modal-w: min(calc(100% - var(--sp-4)), var(--tray-w)); }
   }

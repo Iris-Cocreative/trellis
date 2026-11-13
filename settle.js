@@ -37,7 +37,10 @@
    the card and letting go outside it would close the modal. It asks the dialog
    to close (requestClose(), so a cancel handler can refuse) where the browser
    can. data-trellis-stay on the dialog opts it out: a modal that must be
-   answered, or an app that handles the backdrop itself.
+   answered, or an app that handles the backdrop itself. It also keeps the
+   order the open modals came in: --modal-index on each (0 for the first),
+   and data-trellis-depth on those under the top one (1, then 2), so CSS can
+   step them back. A fourth replaces the third: three levels at most.
 
    THE CELL, for any script: cell() measures it from one hidden box on the
    root ([data-trellis-cell]). Read it there, not from --u-px, which WebKit
@@ -96,6 +99,27 @@
     }
     pressedOn = null;
   });
+  var stack = [];
+  function restack() {
+    stack = stack.filter(function (d) { return d.open && d.isConnected; });
+    stack.forEach(function (d, i) {
+      var depth = stack.length - 1 - i;
+      d.style.setProperty('--modal-index', String(i));
+      if (depth) d.setAttribute('data-trellis-depth', String(depth)); else d.removeAttribute('data-trellis-depth');
+    });
+  }
+  if ('MutationObserver' in window) new MutationObserver(function (records) {
+    records.forEach(function (r) {
+      var d = r.target;
+      if (!d.matches('dialog.modal')) return;
+      if (!d.open) { d.removeAttribute('data-trellis-depth'); d.style.removeProperty('--modal-index'); return; }
+      if (stack.indexOf(d) < 0) {
+        stack.push(d);
+        if (stack.length > 3) stack[stack.length - 2].close();
+      }
+    });
+    restack();
+  }).observe(document, { subtree: true, attributes: true, attributeFilter: ['open'] });
 
   var api = { fit: fit, cell: cell, all: function () {}, observe: function () {}, settled: function () { return Promise.resolve(); } };
   window.Trellis = api;

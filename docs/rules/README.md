@@ -2,7 +2,7 @@
 
 A rule is a constraint the foundation keeps everywhere, with a reason, a failure it prevents and a way it is checked. This chapter is the review standard: a change that breaks a rule either fixes the change or changes the rule, through a decision.
 
-`R1` to `R20` keep the README's numbers. `F1` to `F6` are the rules for free, flowing and moving layouts. Page shapes and IDs are in [the knowledge base's README](../README.md).
+`R1` to `R21` keep the README's numbers. `F1` to `F6` are the rules for free, flowing and moving layouts. Page shapes and IDs are in [the knowledge base's README](../README.md).
 
 A rule is `questioned` when its reason is missing, the code does not keep it, or a test is missing for something it claims. Each questioned page says what is missing.
 
@@ -40,6 +40,7 @@ A rule is `questioned` when its reason is missing, the code does not keep it, or
 | [R18](R18.md) | Touch targets | settled | `tests/layout.js`, for inputs and shell links |
 | [R19](R19.md) | The reader's text size wins; the cell stops at 1.5× | settled | `tests/align.js` with `ax`; `tests/math.js`; `tests/contract.js` |
 | [R20](R20.md) | Every sideways scroller can be reached by keyboard | settled | `tests/align.js` (keyboard reach, every run) |
+| [R21](R21.md) | Depth is the ground | settled | `tests/layout.js` (levels, corners, grouped rows, trays), `tests/contract.js` (ink on the new grounds) |
 
 ## Free, flowing and moving layouts
 
