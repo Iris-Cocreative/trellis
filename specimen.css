@@ -428,10 +428,10 @@
   .compare > .stack { --stack-gap: var(--sp-1); }
   .bad { color: var(--alert); }
   .good { color: var(--ok); }
-  /* The scroller clips itself to the card's corners, so the card needn't
-     clip (which would cut off its own edge plane on the right and bottom). */
-  .demo-card { --card-pad: 0px; max-width: calc(var(--u) * 32); }
-  .demo-scroll { height: calc(var(--u) * 20); overflow-y: auto; padding: var(--sp-h); border-radius: inherit; }
+  /* The scroller is core's .card-scroll: inside the card's corners, so its
+     scrollbar runs on a straight edge and the card needn't clip. */
+  .demo-card { max-width: calc(var(--u) * 32); }
+  .demo-scroll { --card-scroll-pad: var(--sp-h); height: calc(var(--u) * 20); }
   .action-row { display: flex; align-items: center; gap: var(--sp-1); min-height: var(--size-control-lg); padding-inline: var(--sp-1); border-radius: max(var(--r-q), calc(var(--card-radius) - var(--sp-h))); }
   .action-row .t-sm { flex: 1; }
 
@@ -497,6 +497,7 @@
   .m-gap  { position: absolute; background: var(--m-gap); }
   .m-own  { position: absolute; background: var(--m-own); }
   .m-base { position: absolute; height: var(--line); background: var(--m-base); }
+  .m-base.cc-x { height: 0; background: none; border-top: var(--line) dashed var(--m-base); opacity: .6; }
   .m-label {
     position: absolute;
     font: 600 9px/12px var(--font-mono);
@@ -540,6 +541,7 @@
   .lg.cc-gap::before { background: var(--m-gap); }
   .lg.cc-own::before { background: var(--m-own); }
   .lg.cc-base::before { height: var(--line); background: var(--m-base); }
+  .lg.cc-x::before { height: 0; border-top: var(--line) dashed var(--m-base); border-radius: 0; opacity: .6; }
 
   /* ---- The CSS panel ------------------------------------------------------
      Docked beside the page on a wide screen (the page reflows into what's

@@ -72,3 +72,9 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D58](D58.md) | One relational state layer | 2026-11-12 | accepted |
 | [D59](D59.md) | A switch primitive | 2026-11-12 | accepted |
 | [D60](D60.md) | An eyebrow, a lighter label, a field inset | 2026-11-12 | accepted |
+| [D61](D61.md) | Disclosure as rows | 2026-11-12 | accepted |
+| [D62](D62.md) | The tab bar pads like main | 2026-11-12 | accepted |
+| [D63](D63.md) | A board pads its cards a cell | 2026-11-12 | accepted |
+| [D64](D64.md) | Hanging rows keep their space below | 2026-11-12 | accepted |
+| [D65](D65.md) | Your own message, and runs | 2026-11-12 | accepted |
+| [D66](D66.md) | A scroller inside a card's corners | 2026-11-12 | accepted |

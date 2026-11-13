@@ -859,8 +859,53 @@
   .prose :where(figure, p):where(:has(> :is(img, a) ~ :is(img, a))) > :where(img, a > img) { aspect-ratio: 1; object-fit: cover; }
   .prose :where(figure):where(:has(> :is(img, a) ~ :is(img, a))) > figcaption { grid-column: 1 / -1; margin-block-start: 0; }
 
-  .prose :where(details) { margin: 0; }
-  .prose :where(summary) { cursor: pointer; font-weight: var(--fw-label); }
+  /* Disclosure. The summary is a full-row target with the shared states, its
+     ground half a cell around it. Its chevron sits in a two-cell margin, like a
+     list's marker, centered on the capitals (rule 9), and turns when open. The
+     answer takes the same inset, in --details-ink: a role, not opacity, so an
+     image or code inside isn't faded. Consecutive details are rows: a hairline
+     in the middle of the gap between them, a plane on a line, adding no height. */
+  .prose :where(details) {
+    --details-ink: var(--text-secondary);
+    --details-chevron: var(--sp-h);
+    position: relative;
+    margin: 0;
+  }
+  .prose :where(summary) {
+    position: relative;
+    display: block; list-style: none;
+    padding-inline-start: var(--sp-2);
+    border-radius: var(--r-q);
+    cursor: pointer; font-weight: var(--fw-label);
+    background: color-mix(in oklab, var(--text) var(--state-act), transparent);
+    box-shadow: 0 0 0 var(--sp-h) color-mix(in oklab, var(--text) var(--state-act), transparent);
+    transition: background-color var(--dur-out) var(--ease-in), box-shadow var(--dur-out) var(--ease-in);
+  }
+  .prose :where(summary)::-webkit-details-marker { display: none; }
+  .prose :where(summary):focus-visible { outline-offset: var(--sp-h); }
+  /* Two sides of a square, turned: the drawn half sits off the square's center
+     by a third of its side, which the translate gives back. */
+  .prose :where(summary)::before {
+    content: ""; position: absolute;
+    inset-inline-start: calc(var(--sp-h) - var(--details-chevron) / 2);
+    inset-block-start: calc(.5cap - var(--details-chevron) / 2);
+    width: var(--details-chevron); height: var(--details-chevron);
+    border-inline-end: calc(var(--line) * 1.5) solid var(--text-tertiary);
+    border-block-end: calc(var(--line) * 1.5) solid var(--text-tertiary);
+    transform: translateX(calc(var(--details-chevron) * -.354)) rotate(-45deg);
+    transition: transform var(--dur-in) var(--ease-out);
+  }
+  .prose :where(summary:dir(rtl))::before { transform: translateX(calc(var(--details-chevron) * .354)) rotate(45deg) scaleX(-1); }
+  .prose :where(details[open] > summary)::before { transform: translateY(calc(var(--details-chevron) * -.354)) rotate(45deg); }
+  .prose :where(details) > :where(:not(summary)) { margin-inline-start: var(--sp-2); color: var(--details-ink); }
+  .prose :where(details + details)::before {
+    content: ""; position: absolute;
+    inset-inline: 0;
+    inset-block-start: calc(round(down, var(--stack-gap, var(--sp-2)) / 2, var(--u)) * -1);
+    height: var(--hair);
+    background: var(--border-subtle);
+    pointer-events: none;
+  }
   .prose :where(dl) { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--prose-inner-gap); }   /* the track may shrink below its longest word, so a long word breaks instead of widening the column */
   .prose :where(dt) { font-weight: var(--fw-strong); }
   .prose :where(dd + dt) { margin-block-start: var(--sp-1); }   /* a term belongs to its definition */
@@ -1015,7 +1060,7 @@
       flex-direction: row; justify-content: space-around; gap: 0;
       /* Whole cells, so a tab bar never pushes what follows off the lines. */
       padding-block: 0 round(up, env(safe-area-inset-bottom, 0px), var(--u));
-      padding-inline: var(--sp-h);
+      padding-inline: var(--shell-pad);   /* as main pads, so the outer links' fills share its content edge */
       box-shadow: inset 0 var(--line) 0 var(--border-subtle);
     }
     .shell-link {
@@ -1060,9 +1105,12 @@
   /* BOARD: lanes of cards in a sideways scroller. Markup: .board > .board-lane
      > .board-lane-head + cards. A lane clips nothing; the board keeps a line
      spare at its end and a cell below, or it would cut off the last card's edge
-     plane and scrollbar. */
+     plane and scrollbar. Lane cards pad --board-card-pad (a cell) and the lane
+     head pads its sides the same, so the lane's label and its cards' text share
+     a line. Cards in a lane don't step out: the scroller would clip them. */
   .board {
     --board-lane-w: calc(var(--u) * 24);
+    --board-card-pad: var(--sp-1);
     --board-gap: var(--sp-2);
     display: grid; grid-auto-flow: column;
     grid-auto-columns: var(--board-lane-w);
@@ -1074,7 +1122,7 @@
     padding-block-end: var(--sp-1);
   }
   .board-lane { display: flex; flex-direction: column; gap: var(--board-lane-gap, var(--sp-1)); min-width: 0; scroll-snap-align: start; }
-  .board-lane-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-h); min-height: var(--sp-2); }
+  .board-lane-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-h); min-height: var(--sp-2); padding-inline: var(--board-card-pad); }
   .cc-dense .board, .board.cc-dense { --board-lane-w: calc(var(--u) * 20); --board-gap: var(--sp-1); --board-lane-gap: var(--sp-h); }
 
   /* SURFACES step out (Outset). A card's edge steps --outset cells (a
@@ -1136,6 +1184,20 @@
     overflow: hidden;
   }
   .cc-dense .card, .card.cc-dense { --card-pad: var(--sp-1); --card-radius: var(--r-1); }
+  /* A scroller in a card. It spans the card's sides, so its scrollbar runs on
+     the card's edge, and stays inside the card's block padding, so the edge it
+     runs on is straight: the corners are above and below it. Where a product
+     sets the corner larger than the padding, it steps in by the rest, in whole
+     cells. Its own sides pad --card-scroll-pad, the card's by default, so what
+     scrolls lines up with the rest of the card. */
+  .card-scroll {
+    --card-scroll-pad: var(--card-pad-inline);
+    margin-inline: calc(var(--card-pad-inline) * -1);
+    margin-block: round(up, max(0px, calc(var(--card-radius) - var(--card-pad-block))), var(--u));
+    padding-inline: var(--card-scroll-pad);
+    overflow-y: auto; overscroll-behavior: contain;
+  }
+  .board-lane > .card { --card-pad: var(--board-card-pad); }
 
   /* Labels inside controls: the text box is trimmed to the cap height, so
      centering the box centers the capitals exactly. */
@@ -1575,33 +1637,61 @@
   .cc-dense .tabs { --tab-h: var(--size-control-sm); --tab-fs: var(--fs-control-sm); --tab-pad: var(--sp-h); }
 
   /* Chat item: an avatar and a body, for messages, walls and system lines. The
-     bubble hangs its text from a cell. .cc-own, .cc-wall and .cc-system only
+     bubble hangs its text from a cell, and its corner on the speaker's side,
+     at the bottom, is tightened (--chat-tail): the tail. Your own message
+     (.cc-own) is a solid bubble in the accent and its ink, at the end of the
+     row, with no avatar and its meta after the bubble. A message that
+     continues the one before it from the same speaker (.cc-cont) shares its
+     avatar and its meta: the avatar keeps its place, unseen, the meta shows
+     once (above the first of others' runs, under the last of yours), and the
+     run is a cell apart. .cc-own, .cc-cont, .cc-wall and .cc-system only
      change variables. Markup: .chat-item > .avatar + .chat-item-body >
      .chat-item-meta + .chat-item-bubble. */
   .chat-item {
     --chat-dir: row;
     --chat-align: flex-start;
     --chat-bg: var(--bg-raised);
+    --chat-ink: currentColor;
     --chat-edge: var(--border-subtle);
     --chat-pad: var(--sp-1);
     --chat-radius: var(--shape-card);
+    --chat-tail: var(--r-q);
+    --chat-tail-start: var(--chat-tail);
+    --chat-tail-end: var(--chat-radius);
     --chat-measure: calc(var(--u) * 40);
+    --chat-avatar: inline-grid;
+    --chat-avatar-seen: visible;
+    --chat-meta: flex;
+    --chat-meta-order: 0;
     display: flex; flex-direction: var(--chat-dir); align-items: flex-start;
     gap: var(--sp-1);
     min-width: 0;
   }
+  .chat-item > .avatar { display: var(--chat-avatar); visibility: var(--chat-avatar-seen); }
   .chat-item-body { display: flex; flex-direction: column; align-items: var(--chat-align); gap: var(--sp-1); min-width: 0; flex: 0 1 var(--chat-measure); }
-  .chat-item-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--sp-h); color: var(--text-tertiary); }   /* wraps when the reader's text is large */
+  .chat-item-meta { display: var(--chat-meta); order: var(--chat-meta-order); flex-wrap: wrap; align-items: baseline; gap: 0 var(--sp-h); color: var(--text-tertiary); }   /* wraps when the reader's text is large */
   .chat-item-bubble {
     position: relative;
     max-width: 100%;
     padding: var(--chat-pad);
     border-radius: var(--chat-radius);
+    border-end-start-radius: var(--chat-tail-start);
+    border-end-end-radius: var(--chat-tail-end);
     background: var(--chat-bg);
+    color: var(--chat-ink);
     outline: var(--line) solid var(--chat-edge);
     outline-offset: calc(var(--line) * -1);
   }
-  .chat-item.cc-own { --chat-dir: row-reverse; --chat-align: flex-end; --chat-bg: color-mix(in oklab, var(--accent) 18%, var(--surface)); --chat-edge: transparent; }
+  .chat-item.cc-own {
+    --chat-dir: row-reverse; --chat-align: flex-end;
+    --chat-bg: var(--accent); --chat-ink: var(--accent-ink); --chat-edge: transparent;
+    --chat-tail-start: var(--chat-radius); --chat-tail-end: var(--chat-tail);
+    --chat-avatar: none; --chat-meta-order: 1;
+  }
+  /* A run from one speaker: a cell apart, whatever the stack's gap, never less. */
+  .chat-item.cc-cont { --chat-avatar-seen: hidden; --chat-meta: none; margin-block-start: min(0px, calc(var(--sp-1) - var(--stack-gap, var(--sp-1)))); }
+  .chat-item.cc-own.cc-cont { --chat-meta: flex; }
+  .chat-item.cc-own:has(+ .chat-item.cc-own.cc-cont) { --chat-meta: none; }
   .chat-item.cc-wall { --chat-bg: transparent; --chat-edge: transparent; --chat-pad: 0px; --chat-measure: 100%; }
   .chat-item.cc-system { --chat-bg: transparent; --chat-edge: transparent; --chat-pad: 0px; --chat-measure: 100%; color: var(--text-tertiary); }
   .chat-item.cc-system .chat-item-body { align-items: center; }
@@ -1770,9 +1860,9 @@
      A control of your own takes the same layer with .u-state: set
      --state-fill and --state-ink on it, and every state follows. */
   @media (hover: hover) {
-    :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .list-item:is(a, button), .options-card-item, .u-state, .switch):hover { --state-act: var(--state-hover); }
+    :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .list-item:is(a, button), .options-card-item, .u-state, .switch, .prose summary):hover { --state-act: var(--state-hover); }
   }
-  :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .list-item:is(a, button), .options-card-item, .u-state, .switch):active { --state-act: var(--state-press); }
+  :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .list-item:is(a, button), .options-card-item, .u-state, .switch, .prose summary):active { --state-act: var(--state-press); }
   :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .list-item:is(a, button), .options-card-item, .u-state):is([aria-pressed="true"], [aria-checked="true"], [aria-current]:not([aria-current="false"]), [aria-selected="true"]) { --state-on: var(--state-selected); }
   :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .list-item:is(a, button), .options-card-item, .u-state, .switch):is(:disabled, [aria-disabled="true"]) { --state-act: 0%; cursor: not-allowed; }
 }

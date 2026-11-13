@@ -450,6 +450,27 @@
     layer.appendChild(d);
   }
 
+  // A font's cap height and x-height, as shares of its size, read the way core
+  // trims a box: a probe trimmed to each edge. At the element's own size, so a
+  // variable font's optical size is the one on the page.
+  var TRIMS = !!window.CSS && CSS.supports('text-box', 'trim-both cap alphabetic'), shares = {};
+  function share(cs) {
+    var key = cs.fontStyle + ' ' + cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+    if (shares[key]) return shares[key];
+    var fs = parseFloat(cs.fontSize);
+    function edge(e) {
+      var s = document.createElement('span');
+      s.textContent = 'x';
+      s.style.cssText = 'position:absolute;visibility:hidden;display:block;line-height:1;text-box:trim-both ' + e + ' alphabetic;' +
+        'font-style:' + cs.fontStyle + ';font-weight:' + cs.fontWeight + ';font-size:' + cs.fontSize + ';font-family:' + cs.fontFamily;
+      layer.appendChild(s);
+      var h = s.getBoundingClientRect().height;
+      s.remove();
+      return h / fs;
+    }
+    return (shares[key] = { cap: edge('cap'), ex: edge('ex') });
+  }
+
   function measure() {
     layer.textContent = '';
     if (!state.measure) return;
@@ -467,8 +488,19 @@
       var isText = TEXT_ROLE.test(e.className);
 
       if (isText) {
-        if (/\bt-h[123]\b/.test(e.className)) box('m-base', x, y + r.height - 1, r.width, 1);   // a headline stands on its baseline
-        else box('m-base cc-hang', x, y, r.width, 1);                                              // text hangs from its top line
+        // The line the text meets: a headline stands on its baseline, other text
+        // hangs from its cap line. Beside it, dashed, the x-height of the same
+        // line of text, which is where the eye reads lowercase: at 15px it is 3px
+        // under the cap line, so a gap measured by eye from a name's lowercase
+        // reads 3px wider than the cell it is.
+        var stands = /\bt-h[123]\b/.test(e.className), fs = parseFloat(cs.fontSize);
+        if (stands) box('m-base', x, y + r.height - 1, r.width, 1);
+        else box('m-base cc-hang', x, y, r.width, 1);
+        if (TRIMS && cs.textTransform !== 'uppercase') {
+          var sh = share(cs);
+          var xy = stands ? y + r.height - sh.ex * fs : y + (sh.cap - sh.ex) * fs;
+          if (sh.ex > 0 && sh.ex < sh.cap) box('m-base cc-x', x, xy, r.width, 0);
+        }
         continue;
       }
       box('m-box', x, y, r.width, r.height);

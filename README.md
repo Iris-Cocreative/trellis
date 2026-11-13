@@ -197,7 +197,7 @@ Our apps carry rich content from editors and markdown, which arrives as bare tag
 | two or more images in a `figure` or a `p` | a gallery of whole-cell squares, cropped (3 across, 2 in a narrow container) |
 | `iframe` | full width at 16:9, its height rounded up to whole cells (`--embed-w`, `--embed-h`) |
 | `hr` | one line, on a coordinate, given back so what follows is on a line |
-| `details` | a block; its `summary` hangs; contents settle when opened |
+| `details` | a block; its `summary` hangs, a full-row target with the shared states and a chevron in a two-cell margin, centered on its capitals, that turns when open; the contents take the same inset in `--details-ink` (secondary text) and settle when opened; consecutive details are rows, a hairline between them |
 | `a`, `code`, `kbd`, `strong`, `em`, `mark`, `small`, `sub`, `sup`, … | marks: `line-height: 0`, and sub and sup are moved rather than baseline-shifted, so none can stretch a line |
 
 **Space.** The column's gap is 2 cells, and a heading keeps the rule from a stack: the larger of its own space and the gap, never the sum. It adds whole cells before it (h1, h2: 4; h3: 2; h4–h6: 1) so it belongs to what it introduces, and none directly after another heading.
@@ -235,7 +235,7 @@ Every role is `light-dark()` of two relative colors (`oklch(from var(--seed-…)
 
 1. **Edges land on lines**, or a hairline or quarter cell off them. A box centered on a line is then even (14 = 12 + hairline; 18 = 12 + ¼u each side). A box pinned to something else, such as the screen's edge, takes whatever size lands its free edge on a line. **The grid fits whatever frames the page**: the screen's edges when fitted, the `.frame`'s own edges on a wide screen.
 2. **Columns round to cells.** `.cols` rounds every track down to whole cells, so each column's left edge is on a line. `.grid` uses fixed tracks that don't stretch.
-3. **A surface's edge is a plane after its coordinate, and never changes its size.** A card draws its edge as an `::after` frame one line larger: inside the box on the left and top, just outside it on the right and bottom, so each edge lies on its grid line's pixels. A surface that clips (it scrolls, or has `overflow: hidden`) would cut that frame off, so it keeps an inset outline or lets an inner scroller clip. Floats align to anchors, not the grid. Controls with a fixed height keep a real border and give it back in their padding.
+3. **A surface's edge is a plane after its coordinate, and never changes its size.** A card draws its edge as an `::after` frame one line larger: inside the box on the left and top, just outside it on the right and bottom, so each edge lies on its grid line's pixels. A surface that clips (it scrolls, or has `overflow: hidden`) would cut that frame off, so it keeps an inset outline or lets an inner scroller clip, inside the surface's corners (`.card-scroll`). Floats align to anchors, not the grid. Controls with a fixed height keep a real border and give it back in their padding.
 4. **Draw grids in device pixels, never with repeating CSS gradients.** Safari rounds each repeated tile and the error grows across the screen.
 5. **Surfaces step out (Outset).** A card's edge steps `--outset` cells (a product knob, 1 by default) out into the space around it, so the text inside a card with a one-cell padding lines up with the text outside; a card with more padding still steps out one cell. A row steps out as a whole only when it holds nothing but cards; a card inside one column of a row stays in its column; nested, a card steps out into its parent's padding. Gutters are at least two cells, so a card that steps out never reaches the screen's edge. **Outset is clipped by any ancestor with hidden overflow** (a scroll pane, a clipped section), so a card there silently loses its step-out: give that ancestor `--outset: 0`, or a cell of inline padding. `.list` rows and a `pre` in `.prose` step out by the same rule.
 
@@ -335,7 +335,7 @@ This is what a consumer may rely on. Anything here changing is a changelog entry
 | Class | Modifiers and parts | Variables |
 |---|---|---|
 | Type roles | `.t-h1`, `.t-h2`, `.t-h3`, `.t-h4`, `.t-h5`, `.t-h6`, `.t-xl`, `.t-lg`, `.t-body`, `.t-sm`, `.t-xs`, `.t-label`, `.t-eyebrow` · `.t-serif`, `.t-mono` · `.snap`, `.snap-x`, `.settle`, `.cap-center` | |
-| `.prose` | | `--prose-inner-gap`, `--stack-gap`, `--embed-w`, `--embed-h` |
+| `.prose` | | `--prose-inner-gap`, `--stack-gap`, `--embed-w`, `--embed-h`, `--details-ink`, `--details-chevron` |
 | `.frame` | | |
 | `.section` | `.section-head`, `.section-body`, `.cc-split`, `.cc-band` | `--section-head-w`, `--band-bg` |
 | `.cover` | `.cover-media`, `.cover-body` | `--cover-h`, `--cover-pad`, `--cover-scrim` |
@@ -346,15 +346,15 @@ This is what a consumer may rely on. Anything here changing is a changelog entry
 | `.rail` | | `--rail-item`, `--rail-gap` |
 | `.row`, `.col`, `.context` | | `--row-gap` |
 | `.list` | `.list-item`, `.list-body`, `.list-end`, `.list-link` | `--list-pad-y`, `--list-gap`, `--list-rule`, `--list-outset` |
-| `.board` | `.board-lane`, `.board-lane-head` | `--board-lane-w`, `--board-gap`, `--board-lane-gap` |
-| `.card` | `.card-media` | `--card-pad` (sets both), `--card-pad-inline`, `--card-pad-block`, `--card-radius`, `--card-border` |
+| `.board` | `.board-lane`, `.board-lane-head` | `--board-lane-w`, `--board-gap`, `--board-lane-gap`, `--board-card-pad` (lane cards' padding and the lane head's sides, a cell) |
+| `.card` | `.card-media`, `.card-scroll` (a scroller that spans the card's sides inside its block padding, so its scrollbar runs on a straight edge) | `--card-scroll-pad`, `--card-pad` (sets both), `--card-pad-inline`, `--card-pad-block`, `--card-radius`, `--card-border` |
 | `.button`, `.icon-button` | `.button-label`, `.cc-primary`, `.cc-ghost`, `.cc-sm`, `.cc-md`, `.cc-lg` | `--btn-h`, `--btn-fs`, `--btn-radius`, `--btn-bg`, `--btn-ink`, `--btn-border`, `--btn-tracking` |
 | `.icon` | `.cc-end` | `--icon-size`, `--icon-stroke` |
 | `.tag` | `.tag-label`, `.tag-dot`, `.tag-remove` · kinds `.cc-person`, `.cc-group`, `.cc-event`, `.cc-course`, `.cc-ok`, `.cc-warn`, `.cc-alert` · `.cc-outline`, `.cc-solid` · `.cc-sm`, `.cc-md`, `.cc-lg` | `--tag-h`, `--tag-fs`, `--tag-color`, `--tag-radius`, `--tag-pad`, `--tag-fill`, `--tag-edge`, `--tag-ink`, `--tag-gap` |
 | `.avatar` | `.avatar-initials`, `.avatar-dot`, `.avatar-stack`, `.avatar-more` · sizes `.cc-xs`, `.cc-sm`, `.cc-md`, `.cc-lg`, `.cc-xl`, `.cc-xxl`, `.cc-hero` · `.cc-group` | `--av-n`, `--av-gap`, `--av-ring`, `--av-knock`, `--av-color`, `--av-radius` |
 | `.field`, `.input` | `.field-label`, `.field-hint`, `.cc-sm`, `.cc-lg` · states `[aria-invalid="true"]`, `:disabled`, `:read-only` | `--field-inset` (the label's and hint's start: the input's own text inset, a cell, half in `.cc-dense` or beside `.input.cc-sm`), `--input-h`, `--input-fs`, `--input-radius`, `--input-bg`, `--input-ink`, `--input-border`, `--input-pad`, `--input-rows` |
 | `.tabs`, `.tab` | `.cc-seg` · `[aria-selected="true"]` | `--tab-h`, `--tab-fs`, `--tab-pad`, `--tab-rule`, `--tab-mark`, `--tab-mark-h`, `--tab-on-bg`, `--tab-radius`, `--tab-gap` |
-| `.chat-item` | `.chat-item-body`, `.chat-item-meta`, `.chat-item-bubble`, `.cc-own`, `.cc-wall`, `.cc-system` | `--chat-bg`, `--chat-edge`, `--chat-pad`, `--chat-radius`, `--chat-measure` |
+| `.chat-item` | `.chat-item-body`, `.chat-item-meta`, `.chat-item-bubble`, `.cc-own` (a solid accent bubble at the row's end, no avatar, its meta after the bubble), `.cc-cont` (continues the message before it from the same speaker: one avatar and one meta for the run, a cell apart), `.cc-wall`, `.cc-system` | `--chat-bg`, `--chat-ink`, `--chat-edge`, `--chat-pad`, `--chat-radius`, `--chat-tail` (the speaker's bottom corner), `--chat-measure`, `--chat-avatar`, `--chat-meta-order` |
 | `.member-tile` | `.member-tile-body`, `.cc-row` | `--tile-dir`, `--tile-align` |
 | `.badge`, `.dot` | `.cc-quiet`, `.cc-accent`, `.cc-ok`, `.cc-warn` | `--badge-color`, `--badge-ink`, `--badge-h`, `--dot-color`, `--dot-size` |
 | `.skeleton` | `.cc-block` | `--skel-lo`, `--skel-hi`, `--skel-radius`, `--skel-w`, `--skel-h` |
