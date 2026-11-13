@@ -617,6 +617,30 @@
     inspector.style.top = Math.max(8, ly) + 'px';
   });
 
+  // ---- Color: contrast, as the browser computed it in each scheme ----------
+  // A computed color comes back as oklch(), rgb() or color(srgb …); math.js
+  // takes OKLCH or hex.
+  function toColor(s) {
+    var m = /oklch\(\s*([\d.]+)(%?)\s+([\d.]+)\s+([\d.]+)/.exec(s);
+    if (m) return [parseFloat(m[1]) / (m[2] ? 100 : 1), parseFloat(m[3]), parseFloat(m[4])];
+    m = /color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/.exec(s);
+    var rgb = m ? [m[1], m[2], m[3]].map(Number) : null;
+    if (!rgb && (m = /rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/.exec(s))) rgb = [m[1], m[2], m[3]].map(function (v) { return v / 255; });
+    if (!rgb) return null;
+    return M.parseColor('#' + rgb.map(function (v) { return ('0' + Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16)).slice(-2); }).join(''));
+  }
+  function contrasts() {
+    if (!M) return;
+    document.querySelectorAll('.scheme').forEach(function (panel) {
+      var out = panel.querySelector('[data-contrast]'); if (!out) return;
+      var probe = document.createElement('span'); probe.style.cssText = 'position:absolute;visibility:hidden'; panel.appendChild(probe);
+      function col(v) { probe.style.color = 'var(--' + v + ')'; return toColor(getComputedStyle(probe).color); }
+      var bg = col('bg'), pairs = [['Text', col('text'), bg], ['Secondary', col('text-secondary'), bg], ['Tertiary', col('text-tertiary'), bg], ['Ink on the accent', col('accent-ink'), col('accent')]];
+      probe.remove();
+      out.textContent = !bg ? '' : pairs.map(function (p) { return p[1] && p[2] ? p[0] + ' ' + M.contrast(p[1], p[2]).toFixed(1) + ':1' : ''; }).filter(Boolean).join(' · ') + ' on its ground. WCAG AA asks 4.5:1 for text.';
+    });
+  }
+
   // ---- Scheduling ----------------------------------------------------------
   var queued = false;
   // ---- The math behind each type role -------------------------------------
@@ -878,6 +902,7 @@
     placeToc();
     drawGrid();
     readouts();
+    contrasts();
     math();
     anatomy();
     organic();

@@ -253,8 +253,54 @@
   .sa-expression .sa-quarry { --tag-radius: var(--r-q); }
   .sa-expression .sa-quarry .tag-label { text-transform: uppercase; letter-spacing: .1em; }
   .sa-expression .sa-almanac .tag-label { font-family: var(--font-serif); font-style: italic; }
+
+  /* Drawings that leave their boxes. Each grows out of its own card, upward or
+     behind it, never sideways past the frame, and never into the flow: they are
+     positioned, so the card's text keeps its lines. */
+  .seed { position: relative; }
+  /* Cells: the series keeps going, a cell at a time, up and out of the card. */
+  .sa-trail { position: absolute; inset: auto auto 0 0; width: 0; height: 0; }
+  .sa-trail i {
+    position: absolute; left: calc(var(--x) * var(--u)); bottom: calc(var(--y) * var(--u));
+    width: var(--sp-1); height: var(--sp-1);
+    background: color-mix(in oklab, var(--kind-group) 22%, transparent);
+    box-shadow: inset 0 0 0 var(--line) var(--kind-group);
+    opacity: 0;
+    animation: sa-step 6s var(--ease-out) infinite;
+    animation-delay: calc(1.2s + var(--d) * 180ms);
+  }
+  @keyframes sa-step { 0% { opacity: 0; transform: scale(0); } 8%, 60% { opacity: calc(1 - var(--d) * .1); transform: none; } 75%, 100% { opacity: 0; transform: translateY(calc(var(--sp-h) * -1)); } }
+  /* Ratios: the next step is too large for the card, and rises out of its top. */
+  .sa-big {
+    position: absolute; right: calc(var(--sp-1) * -1); bottom: 0;
+    font-family: var(--font-heading); font-weight: var(--fw-heading); line-height: 1;
+    font-size: calc(var(--sp-1) * 1.25 * pow(var(--rh-max), 8.5));
+    color: transparent; -webkit-text-stroke: var(--line) color-mix(in oklab, var(--kind-topic) 55%, transparent);
+    pointer-events: none;
+    animation: sa-loom 1.4s var(--ease-out) 1.2s both;
+  }
+  @keyframes sa-loom { from { opacity: 0; transform: translateY(var(--sp-2)) scale(.8); transform-origin: 100% 100%; } }
+  /* Context: the card is a box too. Its own outline breathes with the boxes inside. */
+  .sa-halo {
+    position: absolute; inset: calc(var(--sp-1) * -1);
+    border-radius: calc(var(--card-radius) + var(--sp-1));
+    box-shadow: inset 0 0 0 var(--line) color-mix(in oklab, var(--kind-event) 45%, transparent);
+    pointer-events: none;
+    animation: sa-halo 9s var(--ease-out) 1s infinite;
+  }
+  @keyframes sa-halo { 0%, 30%, 100% { inset: calc(var(--sp-1) * -1); opacity: .9; } 55%, 80% { inset: calc(var(--sp-h) * -1); opacity: .4; } }
+  /* Expression: the same card, dealt three ways behind itself. */
+  /* Clipped a cell out to the sides, so the dealt cards never reach past a
+     two-cell gutter and a phone never scrolls sideways. Upward is free. */
+  .sa-fan { position: absolute; inset: calc(var(--sp-6) * -1) calc(var(--sp-1) * -1) 0; overflow: clip; z-index: -1; pointer-events: none; }
+  .sa-fan i { position: absolute; inset: var(--sp-6) var(--sp-1) 0; border-radius: var(--card-radius); transform-origin: 50% 100%; animation: sa-deal 1.2s var(--ease-spring) 1.4s both; }
+  .sa-fan-a { --turn: -5deg; background: color-mix(in oklab, var(--kind-group) 12%, var(--bg)); box-shadow: inset 0 0 0 var(--line) color-mix(in oklab, var(--kind-group) 45%, transparent); transform: rotate(var(--turn)); }
+  .sa-fan-b { --turn: 4deg; background: color-mix(in oklab, var(--kind-event) 12%, var(--bg)); box-shadow: inset 0 0 0 var(--line) color-mix(in oklab, var(--kind-event) 45%, transparent); transform: rotate(var(--turn)); }
+  .sa-fan-c { --turn: 9deg; background: color-mix(in oklab, var(--kind-person) 12%, var(--bg)); box-shadow: inset 0 0 0 var(--line) color-mix(in oklab, var(--kind-person) 45%, transparent); transform: rotate(var(--turn)); }
+  @keyframes sa-deal { from { transform: rotate(0deg); } }
   @media (prefers-reduced-motion: reduce) {
-    .seed-art, .seed-art * { animation: none !important; }
+    .seed-art, .seed-art *, .sa-halo, .sa-fan i { animation: none !important; }
+    .sa-trail i { opacity: .5; }
   }
 
   /* ---- Plates: surfaces for diagrams ------------------------------------ */
@@ -380,6 +426,60 @@
   .edge-line.cc-desc { bottom: calc(var(--desc, .21em) * -1); background: var(--text-tertiary); color: var(--text-tertiary); }
 
   .split > .stack { --stack-gap: var(--sp-1); }
+
+  /* ---- Color ---------------------------------------------------------- */
+  .color-part { --stack-gap: var(--sp-1); }
+  .swatches { --cols: 5; --cols-gap: var(--sp-1); row-gap: var(--sp-2); }
+  @container page (width < 1100px) { .swatches { --cols: 4; } }
+  @container page (width < 720px) { .swatches { --cols: 2; } }
+  .swatch { --stack-gap: var(--sp-1); min-width: 0; }
+  .swatch code, .role-name, .mix-words code { font-size: var(--fs-control-xs); overflow-wrap: anywhere; }
+  /* A chip is whole cells, its color on a hairline so a chip the color of its
+     ground still shows. Over a checkerboard, a mix shows what it lets through. */
+  .swatch-chip {
+    display: block; flex: none;
+    height: var(--sp-3);
+    border-radius: var(--r-h);
+    background: var(--c);
+    box-shadow: inset 0 0 0 var(--line) color-mix(in oklab, var(--text) 12%, transparent);
+  }
+  .swatch-chip.cc-over {
+    width: var(--sp-4); height: var(--sp-3);
+    background: linear-gradient(var(--c), var(--c)), repeating-conic-gradient(var(--bg-sunken) 0 25%, var(--bg-raised) 0 50%) 0 0 / var(--sp-1) var(--sp-1);
+    box-shadow: inset 0 0 0 var(--line) var(--e, color-mix(in oklab, var(--text) 12%, transparent));
+  }
+  .schemes { --cols: 2; }
+  @container page (width < 720px) { .schemes { --cols: 1; } }
+  .scheme.cc-light { color-scheme: light; color: var(--text); }
+  .scheme.cc-dark { color-scheme: dark; color: var(--text); }
+  .scheme .t-label { color: var(--text-tertiary); }
+  .role-lines { display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(var(--u) * 13), 1fr)); column-gap: var(--sp-1); }
+  .role-line { display: flex; align-items: center; gap: var(--sp-h); height: var(--sp-2); min-width: 0; }
+  .role-line .swatch-chip { width: var(--sp-2); height: var(--sp-1h); border-radius: var(--r-q); }
+  .role-name { color: var(--text-secondary); white-space: nowrap; overflow-x: clip; text-overflow: ellipsis; min-width: 0; }
+  .mixes { --stack-gap: var(--sp-2); }
+  .mix-line { display: flex; align-items: flex-start; gap: var(--sp-1); }
+  .mix-words { min-width: 0; flex: 1; }
+  .gradient-bar { height: var(--sp-4); border-radius: var(--r-h); background: var(--g); box-shadow: inset 0 0 0 var(--line) color-mix(in oklab, var(--text) 10%, transparent); }
+
+  /* ---- Icons ---------------------------------------------------------- */
+  .icon-sizes { --cols: 4; }
+  @container page (width < 720px) { .icon-sizes { --cols: 2; } }
+  .icon-size { --stack-gap: var(--sp-1); }
+  .icon-well { display: grid; place-items: center; height: var(--sp-4); border-radius: var(--r-h); background: var(--bg-sunken); color: var(--kind-group); }
+  .icon.icon.cc-xs-demo { --icon-size: var(--size-icon-sm); }
+  .icon.icon.cc-base-demo { --icon-size: var(--size-icon); }
+  .icon.icon.cc-md-demo { --icon-size: var(--size-icon-md); }
+  .icon.icon.cc-lg-demo { --icon-size: var(--size-icon-lg); }   /* doubled, so it beats .icon-row .icon */
+  .icon-overhangs { --stack-gap: var(--sp-1); }
+  .icon-row.cc-tall { height: var(--sp-2); }
+  .icon-row.cc-given { height: var(--sp-1); }
+  .icon-row.cc-given .icon { margin-block: calc((var(--size-icon-lg) - var(--sp-1)) / -2); }
+  .icon-overhangs .icon-row { box-shadow: inset 0 calc(var(--line) * -1) 0 var(--border-subtle); }
+  .icon-overhangs .lbl { font-size: var(--fs-control); }
+  .icon-strokes { --cluster-gap: var(--sp-2); }
+  .icon-stroke { display: inline-flex; align-items: center; gap: var(--sp-h); color: var(--kind-group); }
+  .icon-stroke code { color: var(--text-secondary); font-size: var(--fs-control-xs); }
   .icon-rows { --stack-gap: var(--sp-1); }
   .icon-row { display: flex; align-items: center; gap: var(--sp-h); height: var(--sp-2); }
   .icon-row .lbl { display: block; font-size: 1.125rem; }

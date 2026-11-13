@@ -108,6 +108,7 @@
   <a class="toc-link" href="#unit"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">The cell</span></a>
   <a class="toc-link" href="#ratio"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">The ratio</span></a>
   <a class="toc-link" href="#type-cell"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Type on the cell</span></a>
+  <a class="toc-link" href="#color"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Color</span></a>
   <a class="toc-link" href="#layout"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Layout</span></a>
   <a class="toc-link" href="#prose"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Prose</span></a>
   <a class="toc-link" href="#apps"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Apps</span></a>
@@ -115,6 +116,7 @@
   <a class="toc-link" href="#primitives"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Primitives</span></a>
   <a class="toc-link" href="#avatars"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Edges</span></a>
   <a class="toc-link" href="#tags"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Tags</span></a>
+  <a class="toc-link" href="#icons"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Icons</span></a>
   <a class="toc-link" href="#floating"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Floating surfaces</span></a>
   <a class="toc-link" href="#scrollbars"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Scrollbars</span></a>
   <a class="toc-link" href="#context"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Context</span></a>
@@ -141,19 +143,20 @@
     <div class="cols seeds">
       <article class="card seed stack">
         <p class="t-label">Cells</p>
-        <div class="seed-art sa-cells" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="seed-art sa-cells" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><span class="sa-trail"><i style="--x: 9; --y: 3; --d: 0"></i><i style="--x: 10; --y: 5; --d: 1"></i><i style="--x: 11; --y: 7; --d: 2"></i><i style="--x: 12; --y: 9; --d: 3"></i><i style="--x: 13; --y: 11; --d: 4"></i><i style="--x: 14; --y: 13; --d: 5"></i></span></div>
         <p class="t-h3 seed-value" id="seed-u">12px</p>
         <p class="t-sm muted">The measure of space. Every gap, inset, control, corner and avatar is made of cells, and the cell answers to the screen and to the reader's text size.</p>
         <p class="t-xs faint" id="seed-u-note">100 cells across this frame.</p>
       </article>
       <article class="card seed stack">
         <p class="t-label">Ratios</p>
-        <div class="seed-art sa-ratio" aria-hidden="true"><i style="--n: 0">A</i><i style="--n: 1">A</i><i style="--n: 2">A</i><i style="--n: 3">A</i><i style="--n: 4">A</i></div>
+        <div class="seed-art sa-ratio" aria-hidden="true"><i style="--n: 0">A</i><i style="--n: 1">A</i><i style="--n: 2">A</i><i style="--n: 3">A</i><i style="--n: 4">A</i><b class="sa-big">A</b></div>
         <p class="t-h3 seed-value" id="seed-r">1.33</p>
         <p class="t-sm muted">The measure of type. Headings step down from H1 by one ratio, paragraphs step out from body by another, and both open as the space grows.</p>
         <p class="t-xs faint" id="seed-r-note">The ratio between H1 and H2, here.</p>
       </article>
       <article class="card seed stack">
+        <span class="sa-halo" aria-hidden="true"></span>
         <p class="t-label">Context</p>
         <div class="seed-art sa-context" aria-hidden="true"><div class="sa-box"><i></i><div class="sa-box"><i></i><div class="sa-box"><i></i></div></div></div></div>
         <p class="t-h3 seed-value" id="seed-ctx">816px</p>
@@ -161,6 +164,7 @@
         <p class="t-xs faint" id="seed-ctx-note">The width of this card.</p>
       </article>
       <article class="card seed stack">
+        <span class="sa-fan" aria-hidden="true"><i class="sa-fan-a"></i><i class="sa-fan-b"></i><i class="sa-fan-c"></i></span>
         <p class="t-label">Expression</p>
         <div class="cluster sa-expression" aria-hidden="true"><span class="tag cc-group"><span class="tag-label">Neutral</span></span><span class="tag cc-event sa-quarry"><span class="tag-label">Quarry</span></span><span class="tag cc-person sa-almanac"><span class="tag-label">Almanac</span></span></div>
         <p class="t-h3 seed-value">One seed</p>
@@ -345,6 +349,110 @@
   </section>
 
   <!-- ============================================================ LAYOUT -->
+  <!-- ============================================================ COLOR -->
+  <section class="section cc-split" id="color">
+    <header class="section-head stack">
+      <p class="t-eyebrow">Color</p>
+      <h2 class="t-h4">A few seeds, and every color follows</h2>
+      <p class="t-sm muted">A product chooses seeds: one neutral, an accent, one per kind and one per status, each one color in its light form. Every role is a seed at a lightness, written with relative colors, so one declaration carries both themes, and the dark theme lifts each hue by <code>--color-lift</code>. The ink on a fill is computed from the fill. Everything else is a mix of a role into a ground.</p>
+    </header>
+    <div class="section-body stack">
+      <div class="stack color-part">
+        <h3 class="t-h6">Seeds</h3>
+        <div class="cols swatches">
+          <div class="swatch stack"><span class="swatch-chip" style="--c: var(--seed-neutral)"></span><p class="t-xs"><code>--seed-neutral</code></p></div>
+          <div class="swatch stack"><span class="swatch-chip" style="--c: var(--seed-accent)"></span><p class="t-xs"><code>--seed-accent</code></p></div>
+          <div class="swatch stack"><span class="swatch-chip" style="--c: var(--seed-person)"></span><p class="t-xs"><code>--seed-person</code></p></div>
+          <div class="swatch stack"><span class="swatch-chip" style="--c: var(--seed-group)"></span><p class="t-xs"><code>--seed-group</code></p></div>
+          <div class="swatch stack"><span class="swatch-chip" style="--c: var(--seed-event)"></span><p class="t-xs"><code>--seed-event</code></p></div>
+          <div class="swatch stack"><span class="swatch-chip" style="--c: var(--seed-course)"></span><p class="t-xs"><code>--seed-course</code></p></div>
+          <div class="swatch stack"><span class="swatch-chip" style="--c: var(--seed-topic)"></span><p class="t-xs"><code>--seed-topic</code></p></div>
+          <div class="swatch stack"><span class="swatch-chip" style="--c: var(--seed-ok)"></span><p class="t-xs"><code>--seed-ok</code></p></div>
+          <div class="swatch stack"><span class="swatch-chip" style="--c: var(--seed-warn)"></span><p class="t-xs"><code>--seed-warn</code></p></div>
+          <div class="swatch stack"><span class="swatch-chip" style="--c: var(--seed-alert)"></span><p class="t-xs"><code>--seed-alert</code></p></div>
+        </div>
+        <p class="t-xs faint">A product layer sets these and nothing else of color. <code>tests/contract.js</code> fails a layer whose seeds put text, the accent or its ink under WCAG AA in either theme.</p>
+      </div>
+      <div class="stack color-part">
+        <h3 class="t-h6">Roles, as light and dark pairs</h3>
+        <div class="cols schemes">
+          <article class="card stack scheme cc-light">
+            <p class="t-label">Light</p>
+            <div class="role-lines">
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--bg)"></span><code class="role-name">--bg</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--bg-raised)"></span><code class="role-name">--bg-raised</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--bg-sunken)"></span><code class="role-name">--bg-sunken</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--text)"></span><code class="role-name">--text</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--text-secondary)"></span><code class="role-name">--text-secondary</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--text-tertiary)"></span><code class="role-name">--text-tertiary</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--text-faint)"></span><code class="role-name">--text-faint</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--border)"></span><code class="role-name">--border</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--border-subtle)"></span><code class="role-name">--border-subtle</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--border-strong)"></span><code class="role-name">--border-strong</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--accent)"></span><code class="role-name">--accent</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--accent-ink)"></span><code class="role-name">--accent-ink</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--kind-person)"></span><code class="role-name">--kind-person</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--kind-group)"></span><code class="role-name">--kind-group</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--kind-event)"></span><code class="role-name">--kind-event</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--kind-course)"></span><code class="role-name">--kind-course</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--kind-topic)"></span><code class="role-name">--kind-topic</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--ok)"></span><code class="role-name">--ok</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--warn)"></span><code class="role-name">--warn</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--alert)"></span><code class="role-name">--alert</code></div>
+            </div>
+            <p class="t-xs faint" data-contrast></p>
+          </article>
+          <article class="card stack scheme cc-dark">
+            <p class="t-label">Dark</p>
+            <div class="role-lines">
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--bg)"></span><code class="role-name">--bg</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--bg-raised)"></span><code class="role-name">--bg-raised</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--bg-sunken)"></span><code class="role-name">--bg-sunken</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--text)"></span><code class="role-name">--text</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--text-secondary)"></span><code class="role-name">--text-secondary</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--text-tertiary)"></span><code class="role-name">--text-tertiary</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--text-faint)"></span><code class="role-name">--text-faint</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--border)"></span><code class="role-name">--border</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--border-subtle)"></span><code class="role-name">--border-subtle</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--border-strong)"></span><code class="role-name">--border-strong</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--accent)"></span><code class="role-name">--accent</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--accent-ink)"></span><code class="role-name">--accent-ink</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--kind-person)"></span><code class="role-name">--kind-person</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--kind-group)"></span><code class="role-name">--kind-group</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--kind-event)"></span><code class="role-name">--kind-event</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--kind-course)"></span><code class="role-name">--kind-course</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--kind-topic)"></span><code class="role-name">--kind-topic</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--ok)"></span><code class="role-name">--ok</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--warn)"></span><code class="role-name">--warn</code></div>
+              <div class="role-line"><span class="swatch-chip" style="--c: var(--alert)"></span><code class="role-name">--alert</code></div>
+            </div>
+            <p class="t-xs faint" data-contrast></p>
+          </article>
+        </div>
+        <pre class="code cc-wrap settle"><span class="k">--bg</span>: light-dark(oklch(from var(--seed-neutral) .973 c h), oklch(from var(--seed-neutral) .176 c h));
+<span class="k">--accent</span>: light-dark(var(--seed-accent), oklch(from var(--seed-accent) calc(l + var(--color-lift)) c h));</pre>
+      </div>
+      <div class="stack color-part">
+        <h3 class="t-h6">Mixes</h3>
+        <div class="stack mixes">
+          <div class="mix-line"><span class="swatch-chip cc-over" style="--c: color-mix(in oklab, var(--kind-group) 14%, transparent); --e: color-mix(in oklab, var(--kind-group) 42%, transparent)"></span><div class="stack mix-words"><p class="t-sm">A tag's fill and edge</p><p class="t-xs faint"><code>color-mix(in oklab, var(--kind-group) 14%, transparent)</code>: the kind at 14%, its edge at 42%.</p></div></div>
+          <div class="mix-line"><span class="swatch-chip cc-over" style="--c: color-mix(in oklab, var(--kind-person) 26%, var(--surface))"></span><div class="stack mix-words"><p class="t-sm">An avatar's wash</p><p class="t-xs faint"><code>color-mix(in oklab, var(--kind-person) 26%, var(--surface))</code>: the kind at 26% into the ground it sits on.</p></div></div>
+          <div class="mix-line"><span class="swatch-chip cc-over" style="--c: color-mix(in oklab, var(--text) 6%, transparent)"></span><div class="stack mix-words"><p class="t-sm">Hover, press, selected</p><p class="t-xs faint"><code>color-mix(in oklab, var(--text) 6%, transparent)</code>: the control's own ink into its own fill: 6%, 12%, 10% (--state-*).</p></div></div>
+          <div class="mix-line"><span class="swatch-chip cc-over" style="--c: color-mix(in oklab, var(--accent) 24%, transparent)"></span><div class="stack mix-words"><p class="t-sm">A mark in prose</p><p class="t-xs faint"><code>color-mix(in oklab, var(--accent) 24%, transparent)</code>: the accent at 24%.</p></div></div>
+          <div class="mix-line"><span class="swatch-chip cc-over" style="--c: color-mix(in oklab, var(--text) 22%, transparent)"></span><div class="stack mix-words"><p class="t-sm">A scrollbar's thumb</p><p class="t-xs faint"><code>color-mix(in oklab, var(--text) 22%, transparent)</code>: the ink at 22%, 40% on hover.</p></div></div>
+          <div class="mix-line"><span class="swatch-chip cc-over" style="--c: color-mix(in oklab, var(--black) 60%, transparent)"></span><div class="stack mix-words"><p class="t-sm">A modal's scrim</p><p class="t-xs faint"><code>color-mix(in oklab, var(--black) 60%, transparent)</code>: black at 60%: the one raw neutral besides white.</p></div></div>
+        </div>
+      </div>
+      <div class="stack color-part">
+        <h3 class="t-h6">Gradients</h3>
+        <div class="gradient-bar" style="--g: linear-gradient(to right var(--gradient-accent))"></div>
+        <p class="t-xs faint"><code>linear-gradient(to right var(--gradient-accent))</code>: the accent turning <code>--gradient-turn</code> degrees of hue, in <code>--gradient-space</code> (OKLCH).</p>
+        <div class="gradient-bar" style="--g: linear-gradient(to bottom var(--gradient-surface))"></div>
+        <p class="t-xs faint"><code>linear-gradient(to bottom var(--gradient-surface))</code>: a raised ground into a sunken one. A token is a space and stops; you add the direction or the shape.</p>
+      </div>
+    </div>
+  </section>
+
   <section class="section cc-split" id="layout">
     <header class="section-head stack">
       <p class="t-eyebrow">Layout</p>
@@ -769,6 +877,51 @@
   </section>
 
   <!-- ============================================================ CONTROLS + FLOAT -->
+  <!-- ============================================================ ICONS -->
+  <section class="section cc-split" id="icons">
+    <header class="section-head stack">
+      <p class="t-eyebrow">Icons</p>
+      <h2 class="t-h4">A stroke on the cells</h2>
+      <p class="t-sm muted">One <code>.icon</code>: a stroke in the ink around it, sized in cells, drawn on a 14-unit square. It centers on the capitals beside it, or on the x-height beside lowercase. Whether it overhangs its line is the component's choice. Trellis ships no icon set.</p>
+    </header>
+    <div class="section-body stack">
+      <div class="stack color-part">
+        <h3 class="t-h6">Four sizes</h3>
+        <div class="cols icon-sizes">
+          <div class="icon-size stack"><span class="icon-well"><svg class="icon cc-xs-demo" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg></span><p class="t-xs"><code>--size-icon-sm</code> · 1 cell</p></div>
+          <div class="icon-size stack"><span class="icon-well"><svg class="icon cc-base-demo" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg></span><p class="t-xs"><code>--size-icon</code> · a cell and two lines</p></div>
+          <div class="icon-size stack"><span class="icon-well"><svg class="icon cc-md-demo" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg></span><p class="t-xs"><code>--size-icon-md</code> · 1½ cells</p></div>
+          <div class="icon-size stack"><span class="icon-well"><svg class="icon cc-lg-demo" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg></span><p class="t-xs"><code>--size-icon-lg</code> · 2 cells</p></div>
+        </div>
+      </div>
+      <div class="stack color-part">
+        <h3 class="t-h6">Where it centers (rule 9)</h3>
+        <div class="icon-rows stack">
+          <div class="icon-row"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg><span class="lbl cc-cap">SEEDS 12</span></div>
+          <div class="icon-row"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg><span class="lbl cc-ex">seeds and swaps</span></div>
+        </div>
+        <p class="t-xs faint">Beside capitals and numbers, on the cap height; beside lowercase, on the x-height. Both labels are trimmed to the edge the icon centers on.</p>
+      </div>
+      <div class="stack color-part">
+        <h3 class="t-h6">An overhang is the component's choice</h3>
+        <div class="stack icon-overhangs">
+          <div class="icon-row cc-tall"><svg class="icon cc-lg-demo" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg><span class="lbl cc-ex">the row grows to its icon: two cells</span></div>
+          <div class="icon-row cc-given"><svg class="icon cc-lg-demo" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg><span class="lbl cc-ex">the icon gives its overhang back: the row keeps one cell</span></div>
+        </div>
+        <p class="t-xs faint">A two-cell icon beside one line of text. Either is on the cells; the component chooses (D68).</p>
+      </div>
+      <div class="stack color-part">
+        <h3 class="t-h6">Stroke</h3>
+        <div class="cluster icon-strokes">
+          <span class="icon-stroke" style="--icon-stroke: 1"><svg class="icon cc-lg-demo" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg><code>1</code></span>
+          <span class="icon-stroke" style="--icon-stroke: 1.5"><svg class="icon cc-lg-demo" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg><code>1.5</code></span>
+          <span class="icon-stroke" style="--icon-stroke: 2"><svg class="icon cc-lg-demo" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg><code>2</code></span>
+        </div>
+        <p class="t-xs faint"><code>--icon-stroke</code>, in the 14-unit square's units: 1.5 by default, so the line thickens with the icon.</p>
+      </div>
+    </div>
+  </section>
+
   <section class="section cc-split" id="floating">
     <header class="section-head stack">
       <p class="t-eyebrow">Floating surfaces</p>
