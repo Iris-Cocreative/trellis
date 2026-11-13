@@ -91,3 +91,4 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D77](D77.md) | The sheet becomes a tray, on any side | 2026-11-13 | accepted |
 | [D78](D78.md) | The specimen shows icons as they are, and color as it is made | 2026-11-13 | accepted |
 | [D79](D79.md) | Proportions: the tuner now, the rest when it shows a need | 2026-11-13 | accepted |
+| [D80](D80.md) | Navigation on the shell | 2026-11-13 | accepted |

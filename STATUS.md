@@ -57,6 +57,7 @@ Everything here lands before the first app pins a version.
 | Item | State | Commit | Evidence |
 |---|---|---|---|
 | Tailwind coexistence spike | idea | | `layers.js` proves the order against the shape of Tailwind's layers, not Tailwind itself. |
+| Navigation templates | done | (this commit) | `.shell.cc-top` with a menu tray, `.float.cc-anchor`, `.shell-foot`, `.outline`, `.crumbs`, `.skip-link` (D80); `tests/layout.js` in both engines, wide and touch. |
 | Floats that follow and close | idea | | |
 | Density at scale | idea | | |
 | Theme name mapping | idea | | |

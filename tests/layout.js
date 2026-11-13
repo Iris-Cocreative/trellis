@@ -10,6 +10,10 @@
 //           top line and rounds up to whole cells; one that doesn't, centers
 //   modal   the real dialog: modal, page locked, on screen, a tray flush to
 //           its side, and everything undone when it closes
+//   nav     a top bar four cells tall; narrow, its links a left tray from the
+//           menu button; a dropdown under its button; outline rows whole cells
+//           and a cell in per level; crumbs show only the parent when narrow;
+//           the skip link hidden until it has focus
 // Usage: node layout.js <url> [webkit] [WxH] [touch]
 // Needs Playwright (PLAYWRIGHT=module path). Exits 1 if anything is off.
 const pw = require(process.env.PLAYWRIGHT || 'playwright');
@@ -143,6 +147,62 @@ const ready = require('./ready');
     return fails;
   });
   fails.push(...m);
+
+  // Navigation: the top bar, its menu as a tray when narrow, a dropdown under
+  // its button, the outline, breadcrumbs and the skip link.
+  const nav = await page.evaluate(async () => {
+    const fails = [], u = Trellis.cell(), wait = ms => new Promise(r => setTimeout(r, ms));
+    const whole = v => { const m = ((v % u) + u) % u; return m < .5 || m > u - .5; };
+    const box = e => e.getBoundingClientRect(), shown = e => getComputedStyle(e).display !== 'none';
+    const wide = document.getElementById('demo-top-wide'), narrow = document.getElementById('demo-top-narrow');
+    const bar = wide.querySelector('.shell-nav');
+    if (Math.abs(box(bar).height - 4 * u) > .5) fails.push(`the top bar is ${box(bar).height.toFixed(1)}px, not four cells`);
+    const wl = wide.querySelector('.shell-links'), nl = narrow.querySelector('.shell-links');
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize), roomy = box(wide).width >= 48 * rem;
+    if (roomy && (!shown(wl) || shown(wide.querySelector('.shell-menu')))) fails.push('a wide top bar should show its links and hide the menu button');
+    if (shown(wl) && Math.abs(box(wl).top + box(wl).height / 2 - (box(bar).top + box(bar).height / 2)) > 1) fails.push('the links are not centered in the bar');
+    if (shown(nl) || !shown(narrow.querySelector('.shell-menu'))) fails.push('a narrow top bar should hide its links behind the menu button');
+    // The menu: a left tray, flush, two cells from the top and the bottom, the page locked.
+    narrow.querySelector('.shell-menu').click();
+    await Promise.all(nl.getAnimations().map(a => a.finished)); await wait(50);
+    const r = box(nl), H = innerHeight;
+    if (!nl.matches(':popover-open')) fails.push('the menu button did not open the links');
+    else {
+      if (Math.abs(r.left) > 1) fails.push(`the menu tray should be flush left: ${r.left.toFixed(1)}`);
+      if (Math.abs(r.top - 2 * u) > 1 || Math.abs(H - r.bottom - 2 * u) > 1) fails.push(`the menu tray should be two cells from the top and bottom: ${r.top.toFixed(1)}, ${(H - r.bottom).toFixed(1)}`);
+      if (getComputedStyle(document.documentElement).overflowY !== 'hidden') fails.push('the open menu did not lock the page');
+      nl.hidePopover(); await wait(50);
+      if (getComputedStyle(document.documentElement).overflowY === 'hidden') fails.push('the page stayed locked after the menu closed');
+    }
+    // A dropdown opens under its button, by its anchor, where the browser can.
+    if (roomy && CSS.supports('position-area: block-end')) {
+      const btn = wide.querySelector('[popovertarget="top-guides-wide"]'), f = document.getElementById('top-guides-wide');
+      btn.scrollIntoView({ block: 'center' }); await wait(50);
+      btn.click(); await Promise.all(f.getAnimations().map(a => a.finished)); await wait(50);
+      const fb = box(f), bb = box(btn), gap = parseFloat(getComputedStyle(f).marginTop);
+      if (!f.matches(':popover-open')) fails.push('the dropdown did not open');
+      else if (Math.abs(fb.top - bb.bottom - gap) > 1 || Math.abs(fb.left - bb.left) > 1) fails.push(`the dropdown is not under its button: ${fb.left.toFixed(0)},${fb.top.toFixed(0)} vs ${bb.left.toFixed(0)},${bb.bottom.toFixed(0)}`);
+      f.hidePopover();
+    }
+    // The outline: rows whole cells, each level a cell further in.
+    const rows = [...wide.querySelectorAll('.outline-link')].filter(shown);
+    rows.forEach(e => { if (!whole(box(e).height)) fails.push(`an outline row is ${box(e).height.toFixed(1)}px, not whole cells`); });
+    const top = wide.querySelector('.outline > ul > li > .outline-link'), sub = wide.querySelector('.outline ul ul .outline-link');
+    if (Math.abs(box(sub).left - box(top).left - u) > .5) fails.push('an outline level is not one cell further in');
+    // Breadcrumbs: all of them when there is room, only the parent in a narrow box.
+    const seen = c => [...c.querySelectorAll('.crumbs > li')].filter(shown).length;
+    if (box(wide).width >= 30 * rem && seen(wide) !== 3) fails.push(`wide breadcrumbs should show 3 crumbs, not ${seen(wide)}`);
+    if (seen(narrow) !== 1) fails.push(`narrow breadcrumbs should show only the parent, not ${seen(narrow)}`);
+    [wide, narrow].forEach(c => { const h = box(c.querySelector('.crumbs')).height; if (!whole(h)) fails.push(`breadcrumbs are ${h.toFixed(1)}px, not whole cells`); });
+    // The skip link: off the screen until it takes focus.
+    const skip = document.querySelector('.skip-link');
+    if (box(skip).bottom > 0) fails.push('the skip link shows before it has focus');
+    skip.focus(); await wait(50);
+    if (box(skip).top < 0 || box(skip).bottom > innerHeight) fails.push('the focused skip link is not on the screen');
+    skip.blur();
+    return fails;
+  });
+  fails.push(...nav);
   // Rule 8: a cap-centered label that wraps hangs instead. Built in a stack, so
   // its row starts on a line, and narrow, so its label must wrap.
   fails.push(...await page.evaluate(async () => {

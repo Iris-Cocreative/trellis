@@ -158,7 +158,7 @@ Five levels, each with a few named parts. A unique design changes variables at a
 
 | Level | Parts | Notes |
 |---|---|---|
-| **Page** | `.frame` · `.shell` (navigation, main, an aside; a tab bar when its box is under 48rem, the aside under main when it is under 72rem) | The field of modules and its gutters, centered. `.shell` holds a `.shell-grid`, since a query can't restyle the container it asks. |
+| **Page** | `.frame` · `.shell` (navigation, main, an aside and a foot; a tab bar when its box is under 48rem, the aside under main when it is under 72rem) · `.shell.cc-top` (the navigation as a bar across the top; under 48rem its links fold behind a menu button and open as a left tray) | The field of modules and its gutters, centered. `.shell` holds a `.shell-grid`, since a query can't restyle the container it asks. |
 | **Section** | `.section`, `.section-head`, `.section-body`; `.cc-split` (head beside body when the container is wider than 54rem), `.cc-band` (the surface reaches the screen's edges, painted by an outset border image so it never adds scroll) · `.cover` (a full-screen opening: media to the edges, words in the field; its height is whole cells) | A band of the page. |
 | **Composition** | `.stack` (one above another) · `.cluster` (a wrapping row) · `.cols` (n equal columns) · `.split` (two columns at a ratio, `--split-a : --split-b`, 2 : 1 by default; one column under 36rem of container) · `.grid` (as many fixed tracks as fit) · `.cells` (the lattice: children placed by `--cell-x`, `--cell-y`, sized by `--cell-w`, `--cell-h`, in cells) · `.rail` (scrolls sideways and snaps) · `.list` (rows divided by hairlines: chats, actions, members, post indexes) · `.board` (lanes of cards in a sideways scroller) · `.prose` (bare tags from an editor; see Prose) | How a region arranges what it holds. |
 | **Surface** | `.card` | Padding, an edge plane, its own container. Steps out (Outset). |
@@ -254,7 +254,7 @@ Every role is `light-dark()` of two relative colors (`oklch(from var(--seed-…)
 13. **One concept, one primitive.** Variants are `cc-*` modifiers that change the primitive's own variables.
 14. **Products turn knobs.** A product layer only sets variables on `:root`. Primitives read the knobs; variants and contexts set the primitive's own variables, so a product never overrides a variant by accident.
 15. **Context changes variables, not markup.** `.cc-dense .card { --card-pad: u }`; a card is a container, so its type scales to it.
-16. **Floating surfaces align to their anchor, not the page grid.** One `.float` for every popover, options card and tooltip. Core puts it in the top layer at a fixed position and defines its motion once; placing it by its anchor, following the anchor and closing when it scrolls away are the app's job.
+16. **Floating surfaces align to their anchor, not the page grid.** One `.float` for every popover, options card and tooltip. Core puts it in the top layer at a fixed position and defines its motion once. A float marked `.cc-anchor` is placed by its anchor where the browser has CSS anchor positioning: under the button that opened it, flipping when it would leave the screen. Elsewhere, and for following the anchor and closing when it scrolls away, the app does it (D80).
 17. **Control type is fixed, and listed.** Controls sit in rows of a fixed height, so their labels don't scale with the container: `--fs-control-xs` … `--fs-control-lg` are the only font sizes outside the type roles. `--white` and `--black` are the only raw neutrals (ink on a solid color or a photo). **A control is never shorter than its own type:** past the cell's cap (rule 19) a label can outgrow its control, and then the control grows by whole cells from its own height (button, icon button, tag, input, tab, badge). At default sizes every label is shorter than its control, so nothing moves.
 18. **Touch targets.** On a coarse pointer every control's hit area is at least `--hit-min` (44px, Apple's guidance), whatever it draws: an invisible `::before` grows around it, so density never costs a missed tap.
 19. **The reader's text size wins; the cell stops at 1.5×.** Type follows the reader's setting all the way. The cell follows it up to 1.5 times the default (`text-scale-max`), and above that layouts reflow instead of the cells growing. iOS and Android accessibility sizes reach about three times normal, which would turn a 40-cell phone into a 13-cell one. `tests/align.js` checks the specimen at 312% (the largest iOS size) in both engines and all three layers: no sideways scroll, nothing off its line.
@@ -339,7 +339,10 @@ This is what a consumer may rely on. Anything here changing is a changelog entry
 | `.frame` | | |
 | `.section` | `.section-head`, `.section-body`, `.cc-split`, `.cc-band` | `--section-head-w`, `--band-bg` |
 | `.cover` | `.cover-media`, `.cover-body` | `--cover-h`, `--cover-pad`, `--cover-scrim` |
-| `.shell` | `.shell-grid`, `.shell-nav`, `.shell-main`, `.shell-aside`, `.shell-link` | `--shell-h`, `--shell-nav-w`, `--shell-aside-w`, `--shell-pad` |
+| `.shell` | `.shell-grid`, `.shell-nav`, `.shell-main`, `.shell-aside`, `.shell-foot`, `.shell-link` · `.cc-top` with `.shell-brand`, `.shell-menu`, `.shell-links` (a `[popover]`: in the bar when wide, a left tray from `.shell-menu` under 48rem), `.shell-nav-end` | `--shell-h`, `--shell-nav-w`, `--shell-aside-w`, `--shell-pad`, `--shell-bar-h` |
+| `.outline` | `.outline-link` (an `a`, or a `details`' `summary`) · `[aria-current]` | `--outline-indent`, `--outline-row` |
+| `.crumbs` | an `ol` of `li > a`, the last with `aria-current="page"` | |
+| `.skip-link` | | |
 | `.stack`, `.cluster` | | `--stack-gap`, `--cluster-gap` |
 | `.cols`, `.split`, `.grid` | | `--cols`, `--cols-gap`, `--split-a`, `--split-b`, `--split-gap`, `--grid-min`, `--grid-gap` |
 | `.cells` | | `--cell-x`, `--cell-y`, `--cell-w`, `--cell-h` |
@@ -359,7 +362,7 @@ This is what a consumer may rely on. Anything here changing is a changelog entry
 | `.badge`, `.dot` | `.cc-quiet`, `.cc-accent`, `.cc-ok`, `.cc-warn` | `--badge-color`, `--badge-ink`, `--badge-h`, `--dot-color`, `--dot-size` |
 | `.skeleton` | `.cc-block` | `--skel-lo`, `--skel-hi`, `--skel-radius`, `--skel-w`, `--skel-h` |
 | `.modal` | `.modal-inner`, `.modal-header`, `.modal-body`, `.modal-footer`, `.cc-tray` with `.cc-left` (the default), `.cc-right`, `.cc-top`, `.cc-bottom`; `.cc-sheet` (an alias for one minor) | `--modal-w`, `--modal-pad`, `--modal-gutter`, `--modal-gutter-block`, `--modal-gutter-inline`, `--modal-radius`, `--modal-max-h`, `--modal-scrim`, `--tray-w`, `--tray-margin` |
-| `.float` | `.options-card`, `.options-card-heading`, `.options-card-item`, `.options-card-label`, `.options-card-rule`, `.tooltip` | `--float-pad`, `--float-radius` |
+| `.float` | `.options-card`, `.options-card-heading`, `.options-card-item`, `.options-card-label`, `.options-card-rule`, `.tooltip` · `.cc-anchor` (placed under its opener by anchor positioning, where the browser has it) | `--float-pad`, `--float-radius` |
 | Contexts | `.cc-dense`, `.cc-on-media` | |
 | Scrollbars | `.cc-scroll-thick`, `.cc-scroll-none` | `--scrollbar-width`, `--scrollbar-size`, `--scrollbar-thumb`, `--scrollbar-thumb-hover`, `--scrollbar-track` |
 | `.switch` | `.switch-label` · `[aria-checked="true"]`, or a checked `input` inside · `[aria-disabled="true"]`, `:disabled` | `--switch-w`, `--switch-h`, `--switch-knob`, `--switch-off`, `--switch-on`, `--switch-thumb` |

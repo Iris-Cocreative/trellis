@@ -1012,11 +1012,12 @@
      half-cell rhythm, as in a button or a cluster. */
   .cc-dense .list, .list.cc-dense { --list-pad-y: var(--sp-h); --list-gap: var(--sp-h); }
 
-  /* SHELL: navigation, main, an aside. It answers to its own width, not the
-     window: three columns, then the aside under main, then a tab bar. A query
-     can't restyle the container it asks, so .shell is the container and
-     .shell-grid does the layout. Markup: .shell > .shell-grid > .shell-nav,
-     .shell-main, .shell-aside. */
+  /* SHELL: navigation, main, an aside, and a foot. It answers to its own
+     width, not the window: three columns, then the aside under main, then a
+     tab bar. A query can't restyle the container it asks, so .shell is the
+     container and .shell-grid does the layout. Markup: .shell > .shell-grid >
+     .shell-nav, .shell-main, .shell-aside, .shell-foot. .shell.cc-top puts the
+     navigation in a bar across the top instead (below). */
   .shell { container: shell / inline-size; }
   .shell-grid {
     --shell-nav-w: calc(var(--u) * 20);
@@ -1025,7 +1026,8 @@
     display: grid;
     min-height: var(--shell-h, 100svh);
     grid-template-columns: var(--shell-nav-w) minmax(0, 1fr) var(--shell-aside-w);
-    grid-template-areas: "nav main aside";
+    grid-template-areas: "nav main aside" "nav foot foot";
+    grid-template-rows: 1fr auto;
   }
   .shell-nav {
     grid-area: nav;
@@ -1040,6 +1042,14 @@
   }
   .shell-main { grid-area: main; min-width: 0; padding: var(--shell-pad); }
   .shell-aside { grid-area: aside; min-width: 0; padding: var(--shell-pad); }
+  /* The foot: groups of links, then the small print. Its rule is a plane
+     after its top coordinate, inside it, so it adds no height. */
+  .shell-foot {
+    grid-area: foot; min-width: 0;
+    display: flex; flex-direction: column; gap: var(--sp-4);
+    padding: var(--shell-pad);
+    box-shadow: inset 0 var(--line) 0 var(--border-subtle);
+  }
   .shell-link {
     display: flex; align-items: center; gap: var(--sp-h);
     min-height: var(--size-control-md);
@@ -1054,15 +1064,15 @@
   @container shell (width < 72rem) {
     .shell-grid {
       grid-template-columns: var(--shell-nav-w) minmax(0, 1fr);
-      grid-template-areas: "nav main" "nav aside";
-      grid-template-rows: 1fr auto;
+      grid-template-areas: "nav main" "nav aside" "nav foot";
+      grid-template-rows: 1fr auto auto;
     }
   }
   @container shell (width < 48rem) {
     .shell-grid {
       grid-template-columns: minmax(0, 1fr);
-      grid-template-areas: "main" "aside" "nav";
-      grid-template-rows: 1fr auto auto;
+      grid-template-areas: "main" "aside" "foot" "nav";
+      grid-template-rows: 1fr auto auto auto;
     }
     .shell-nav {
       position: sticky; inset-block: auto 0;
@@ -1078,6 +1088,42 @@
       min-height: round(up, max(var(--sp-4), var(--hit-min)), var(--u));
       padding-inline: 0;
       font-size: var(--fs-control-xs);
+    }
+  }
+
+  /* SHELL ACROSS THE TOP (.shell.cc-top): the navigation is a bar across the
+     top, --shell-bar-h tall (four cells) and sticky, its rule a plane after
+     its bottom coordinate. Main and the aside sit under it, the foot under
+     them; the aside drops under main below 72rem. Under 48rem the links fold
+     behind the menu button and open as a left tray (see .shell-links). */
+  .shell.cc-top > .shell-grid {
+    --shell-bar-h: var(--sp-4);
+    grid-template-columns: minmax(0, 1fr) var(--shell-aside-w);
+    grid-template-areas: "nav nav" "main aside" "foot foot";
+    grid-template-rows: auto 1fr auto;
+  }
+  .shell.cc-top .shell-nav {
+    position: sticky; inset-block: 0 auto;
+    height: var(--shell-bar-h);
+    flex-direction: row; align-items: center; justify-content: flex-start; gap: var(--sp-2);
+    padding-block: 0; padding-inline: var(--shell-pad);
+    box-shadow: 0 var(--line) 0 var(--border-subtle);
+    z-index: var(--z-sticky);
+  }
+  @container shell (width < 72rem) {
+    .shell.cc-top > .shell-grid {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: "nav" "main" "aside" "foot";
+      grid-template-rows: auto 1fr auto auto;
+    }
+  }
+  @container shell (width < 48rem) {
+    .shell.cc-top .shell-nav {
+      position: sticky; inset-block: 0 auto;
+      height: var(--shell-bar-h);
+      justify-content: flex-start; gap: var(--sp-1);
+      padding-block: 0;
+      box-shadow: 0 var(--line) 0 var(--border-subtle);
     }
   }
 
@@ -1240,7 +1286,7 @@
     border: var(--line) solid var(--btn-border);
     border-radius: var(--btn-radius);
     background: color-mix(in oklab, var(--btn-ink) calc(var(--state-on) + var(--state-act)), var(--btn-bg));
-    color: var(--btn-ink);
+    color: var(--btn-ink); text-decoration: none;
     font-size: var(--btn-fs);
     font-weight: var(--fw-label);
     letter-spacing: var(--btn-tracking, 0);
@@ -1454,6 +1500,153 @@
     }
   }
 
+  /* Navigation --------------------------------------------------------------
+     The parts the shell's navigation is made of. In a top bar (.shell.cc-top):
+     .shell-brand, a .shell-menu button, .shell-links and .shell-nav-end.
+     Markup: header.shell-nav > a.shell-brand + button.shell-menu.icon-button
+     [popovertarget=id] + nav.shell-links#id[popover] > .shell-link… +
+     .shell-nav-end. The links are one element at every width: wide, a
+     [popover] shown in the bar; under 48rem, hidden until the menu button
+     opens it as a left tray, so nothing is written twice. A popover gives
+     Escape and a click outside for free, and opens after its button in the
+     tab order; the page behind is locked while it is open. */
+  .shell-brand {
+    display: inline-flex; align-items: center; gap: var(--sp-h); flex: none;
+    min-height: var(--size-control-sm);
+    color: var(--text); text-decoration: none;
+    font-size: var(--fs-control); font-weight: var(--fw-strong);
+  }
+  .shell-menu { display: none; }
+  .shell-links { display: flex; align-items: center; gap: var(--sp-q2); min-width: 0; }
+  .shell-links[popover] {
+    position: static; inset: auto; width: auto; height: auto;
+    margin: 0; padding: 0; border: 0; overflow: visible;
+    background: none; color: inherit;
+  }
+  .shell-nav-end { display: flex; align-items: center; gap: var(--sp-h); margin-inline-start: auto; }
+  .shell.cc-top .shell-link { min-height: var(--size-control-sm); }
+  /* In a bar the current link's mark is under it, not beside it. */
+  .shell.cc-top .shell-link[aria-current]:not([aria-current="false"]) { box-shadow: inset 0 calc(var(--line) * -2) 0 var(--accent); }
+  @container shell (width < 48rem) {
+    .shell.cc-top .shell-menu { display: inline-flex; }
+    .shell.cc-top .shell-links[popover]:not(:popover-open) { display: none; }
+    .shell.cc-top .shell-links:popover-open {
+      --tray-margin: var(--sp-2);
+      position: fixed; inset: var(--tray-margin) auto var(--tray-margin) 0;
+      width: min(calc(var(--u) * 32), calc(100% - var(--sp-4)));
+      flex-direction: column; align-items: stretch; gap: var(--sp-q2);
+      padding: var(--sp-1);
+      overflow-y: auto; overscroll-behavior: contain;
+      background: var(--bg-raised); color: var(--text);
+      border-radius: 0 var(--shape-card) var(--shape-card) 0;
+      outline: var(--line) solid var(--border); outline-offset: calc(var(--line) * -1);
+      box-shadow: var(--lift);
+      translate: 0;
+      transition: translate var(--dur-tray-in) var(--ease-spring);
+    }
+    @starting-style { .shell.cc-top .shell-links:popover-open { translate: -100% 0; } }
+    .shell.cc-top .shell-links::backdrop { background: color-mix(in oklab, var(--black) 60%, transparent); }
+    .shell.cc-top .shell-links .shell-link {
+      flex: none; flex-direction: row; justify-content: flex-start; gap: var(--sp-h);
+      min-height: var(--size-control-md);
+      padding-inline: var(--sp-h);
+      font-size: var(--fs-control);
+    }
+    .shell.cc-top .shell-links .shell-link[aria-current]:not([aria-current="false"]) { box-shadow: inset calc(var(--line) * 2) 0 0 var(--accent); }
+  }
+  html:has(.shell.cc-top .shell-links:popover-open) { overflow: hidden; }
+
+  /* A dropdown is a float that opens under its button: .float.cc-anchor
+     [popover], opened by popovertarget from a .shell-link button (or any
+     button). Where the browser has anchor positioning, core places it under
+     its button and flips it when it would leave the screen; the button that
+     opens a popover is its anchor, so no names are needed. Elsewhere the app
+     places it, as rule 16 says. */
+  @supports (position-area: block-end) {
+    .float.cc-anchor[popover] {
+      position-area: block-end span-inline-end;
+      position-try-fallbacks: flip-inline, flip-block, flip-block flip-inline;
+      margin-block: var(--sp-q);
+    }
+  }
+
+  /* Outline: a knowledge base's contents. Nested lists of links (chapters,
+     pages, a page's headings), each level a cell further in, every row whole
+     cells; a level folds as a details whose summary is a row. The current
+     link is marked as a current .shell-link is. Marking the heading in view
+     is the app's job. Markup: nav.outline > ul > li > a.outline-link (+ ul),
+     or li > details > summary.outline-link + ul. */
+  .outline { --outline-indent: var(--sp-1); --outline-row: var(--size-control-sm); min-width: 0; }
+  .outline :where(ul) { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+  .outline :where(ul ul) { padding-inline-start: var(--outline-indent); }
+  .outline :where(details) { margin: 0; }
+  .outline-link {
+    position: relative;
+    display: flex; align-items: center; gap: var(--sp-h);
+    min-height: var(--outline-row);
+    padding-inline: var(--sp-h);
+    border-radius: var(--r-h);
+    color: var(--text-secondary); text-decoration: none;
+    font-size: var(--fs-control); font-weight: var(--fw-label);
+    list-style: none; cursor: pointer;
+    background: color-mix(in oklab, var(--text) calc(var(--state-on) + var(--state-act)), transparent);
+  }
+  .outline-link::-webkit-details-marker { display: none; }
+  @media (hover: hover) { .outline-link:hover { color: var(--text); } }
+  .outline-link[aria-current]:not([aria-current="false"]) { color: var(--text); box-shadow: inset calc(var(--line) * 2) 0 0 var(--accent); }
+  /* A folding row's chevron: two sides of a square, turned, at the row's end. */
+  summary.outline-link::after {
+    content: ""; flex: none;
+    width: var(--sp-h); height: var(--sp-h);
+    margin-inline-start: auto;
+    border-inline-end: calc(var(--line) * 1.5) solid var(--text-tertiary);
+    border-block-end: calc(var(--line) * 1.5) solid var(--text-tertiary);
+    transform: translateY(calc(var(--sp-h) * -.354)) rotate(45deg);
+    transition: transform var(--dur-in) var(--ease-out);
+  }
+  details:not([open]) > summary.outline-link::after { transform: translateX(calc(var(--sp-h) * -.354)) rotate(-45deg); }
+
+  /* Breadcrumbs: where this page sits. Markup: nav[aria-label] > ol.crumbs >
+     li > a, the last li holding the page itself with aria-current="page".
+     Rows are whole cells, so wrapping keeps what follows on a line. In a box
+     under 30rem only the parent shows, as a link back. */
+  .crumbs {
+    display: flex; flex-wrap: wrap; align-items: center;
+    margin: 0; padding: 0; list-style: none;
+    font-size: var(--fs-control-sm); font-weight: var(--fw-label);
+    color: var(--text-tertiary);
+  }
+  .crumbs > li { display: inline-flex; align-items: center; min-height: var(--sp-2); }
+  .crumbs > li + li::before {
+    content: "/" / "";
+    padding-inline: var(--sp-h);
+    color: var(--text-faint);
+  }
+  .crumbs a { color: var(--text-secondary); text-decoration: none; border-radius: var(--r-q); }
+  @media (hover: hover) { .crumbs a:hover { color: var(--text); text-decoration: underline; } }
+  .crumbs [aria-current]:not([aria-current="false"]) { color: var(--text); }
+  @container (width < 30rem) {
+    .crumbs > li:not(:nth-last-child(2)) { display: none; }
+    .crumbs > li:nth-last-child(2)::before { content: "\2190" / ""; padding-inline: 0 var(--sp-h); color: var(--text-secondary); }
+  }
+
+  /* Skip link: the first thing in the page, hidden until it takes focus, then
+     drawn over the page's start like a primary button. Its target is main,
+     given tabindex="-1" so every browser moves focus there. */
+  .skip-link {
+    position: fixed; inset-block-start: var(--sp-1); inset-inline-start: var(--sp-1);
+    z-index: var(--z-toast);
+    display: inline-flex; align-items: center;
+    min-height: var(--size-control-lg);
+    padding-inline: var(--sp-1h);
+    border-radius: var(--shape-control);
+    background: var(--accent); color: var(--accent-ink);
+    font-size: var(--fs-control); font-weight: var(--fw-label);
+    text-decoration: none;
+    translate: 0 calc(-100% - var(--sp-2));
+  }
+  .skip-link:focus { translate: none; }
+
   /* Floating surfaces -----------------------------------------------------
      One surface for every popover, options card and tooltip, in the top layer
      at a fixed position, with its motion defined once. Placing it by its anchor,
@@ -1499,7 +1692,7 @@
     border-radius: max(var(--r-q), calc(var(--float-radius) - var(--float-pad)));
     font-size: var(--fs-control);
     text-align: start;
-    color: var(--text);
+    color: var(--text); text-decoration: none;
   }
   .options-card-item { background: color-mix(in oklab, var(--text) calc(var(--state-on) + var(--state-act)), transparent); }
   .options-card-item .icon.cc-end { margin-inline-start: auto; color: var(--accent); }
@@ -1918,10 +2111,10 @@
      A control of your own takes the same layer with .u-state: set
      --state-fill and --state-ink on it, and every state follows. */
   @media (hover: hover) {
-    :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .list-item:is(a, button), .options-card-item, .u-state, .switch, .prose summary):hover { --state-act: var(--state-hover); }
+    :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .outline-link, .list-item:is(a, button), .options-card-item, .u-state, .switch, .prose summary):hover { --state-act: var(--state-hover); }
   }
-  :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .list-item:is(a, button), .options-card-item, .u-state, .switch, .prose summary):active { --state-act: var(--state-press); }
-  :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .list-item:is(a, button), .options-card-item, .u-state):is([aria-pressed="true"], [aria-checked="true"], [aria-current]:not([aria-current="false"]), [aria-selected="true"]) { --state-on: var(--state-selected); }
+  :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .outline-link, .list-item:is(a, button), .options-card-item, .u-state, .switch, .prose summary):active { --state-act: var(--state-press); }
+  :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .outline-link, .list-item:is(a, button), .options-card-item, .u-state):is([aria-pressed="true"], [aria-checked="true"], [aria-current]:not([aria-current="false"]), [aria-selected="true"]) { --state-on: var(--state-selected); }
   :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .list-item:is(a, button), .options-card-item, .u-state, .switch):is(:disabled, [aria-disabled="true"]) { --state-act: 0%; cursor: not-allowed; }
 }
 

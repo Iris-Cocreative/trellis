@@ -146,6 +146,9 @@
   .demo-shell::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 var(--line) var(--border-subtle); pointer-events: none; z-index: calc(var(--z-raised) + 1); }
   .demo-shell .shell-grid { --shell-nav-w: calc(var(--u) * 12); --shell-aside-w: calc(var(--u) * 16); }
   .demo-shell.cc-narrow { width: min(100%, calc(var(--u) * 32)); }
+  /* In the specimen a top bar stays in its box: sticky, it would follow the page. */
+  .demo-shell.cc-top .shell-nav { position: relative; z-index: auto; }
+  .demo-shell .shell-foot a { color: var(--text-secondary); text-decoration: none; }
   .post-type { display: flex; flex-direction: column; gap: var(--sp-4); }
   .post-type .cover { --cover-h: calc(var(--u) * 40); }
   .post-type .cover-body { --prose-measure: calc(var(--u) * 60); }

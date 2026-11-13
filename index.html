@@ -42,6 +42,8 @@
 </head>
 <body>
 
+<a class="skip-link" href="#top">Skip to the specimen</a>
+
 <canvas class="grid-canvas" id="grid-canvas" aria-hidden="true"></canvas>
 
 <header class="nav">
@@ -113,6 +115,7 @@
   <a class="toc-link" href="#layout"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Layout</span></a>
   <a class="toc-link" href="#prose"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Prose</span></a>
   <a class="toc-link" href="#apps"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Apps</span></a>
+  <a class="toc-link" href="#navigation"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Navigation</span></a>
   <a class="toc-link" href="#post-type"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">A post type</span></a>
   <a class="toc-link" href="#primitives"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Primitives</span></a>
   <a class="toc-link" href="#avatars"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Edges</span></a>
@@ -126,7 +129,7 @@
   <a class="toc-link" href="#keeping"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Keeping it</span></a>
 </nav>
 
-<main class="page frame" id="top">
+<main class="page frame" id="top" tabindex="-1">
   <div class="measure-layer" id="measure-layer" aria-hidden="true" data-settle-skip></div>
 
   <!-- ============================================================ HERO -->
@@ -713,6 +716,103 @@
         <div class="board-lane"><div class="board-lane-head"><p class="t-label">Saving</p><span class="t-xs faint">1</span></div><article class="card stack"><p class="t-sm">Dry the beans</p><p class="t-xs faint">Ada</p></article></div>
         <div class="board-lane"><div class="board-lane-head"><p class="t-label">Shared</p><span class="t-xs faint">0</span></div></div>
       </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ NAVIGATION -->
+  <section class="section cc-split" id="navigation">
+    <header class="section-head stack">
+      <p class="t-eyebrow">Navigation</p>
+      <h2 class="t-h4">A bar, a menu, a foot and an outline</h2>
+      <p class="t-sm muted">The shell's navigation can run across the top: a brand, the links, actions at the end, and a dropdown that opens under its button. Under 48rem of its own box the same links fold behind a menu button and open as a tray from the left. Breadcrumbs and an outline say where the reader is; a foot closes the page. This page's first stop is a skip link: press Tab.</p>
+    </header>
+    <div class="section-body stack">
+      <h3 class="t-h5">.shell.cc-top</h3>
+      <div class="shell cc-top demo-shell" id="demo-top-wide">
+        <div class="shell-grid">
+          <header class="shell-nav">
+            <a class="shell-brand" href="#navigation"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6M7 6C7 3.5 9 2 11.5 2 11.5 4.5 9.5 6 7 6ZM7 8.5C7 6.5 5.5 5 3 5 3 7 4.5 8.5 7 8.5Z"></path></svg><span>Seed Library</span></a>
+            <button class="shell-menu icon-button cc-ghost" type="button" popovertarget="top-links-wide" aria-label="Menu"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 4h9M2.5 7h9M2.5 10h9"></path></svg></button>
+            <nav class="shell-links" id="top-links-wide" popover aria-label="Example, top">
+              <a class="shell-link" href="#navigation" aria-current="page"><span>Catalog</span></a>
+              <a class="shell-link" href="#navigation"><span>Growers</span></a>
+              <button class="shell-link" type="button" popovertarget="top-guides-wide"><span>Guides</span><svg class="icon cc-end" viewBox="0 0 14 14" aria-hidden="true"><path d="M4 5.5 7 8.5l3-3"></path></svg></button>
+              <div class="float options-card cc-anchor" id="top-guides-wide" popover>
+                <p class="t-label options-card-heading">Guides</p>
+                <a class="options-card-item" href="#navigation"><span class="button-label">Saving seed</span></a>
+                <a class="options-card-item" href="#navigation"><span class="button-label">Keeping a variety true</span></a>
+                <a class="options-card-item" href="#navigation"><span class="button-label">Starting a library</span></a>
+              </div>
+            </nav>
+            <div class="shell-nav-end"><a class="button cc-sm cc-primary" href="#navigation"><span class="button-label">Join</span></a></div>
+          </header>
+          <div class="shell-main stack">
+            <nav aria-label="Breadcrumb, example, top"><ol class="crumbs"><li><a href="#navigation">Catalog</a></li><li><a href="#navigation">Squash</a></li><li><span aria-current="page">Long Island Cheese</span></li></ol></nav>
+            <p class="t-sm">The bar is four cells tall and sticky (here it stays in its box). Guides opens a float under its button: the browser places it by its anchor, and flips it when it would leave the screen.</p>
+          </div>
+          <aside class="shell-aside stack">
+            <p class="t-label faint">On this page</p>
+            <nav class="outline" aria-label="Outline, example, top">
+              <ul role="list">
+                <li><a class="outline-link" href="#navigation" aria-current="location">Growing</a>
+                  <ul role="list"><li><a class="outline-link" href="#navigation">Sowing</a></li><li><a class="outline-link" href="#navigation">Spacing</a></li></ul></li>
+                <li><details open><summary class="outline-link">Saving</summary><ul role="list"><li><a class="outline-link" href="#navigation">Isolation</a></li><li><a class="outline-link" href="#navigation">Drying</a></li></ul></details></li>
+                <li><details><summary class="outline-link">Sharing</summary><ul role="list"><li><a class="outline-link" href="#navigation">Lending</a></li></ul></details></li>
+              </ul>
+            </nav>
+          </aside>
+          <footer class="shell-foot">
+            <div class="grid" style="--grid-min: var(--sp-12)">
+              <nav class="stack u-gap-1" aria-label="Library, example, top"><p class="t-label">Library</p><ul class="stack u-gap-1" role="list"><li class="t-sm"><a href="#navigation">Catalog</a></li><li class="t-sm"><a href="#navigation">Growers</a></li></ul></nav>
+              <nav class="stack u-gap-1" aria-label="Learn, example, top"><p class="t-label">Learn</p><ul class="stack u-gap-1" role="list"><li class="t-sm"><a href="#navigation">Guides</a></li><li class="t-sm"><a href="#navigation">Glossary</a></li></ul></nav>
+            </div>
+            <div class="cluster"><p class="t-xs faint">An example library</p><p class="t-xs faint">Shared freely</p></div>
+          </footer>
+        </div>
+      </div>
+      <div class="shell cc-top demo-shell cc-narrow" id="demo-top-narrow">
+        <div class="shell-grid">
+          <header class="shell-nav">
+            <a class="shell-brand" href="#navigation"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6M7 6C7 3.5 9 2 11.5 2 11.5 4.5 9.5 6 7 6ZM7 8.5C7 6.5 5.5 5 3 5 3 7 4.5 8.5 7 8.5Z"></path></svg><span>Seed Library</span></a>
+            <button class="shell-menu icon-button cc-ghost" type="button" popovertarget="top-links-narrow" aria-label="Menu"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 4h9M2.5 7h9M2.5 10h9"></path></svg></button>
+            <nav class="shell-links" id="top-links-narrow" popover aria-label="Example, top, narrow">
+              <a class="shell-link" href="#navigation" aria-current="page"><span>Catalog</span></a>
+              <a class="shell-link" href="#navigation"><span>Growers</span></a>
+              <button class="shell-link" type="button" popovertarget="top-guides-narrow"><span>Guides</span><svg class="icon cc-end" viewBox="0 0 14 14" aria-hidden="true"><path d="M4 5.5 7 8.5l3-3"></path></svg></button>
+              <div class="float options-card cc-anchor" id="top-guides-narrow" popover>
+                <p class="t-label options-card-heading">Guides</p>
+                <a class="options-card-item" href="#navigation"><span class="button-label">Saving seed</span></a>
+                <a class="options-card-item" href="#navigation"><span class="button-label">Keeping a variety true</span></a>
+                <a class="options-card-item" href="#navigation"><span class="button-label">Starting a library</span></a>
+              </div>
+            </nav>
+            <div class="shell-nav-end"><a class="button cc-sm cc-primary" href="#navigation"><span class="button-label">Join</span></a></div>
+          </header>
+          <div class="shell-main stack">
+            <nav aria-label="Breadcrumb, example, top, narrow"><ol class="crumbs"><li><a href="#navigation">Catalog</a></li><li><a href="#navigation">Squash</a></li><li><span aria-current="page">Long Island Cheese</span></li></ol></nav>
+            <p class="t-sm">The same markup in a box under 48rem: the links wait behind the menu button. Crumbs show only the parent, as a link back.</p>
+          </div>
+          <aside class="shell-aside stack">
+            <p class="t-label faint">On this page</p>
+            <nav class="outline" aria-label="Outline, example, top, narrow">
+              <ul role="list">
+                <li><a class="outline-link" href="#navigation" aria-current="location">Growing</a>
+                  <ul role="list"><li><a class="outline-link" href="#navigation">Sowing</a></li><li><a class="outline-link" href="#navigation">Spacing</a></li></ul></li>
+                <li><details open><summary class="outline-link">Saving</summary><ul role="list"><li><a class="outline-link" href="#navigation">Isolation</a></li><li><a class="outline-link" href="#navigation">Drying</a></li></ul></details></li>
+                <li><details><summary class="outline-link">Sharing</summary><ul role="list"><li><a class="outline-link" href="#navigation">Lending</a></li></ul></details></li>
+              </ul>
+            </nav>
+          </aside>
+          <footer class="shell-foot">
+            <div class="grid" style="--grid-min: var(--sp-12)">
+              <nav class="stack u-gap-1" aria-label="Library, example, top, narrow"><p class="t-label">Library</p><ul class="stack u-gap-1" role="list"><li class="t-sm"><a href="#navigation">Catalog</a></li><li class="t-sm"><a href="#navigation">Growers</a></li></ul></nav>
+              <nav class="stack u-gap-1" aria-label="Learn, example, top, narrow"><p class="t-label">Learn</p><ul class="stack u-gap-1" role="list"><li class="t-sm"><a href="#navigation">Guides</a></li><li class="t-sm"><a href="#navigation">Glossary</a></li></ul></nav>
+            </div>
+            <div class="cluster"><p class="t-xs faint">An example library</p><p class="t-xs faint">Shared freely</p></div>
+          </footer>
+        </div>
+      </div>
+      <p class="t-xs faint">The links are one element at every width, a popover that shows in the bar when there is room. The outline marks where the reader is; a folding level is a details row. The foot's groups sit on fixed tracks, and its rule is a plane inside its top edge.</p>
     </div>
   </section>
 
