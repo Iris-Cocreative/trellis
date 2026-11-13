@@ -222,7 +222,7 @@ Our apps carry rich content from editors and markdown, which arrives as bare tag
 |---|---|
 | **Seeds** | `--seed-neutral`, `--seed-accent`, and one per kind (`--seed-person`, `--seed-group`, `--seed-event`, `--seed-course`, `--seed-topic`) and per status (`--seed-ok`, `--seed-warn`, `--seed-alert`). Each is one color, in its light-theme form. |
 | **Neutral roles** | `--bg`, `--bg-raised`, `--bg-sunken`, `--bg-hover`, `--text`, `--text-secondary`, `--text-tertiary`, `--text-faint`, `--border`, `--border-subtle`, `--border-strong`: the neutral seed's hue and chroma at a lightness for each theme. The lightness ladder is in `tokens.json`. |
-| **Hues** | `--accent`, `--kind-*`, `--ok`, `--warn`, `--alert`: the seed in the light theme, and in the dark the same color lifted by `--color-lift` (0.17 of OKLCH lightness). `--focus` is the accent. |
+| **Hues** | `--accent`, `--kind-*`, `--ok`, `--warn`, `--alert`: the seed in the light theme, and in the dark the same color lifted by `--color-lift` (0.17 of OKLCH lightness). `--focus` is the accent. `--bg-hover` no longer paints hover (the state layer does) and stays one minor for products that read it. |
 | **Ink** | `--accent-ink` is computed from the fill: white on an accent darker than `--ink-flip` (0.58), a dark ink of the accent's own hue on a lighter one. A solid tag's ink mixes its kind color into black the same way. |
 | **Mixes** | A tint, an edge or a wash is a role mixed with `color-mix(in oklab, …)`: a tag's fill and edge from its kind, an avatar's wash from its ring, the scrollbar and the skeleton from the ink, a scrim from black. A color is a role, or a mix of a role. |
 | **Gradients** | `--gradient-accent` (the accent turning its hue by `--gradient-turn`) and `--gradient-surface` (raised to sunken) are an interpolation space and stops, in `--gradient-space` (OKLCH). Add a direction or a shape: `linear-gradient(to right var(--gradient-accent))`. |
@@ -269,6 +269,7 @@ Every role is `light-dark()` of two relative colors (`oklch(from var(--seed-…)
 | `.button`, `.icon-button` | Heights 1½u · 2u · 2½u · 3u · 4u; padding half the height; label trimmed to cap height; hit area ≥ 44px on touch. |
 | `.card` | Padding from two knobs, `--density-card-pad-inline` (the sides) and `--density-card-pad-block` (top and bottom). Both follow `--density-card-pad`, so they are equal unless a product splits them: trimmed text makes equal padding optically equal, and a product may still tighten the sides and keep the vertical rhythm. Corner from `--shape-card`, nested corners concentric, an edge plane, a container for its own type. |
 | `.float` | `.options-card` (16u wide, ≤ 24u tall), `.tooltip`. Motion defined once on `.float[popover]`. |
+| States | **One relational layer for every control.** Hover, press and selected mix the control's own ink into its own fill by a share (`--state-hover` 6%, `--state-press` 12%, `--state-selected` 10%, product knobs), so the same rule works on a light fill, a solid one and none. Hover only where a pointer can hover, so a tap never leaves it stuck. Selected keeps a mark of its own too (a border, an edge, a check, a solid tag, a tab's line), so it never looks merely hovered. Disabled (`:disabled`, `aria-disabled`) drops hover and press and quiets the ink. Focus is the one global ring: an input no longer adds a second cue, a row that links rings the whole row, a scroller's ring is drawn inside it. **A control of your own** takes the same layer with `.u-state`: set `--state-fill` and `--state-ink` on it, and every state follows. |
 | Scrollbars | One archetype (`--scrollbar-width`, `--scrollbar-size`, `--scrollbar-thumb`, `--scrollbar-track`); variants `.cc-scroll-thick`, `.cc-scroll-none`. |
 | Layout | See Layout: `.frame`, `.section`, `.stack`, `.cluster`, `.cols`, `.split`, `.grid`, `.cells`, `.rail`, `.context`, `--outset`. |
 | Type roles | `.t-h1`…`.t-h6`, `.t-xl`, `.t-lg`, `.t-body`, `.t-sm`, `.t-xs`, `.t-label`, plus `.snap` / `.snap-x` for other text and `.settle` for any block. |
@@ -360,7 +361,8 @@ This is what a consumer may rely on. Anything here changing is a changelog entry
 | `.float` | `.options-card`, `.options-card-heading`, `.options-card-item`, `.options-card-label`, `.options-card-rule`, `.tooltip` | `--float-pad`, `--float-radius` |
 | Contexts | `.cc-dense`, `.cc-on-media` | |
 | Scrollbars | `.cc-scroll-thick`, `.cc-scroll-none` | `--scrollbar-width`, `--scrollbar-size`, `--scrollbar-thumb`, `--scrollbar-thumb-hover`, `--scrollbar-track` |
-| Utilities | `.u-text-secondary`, `.u-text-tertiary`, `.u-truncate`, `.u-sr-only`, `.u-align-end`, `.u-gap-q`, `.u-gap-h`, `.u-gap-1`, `.u-gap-2`, `.u-gap-4` | |
+| States | `:hover` (where a pointer hovers), `:active`, `[aria-pressed="true"]`, `[aria-selected="true"]`, `[aria-checked="true"]`, `[aria-current]`, `:disabled`, `[aria-disabled="true"]` · `.u-state` for a control of your own | `--state-fill`, `--state-ink` (on `.u-state`) · `--state-act`, `--state-on` (the shares a control paints with; set by the states, read them) |
+| Utilities | `.u-text-secondary`, `.u-text-tertiary`, `.u-truncate`, `.u-sr-only`, `.u-align-end`, `.u-state`, `.u-gap-q`, `.u-gap-h`, `.u-gap-1`, `.u-gap-2`, `.u-gap-4` | |
 
 ## Enforcement
 

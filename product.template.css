@@ -71,6 +71,9 @@
     --density-card-pad-block: var(--density-card-pad);   /* its top and bottom, if they differ */
     --density-control-h: var(--size-control-lg);         /* a default button or input's height */
     --density-control-fs: var(--fs-control);             /* a default button or input's type */
+    --state-hover: 6%;                                   /* the share of its own ink a control mixes in when hovered */
+    --state-press: 12%;                                  /* ... when pressed */
+    --state-selected: 10%;                               /* ... when selected, pressed on, checked or current */
     --outset: 1;                                         /* cells a surface's edge steps out; 0 turns it off */
     --prose-measure: calc(var(--u) * 56);                /* the widest a column of running text gets */
 

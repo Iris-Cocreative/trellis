@@ -58,6 +58,18 @@
   inherits: false;
   initial-value: 0px;
 }
+/* A control's state, as the share of its ink mixed into its fill. Registered
+   so a state belongs to one box: a hovered row doesn't hover the button in it. */
+@property --state-act {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+@property --state-on {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
 
 /* --------------------------------------------------------------------------
    RESET
@@ -307,6 +319,10 @@
        Primitives read them; variants and contexts set the primitive's own
        variables, so a product never overrides a variant by accident. */
     --shape-card: var(--r-1h);
+    /* States: the share of a control's own ink mixed into its own fill. */
+    --state-hover: 6%;
+    --state-press: 12%;
+    --state-selected: 10%;
     --outset: 1;                 /* cells a card's edge steps out into the space around it */
     --prose-measure: calc(var(--u) * 56);   /* the widest a column of running text gets */
     --shape-control: var(--r-round);
@@ -525,7 +541,10 @@
     margin-block-end: var(--prose-after);
   }
   a { color: inherit; text-decoration-thickness: var(--line); text-underline-offset: .22em; text-decoration-color: color-mix(in oklab, currentColor 40%, transparent); }
-  a:hover { text-decoration-color: currentColor; }
+  @media (hover: hover) { a:hover { text-decoration-color: currentColor; } }
+  a:active { text-decoration-color: currentColor; text-decoration-thickness: calc(var(--line) * 2); }
+  /* A scroller's ring is drawn inside it, or its own clipping would cut it. */
+  :is(.rail, .board, .tabs):focus-visible { outline-offset: calc(var(--line) * -2); }
   :where(.t-xl, .t-lg, .t-body, .t-sm, .t-xs, .prose :is(p, li, dt, dd, summary, blockquote, figcaption, caption), .prose blockquote > :is(footer, cite), .prose div:not([class], :has(> :is(p, div, ul, ol, dl, h1, h2, h3, h4, h5, h6, blockquote, pre, table, figure, hr, details, img, video, iframe)))) { text-wrap: pretty; }
   .t-label, :where(.prose th) { font-weight: var(--fw-label); letter-spacing: var(--label-tracking); text-transform: var(--label-case); }
   /* Marks inside running text never stretch its line. */
@@ -918,7 +937,15 @@
     pointer-events: none;
   }
   :where(a, button).list-item { width: 100%; text-align: start; cursor: pointer; }
-  :where(a, button).list-item:hover, .list-item:has(> a.list-link:hover) { background: var(--bg-hover); }
+  :where(a, button).list-item, .list-item:has(> .list-link) { background: color-mix(in oklab, var(--text) calc(var(--state-on) + var(--state-act)), transparent); }
+  @media (hover: hover) { .list-item:has(> .list-link:hover) { --state-act: var(--state-hover); } }
+  .list-item:has(> .list-link:active) { --state-act: var(--state-press); }
+  .list-item:has(> .list-link:is([aria-current]:not([aria-current="false"]), [aria-selected="true"])) { --state-on: var(--state-selected); }
+  /* Selected keeps a mark of its own, so it never looks merely hovered. */
+  .list-item:is([aria-current]:not([aria-current="false"]), [aria-selected="true"]), .list-item:has(> .list-link:is([aria-current]:not([aria-current="false"]), [aria-selected="true"])) { box-shadow: inset calc(var(--line) * 2) 0 0 var(--accent); }
+  /* A row that links rings the whole row, not the words in it. */
+  .list-link:focus-visible { outline: none; }
+  .list-item:has(> .list-link:focus-visible) { outline: calc(var(--line) * 2) solid var(--focus); outline-offset: calc(var(--line) * -2); }
   .list-body { --stack-gap: var(--sp-1); flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--stack-gap); }
   .list-end { flex: none; display: flex; align-items: flex-start; gap: var(--sp-h); }
   /* A whole row that links somewhere, from a link inside it. */
@@ -964,8 +991,9 @@
     color: var(--text-secondary); text-decoration: none;
     font-size: var(--fs-control); font-weight: var(--fw-label);
   }
-  .shell-link:hover { background: var(--bg-hover); color: var(--text); }
-  .shell-link[aria-current="page"] { background: var(--bg-hover); color: var(--text); }
+  .shell-link { background: color-mix(in oklab, var(--text) calc(var(--state-on) + var(--state-act)), transparent); }
+  @media (hover: hover) { .shell-link:hover { color: var(--text); } }
+  .shell-link[aria-current]:not([aria-current="false"]) { color: var(--text); box-shadow: inset calc(var(--line) * 2) 0 0 var(--accent); }
   @container shell (width < 72rem) {
     .shell-grid {
       grid-template-columns: var(--shell-nav-w) minmax(0, 1fr);
@@ -1137,21 +1165,20 @@
     padding-inline: calc(round(down, var(--btn-draw) / 2, var(--sp-h)) - var(--line));   /* half its height, in half cells: 30px gets 12 */
     border: var(--line) solid var(--btn-border);
     border-radius: var(--btn-radius);
-    background: var(--btn-bg);
+    background: color-mix(in oklab, var(--btn-ink) calc(var(--state-on) + var(--state-act)), var(--btn-bg));
     color: var(--btn-ink);
     font-size: var(--btn-fs);
     font-weight: var(--fw-label);
     letter-spacing: var(--btn-tracking, 0);
     transition: background var(--dur-out) var(--ease-in), border-color var(--dur-out) var(--ease-in);
   }
-  .button:hover { --btn-bg: var(--bg-hover); }
   .button.cc-primary { --btn-bg: var(--accent); --btn-border: var(--accent); --btn-ink: var(--accent-ink); }
-  .button.cc-primary:hover { --btn-bg: color-mix(in oklab, var(--accent) 88%, var(--text)); }
   .button.cc-ghost { --btn-border: transparent; }
   .button.cc-sm { --btn-h: var(--size-control-sm); --btn-fs: var(--fs-control-sm); }
   .button.cc-md { --btn-h: var(--size-control-md); --btn-fs: var(--fs-control-md); }
   .button.cc-lg { --btn-h: var(--size-control-xl); --btn-fs: var(--fs-control-lg); }
-  .button[aria-pressed="true"] { --btn-bg: var(--bg-hover); --btn-border: var(--text-tertiary); }
+  .button[aria-pressed="true"] { --btn-border: var(--text-tertiary); }
+  .button:is(:disabled, [aria-disabled="true"]) { --btn-bg: var(--bg-sunken); --btn-border: var(--border-subtle); --btn-ink: var(--text-faint); }
   .icon-button { padding-inline: 0; width: var(--btn-draw); }
   .cc-dense .button { --btn-h: var(--size-control-md); --btn-fs: var(--fs-control-md); }
 
@@ -1189,7 +1216,7 @@
     padding-inline: calc(var(--tag-pad) - var(--line));
     border: var(--line) solid color-mix(in oklab, var(--tag-color) var(--tag-edge), transparent);
     border-radius: var(--tag-radius);
-    background: color-mix(in oklab, var(--tag-color) var(--tag-fill), transparent);
+    background: color-mix(in oklab, var(--tag-ink) var(--state-act), color-mix(in oklab, var(--tag-color) var(--tag-fill), transparent));
     color: var(--tag-ink);
     font-size: var(--tag-fs);
     font-weight: var(--fw-label);
@@ -1226,7 +1253,8 @@
     border-radius: max(var(--r-q), calc(var(--tag-radius) - var(--sp-q)));
     color: inherit; opacity: .7;
   }
-  .tag-remove:hover { opacity: 1; background: color-mix(in oklab, var(--tag-color) 22%, transparent); }
+  .tag-remove { background: color-mix(in oklab, currentColor var(--state-act), transparent); }
+  @media (hover: hover) { .tag-remove:hover { opacity: 1; } }
   .tag-remove .icon { --icon-size: var(--size-icon-sm); }
   button.tag { cursor: pointer; }
   /* context */
@@ -1352,7 +1380,7 @@
     text-align: start;
     color: var(--text);
   }
-  .options-card-item:hover, .options-card-item[aria-selected="true"] { background: var(--bg-hover); }
+  .options-card-item { background: color-mix(in oklab, var(--text) calc(var(--state-on) + var(--state-act)), transparent); }
   .options-card-item .icon.cc-end { margin-inline-start: auto; color: var(--accent); }
   /* Inside a float everything sums to whole half-cells: heading ¼u + text +
      ¼u, rule ½u including its line, items 2½u. */
@@ -1410,8 +1438,7 @@
     transition: border-color var(--dur-out) var(--ease-in), background-color var(--dur-out) var(--ease-in);
   }
   .input::placeholder { color: var(--text-tertiary); opacity: 1; }
-  .input:hover { --input-border: var(--border-strong); }
-  .input:focus-visible { --input-border: var(--focus); }
+  @media (hover: hover) { .input:hover:not(:disabled) { --input-border: var(--border-strong); } }
   .input:disabled { --input-bg: var(--bg-sunken); --input-ink: var(--text-tertiary); --input-border: var(--border-subtle); cursor: not-allowed; }
   .input:read-only:not(select) { --input-bg: var(--bg-sunken); }
   .input[aria-invalid="true"] { --input-border: var(--alert); }
@@ -1475,8 +1502,9 @@
     font-size: var(--tab-fs); font-weight: var(--fw-label);
     white-space: nowrap;
   }
-  .tab:hover { color: var(--text); }
-  .tab[aria-selected="true"] { color: var(--text); background: var(--tab-on-bg); }
+  .tab { background: color-mix(in oklab, var(--text) var(--state-act), var(--tab-bg, transparent)); }
+  @media (hover: hover) { .tab:hover { color: var(--text); } }
+  .tab[aria-selected="true"] { --tab-bg: var(--tab-on-bg); color: var(--text); }
   .tab[aria-selected="true"]::after {
     content: ""; position: absolute;
     inset-inline: 0; inset-block-end: 0;
@@ -1553,7 +1581,7 @@
     font-variant-numeric: tabular-nums;
     line-height: 1;
   }
-  .badge.cc-quiet { --badge-color: var(--bg-hover); --badge-ink: var(--text-secondary); }
+  .badge.cc-quiet { --badge-color: color-mix(in oklab, var(--text) 10%, var(--surface)); --badge-ink: var(--text-secondary); }
   .badge.cc-accent { --badge-color: var(--accent); --badge-ink: var(--accent-ink); }
   .dot {
     --dot-color: var(--alert);
@@ -1679,6 +1707,24 @@
      On <html> only: locking <body> too would make it a scroller and every sticky
      nav would stick to it. The gutter stops the page jumping as its scrollbar goes. */
   html:has(.modal[open]) { overflow: hidden; scrollbar-gutter: stable; }
+
+  /* States ----------------------------------------------------------------
+     One relational layer for every control. Hover, press and selected mix the
+     control's own ink into its own fill, by a share (--state-hover, -press,
+     -selected), so the same rule works on a light fill, a solid one and none.
+     Each primitive paints color-mix(its ink calc(--state-on + --state-act),
+     its fill). Hover only where a pointer can hover, so a tap never leaves it
+     stuck. Selected keeps a mark of its own as well (a border, an edge, a
+     check, a solid tag, a tab's line), so it never looks merely hovered.
+     Disabled drops hover and press. Focus is the one global ring.
+     A control of your own takes the same layer with .u-state: set
+     --state-fill and --state-ink on it, and every state follows. */
+  @media (hover: hover) {
+    :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .list-item:is(a, button), .options-card-item, .u-state):hover { --state-act: var(--state-hover); }
+  }
+  :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .list-item:is(a, button), .options-card-item, .u-state):active { --state-act: var(--state-press); }
+  :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .list-item:is(a, button), .options-card-item, .u-state):is([aria-pressed="true"], [aria-checked="true"], [aria-current]:not([aria-current="false"]), [aria-selected="true"]) { --state-on: var(--state-selected); }
+  :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .list-item:is(a, button), .options-card-item, .u-state):is(:disabled, [aria-disabled="true"]) { --state-act: 0%; cursor: not-allowed; }
 }
 
 /* --------------------------------------------------------------------------
@@ -1692,6 +1738,12 @@
   .u-truncate { overflow-x: clip; overflow-y: visible; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
   .u-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .u-align-end { align-items: end; }
+  /* The state layer for a control of your own (see States, in the primitives). */
+  .u-state {
+    cursor: pointer;
+    background-color: color-mix(in oklab, var(--state-ink, currentColor) calc(var(--state-on) + var(--state-act)), var(--state-fill, transparent));
+    transition: background-color var(--dur-out) var(--ease-in);
+  }
   /* Half and quarter gaps are for clusters only. Between stacked blocks, space
      is whole cells (rule 6), so these don't reach a stack. */
   .u-gap-q  { --cluster-gap: var(--sp-q); }

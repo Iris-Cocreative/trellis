@@ -432,7 +432,6 @@
   .demo-card { --card-pad: 0px; max-width: calc(var(--u) * 32); }
   .demo-scroll { height: calc(var(--u) * 20); overflow-y: auto; padding: var(--sp-h); border-radius: inherit; }
   .action-row { display: flex; align-items: center; gap: var(--sp-1); min-height: var(--size-control-lg); padding-inline: var(--sp-1); border-radius: max(var(--r-q), calc(var(--card-radius) - var(--sp-h))); }
-  .action-row:hover { background: var(--bg-hover); }
   .action-row .t-sm { flex: 1; }
 
   /* Scrollbars */

@@ -48,6 +48,7 @@ Everything here lands before the first app pins a version.
 | Heading space rounds up | done | (this commit) | Rounds up in `core.css` and `math.js`; `tests/math.js` checks every heading's margin, 368 checks in both engines. |
 | Primitive fixes from the specimen | underway | `08bea9a` | Dense cluster at a surface's end rounds up (D55). |
 | Modal dismiss on a drag | done | (this commit) | `settle.js` closes a modal only on a true backdrop click; `tests/layout.js` checks the drag and `data-trellis-stay`, both engines, wide and touch. |
+| Every control has every state | done | (this commit) | One state layer; hover and press measured on primary and ghost buttons, rows and tabs in both engines and both themes. |
 | Design feedback on the specimen | underway | (this commit) | The first round of notes on the specimen: copy and styling changed, framework notes waiting on decisions. |
 
 ## Before the second app
