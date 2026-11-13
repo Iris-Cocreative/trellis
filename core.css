@@ -165,32 +165,80 @@
 }
 @layer trellis.theme {
   :root {
-    /* Semantic roles. light-dark() reads color-scheme, so one declaration carries both themes. */
-    --bg: light-dark(#f6f6f4, #101111);
-    --bg-raised: light-dark(#ffffff, #18191a);
-    --bg-sunken: light-dark(#ececea, #0a0b0b);
-    --bg-hover: light-dark(#eaeae7, #242526);
-    --text: light-dark(#18191a, #f4f4f2);
-    --text-secondary: light-dark(#45474a, #c4c5c6);
-    --text-tertiary: light-dark(#6d7074, #8e9195);
-    --text-faint: light-dark(#9a9da1, #5f6266);
-    --border: light-dark(#d6d7d8, #2e3032);
-    --border-subtle: light-dark(#e4e5e6, #222425);
-    --border-strong: light-dark(#a9abae, #4a4d50);
-    --accent: light-dark(#2c6fd1, #6aa5f5);
-    --accent-ink: #ffffff;
-    --focus: light-dark(#2c6fd1, #6aa5f5);
+    /* Seeds: one color each, in its light-theme form. A product sets these, never a role. */
+    --seed-neutral: oklch(.55 .004 100);
+    --seed-accent: oklch(.553 .166 258.4);
+    --seed-person: oklch(.617 .132 68.7);
+    --seed-group: oklch(.563 .09 212);
+    --seed-event: oklch(.487 .155 313.5);
+    --seed-course: oklch(.519 .127 154.1);
+    --seed-topic: oklch(.508 .163 257.5);
+    --seed-ok: oklch(.571 .146 152.3);
+    --seed-warn: oklch(.578 .125 69.8);
+    --seed-alert: oklch(.558 .168 36.3);
+    --color-lift: .17;   /* how much lighter a hue is in the dark theme */
+    --ink-flip: .58;   /* ink on a fill: white below this lightness, dark above it */
+    --gradient-space: oklch;   /* the space gradients interpolate in */
+    --gradient-turn: 40;   /* degrees the accent gradient turns its hue */
 
-    /* Kinds: what sort of thing this is. Shape and color both follow kind */
-    --kind-person: light-dark(#b8740a, #f5a524);
-    --kind-group: light-dark(#1f8394, #3db3c5);
-    --kind-event: light-dark(#7e3e9c, #b77ad6);
-    --kind-course: light-dark(#0b7d45, #2fb874);
-    --kind-topic: light-dark(#1b62c0, #5b9cf0);
+    /* Neutral roles: the neutral seed's hue and chroma at a lightness for each theme */
+    --bg: light-dark(oklch(from var(--seed-neutral) .973 c h), oklch(from var(--seed-neutral) .176 c h));
+    --bg-raised: light-dark(oklch(from var(--seed-neutral) 1 c h), oklch(from var(--seed-neutral) .213 c h));
+    --bg-sunken: light-dark(oklch(from var(--seed-neutral) .943 c h), oklch(from var(--seed-neutral) .148 c h));
+    --bg-hover: light-dark(oklch(from var(--seed-neutral) .936 c h), oklch(from var(--seed-neutral) .264 c h));
+    --text: light-dark(oklch(from var(--seed-neutral) .213 c h), oklch(from var(--seed-neutral) .967 c h));
+    --text-secondary: light-dark(oklch(from var(--seed-neutral) .397 c h), oklch(from var(--seed-neutral) .823 c h));
+    --text-tertiary: light-dark(oklch(from var(--seed-neutral) .544 c h), oklch(from var(--seed-neutral) .655 c h));
+    --text-faint: light-dark(oklch(from var(--seed-neutral) .695 c h), oklch(from var(--seed-neutral) .495 c h));
+    --border: light-dark(oklch(from var(--seed-neutral) .879 c h), oklch(from var(--seed-neutral) .308 c h));
+    --border-subtle: light-dark(oklch(from var(--seed-neutral) .921 c h), oklch(from var(--seed-neutral) .259 c h));
+    --border-strong: light-dark(oklch(from var(--seed-neutral) .741 c h), oklch(from var(--seed-neutral) .419 c h));
 
-    --ok: light-dark(#0a8f4a, #2cc574);
-    --warn: light-dark(#a86a00, #f5a524);
-    --alert: light-dark(#c2441f, #ef6c44);
+    /* Hues: the seed in the light theme, lifted in the dark. Kinds: what sort of thing this is; shape and color both follow kind */
+    --accent: light-dark(var(--seed-accent), oklch(from var(--seed-accent) calc(l + var(--color-lift)) c h));
+    --accent-ink: oklch(from var(--accent) clamp(.16, (var(--ink-flip) - l) * 1000, 1) calc(clamp(0, (l - var(--ink-flip)) * 1000, 1) * c * .3) h);   /* white on a dark accent, a dark ink of its hue on a light one */
+    --focus: var(--accent);
+    --kind-person: light-dark(var(--seed-person), oklch(from var(--seed-person) calc(l + var(--color-lift)) c h));
+    --kind-group: light-dark(var(--seed-group), oklch(from var(--seed-group) calc(l + var(--color-lift)) c h));
+    --kind-event: light-dark(var(--seed-event), oklch(from var(--seed-event) calc(l + var(--color-lift)) c h));
+    --kind-course: light-dark(var(--seed-course), oklch(from var(--seed-course) calc(l + var(--color-lift)) c h));
+    --kind-topic: light-dark(var(--seed-topic), oklch(from var(--seed-topic) calc(l + var(--color-lift)) c h));
+    --ok: light-dark(var(--seed-ok), oklch(from var(--seed-ok) calc(l + var(--color-lift)) c h));
+    --warn: light-dark(var(--seed-warn), oklch(from var(--seed-warn) calc(l + var(--color-lift)) c h));
+    --alert: light-dark(var(--seed-alert), oklch(from var(--seed-alert) calc(l + var(--color-lift)) c h));
+
+    /* Gradients: an interpolation space and stops. Add a direction or a shape: linear-gradient(to right var(--gradient-accent)) */
+    --gradient-accent: in var(--gradient-space), var(--accent), oklch(from var(--accent) l c calc(h + var(--gradient-turn)));
+    --gradient-surface: in var(--gradient-space), var(--bg-raised), var(--bg-sunken);
+  }
+  /* Without relative colors: core's palette, resolved by math.js. */
+  @supports not (color: oklch(from red l c h)) {
+    :root {
+      --bg: light-dark(#f7f6f3, #11110f);
+      --bg-raised: light-dark(#fffffc, #191917);
+      --bg-sunken: light-dark(#edece9, #0b0b09);
+      --bg-hover: light-dark(#eaeae7, #252523);
+      --text: light-dark(#191917, #f5f4f1);
+      --text-secondary: light-dark(#474744, #c5c5c2);
+      --text-tertiary: light-dark(#70706d, #91918e);
+      --text-faint: light-dark(#9d9d9a, #62625f);
+      --border: light-dark(#d8d7d4, #30302e);
+      --border-subtle: light-dark(#e5e5e2, #242422);
+      --border-strong: light-dark(#ababa8, #4d4d4a);
+      --accent: light-dark(#2c6fd1, #60a5ff);
+      --accent-ink: light-dark(#ffffff, #020c22);
+      --focus: light-dark(#2c6fd1, #60a5ff);
+      --kind-person: light-dark(#b8740b, #f0a953);
+      --kind-group: light-dark(#1f8394, #5db8ca);
+      --kind-event: light-dark(#7e3e9c, #b371d3);
+      --kind-course: light-dark(#0c7d45, #52b276);
+      --kind-topic: light-dark(#1b62c0, #5197fa);
+      --ok: light-dark(#0c8f4a, #57c57d);
+      --warn: light-dark(#a86a01, #e09e4c);
+      --alert: light-dark(#c2441f, #fe7b57);
+      --gradient-accent: in oklab, var(--accent), var(--accent);
+      --gradient-surface: in oklab, var(--bg-raised), var(--bg-sunken);
+    }
   }
 }
 /* tokens:end */

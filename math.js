@@ -29,6 +29,23 @@
       headingRatio: [1.2, 1.333], paragraphRatio: [1.125, 1.2],
       lineH1: 1.05, lineHeadingStep: 0.05, lineBody: 1.45, lineParagraphStep: 0.03, lineLabel: 1.2,
       afterH1: 0.33, afterHeadingStep: 0.11
+    },
+    // The palette: seeds, each one color in its light-theme form as OKLCH
+    // [lightness, chroma, hue], and every role derived from one of them.
+    color: {
+      seeds: {
+        neutral: [0.55, 0.004, 100], accent: [0.553, 0.166, 258.4],
+        person: [0.617, 0.132, 68.7], group: [0.563, 0.09, 212], event: [0.487, 0.155, 313.5],
+        course: [0.519, 0.127, 154.1], topic: [0.508, 0.163, 257.5],
+        ok: [0.571, 0.146, 152.3], warn: [0.578, 0.125, 69.8], alert: [0.558, 0.168, 36.3]
+      },
+      lift: 0.17, flip: 0.58,
+      // Neutral roles: the neutral seed's hue and chroma at a lightness for each theme.
+      neutrals: {
+        bg: [0.973, 0.176], 'bg-raised': [1, 0.213], 'bg-sunken': [0.943, 0.148], 'bg-hover': [0.936, 0.264],
+        text: [0.213, 0.967], 'text-secondary': [0.397, 0.823], 'text-tertiary': [0.544, 0.655], 'text-faint': [0.695, 0.495],
+        border: [0.879, 0.308], 'border-subtle': [0.921, 0.259], 'border-strong': [0.741, 0.419]
+      }
     }
   };
 
@@ -164,10 +181,81 @@
   // In a stack it is the larger of that space and the gap, never the sum.
   function spaceAfterInStack(own, gap) { return Math.max(0, own - gap); }
 
+  // ---- Color --------------------------------------------------------------
+  // A relational palette. A product chooses a few seeds; every role is one of
+  // them at a lightness. Neutral roles take the neutral seed's hue and chroma
+  // at a lightness for each theme. A hue (the accent, each kind, each status)
+  // is its seed in the light theme, and in the dark theme the same color
+  // lifted by `lift`. Ink on a fill flips at `flip`: white on a fill darker
+  // than it, a dark ink of the fill's own hue on one lighter. core.css says the
+  // same with relative colors (oklch(from …)); this says it in arithmetic.
+  // Colors are OKLCH triples [l, c, h]; out of the sRGB gamut, channels clip.
+  function parseColor(s) {
+    if (Array.isArray(s)) return s;
+    var m = /^#([0-9a-f]{6})$/i.exec(String(s).trim());
+    if (m) return rgbToOklch([0, 2, 4].map(function (i) { return parseInt(m[1].substr(i, 2), 16) / 255; }));
+    m = /^oklch\(\s*([\d.]+)(%?)\s+([\d.]+)\s+([\d.]+)(?:deg)?\s*\)$/i.exec(String(s).trim());
+    if (m) return [parseFloat(m[1]) / (m[2] ? 100 : 1), parseFloat(m[3]), parseFloat(m[4])];
+    throw new Error('math.js: a color is #rrggbb or oklch(l c h); got ' + s);
+  }
+  function toLinear(x) { return x <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }
+  function fromLinear(x) { return x <= 0.0031308 ? 12.92 * x : 1.055 * Math.pow(x, 1 / 2.4) - 0.055; }
+  function rgbToOklch(rgb) {
+    var r = toLinear(rgb[0]), g = toLinear(rgb[1]), b = toLinear(rgb[2]);
+    var l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+    var m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+    var s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+    var L = 0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s;
+    var A = 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s;
+    var B = 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s;
+    return [L, Math.sqrt(A * A + B * B), mod(Math.atan2(B, A) * 180 / Math.PI, 360)];
+  }
+  function oklchToRgb(c) {
+    var a = c[1] * Math.cos(c[2] * Math.PI / 180), b = c[1] * Math.sin(c[2] * Math.PI / 180);
+    var l = Math.pow(c[0] + 0.3963377774 * a + 0.2158037573 * b, 3);
+    var m = Math.pow(c[0] - 0.1055613458 * a - 0.0638541728 * b, 3);
+    var s = Math.pow(c[0] - 0.0894841775 * a - 1.291485548 * b, 3);
+    return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+      -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+      -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s].map(function (x) { return clamp(0, fromLinear(Math.max(0, x)), 1); });
+  }
+  function hex(c) { return '#' + oklchToRgb(c).map(function (x) { return ('0' + Math.round(x * 255).toString(16)).slice(-2); }).join(''); }
+  // WCAG 2 relative luminance and contrast, for the checks.
+  function luminance(c) { var rgb = oklchToRgb(c).map(toLinear); return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]; }
+  function contrast(a, b) { var x = luminance(a), y = luminance(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); }
+
+  // A hue's color in a theme: its seed, lifted in the dark.
+  function hue(seedColor, theme, seed) {
+    var s = parseColor(seedColor), lift = (seed || SEED).color.lift;
+    return theme === 'dark' ? [Math.min(s[0] + lift, 1), s[1], s[2]] : s;
+  }
+  // Ink on a fill: white below the flip, a dark ink of the fill's hue above it.
+  function ink(fill, seed) {
+    var f = parseColor(fill), flip = (seed || SEED).color.flip;
+    return f[0] < flip ? [1, 0, f[2]] : [0.16, f[1] * 0.3, f[2]];
+  }
+  // Every role in one theme, as OKLCH triples.
+  function palette(theme, seed) {
+    var col = (seed || SEED).color, s = col.seeds, out = {}, n = parseColor(s.neutral), k;
+    var dark = theme === 'dark' ? 1 : 0;
+    for (k in col.neutrals) out[k] = [col.neutrals[k][dark], n[1], n[2]];
+    out.accent = hue(s.accent, theme, seed);
+    out['accent-ink'] = ink(out.accent, seed);
+    out.focus = out.accent;
+    ['person', 'group', 'event', 'course', 'topic'].forEach(function (k) { out['kind-' + k] = hue(s[k], theme, seed); });
+    ['ok', 'warn', 'alert'].forEach(function (k) { out[k] = hue(s[k], theme, seed); });
+    return out;
+  }
+
   // A seed from tokens.json, for a platform that reads the token file.
   function seedFromTokens(tokens) {
-    var v = function (g, k) { return g[k].$value; }, c = tokens.cell, t = tokens.type;
+    var v = function (g, k) { return g[k].$value; }, c = tokens.cell, t = tokens.type, col = tokens.color;
+    var triple = function (x) { return x.components.slice(); };
+    var seeds = {}, neutrals = {};
+    Object.keys(col.seed).forEach(function (k) { if (k[0] !== '$') seeds[k] = triple(col.seed[k].$value); });
+    Object.keys(col.neutral).forEach(function (k) { if (k[0] !== '$') neutrals[k] = [col.neutral[k].light.$value, col.neutral[k].dark.$value]; });
     return {
+      color: { seeds: seeds, lift: v(col, 'lift'), flip: v(col, 'ink-flip'), neutrals: neutrals },
       cell: { targetNarrow: v(c, 'target-narrow'), targetWide: v(c, 'target-wide'), screenNarrow: v(c, 'screen-narrow'), screenWide: v(c, 'screen-wide'), textScaleMax: v(c, 'text-scale-max') },
       frame: { max: v(tokens.frame, 'max'), module: SEED.frame.module },
       type: Object.assign({}, SEED.type, {
@@ -184,6 +272,7 @@
     cellScale: cellScale, cellTarget: cellTarget, wholeCell: wholeCell, gutterCells: gutterCells, fit: fit, wideFrame: wideFrame,
     typeEnds: typeEnds, typeSize: typeSize, lineRatio: lineRatio, lineHeight: lineHeight,
     standPad: standPad, hang: hang, settleCluster: settleCluster, spaceAfter: spaceAfter, spaceAfterInStack: spaceAfterInStack,
-    stands: stands, isHeading: isHeading, seedFromTokens: seedFromTokens
+    stands: stands, isHeading: isHeading, seedFromTokens: seedFromTokens,
+    parseColor: parseColor, hex: hex, contrast: contrast, hue: hue, ink: ink, palette: palette
   };
 });

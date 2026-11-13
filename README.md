@@ -13,9 +13,9 @@
 | `core.css` | The foundation: tokens, theme, base, layout, primitives, utilities, in cascade layers. Product-agnostic. |
 | `examples/` | Two invented product layers, `quarry.css` and `almanac.css`. They only turn knobs on `:root`: fonts, ratios, palette, shapes, density. The tests run through them to prove a product can reshape everything that way. |
 | `settle.js` | The runtime, and the only script a consumer loads. Sets the exact device pixels and fit width in every browser; rounds text to whole cells where the browser lacks `calc-size()` (Safari today); settles what CSS can't in `.prose`. |
-| `tokens.json` | The token source, in the W3C Design Tokens format: the cell's target, the octaves, sizes, radii, layers, motion, the ratio's defaults, color roles as light and dark pairs, kind colors. Values are in cells and points, never rem or px, so a native screen and a web screen share one seed. |
+| `tokens.json` | The token source, in the W3C Design Tokens format: the cell's target, the octaves, sizes, radii, layers, motion, the ratio's defaults, and the palette as seeds, a lift and a lightness ladder. Values are in cells and points, never rem or px, so a native screen and a web screen share one seed. |
 | `tools/build-tokens.js` | The web generator. It writes the generated tokens of `core.css` from `tokens.json`, and holds the rem conversion. `contract.js` fails if the two disagree. |
-| `math.js` | The fit, the ratio, standing, hanging and the gutter parity rule as plain functions, in points, with no DOM. The specimen's math view runs on it, and a native screen uses it as is. |
+| `math.js` | The fit, the ratio, standing, hanging, the gutter parity rule and the palette as plain functions, in points and OKLCH, with no DOM. The specimen's math view runs on it, and a native screen uses it as is. |
 | `product.template.css` | Every knob, with its default and a line on what it does. Copy it to start a product layer. |
 | `package.json` | Exports `core.css`, `settle.js` and the template. The product layers aren't exports: products will own them. |
 | `REACT.md` | The contract for a React app, with the pull request checklist. |
@@ -214,6 +214,21 @@ Our apps carry rich content from editors and markdown, which arrives as bare tag
 
 **The limit of CSS.** `<li>text<ul>…</ul></li>` puts text in an anonymous box, and a caption follows an image of any height; neither can be rounded in CSS. `settle.js` measures these and writes `--settle-start` on the block that follows, in every browser. Without the script the outer block still rounds to whole cells, so the page recovers at the next block: only the lines inside drift. One case stays unsettled even with it: bare text mixed with blocks inside a pasted `div`, which becomes an anonymous box in the column.
 
+## Color
+
+**A relational palette.** A product chooses a few seeds and every color role is derived from one, so a palette stays in harmony the way type does with its ratio. Seeds are knobs; roles are tokens a product reads and never sets.
+
+| | What it is |
+|---|---|
+| **Seeds** | `--seed-neutral`, `--seed-accent`, and one per kind (`--seed-person`, `--seed-group`, `--seed-event`, `--seed-course`, `--seed-topic`) and per status (`--seed-ok`, `--seed-warn`, `--seed-alert`). Each is one color, in its light-theme form. |
+| **Neutral roles** | `--bg`, `--bg-raised`, `--bg-sunken`, `--bg-hover`, `--text`, `--text-secondary`, `--text-tertiary`, `--text-faint`, `--border`, `--border-subtle`, `--border-strong`: the neutral seed's hue and chroma at a lightness for each theme. The lightness ladder is in `tokens.json`. |
+| **Hues** | `--accent`, `--kind-*`, `--ok`, `--warn`, `--alert`: the seed in the light theme, and in the dark the same color lifted by `--color-lift` (0.17 of OKLCH lightness). `--focus` is the accent. |
+| **Ink** | `--accent-ink` is computed from the fill: white on an accent darker than `--ink-flip` (0.58), a dark ink of the accent's own hue on a lighter one. A solid tag's ink mixes its kind color into black the same way. |
+| **Mixes** | A tint, an edge or a wash is a role mixed with `color-mix(in oklab, …)`: a tag's fill and edge from its kind, an avatar's wash from its ring, the scrollbar and the skeleton from the ink, a scrim from black. A color is a role, or a mix of a role. |
+| **Gradients** | `--gradient-accent` (the accent turning its hue by `--gradient-turn`) and `--gradient-surface` (raised to sunken) are an interpolation space and stops, in `--gradient-space` (OKLCH). Add a direction or a shape: `linear-gradient(to right var(--gradient-accent))`. |
+
+Every role is `light-dark()` of two relative colors (`oklch(from var(--seed-…) …)`), and `math.js` derives the same roles in arithmetic for a native screen. `tests/contract.js` checks contrast for core and every product layer, in both themes: text, secondary and tertiary ink at 4.5:1 or more on the page and on raised surfaces, ink on the accent at 4.5:1, the accent at 3:1 on the page. A seed that fails a floor fails the contract. A role derives from the root's seeds, so a context that changes `--seed-accent` on an inner box does not recolor it: change the role there instead.
+
 ## Rules
 
 ### Edges
@@ -311,7 +326,7 @@ This is what a consumer may rely on. Anything here changing is a changelog entry
 | **Root attributes** | `data-product` (selects a product layer; absent is the neutral default) · `data-theme` (`light`, `dark`; absent follows the system) · `data-unit-fit` (`on`, `off`; absent fits touch screens) |
 | **Runtime** | `window.Trellis`: `fit()`, `cell()` (the cell in px, measured), `all()`, `observe(el)`, `settled()`. `data-settle-skip` opts an overlay out. It writes `--dpr`, `--fit-width`, `--settle-n`, `--settle`, `--settle-start`, `data-prose-empty`, and `tabindex` with `data-trellis-reach` on prose that scrolls; those are its own. |
 | **Knobs** (products set these on `:root`) | Everything in `product.template.css` |
-| **Tokens** (read them, don't set them) | Space `--u`, `--u-px`, `--u-scale` (the dial; settable) · `--sp-q`, `--sp-q2`, `--sp-h`, `--sp-1`, `--sp-1h`, `--sp-2`, `--sp-3`, `--sp-4`, `--sp-6`, `--sp-8`, `--sp-12`, `--sp-16` · Lines `--line`, `--hair` · Frame `--gutter`, `--frame-max`, `--frame-max-n` · Corners `--r-q`, `--r-h`, `--r-1`, `--r-1h`, `--r-2`, `--r-round` · Sizes `--size-icon-sm`, `--size-icon`, `--size-icon-md`, `--size-icon-lg`, `--size-control-xs`, `--size-control-sm`, `--size-control-md`, `--size-control-lg`, `--size-control-xl` · Control type `--fs-control-xs`, `--fs-control-sm`, `--fs-control-md`, `--fs-control`, `--fs-control-lg` · Motion `--dur-in`, `--dur-in-slow`, `--dur-out`, `--dur-sheet-in`, `--dur-sheet-out`, `--dur-skeleton`, `--ease-in`, `--ease-out`, `--ease-spring` · Stacking `--z-raised`, `--z-sticky`, `--z-overlay`, `--z-float`, `--z-toast` · Theme `--surface`, `--ok`, `--warn`, `--alert`, `--lift`, `--white`, `--black`, `--hit-min`, `--font-mono` · Lattice `--iso-dx`, `--iso-dy` |
+| **Tokens** (read them, don't set them) | Space `--u`, `--u-px`, `--u-scale` (the dial; settable) · `--sp-q`, `--sp-q2`, `--sp-h`, `--sp-1`, `--sp-1h`, `--sp-2`, `--sp-3`, `--sp-4`, `--sp-6`, `--sp-8`, `--sp-12`, `--sp-16` · Lines `--line`, `--hair` · Frame `--gutter`, `--frame-max`, `--frame-max-n` · Corners `--r-q`, `--r-h`, `--r-1`, `--r-1h`, `--r-2`, `--r-round` · Sizes `--size-icon-sm`, `--size-icon`, `--size-icon-md`, `--size-icon-lg`, `--size-control-xs`, `--size-control-sm`, `--size-control-md`, `--size-control-lg`, `--size-control-xl` · Control type `--fs-control-xs`, `--fs-control-sm`, `--fs-control-md`, `--fs-control`, `--fs-control-lg` · Motion `--dur-in`, `--dur-in-slow`, `--dur-out`, `--dur-sheet-in`, `--dur-sheet-out`, `--dur-skeleton`, `--ease-in`, `--ease-out`, `--ease-spring` · Stacking `--z-raised`, `--z-sticky`, `--z-overlay`, `--z-float`, `--z-toast` · Theme `--surface`, `--bg`, `--bg-raised`, `--bg-sunken`, `--bg-hover`, `--text`, `--text-secondary`, `--text-tertiary`, `--text-faint`, `--border`, `--border-subtle`, `--border-strong`, `--accent`, `--accent-ink`, `--focus`, `--kind-person`, `--kind-group`, `--kind-event`, `--kind-course`, `--kind-topic`, `--ok`, `--warn`, `--alert`, `--gradient-accent`, `--gradient-surface`, `--lift`, `--white`, `--black`, `--hit-min`, `--font-mono` · Lattice `--iso-dx`, `--iso-dy` |
 
 **Classes, and the variables a context may set on them.** Variants and contexts set these; products don't.
 
@@ -371,6 +386,7 @@ Everything degrades to a working layout. Per feature:
 | Typed division (`100vw / 1rem`): the fit | recent (about 140) | recent (about 26) | the cell stays whole; no fit |
 | `calc-size()`: text and clusters round to whole cells, controls to whole half cells | 129+ | not yet | `settle.js` rounds text and clusters; controls keep natural widths |
 | `:has()`: prose's galleries and text-only divs, the modal's scroll lock | yes | yes | (all current browsers) |
+| Relative colors (`oklch(from …)`): every color role | 122+ | 18+ | core's own palette, resolved to fixed colors: a product's seeds are lost, nothing is unreadable |
 | `<dialog>` motion, `transition-behavior: allow-discrete` | yes | enter yes, exit partly | a modal closes without its exit transition |
 
 ## Adoption

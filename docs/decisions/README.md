@@ -65,3 +65,4 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D51](D51.md) | Keyboard reach: markup and runtime | 2026-11-12 | accepted |
 | [D52](D52.md) | Controls grow past the cap | 2026-11-12 | accepted |
 | [D53](D53.md) | Scripts read the cell from a probe | 2026-11-12 | accepted |
+| [D54](D54.md) | A relational palette | 2026-11-12 | accepted |

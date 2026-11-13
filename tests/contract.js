@@ -94,12 +94,19 @@ check(read('core.css').includes(`· v${version} ·`), `core.css's header doesn't
 // and the template's palette is the token source's.
 const tokens = JSON.parse(read('tokens.json'));
 check(require('../tools/build-tokens.js').check(), 'core.css is out of date with tokens.json: run node tools/build-tokens.js');
-for (const group of ['cell', 'space', 'size', 'radius', 'layer', 'motion', 'color', 'kind'])
+for (const group of ['cell', 'space', 'size', 'radius', 'layer', 'motion', 'color'])
   check(tokens[group], `tokens.json has no ${group} group`);
-for (const [role, t] of Object.entries(tokens.color || {})) {
-  if (role[0] === '$') continue;
-  check(t.light && t.dark && /^#[0-9a-f]{6}$/.test(t.light.$value) && /^#[0-9a-f]{6}$/.test(t.dark.$value), `tokens.json: color.${role} needs a light and a dark value`);
+const color = tokens.color || {};
+for (const [k, t] of Object.entries(color.seed || {})) {
+  if (k[0] === '$') continue;
+  const v = t.$value || {};
+  check(v.colorSpace === 'oklch' && Array.isArray(v.components) && v.components.length === 3, `tokens.json: color.seed.${k} needs an OKLCH value`);
 }
+for (const [k, t] of Object.entries(color.neutral || {})) {
+  if (k[0] === '$') continue;
+  check(t.light && t.dark && typeof t.light.$value === 'number' && typeof t.dark.$value === 'number', `tokens.json: color.neutral.${k} needs a light and a dark lightness`);
+}
+check(color.lift && color['ink-flip'] && color.gradient, 'tokens.json: color needs lift, ink-flip and gradient');
 const walk = (o, at = '') => Object.entries(o).forEach(([k, v]) => {
   if (k[0] === '$' || typeof v !== 'object' || v === null) return;
   if ('$value' in v) { const s = JSON.stringify(v.$value); check(!/rem|px|vw/.test(s), `tokens.json: ${at}${k} carries a web unit; values are in cells and points`); }
@@ -113,6 +120,35 @@ const fromTokens = M.seedFromTokens(tokens);
 check(JSON.stringify(fromTokens.cell) === JSON.stringify(M.SEED.cell), "math.js's cell seed is not tokens.json's");
 check(JSON.stringify(fromTokens.type) === JSON.stringify(M.SEED.type), "math.js's type seed is not tokens.json's");
 check(fromTokens.frame.max === M.SEED.frame.max, "math.js's frame seed is not tokens.json's");
+check(JSON.stringify(fromTokens.color) === JSON.stringify(M.SEED.color), "math.js's color seed is not tokens.json's");
+
+// Contrast. The palette is derived, so a product's seeds decide whether its
+// text can be read: check every layer, in both themes, with the same arithmetic
+// core.css uses. Floors are WCAG AA: 4.5 for text, 3 for a control's color.
+// The faint ink and the borders are decoration and have none.
+const FLOORS = [['text', 'bg', 4.5], ['text', 'bg-raised', 4.5], ['text', 'bg-sunken', 4.5],
+  ['text-secondary', 'bg', 4.5], ['text-secondary', 'bg-raised', 4.5], ['text-secondary', 'bg-sunken', 4.5],
+  ['text-tertiary', 'bg', 4.5], ['text-tertiary', 'bg-raised', 4.5],
+  ['accent-ink', 'accent', 4.5], ['accent', 'bg', 3], ['accent', 'bg-raised', 3]];
+for (const f of [null, ...PRODUCTS]) {
+  const seed = JSON.parse(JSON.stringify(M.SEED));
+  if (f) {
+    const css = stripComments(read(f));
+    for (const [, k, v] of css.matchAll(/--seed-([a-z]+)\s*:\s*([^;]+);/g)) {
+      try { seed.color.seeds[k] = M.parseColor(v); } catch (e) { fails.push(`${f}: --seed-${k}: ${e.message}`); }
+    }
+    const lift = css.match(/--color-lift\s*:\s*([\d.]+)/), flip = css.match(/--ink-flip\s*:\s*([\d.]+)/);
+    if (lift) seed.color.lift = +lift[1];
+    if (flip) seed.color.flip = +flip[1];
+  }
+  for (const theme of ['light', 'dark']) {
+    const p = M.palette(theme, seed);
+    for (const [ink, ground, floor] of FLOORS) {
+      const r = M.contrast(p[ink], p[ground]);
+      check(r >= floor, `contrast: ${f || 'core'} ${theme}: --${ink} on --${ground} is ${r.toFixed(2)}:1, under ${floor}`);
+    }
+  }
+}
 for (const [k, name] of [['lineH1', '--lh-h1'], ['lineHeadingStep', '--lh-h-step'], ['lineBody', '--lh-body'], ['lineParagraphStep', '--lh-p-step'], ['lineLabel', '--lh-label'], ['afterH1', '--mb-h1'], ['afterHeadingStep', '--mb-h-step']])
   check(parseFloat(coreDefaults.get(name)) === M.SEED.type[k], `math.js's ${k} is ${M.SEED.type[k]}; core's ${name} is ${coreDefaults.get(name)}`);
 // The worked examples in the README, which a native screen must reproduce.

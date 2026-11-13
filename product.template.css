@@ -43,26 +43,23 @@
     --lh-body: 1.45;                                     /* body's line height */
     --lh-p-step: .03;                                    /* how much each larger paragraph role closes */
 
-    /* ---- Palette: each carries both themes through light-dark() ---------- */
-    --bg:             light-dark(#f6f6f4, #101111);      /* the page */
-    --bg-raised:      light-dark(#ffffff, #18191a);      /* cards, floats, inputs */
-    --bg-sunken:      light-dark(#ececea, #0a0b0b);      /* code, bands, disabled */
-    --bg-hover:       light-dark(#eaeae7, #242526);      /* hover and selected */
-    --text:           light-dark(#18191a, #f4f4f2);      /* primary ink */
-    --text-secondary: light-dark(#45474a, #c4c5c6);      /* supporting ink */
-    --text-tertiary:  light-dark(#6d7074, #8e9195);      /* labels and metadata */
-    --text-faint:     light-dark(#9a9da1, #5f6266);      /* the quietest ink */
-    --border:         light-dark(#d6d7d8, #2e3032);      /* the default edge */
-    --border-subtle:  light-dark(#e4e5e6, #222425);      /* cards, rules between rows */
-    --border-strong:  light-dark(#a9abae, #4a4d50);      /* buttons, a quotation's line */
-    --accent:         light-dark(#2c6fd1, #6aa5f5);      /* the primary action */
-    --accent-ink:     #ffffff;                           /* ink on the accent */
-    --focus:          light-dark(#2c6fd1, #6aa5f5);      /* the focus ring */
-    --kind-person:    light-dark(#b8740a, #f5a524);      /* a person: rings and tags */
-    --kind-group:     light-dark(#1f8394, #3db3c5);      /* a group */
-    --kind-event:     light-dark(#7e3e9c, #b77ad6);      /* an event */
-    --kind-course:    light-dark(#0b7d45, #2fb874);      /* a course */
-    --kind-topic:     light-dark(#1b62c0, #5b9cf0);      /* a topic, and the default tag */
+    /* ---- Palette: seeds. Every role is derived from one; a product never
+       sets a role. Each seed is one color in its light-theme form; the dark
+       theme lifts it. tests/contract.js checks the contrast that results. -- */
+    --seed-neutral: oklch(.55 .004 100);                 /* surfaces, ink and edges: its hue and chroma */
+    --seed-accent: oklch(.553 .166 258.4);               /* the primary action and the focus ring */
+    --seed-person: oklch(.617 .132 68.7);                /* a person: rings and tags */
+    --seed-group: oklch(.563 .09 212);                   /* a group */
+    --seed-event: oklch(.487 .155 313.5);                /* an event */
+    --seed-course: oklch(.519 .127 154.1);               /* a course */
+    --seed-topic: oklch(.508 .163 257.5);                /* a topic, and the default tag */
+    --seed-ok: oklch(.571 .146 152.3);                   /* success */
+    --seed-warn: oklch(.578 .125 69.8);                  /* caution */
+    --seed-alert: oklch(.558 .168 36.3);                 /* errors and counts */
+    --color-lift: .17;                                   /* how much lighter every hue is in the dark theme */
+    --ink-flip: .58;                                     /* ink on the accent is white below this lightness, dark above */
+    --gradient-space: oklch;                             /* the space gradients interpolate in */
+    --gradient-turn: 40;                                 /* degrees the accent gradient turns its hue */
 
     /* ---- Shape and density ----------------------------------------------- */
     --shape-card: var(--r-1h);                           /* a card's corner; media in prose too */

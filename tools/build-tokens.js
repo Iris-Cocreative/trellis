@@ -97,18 +97,49 @@ function build(tokens) {
   line('rp-max', n(val(t, 'paragraph-ratio-wide')));
 
   out.push('  }', '}', '@layer trellis.theme {', '  :root {');
-  const pair = g => (g.light.$value === g.dark.$value ? g.light.$value : `light-dark(${g.light.$value}, ${g.dark.$value})`);
-  out.push('    /* Semantic roles. light-dark() reads color-scheme, so one declaration carries both themes. */');
-  for (const k of keys(tokens.color)) line(k, pair(tokens.color[k]));
-  head('Kinds: what sort of thing this is. Shape and color both follow kind');
-  for (const k of keys(tokens.kind)) line(`kind-${k}`, pair(tokens.kind[k]));
-  out.push('');
-  for (const k of keys(tokens.status)) line(k, pair(tokens.status[k]));
-  out.push('  }', '}');
+  // The palette is relational: seeds are knobs, roles are derived from them with
+  // relative colors. light-dark() reads color-scheme, so one declaration carries
+  // both themes. math.js derives the same roles in arithmetic.
+  const col = tokens.color, short = v => n(v).replace(/^0\./, '.');
+  const oklch = v => `oklch(${v.components.map((x, i) => (i === 2 ? n(x) : short(x))).join(' ')})`;
+  const HUES = { accent: 'accent', person: 'kind-person', group: 'kind-group', event: 'kind-event', course: 'kind-course', topic: 'kind-topic', ok: 'ok', warn: 'warn', alert: 'alert' };
+  out.push('    /* Seeds: one color each, in its light-theme form. A product sets these, never a role. */');
+  for (const k of keys(col.seed)) line(`seed-${k}`, oklch(col.seed[k].$value));
+  line('color-lift', short(col.lift.$value), 'how much lighter a hue is in the dark theme');
+  line('ink-flip', short(col['ink-flip'].$value), 'ink on a fill: white below this lightness, dark above it');
+  line('gradient-space', col.gradient.space.$value, 'the space gradients interpolate in');
+  line('gradient-turn', n(col.gradient.turn.$value), 'degrees the accent gradient turns its hue');
+  head('Neutral roles: the neutral seed\'s hue and chroma at a lightness for each theme');
+  const at = (seed, l) => `oklch(from var(--seed-${seed}) ${short(l)} c h)`;
+  for (const k of keys(col.neutral)) line(k, `light-dark(${at('neutral', col.neutral[k].light.$value)}, ${at('neutral', col.neutral[k].dark.$value)})`);
+  head('Hues: the seed in the light theme, lifted in the dark. Kinds: what sort of thing this is; shape and color both follow kind');
+  for (const k of keys(col.seed)) {
+    if (!HUES[k]) continue;
+    line(HUES[k], `light-dark(var(--seed-${k}), oklch(from var(--seed-${k}) calc(l + var(--color-lift)) c h))`);
+    if (k === 'accent') {
+      line('accent-ink', 'oklch(from var(--accent) clamp(.16, (var(--ink-flip) - l) * 1000, 1) calc(clamp(0, (l - var(--ink-flip)) * 1000, 1) * c * .3) h)', 'white on a dark accent, a dark ink of its hue on a light one');
+      line('focus', 'var(--accent)');
+    }
+  }
+  head('Gradients: an interpolation space and stops. Add a direction or a shape: linear-gradient(to right var(--gradient-accent))');
+  line('gradient-accent', 'in var(--gradient-space), var(--accent), oklch(from var(--accent) l c calc(h + var(--gradient-turn)))');
+  line('gradient-surface', 'in var(--gradient-space), var(--bg-raised), var(--bg-sunken)');
+  out.push('  }');
+  // A browser without relative colors gets core's own palette, resolved by
+  // math.js: a product's seeds are lost there, its legibility is not.
+  const M = require('../math.js'), seed = M.seedFromTokens(tokens);
+  const light = M.palette('light', seed), dark = M.palette('dark', seed);
+  out.push('  /* Without relative colors: core\'s palette, resolved by math.js. */', '  @supports not (color: oklch(from red l c h)) {', '    :root {');
+  for (const k of Object.keys(light)) {
+    const a = M.hex(light[k]), b = M.hex(dark[k]);
+    out.push(`      --${k}: ${a === b ? a : `light-dark(${a}, ${b})`};`);
+  }
+  out.push('      --gradient-accent: in oklab, var(--accent), var(--accent);', '      --gradient-surface: in oklab, var(--bg-raised), var(--bg-sunken);', '    }', '  }', '}');
   return out.join('\n');
 }
 
 function run(check) {
+  delete require.cache[require.resolve('../math.js')];
   const tokens = JSON.parse(fs.readFileSync(path.join(dir, 'tokens.json'), 'utf8'));
   const file = path.join(dir, 'core.css');
   const css = fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n');

@@ -22,27 +22,15 @@
     --label-tracking: .12em;
     --heading-tracking: -.02em;
 
-    /* Palette: cut stone, with one loud color */
-    --bg:             light-dark(#eeedea, #141516);
-    --bg-raised:      light-dark(#f9f8f6, #1c1e20);
-    --bg-sunken:      light-dark(#e2e0dc, #0d0e0f);
-    --bg-hover:       light-dark(#e6e4df, #282b2e);
-    --text:           light-dark(#1b1c1d, #eeedea);
-    --text-secondary: light-dark(#484a4d, #bdbcb8);
-    --text-tertiary:  light-dark(#6f7276, #8a8c8f);
-    --text-faint:     light-dark(#a1a3a6, #595c60);
-    --border:         light-dark(#cfcdc8, #303336);
-    --border-subtle:  light-dark(#dddbd6, #25282a);
-    --border-strong:  light-dark(#a3a19c, #50545a);
-    --accent:         light-dark(#c2410c, #f97316);
-    --accent-ink:     light-dark(#ffffff, #141516);
-    --focus:          light-dark(#c2410c, #fb923c);
-
-    --kind-person: light-dark(#a16207, #eab308);
-    --kind-group:  light-dark(#0f766e, #2dd4bf);
-    --kind-event:  light-dark(#be123c, #fb7185);
-    --kind-course: light-dark(#4d7c0f, #a3e635);
-    --kind-topic:  light-dark(#475569, #94a3b8);
+    /* Palette: cut stone, with one loud color. Seeds only; every role follows. */
+    --seed-neutral: oklch(.55 .006 90);
+    --seed-accent:  oklch(.553 .174 38.4);
+    --seed-person:  oklch(.554 .121 66.4);
+    --seed-group:   oklch(.511 .086 186.4);
+    --seed-event:   oklch(.514 .198 16.9);
+    --seed-course:  oklch(.532 .141 131.6);
+    --seed-topic:   oklch(.446 .037 257.3);
+    --color-lift: .2;
 
     /* Knobs: squared, uppercase, one notch denser than the default */
     --shape-card: var(--r-q);
