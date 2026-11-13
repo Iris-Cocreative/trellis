@@ -18,6 +18,11 @@
    any text added later; mark an overlay that changes often with data-settle-skip
    so it isn't watched.
 
+   CAP-CENTERED TEXT needs it in every browser. A label beside a control
+   centers its capitals on it (.cap-center), which only works on one line. This
+   counts each one's lines and marks one that wraps with data-trellis-wrap; core
+   then hangs it from its top line and rounds it up like other text (rule 8).
+
    PROSE needs it in every browser: what follows text or an image inside a
    nested block can't be rounded in CSS (--settle-start), and a lone <br> or
    &nbsp; can't be told from content (data-prose-empty). A pre or a table that
@@ -110,23 +115,24 @@
   var INNER = '.prose :is(li, blockquote, figure, details)';
   var EMPTY = '.prose :is(h1, h2, h3, h4, h5, h6, p, blockquote, div:not([class]))';
   var MEDIA = 'img, video, iframe, audio, svg, canvas, hr, table, input, object, embed';
-  // What's settled: only what a browser needs. Chrome rounds in CSS, so there it's prose nesting alone.
-  var SEL = ROUNDS ? TEXT + ', ' + BLOCK + ', ' + INNER : INNER;
+  var CAP = '.cap-center';   // centered on a control while it is one line; hangs once it wraps
+  // What's settled: only what a browser needs. Chrome rounds in CSS, so there it's prose nesting and cap-centered text.
+  var SEL = (ROUNDS ? TEXT + ', ' + BLOCK + ', ' + INNER : INNER) + ', ' + CAP;
   var SKIP = '[data-settle-skip]';   // an overlay or a layer that moves often: not content, not ours
   var CLUSTER_END = ':is(.card, .modal-body, .member-tile) > .cluster:last-child';   // a cluster at a surface's end rounds up
 
   // What an element is gets worked out once, when it's first seen. These
   // selectors are not cheap, and a pass visits every block.
-  var IS_INNER = 1, IS_TEXT = 2, IS_BLOCK = 4, IS_CLUSTER = 8, IS_HOLDER = 16;
+  var IS_INNER = 1, IS_TEXT = 2, IS_BLOCK = 4, IS_CLUSTER = 8, IS_HOLDER = 16, IS_CAP = 32;
   // Text with blocks inside it: a blockquote of paragraphs, a list item with a list.
   var HOLDS = ':scope > :is(p, ul, ol, dl, h1, h2, h3, h4, h5, h6, blockquote, pre, figure, table, details, footer, cite, div)';
   var kinds = new WeakMap();
   function kindOf(el) {
     var k = kinds.get(el);
     if (k === undefined) {
-      k = (el.matches(INNER) ? IS_INNER : 0);
+      k = (el.matches(INNER) ? IS_INNER : 0) | (el.matches(CAP) ? IS_CAP : 0);
       if (ROUNDS) {
-        if (el.matches(TEXT)) { k |= IS_TEXT; if (el.querySelector(HOLDS)) k |= IS_HOLDER; }
+        if (el.matches(TEXT) || (k & IS_CAP)) { k |= IS_TEXT; if (el.querySelector(HOLDS)) k |= IS_HOLDER; }
         if (el.matches(BLOCK)) k |= IS_BLOCK;
         if (el.classList.contains('cluster')) k |= IS_CLUSTER;
       }
@@ -162,10 +168,26 @@
 
   var isText = function (k) { return (k & IS_TEXT) && !(k & IS_BLOCK); };
 
+  // How many lines a box of text runs to, from its fragments' rectangles. A
+  // trimmed line can be shorter than its font's content area, so neighboring
+  // lines' rectangles overlap: a new line is one that starts below the middle
+  // of the last.
+  function lines(el) {
+    var range = document.createRange();
+    range.selectNodeContents(el);
+    var rects = Array.prototype.filter.call(range.getClientRects(), function (b) { return b.width > 0 && b.height > 0; })
+      .sort(function (a, b) { return a.top - b.top; });
+    var n = 0, top = -Infinity, half = 0;
+    for (var i = 0; i < rects.length; i++) {
+      if (rects[i].top >= top + half) { n++; top = rects[i].top; half = rects[i].height / 2; }
+    }
+    return n;
+  }
+
   // Text: how many cells it needs. Its count must be cleared first, so this
   // reads its natural height.
   function settleText(el, unit, writes) {
-    if (el.classList.contains('cap-center')) return;
+    if (el.classList.contains('cap-center') && !el.hasAttribute('data-trellis-wrap')) return;
     var cs = getComputedStyle(el);
     if (cs.display === 'inline' || cs.display === 'none' || cs.display === 'contents') return;
     var h = el.getBoundingClientRect().height;
@@ -222,6 +244,13 @@
     var batch = [], i, el, k, writes = [];
     queue.forEach(function (q) { if (q.isConnected) batch.push(q); });
     queue.clear();
+    // Cap-centered text first: whether it wraps decides how it settles. Read every
+    // count, then write every mark.
+    var caps = [];
+    for (i = 0; i < batch.length; i++) if (kindOf(batch[i]) & IS_CAP) caps.push([batch[i], lines(batch[i]) > 1]);
+    for (i = 0; i < caps.length; i++) {
+      if (caps[i][1] !== caps[i][0].hasAttribute('data-trellis-wrap')) caps[i][0].toggleAttribute('data-trellis-wrap', caps[i][1]);
+    }
     // Text first: clear each count, read every natural height, write every count.
     var holders = [];
     for (i = 0; i < batch.length; i++) {

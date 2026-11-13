@@ -22,11 +22,11 @@ A rule is `questioned` when its reason is missing, the code does not keep it, or
 |---|---|---|---|
 | [R6](R6.md) | Between blocks, space is whole cells | settled | `tests/align.js`, `tests/perf.js` |
 | [R7](R7.md) | Center only what differs by an even number of cells | settled | review only |
-| [R8](R8.md) | Beside a control, text centers its capitals on the control | questioned | not checked: `tests/align.js` skips `.cap-center` |
+| [R8](R8.md) | Beside a control, text centers its capitals on the control; one that wraps hangs | settled | `tests/align.js` checks a wrapped one as text; `tests/layout.js` builds one |
 | [R9](R9.md) | An icon centers on the cap height or the x-height | settled | review only |
 | [R10](R10.md) | Marks never stretch a line | settled | review only; `tests/align.js` catches the drift a stretched line causes |
 | [R11](R11.md) | Truncate sideways only | settled | review only |
-| [R12](R12.md) | Overhangs are given back | questioned | review only; core has no mechanism |
+| [R12](R12.md) | Overhangs are given back | withdrawn | D68: the component's choice |
 
 ## Primitives and variants
 
@@ -35,7 +35,7 @@ A rule is `questioned` when its reason is missing, the code does not keep it, or
 | [R13](R13.md) | One concept, one primitive | settled | review only; `tests/contract.js` lists every class |
 | [R14](R14.md) | Products turn knobs | settled | `tests/contract.js` |
 | [R15](R15.md) | Context changes variables, not markup | settled | review only |
-| [R16](R16.md) | Floating surfaces align to their anchor | questioned | not checked; following and closing live in the specimen's script |
+| [R16](R16.md) | Floating surfaces align to their anchor; following and closing are the app's | settled | review only |
 | [R17](R17.md) | Control type is fixed, and listed | settled | review only; `tests/align.js` with `ax` for the growing clause |
 | [R18](R18.md) | Touch targets | settled | `tests/layout.js`, for inputs and shell links |
 | [R19](R19.md) | The reader's text size wins; the cell stops at 1.5× | settled | `tests/align.js` with `ax`; `tests/math.js`; `tests/contract.js` |
@@ -46,11 +46,11 @@ A rule is `questioned` when its reason is missing, the code does not keep it, or
 | ID | Rule | Status | How it is checked |
 |---|---|---|---|
 | [F1](F1.md) | Rest on the lattice, move off it | settled | review only |
-| [F2](F2.md) | Time has a ratio too | questioned | review only; the durations are not a ratio yet |
+| [F2](F2.md) | Time has a ratio too | questioned | review only; the ratio waits on Motion proportions (D70) |
 | [F3](F3.md) | Free things live in layers | settled | review only |
 | [F4](F4.md) | Spans, not pixels | settled | review only |
 | [F5](F5.md) | Content in the field, color to the edge | settled | `tests/layout.js` (cover); `tests/align.js` sideways scroll |
-| [F6](F6.md) | Scroll is a timeline | questioned | not checked; nothing uses it yet |
+| [F6](F6.md) | Scroll is a timeline | withdrawn | D71: in the plan for `.scene` |
 
 ## Review only
 

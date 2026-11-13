@@ -78,3 +78,13 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D64](D64.md) | Hanging rows keep their space below | 2026-11-12 | accepted |
 | [D65](D65.md) | Your own message, and runs | 2026-11-12 | accepted |
 | [D66](D66.md) | A scroller inside a card's corners | 2026-11-12 | accepted |
+| [D67](D67.md) | A cap-centered label that wraps hangs | 2026-11-12 | accepted |
+| [D68](D68.md) | Withdraw R12, overhangs are given back | 2026-11-12 | accepted |
+| [D69](D69.md) | R16 says what core does | 2026-11-12 | accepted |
+| [D70](D70.md) | Time gets a ratio; the easings are in, out and spring | 2026-11-12 | accepted |
+| [D71](D71.md) | F6 moves to the plan for scenes | 2026-11-12 | accepted |
+| [D72](D72.md) | Compositions that paint, case by case | 2026-11-12 | accepted |
+| [D73](D73.md) | A section or a page may paint a ground | 2026-11-12 | accepted |
+| [D74](D74.md) | A surface with a set width is a container | 2026-11-12 | accepted |
+| [D75](D75.md) | Floats and modals draw an outline | 2026-11-12 | accepted |
+| [D76](D76.md) | Specimen before product, as a principle | 2026-11-12 | accepted |

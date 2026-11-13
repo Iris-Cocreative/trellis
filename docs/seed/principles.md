@@ -8,7 +8,7 @@ since: unrecorded
 
 # Principles
 
-The higher-order ideas above the rules. Each principle is one sentence, with the rules that keep it. A principle that no rule or check keeps is not listed; the ones dropped are at the bottom.
+The higher-order ideas above the rules. Each principle is one sentence, with the rules that keep it. A principle that no rule or check keeps is not listed, with one exception the owner chose to keep by review (P7); the ones dropped are at the bottom.
 
 | ID | Principle | Kept by |
 |---|---|---|
@@ -18,7 +18,8 @@ The higher-order ideas above the rules. Each principle is one sentence, with the
 | P4 | The reader's settings win: type follows the reader's text size all the way, the cell follows it up to its cap, and a control grows with its label. | R17, R18, R19, F2 |
 | P5 | One concept has one archetype: variants change the primitive's own variables instead of making a second primitive. | R13, R16 |
 | P6 | Context changes variables, never markup: a component nests at any depth because the box it is in sets its variables. | R14, R15, [S4](S4.md) |
+| P7 | The specimen before the product: nothing ships in a product before the specimen shows it, built only from the foundation. | review only, no check (D76) |
 
 ## Dropped
 
-- **Nothing ships in a product before it is in the specimen.** No rule or check keeps it. The specimen is built only from the foundation and is the first test of it, but nothing fails when a product uses a primitive the specimen does not show. `tests/contract.js` checks the README's Public API against `core.css`, not against the specimen. It could become a rule with a check that every Public API class appears in `index.html`.
+- None now. "Nothing ships in a product before it is in the specimen" was dropped here, and is P7 since D76: kept by review, since `tests/contract.js` checks the README's Public API against `core.css`, not against the specimen. A check that every Public API class appears in `index.html` would make it a rule.

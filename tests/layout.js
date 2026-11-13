@@ -6,6 +6,8 @@
 //   cover   its media reaches both screen edges and adds no sideways scroll
 //   board   it scrolls inside itself, and its lanes are the set width
 //   input   every height is whole cells; on touch, at least 44px and 16px type
+//   wrap    a cap-centered label that wraps is marked, hangs from its row's
+//           top line and rounds up to whole cells; one that doesn't, centers
 //   modal   the real dialog: modal, page locked, on screen, a sheet on the
 //           bottom, and everything undone when it closes
 // Usage: node layout.js <url> [webkit] [WxH] [touch]
@@ -137,6 +139,31 @@ const ready = require('./ready');
     return fails;
   });
   fails.push(...m);
+  // Rule 8: a cap-centered label that wraps hangs instead. Built in a stack, so
+  // its row starts on a line, and narrow, so its label must wrap.
+  fails.push(...await page.evaluate(async () => {
+    const fails = [], u = Trellis.cell(), host = document.createElement('div');
+    const off = v => { const m = ((v % u) + u) % u; return m > .5 && m < u - .5; };
+    host.className = 'stack';
+    host.style.cssText = 'position:absolute;top:0;left:0;width:' + (u * 14) + 'px';
+    host.innerHTML = '<div class="row" style="align-items:center;flex-wrap:nowrap"><span class="t-label cap-center" style="flex:0 0 ' + (u * 6) + 'px">A label long enough to wrap</span><button class="button" type="button"><span class="button-label">Go</span></button></div>' +
+      '<div class="row" style="align-items:center;flex-wrap:nowrap"><span class="t-label cap-center">Short</span><button class="button" type="button"><span class="button-label">Go</span></button></div><p class="t-body">After</p>';
+    document.body.appendChild(host);
+    await Trellis.settled(); await Trellis.settled();
+    const [long, short] = host.querySelectorAll('.cap-center'), after = host.querySelector('p');
+    const top = host.getBoundingClientRect().top, r = long.getBoundingClientRect(), row = long.parentElement.getBoundingClientRect();
+    if (!long.hasAttribute('data-trellis-wrap')) fails.push('a cap-centered label that wraps is not marked');
+    else {
+      if (Math.abs(r.top - row.top) > .5) fails.push('a wrapped cap-centered label does not hang from its row\'s top');
+      if (off(r.top - top) || off(r.bottom - top)) fails.push(`a wrapped cap-centered label is off the cells: ${((r.top - top) / u).toFixed(2)}u to ${((r.bottom - top) / u).toFixed(2)}u`);
+      if (off(after.getBoundingClientRect().top - top)) fails.push('what follows a wrapped cap-centered label is off its line');
+    }
+    if (short.hasAttribute('data-trellis-wrap')) fails.push('a one-line cap-centered label is marked as wrapped');
+    const s = short.getBoundingClientRect(), b = short.nextElementSibling.getBoundingClientRect();
+    if (Math.abs((s.top + s.bottom) / 2 - (b.top + b.bottom) / 2) > .75) fails.push('a one-line cap-centered label does not center on its control');
+    host.remove();
+    return fails;
+  }));
   // A backdrop click closes a modal through the runtime, but only when the press
   // began on the backdrop too: a press inside the card let go outside it (selecting
   // text) keeps it open, and data-trellis-stay keeps it open whatever is clicked.

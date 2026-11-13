@@ -567,8 +567,11 @@
       --t-stand: calc(round(up, 1cap, var(--u)) - round(down, 1cap, 0.015625px));
       padding-block-start: var(--t-stand);
     }
-    /* Beside a control, text centers its capitals on the control. */
+    /* Beside a control, text centers its capitals on the control. On one line
+       only: settle.js marks one that wraps, and it hangs from its top line and
+       rounds up like other text (rule 8). */
     .cap-center { padding-block: 0; align-self: center; height: auto; }
+    .cap-center[data-trellis-wrap] { align-self: start; }
     /* x-height edge: lowercase text that aligns with a mark beside it. */
     .snap-x { text-box: trim-both ex alphabetic; }
   }
@@ -593,6 +596,7 @@
        padding, which half a cell of overflow would eat: there it rounds up. */
     :is(.card, .modal-body, .member-tile) > .cluster:last-child { height: calc-size(fit-content, round(up, size, var(--u))); }
     :where(.t-h1, .t-h2, .t-h3, .prose :is(h1, h2, h3)) { height: calc-size(fit-content, round(nearest, size, var(--u))); }
+    .cap-center[data-trellis-wrap] { height: calc-size(fit-content, round(up, size, var(--u))); }
   }
   /* Without calc-size (Safari today) settle.js counts the cells each text block
      needs and writes the count, and the block's least height is exactly that many
@@ -601,6 +605,7 @@
   @supports not (height: calc-size(fit-content, size)) {
     :where(.t-h4, .t-h5, .t-h6, .t-xl, .t-lg, .t-body, .t-sm, .t-xs, .t-label, .t-eyebrow, .snap, .snap-x,
            .prose :is(h4, h5, h6), .prose :is(p, li, dt, dd, summary, blockquote, figcaption, caption), .prose blockquote > :is(footer, cite), .prose div:not([class], :has(> :is(p, div, ul, ol, dl, h1, h2, h3, h4, h5, h6, blockquote, pre, table, figure, hr, details, img, video, iframe)))) { min-height: calc(var(--u) * var(--settle-n, 0)); }
+    .cap-center[data-trellis-wrap] { min-height: calc(var(--u) * var(--settle-n, 0)); }
   }
 }
 
@@ -776,6 +781,7 @@
 
   /* Code: a surface with one cell of padding, so it steps out like a card (Outset). */
   .prose :where(pre) {
+    container-type: inline-size;   /* a surface, as wide as its column */
     margin-block: 0;
     padding: var(--sp-1);
     overflow-x: auto;
@@ -1445,8 +1451,10 @@
   }
 
   /* Floating surfaces -----------------------------------------------------
-     One surface for every popover, options card and tooltip. They open in
-     the top layer, follow their anchor, and close when it scrolls away. */
+     One surface for every popover, options card and tooltip, in the top layer
+     at a fixed position, with its motion defined once. Placing it by its anchor,
+     following the anchor and closing when it scrolls away are the app's job
+     (rule 16). */
   .float {
     --float-pad: var(--sp-h);
     --float-radius: var(--shape-float);
@@ -1472,6 +1480,7 @@
 
   .options-card {
     --float-pad: var(--sp-q);
+    container-type: inline-size;   /* a surface with a set width is a container */
     display: flex; flex-direction: column;
     width: var(--sp-16);
     max-height: calc(var(--u) * 24);

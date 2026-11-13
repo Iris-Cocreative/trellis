@@ -168,11 +168,11 @@ Every part: children start on cells; space between blocks is whole cells; respon
 
 **Free, flowing, moving, and still on the cells.** The rules that let open, animated, creative layouts stay hyper-responsive:
 1. **Rest on the lattice, move off it.** Layout places things on cells. Every motion starts and ends at a rest position on the lattice.
-2. **Time has a ratio too.** Durations come from one small set (`--dur-*`) and three easings (enter, exit, move). Reduced motion collapses them; the rest state is complete on its own.
+2. **Time has a ratio too.** Durations come from one small set (`--dur-*`) and three easings (in, out, spring); they are to become a ratio from a seed, as space and type are (D70). Reduced motion collapses them; the rest state is complete on its own.
 3. **Free things live in layers.** An organic or animated element sits in its own layer (`.cells`, a canvas, a positioned layer), its coordinates in cells; the flow around it never depends on it.
 4. **Spans, not pixels.** A creative arrangement is written in cells or modules and re-placed by container queries.
 5. **Content in the field, color to the edge.** Text and controls stay in the field; a band's surface, a photograph or a rail may reach the screen's edges.
-6. **Scroll is a timeline.** Scroll scenes use CSS scroll-driven animation (`animation-timeline: view()`), not scroll listeners.
+6. **Withdrawn** (D71). Scroll scenes using scroll-driven animation, not scroll listeners, moved to the plan for `.scene` until something uses it. The number stays.
 
 **A post type is a composition of these plus prose.** The specimen works one through: an article is a `.cover`, then a `.split` holding `.prose` and a `.list` of related posts, then a `.list` of comments. There is no `.post` class, and there shouldn't be one.
 
@@ -243,18 +243,18 @@ Every role is `light-dark()` of two relative colors (`oklch(from var(--seed-…)
 
 6. **Between blocks, space is whole cells.** A ½ or 1½ cell gap between stacked blocks puts everything after it off the grid. So `.u-gap-q` and `.u-gap-h` reach clusters only, never a stack. A cluster rounds its height to the nearest cell, halves down, so its content can overflow into the gap after it by up to half a cell; that is safe only because that gap is whole cells and at least one. At the end of a surface (the last cluster in a card, a modal body or a member tile) nothing follows but the surface's padding, so there it rounds up instead. A row that holds half-cell padding is one thing, like a button: its edges stay on lines and its contents keep their own rhythm (`.list.cc-dense`).
 7. **Center only what differs by an even number of cells**; otherwise align to `start`.
-8. **Beside a control, text centers its capitals on the control** (`.cap-center`): both are trimmed to cap height.
+8. **Beside a control, text centers its capitals on the control** (`.cap-center`): both are trimmed to cap height. A label that wraps hangs from its top line instead and rounds up to whole cells, like any text: `settle.js` marks it (`data-trellis-wrap`) in every browser.
 9. **An icon beside capitals or numbers centers on the cap height; beside lowercase text, on the x-height** (`.snap-x`).
 10. **Marks never stretch a line**: code, mono, bold, italic and links get `line-height: 0` inside text. (Plain spans are left alone.)
 11. **Truncate sideways only** (`.u-truncate`: `overflow-x: clip`). A trimmed box ends at the baseline, so `overflow: hidden` cuts every descender.
-12. **Overhangs are given back.** An icon taller than the line beside it takes negative margin for its whole height below its offset.
+12. **Withdrawn** (D68). It said an icon taller than its line gives the overhang back; core had no mechanism for it. Whether an icon overhangs its line is the component's choice. The number stays.
 
 ### Primitives and variants
 
 13. **One concept, one primitive.** Variants are `cc-*` modifiers that change the primitive's own variables.
 14. **Products turn knobs.** A product layer only sets variables on `:root`. Primitives read the knobs; variants and contexts set the primitive's own variables, so a product never overrides a variant by accident.
 15. **Context changes variables, not markup.** `.cc-dense .card { --card-pad: u }`; a card is a container, so its type scales to it.
-16. **Floating surfaces align to their anchor, not the page grid.** One `.float` for every popover, options card and tooltip; top layer, follows its anchor, closes when the anchor scrolls away.
+16. **Floating surfaces align to their anchor, not the page grid.** One `.float` for every popover, options card and tooltip. Core puts it in the top layer at a fixed position and defines its motion once; placing it by its anchor, following the anchor and closing when it scrolls away are the app's job.
 17. **Control type is fixed, and listed.** Controls sit in rows of a fixed height, so their labels don't scale with the container: `--fs-control-xs` … `--fs-control-lg` are the only font sizes outside the type roles. `--white` and `--black` are the only raw neutrals (ink on a solid color or a photo). **A control is never shorter than its own type:** past the cell's cap (rule 19) a label can outgrow its control, and then the control grows by whole cells from its own height (button, icon button, tag, input, tab, badge). At default sizes every label is shorter than its control, so nothing moves.
 18. **Touch targets.** On a coarse pointer every control's hit area is at least `--hit-min` (44px, Apple's guidance), whatever it draws: an invisible `::before` grows around it, so density never costs a missed tap.
 19. **The reader's text size wins; the cell stops at 1.5×.** Type follows the reader's setting all the way. The cell follows it up to 1.5 times the default (`text-scale-max`), and above that layouts reflow instead of the cells growing. iOS and Android accessibility sizes reach about three times normal, which would turn a 40-cell phone into a 13-cell one. `tests/align.js` checks the specimen at 312% (the largest iOS size) in both engines and all three layers: no sideways scroll, nothing off its line.

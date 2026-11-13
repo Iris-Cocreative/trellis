@@ -93,7 +93,7 @@ const target = require('./target');
     window.__recheck = () => { out.prose = 0; checkProse('details open: '); return out; };
     for (const e of top.querySelectorAll('*')) {
       if (e.closest('.prose') && !e.matches('.prose')) continue;
-      if (e.closest(SKIP) || e.matches('.tag-label,.button-label,.tag-dot,.tag-remove,.cap-center')) continue;
+      if (e.closest(SKIP) || e.matches('.tag-label,.button-label,.tag-dot,.tag-remove,.cap-center:not([data-trellis-wrap])')) continue;
       // Inside a cluster things keep the cluster's own half-cell rhythm; the cluster itself is checked.
       if (e.parentElement && e.parentElement.closest('.cluster')) continue;
       // A dense row is one thing: its edges are on lines, its contents keep a half-cell rhythm.
@@ -109,7 +109,12 @@ const target = require('./target');
       const t = b.top - pr.top, bot = b.bottom - pr.top, l = b.left - pr.left;
       // A dialog is closed here; open, it aligns to the screen, not the page (rule 16).
       if (e.closest('dialog')) continue;
-      if (TEXT.test(e.className)) {
+      // Cap-centered text that wraps hangs like other text (rule 8): its top and
+      // its rounded end are on lines.
+      if (e.matches('.cap-center[data-trellis-wrap]')) {
+        out.text++;
+        if (off(t) || off(bot)) out.offText.push(desc(e) + ' wrapped, top@' + t.toFixed(1) + ' end@' + bot.toFixed(1));
+      } else if (TEXT.test(e.className)) {
         out.text++;
         const edge = STANDS.test(e.className) ? bot : t;
         if (off(edge)) out.offText.push(desc(e) + (STANDS.test(e.className) ? ' baseline@' : ' top@') + edge.toFixed(1));

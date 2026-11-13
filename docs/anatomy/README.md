@@ -22,11 +22,13 @@ Five levels, each made only of the one below it, and all of them on the same cel
 
 These hold the levels apart. Until now they lived only in conversation.
 
-**A composition arranges.** It owns the gap between its children and paints nothing. It has no ground, no edge and no corner. Its variables are gaps, tracks and counts: `--stack-gap`, `--cluster-gap`, `--cols`, `--split-a`, `--grid-min`.
+**A composition arranges.** It owns the gap between its children and paints nothing. It has no ground, no edge and no corner. Its variables are gaps, tracks and counts: `--stack-gap`, `--cluster-gap`, `--cols`, `--split-a`, `--grid-min`. It may draw its own dividers, as a list's hairlines; a ground inside it, a list row's hover or a cover's media, is an element treated as a surface, not the composition painting (D72).
 
-**A surface paints.** It owns a ground, an edge, a corner and the padding inside. It is a container, so the type inside it answers to its width, not the window's. Its variables are padding, radius and edge: `--card-pad-inline`, `--card-pad-block`, `--card-radius`, `--card-border`.
+**A surface paints.** It owns a ground, an edge, a corner and the padding inside. It is a container, so the type inside it answers to its width, not the window's; a surface that sizes to its content, a tooltip or a chat bubble, need not be one, since a container's width can't come from what it holds (D74). Its variables are padding, radius and edge: `--card-pad-inline`, `--card-pad-block`, `--card-radius`, `--card-border`.
 
 A thing that both arranges and paints is two things: a surface holding a composition. A card with a `.stack` inside it is the model.
+
+**A section or a page may paint a ground** without being a surface: a band's color, a navigation's ground and the line where it meets main. It owns no corner or padding as a surface does, and it isn't a container (D73).
 
 ## Five ways to meet a line
 
