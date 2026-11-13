@@ -153,8 +153,8 @@
     --dur-out: 150ms;
     --dur-in: 200ms;
     --dur-in-slow: 250ms;
-    --dur-sheet-in: 350ms;
-    --dur-sheet-out: 300ms;
+    --dur-tray-in: 350ms;
+    --dur-tray-out: 300ms;
     --dur-skeleton: 1.4s;
     --ease-in: cubic-bezier(.4, 0, 1, 1);
     --ease-out: cubic-bezier(0, 0, .2, 1);
@@ -345,6 +345,10 @@
     --tag-r-ratio: .5;           /* … a share of the height (.5 = pill) */
     --tag-case: none;
     --tag-tracking: 0;
+
+    /* The sheet's durations, renamed for the tray: aliases for one minor. */
+    --dur-sheet-in: var(--dur-tray-in);
+    --dur-sheet-out: var(--dur-tray-out);
 
     /* Isometric lattice: a 2:1 slope, so every lattice point is a cell corner. */
     --iso-dx: var(--sp-2);
@@ -1767,12 +1771,15 @@
   .skeleton.cc-block { display: block; width: var(--skel-w, 100%); height: var(--skel-h, var(--sp-1)); }
   @keyframes trellis-skeleton { to { background-position: -200% 0; } }
 
-  /* Modal and sheet: one archetype, on the native <dialog>, opened with
+  /* Modal and tray: one archetype, on the native <dialog>, opened with
      showModal(). That gives the top layer, the focus trap, Escape and an inert
      page for nothing. Its motion:
      the card fades and scales from .96 in 200ms, the backdrop fades slower at
-     250ms, everything leaves in 150ms, and on a narrow screen it is a bottom
-     sheet on the spring curve. A sheet only changes variables. The dialog is the
+     250ms, everything leaves in 150ms. A tray (.cc-tray) slides in from a side
+     on the spring curve: flush to its edge, its two ends inset by --tray-margin,
+     its free side's corners round. On the left by default; .cc-right, .cc-top,
+     .cc-bottom. On a narrow screen a centered modal is a bottom tray and a side
+     tray stays a drawer. A tray only changes variables. The dialog is the
      full-screen scroller, so a modal taller than the screen scrolls to its top
      (margin: auto, not align-items: center). Markup: dialog.modal > .modal-inner
      > .modal-header + .modal-body + .modal-footer. */
@@ -1780,7 +1787,14 @@
     --modal-w: calc(var(--u) * 40);
     --modal-pad: var(--sp-2);
     --modal-gutter: var(--sp-2);
+    --modal-gutter-block: var(--modal-gutter);
+    --modal-gutter-inline: var(--modal-gutter);
     --modal-radius: var(--shape-card);
+    --modal-r-tl: var(--modal-radius);
+    --modal-r-tr: var(--modal-radius);
+    --modal-r-br: var(--modal-radius);
+    --modal-r-bl: var(--modal-radius);
+    --modal-max-h: none;
     --modal-margin: auto;
     --modal-from: scale(.96);
     --modal-from-opacity: 0;
@@ -1794,7 +1808,7 @@
     width: 100%; max-width: none;
     height: 100%; max-height: none;
     margin: 0;
-    padding: var(--modal-gutter);
+    padding: var(--modal-gutter-block) var(--modal-gutter-inline);
     border: 0;
     overflow-y: auto; overscroll-behavior: contain;
     background: transparent;
@@ -1813,8 +1827,9 @@
     container-type: inline-size;
     display: flex; flex-direction: column;
     width: min(100%, var(--modal-w));
+    max-height: var(--modal-max-h);
     margin: var(--modal-margin);
-    border-radius: var(--modal-radius);
+    border-radius: var(--modal-r-tl) var(--modal-r-tr) var(--modal-r-br) var(--modal-r-bl);
     background: var(--surface);
     outline: var(--line) solid var(--border);
     outline-offset: calc(var(--line) * -1);
@@ -1831,26 +1846,60 @@
   .modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-1); padding: var(--modal-pad); padding-block-end: var(--sp-1); }
   .modal-body { --stack-gap: var(--sp-1); display: flex; flex-direction: column; gap: var(--stack-gap); padding-inline: var(--modal-pad); padding-block: var(--sp-1); min-height: 0; }
   .modal-footer { display: flex; justify-content: flex-end; gap: var(--sp-h); padding: var(--modal-pad); padding-block-start: var(--sp-1); }
-  /* A sheet changes variables: it sits at the bottom, edge to edge, on the spring. */
-  .modal.cc-sheet {
-    --modal-w: 100%; --modal-gutter: 0px; --modal-margin: auto 0 0;
-    --modal-from: translateY(100%); --modal-from-opacity: 1;
-    --modal-in: var(--dur-sheet-in); --modal-in-ease: var(--ease-spring);
-    --modal-out: var(--dur-sheet-out); --modal-out-ease: var(--ease-spring);
+  /* A tray changes variables. On the left by default: flush to the screen's
+     left edge, the full height less --tray-margin at each end, its right
+     corners round. A side tray's body scrolls and its footer stays at the end. */
+  .modal.cc-tray, .modal.cc-tray.cc-left {
+    --tray-margin: var(--sp-2);
+    --tray-w: calc(var(--u) * 32);
+    --modal-w: var(--tray-w);
+    --modal-gutter-block: var(--tray-margin); --modal-gutter-inline: 0px;
+    --modal-margin: 0 auto 0 0;
+    --modal-r-tl: 0px; --modal-r-bl: 0px;
+    --modal-from: translateX(-100%); --modal-from-opacity: 1;
+    --modal-in: var(--dur-tray-in); --modal-in-ease: var(--ease-spring);
+    --modal-out: var(--dur-tray-out); --modal-out-ease: var(--ease-spring);
   }
-  .modal.cc-sheet .modal-inner { border-end-start-radius: 0; border-end-end-radius: 0; max-height: 90svh; }
+  .modal.cc-tray.cc-right {
+    --modal-margin: 0 0 0 auto;
+    --modal-r-tl: var(--modal-radius); --modal-r-bl: var(--modal-radius); --modal-r-tr: 0px; --modal-r-br: 0px;
+    --modal-from: translateX(100%);
+  }
+  .modal.cc-tray:is(.cc-top, .cc-bottom) {
+    --modal-w: 100%; --modal-max-h: 90svh;
+    --modal-gutter-block: 0px; --modal-gutter-inline: var(--tray-margin);
+    --modal-r-tl: var(--modal-radius); --modal-r-tr: var(--modal-radius); --modal-r-br: var(--modal-radius); --modal-r-bl: var(--modal-radius);
+  }
+  .modal.cc-tray.cc-top { --modal-margin: 0 0 auto; --modal-r-tl: 0px; --modal-r-tr: 0px; --modal-from: translateY(-100%); }
+  .modal.cc-tray.cc-bottom { --modal-margin: auto 0 0; --modal-r-bl: 0px; --modal-r-br: 0px; --modal-from: translateY(100%); }
+  .modal.cc-tray .modal-body { flex: 1 1 auto; overflow-y: auto; }
+  .modal:is(.cc-tray.cc-bottom, .cc-sheet) .modal-footer { padding-block-end: max(var(--modal-pad), env(safe-area-inset-bottom, 0px)); }
+  /* .cc-sheet is the bottom tray as it was, edge to edge: an alias for one minor.
+     Use .cc-tray.cc-bottom. */
+  .modal.cc-sheet {
+    --modal-w: 100%; --modal-gutter: 0px; --modal-margin: auto 0 0; --modal-max-h: 90svh;
+    --modal-r-bl: 0px; --modal-r-br: 0px;
+    --modal-from: translateY(100%); --modal-from-opacity: 1;
+    --modal-in: var(--dur-tray-in); --modal-in-ease: var(--ease-spring);
+    --modal-out: var(--dur-tray-out); --modal-out-ease: var(--ease-spring);
+  }
   .modal.cc-sheet .modal-body { overflow-y: auto; }
-  /* A modal is measured against the screen it covers, so this asks the window. */
+  /* A modal is measured against the screen it covers, so this asks the window.
+     A centered modal becomes a bottom tray; a side tray stays a drawer and
+     leaves a strip of the page to tap. */
   @media (width < 48rem) {
-    .modal {
-      --modal-w: 100%; --modal-gutter: 0px; --modal-margin: auto 0 0;
+    .modal:not(.cc-tray, .cc-sheet) {
+      --modal-w: 100%; --modal-max-h: 90svh;
+      --modal-gutter-block: 0px; --modal-gutter-inline: var(--sp-2);
+      --modal-margin: auto 0 0;
+      --modal-r-bl: 0px; --modal-r-br: 0px;
       --modal-from: translateY(100%); --modal-from-opacity: 1;
-      --modal-in: var(--dur-sheet-in); --modal-in-ease: var(--ease-spring);
-      --modal-out: var(--dur-sheet-out); --modal-out-ease: var(--ease-spring);
+      --modal-in: var(--dur-tray-in); --modal-in-ease: var(--ease-spring);
+      --modal-out: var(--dur-tray-out); --modal-out-ease: var(--ease-spring);
     }
-    .modal .modal-inner { border-end-start-radius: 0; border-end-end-radius: 0; max-height: 90svh; }
-    .modal .modal-body { overflow-y: auto; }
-    .modal-footer { padding-block-end: max(var(--modal-pad), env(safe-area-inset-bottom, 0px)); }
+    .modal:not(.cc-tray, .cc-sheet) .modal-body { overflow-y: auto; }
+    .modal:not(.cc-tray, .cc-sheet) .modal-footer { padding-block-end: max(var(--modal-pad), env(safe-area-inset-bottom, 0px)); }
+    .modal.cc-tray:not(.cc-top, .cc-bottom) { --modal-w: min(calc(100% - var(--sp-4)), var(--tray-w)); }
   }
   /* The page behind holds still, for any number of open modals, with no counting.
      On <html> only: locking <body> too would make it a scroller and every sticky
@@ -1915,6 +1964,6 @@
 
 @layer trellis.tokens {
   @media (prefers-reduced-motion: reduce) {
-    :root { --dur-out: 1ms; --dur-in: 1ms; --dur-in-slow: 1ms; --dur-sheet-in: 1ms; --dur-sheet-out: 1ms; --dur-skeleton: 0s; }
+    :root { --dur-out: 1ms; --dur-in: 1ms; --dur-in-slow: 1ms; --dur-tray-in: 1ms; --dur-tray-out: 1ms; --dur-skeleton: 0s; }
   }
 }

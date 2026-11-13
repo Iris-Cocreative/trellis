@@ -8,8 +8,8 @@
 //   input   every height is whole cells; on touch, at least 44px and 16px type
 //   wrap    a cap-centered label that wraps is marked, hangs from its row's
 //           top line and rounds up to whole cells; one that doesn't, centers
-//   modal   the real dialog: modal, page locked, on screen, a sheet on the
-//           bottom, and everything undone when it closes
+//   modal   the real dialog: modal, page locked, on screen, a tray flush to
+//           its side, and everything undone when it closes
 // Usage: node layout.js <url> [webkit] [WxH] [touch]
 // Needs Playwright (PLAYWRIGHT=module path). Exits 1 if anything is off.
 const pw = require(process.env.PLAYWRIGHT || 'playwright');
@@ -114,10 +114,10 @@ const ready = require('./ready');
     document.querySelectorAll('.skeleton:not(.cc-block)').forEach(e => expect(whole(box(e).height), 'a skeleton line is not whole cells'));
     return fails;
   });
-  // Modal and sheet: real interaction, the native dialog.
+  // Modal and tray: real interaction, the native dialog.
   const m = await page.evaluate(async () => {
-    const fails = [], wait = ms => new Promise(r => setTimeout(r, ms));
-    for (const id of ['demo-modal', 'demo-sheet']) {
+    const fails = [], u = Trellis.cell(), wait = ms => new Promise(r => setTimeout(r, ms));
+    for (const id of ['demo-modal', 'demo-tray']) {
       const d = document.getElementById(id), inner = d.querySelector('.modal-inner');
       d.showModal();
       await Promise.all(inner.getAnimations().map(a => a.finished));   // the real transition, however busy the page is
@@ -127,9 +127,13 @@ const ready = require('./ready');
       if (getComputedStyle(document.documentElement).overflowY !== 'hidden') fails.push(id + ' did not lock the page');
       if (getComputedStyle(inner).transform !== 'none' || getComputedStyle(inner).opacity !== '1') fails.push(id + ' did not finish entering');
       if (r.top < -1 || r.bottom > H + 1) fails.push(`${id} is off the screen: ${r.top.toFixed(0)} to ${r.bottom.toFixed(0)} of ${H}`);
-      const sheet = id === 'demo-sheet' || W < 48 * parseFloat(getComputedStyle(document.documentElement).fontSize);
-      if (sheet && Math.abs(r.bottom - H) > 1) fails.push(`${id} should sit on the bottom: ${r.bottom.toFixed(0)} of ${H}`);
-      if (!sheet && Math.abs((r.top + r.bottom) / 2 - H / 2) > 1) fails.push(`${id} should be centered`);
+      const narrow = W < 48 * parseFloat(getComputedStyle(document.documentElement).fontSize);
+      if (id === 'demo-tray') {
+        // On the left, flush to the screen's edge, two cells from the top and the bottom.
+        if (Math.abs(r.left) > 1) fails.push(`${id} should be flush left: ${r.left.toFixed(1)}`);
+        if (Math.abs(r.top - 2 * u) > 1 || Math.abs(H - r.bottom - 2 * u) > 1) fails.push(`${id} should be two cells from the top and bottom: ${r.top.toFixed(1)}, ${(H - r.bottom).toFixed(1)}`);
+      } else if (narrow && Math.abs(r.bottom - H) > 1) fails.push(`${id} should sit on the bottom as a tray: ${r.bottom.toFixed(0)} of ${H}`);
+      else if (!narrow && Math.abs((r.top + r.bottom) / 2 - H / 2) > 1) fails.push(`${id} should be centered`);
       d.close();
       await Promise.all(inner.getAnimations().map(a => a.finished));
       await wait(100);

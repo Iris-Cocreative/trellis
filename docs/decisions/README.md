@@ -88,3 +88,4 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D74](D74.md) | A surface with a set width is a container | 2026-11-12 | accepted |
 | [D75](D75.md) | Floats and modals draw an outline | 2026-11-12 | accepted |
 | [D76](D76.md) | Specimen before product, as a principle | 2026-11-12 | accepted |
+| [D77](D77.md) | The sheet becomes a tray, on any side | 2026-11-13 | accepted |

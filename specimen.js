@@ -104,7 +104,13 @@
   // settle.js's: it closes only when the press began there too.
   document.addEventListener('click', function (e) {
     var o = e.target.closest('[data-open-modal]');
-    if (o) { document.getElementById(o.dataset.openModal).showModal(); return; }
+    if (o) {
+      var d = document.getElementById(o.dataset.openModal);
+      // The tray demo is one dialog: the button names its side.
+      if (o.dataset.traySide) { d.classList.remove('cc-left', 'cc-right', 'cc-top', 'cc-bottom'); d.classList.add(o.dataset.traySide); }
+      d.showModal();
+      return;
+    }
     var dlg = e.target.closest('dialog.modal');
     if (dlg && e.target.closest('[data-close-modal]')) dlg.close();
   });

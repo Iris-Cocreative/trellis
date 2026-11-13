@@ -668,9 +668,12 @@
       <h3 class="t-h5">.modal</h3>
       <div class="cluster">
         <button class="button" type="button" data-open-modal="demo-modal"><span class="button-label">Open a modal</span></button>
-        <button class="button" type="button" data-open-modal="demo-sheet"><span class="button-label">Open a sheet</span></button>
+        <button class="button" type="button" data-open-modal="demo-tray" data-tray-side="cc-left"><span class="button-label">Open a tray</span></button>
+        <button class="button cc-ghost cc-sm" type="button" data-open-modal="demo-tray" data-tray-side="cc-right"><span class="button-label">Right</span></button>
+        <button class="button cc-ghost cc-sm" type="button" data-open-modal="demo-tray" data-tray-side="cc-top"><span class="button-label">Top</span></button>
+        <button class="button cc-ghost cc-sm" type="button" data-open-modal="demo-tray" data-tray-side="cc-bottom"><span class="button-label">Bottom</span></button>
       </div>
-      <p class="t-xs faint">On the native dialog, so focus, Escape and the inert page come free. The card fades and scales from .96, the backdrop fades a little slower, and everything leaves faster than it came. A click on the backdrop is left to the app: it closes only when the press began on the backdrop too, so selecting text and letting go outside never closes it. On a narrow screen every modal is a sheet.</p>
+      <p class="t-xs faint">On the native dialog, so focus, Escape and the inert page come free. The card fades and scales from .96, the backdrop fades a little slower, and everything leaves faster than it came. A click on the backdrop is left to the app: it closes only when the press began on the backdrop too, so selecting text and letting go outside never closes it. A tray slides in from a side, flush to its edge with a margin at each end. On a narrow screen a centered modal is a bottom tray, and a side tray stays a drawer.</p>
     </div>
     <dialog class="modal" id="demo-modal" aria-labelledby="demo-modal-title">
       <div class="modal-inner">
@@ -679,10 +682,10 @@
         <footer class="modal-footer"><button class="button cc-ghost" type="button" data-close-modal><span class="button-label">Cancel</span></button><button class="button cc-primary" type="button" data-close-modal><span class="button-label">Add to the swap</span></button></footer>
       </div>
     </dialog>
-    <dialog class="modal cc-sheet" id="demo-sheet" aria-labelledby="demo-sheet-title">
+    <dialog class="modal cc-tray cc-left" id="demo-tray" aria-labelledby="demo-tray-title">
       <div class="modal-inner">
-        <header class="modal-header"><h3 class="t-h5" id="demo-sheet-title">A sheet</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg></button></header>
-        <div class="modal-body"><p class="t-sm">The same parts. A sheet only changes the variables: it sits at the bottom, edge to edge, on the spring curve.</p></div>
+        <header class="modal-header"><h3 class="t-h5" id="demo-tray-title">A tray</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg></button></header>
+        <div class="modal-body"><p class="t-sm">The same parts. A tray only changes the variables: it slides in from its side on the spring curve, flush to the screen's edge, with two cells at each end.</p></div>
         <footer class="modal-footer"><button class="button cc-primary" type="button" data-close-modal><span class="button-label">Done</span></button></footer>
       </div>
     </dialog>
