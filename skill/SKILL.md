@@ -36,7 +36,9 @@ Find the need here first. If it is here, use it and write no CSS for it.
 | Text | `.t-h1`…`.t-h6`, `.t-xl`, `.t-lg`, `.t-body`, `.t-sm`, `.t-xs`, `.t-label`, `.t-eyebrow`; `.u-text-secondary`, `.u-truncate` |
 | Hover, press and selected on a control of your own | `.u-state` with `--state-fill` and `--state-ink` |
 
-A variant is a `cc-*` modifier. A one-off adjustment sets the primitive's own variable from a context: `.my-toolbar { --btn-h: var(--size-control-sm); }`. Never redeclare a primitive's properties (`.my-toolbar .button { height: 26px }` is the mistake this skill exists to prevent).
+A variant is a `cc-*` modifier. A one-off adjustment sets the primitive's own variable, on the primitive, in a context: `.my-toolbar .button { --btn-h: var(--size-control-sm); }`. Name the primitive in the selector, or give its element a class of your own (`<span class="dot my-light">` with `.my-light { --dot-size: var(--sp-1); }`). Set on the ancestor alone (`.my-toolbar { --btn-h: … }`) it does nothing: a primitive declares its variables on its own element, and that beats what it inherits. Only the layout gaps (`--stack-gap`, `--cluster-gap`) are read from an ancestor. A primitive's variables are listed in the README's Public API; in a pinned copy without the README they are the `--name:` lines that open its rule in `core.css`.
+
+Never redeclare a primitive's properties (`.my-toolbar .button { height: 26px }` is the mistake this skill exists to prevent). When the property you want to change is not a variable, use the primitive as it is and record the gap (see below).
 
 ## When you do write CSS
 
