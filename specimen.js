@@ -390,30 +390,12 @@
     });
   }
 
-  // ---- Anchored menu -------------------------------------------------------
+  // ---- Anchored menu: float.js places it, follows its button and closes it ----
   var menu = document.getElementById('roles-menu');
-  var scroller = document.getElementById('demo-scroll');
-  var anchor = null;
-  if (menu && typeof menu.showPopover === 'function') {
-    document.querySelectorAll('[popovertarget="roles-menu"]').forEach(function (b) {
-      if (!b.closest('#roles-menu')) b.addEventListener('click', function () { anchor = b; });
+  if (menu && typeof menu.showPopover === 'function' && window.Trellis && Trellis.float) {
+    document.querySelectorAll('[data-roles]').forEach(function (b) {
+      b.addEventListener('click', function () { Trellis.float.toggle(menu, b, { align: 'end' }); });
     });
-    var place = function (force) {
-      if (!anchor || (!force && !menu.matches(':popover-open'))) return;
-      var a = anchor.getBoundingClientRect(), s = scroller.getBoundingClientRect();
-      if (a.bottom < s.top || a.top > s.bottom) { menu.hidePopover(); return; }
-      var w = menu.offsetWidth || 192, h = menu.offsetHeight || 160, gap = unitPx() / 2;
-      var left = Math.min(Math.max(12, a.right - w), window.innerWidth - w - 12);
-      var top = a.bottom + gap;
-      if (top + h > window.innerHeight - 12) top = Math.max(12, a.top - gap - h);
-      menu.style.left = Math.round(left) + 'px';
-      menu.style.top = Math.round(top) + 'px';
-    };
-    menu.addEventListener('beforetoggle', function (e) { if (e.newState === 'open') place(true); });
-    menu.addEventListener('toggle', function (e) { if (e.newState === 'open') place(); });
-    scroller.addEventListener('scroll', function () { place(); }, { passive: true });
-    window.addEventListener('scroll', function () { place(); }, { passive: true });
-    window.addEventListener('resize', function () { place(); });
   }
 
   // ---- Measure -----------------------------------------------------------

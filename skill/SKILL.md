@@ -28,7 +28,7 @@ Find the need here first. If it is here, use it and write no CSS for it.
 | One of several (a filter, a view switch) | `.tabs.cc-seg` > `.tab[aria-selected]`; plain `.tabs` for tabs |
 | A label, a status, a chip | `.tag` (kinds `.cc-ok`, `.cc-warn`, `.cc-alert`…; `.cc-solid`, `.cc-outline`) |
 | A status light, a count | `.dot` (`--dot-color`, `--dot-size`), `.badge` |
-| A menu, a popover, a tooltip | `.float.options-card` > `.options-card-item`; `.float.tooltip`; `.cc-anchor` to place it under its opener |
+| A menu, a popover, a tooltip | `.float.options-card` > `.options-card-item`; `.float.tooltip`. Always a popover: `popover="manual"` and `Trellis.float.open(float, anchor)` from `float.js` (it places, flips, follows and closes it), or `.cc-anchor` with a `popovertarget` button. Never `position` or `z-index` of your own |
 | A dialog, a drawer, a bottom sheet | `dialog.modal` > `.modal-inner` > `.modal-header`, `.modal-body`, `.modal-footer`; `.cc-tray` with a side. Open with `showModal()` |
 | A person or group | `.avatar`, `.member-tile` |
 | Messages | `.chat-item` (`.cc-own`, `.cc-cont`, `.cc-system`) |
@@ -91,7 +91,7 @@ It also counts a modifier without its base (`--show bare-modifiers`). If the pro
 
 ## Starting a project on Trellis
 
-1. Pin a copy: `vendor/trellis/` with `core.css`, `settle.js` and a `SOURCE.txt` naming the commit or tag.
+1. Pin a copy: `vendor/trellis/` with `core.css`, `settle.js` (and `float.js` or `presets.js` if it uses them) and a `SOURCE.txt` naming the commit or tag.
 2. Load, in order: `core.css`, the product layer, the app's CSS; then `settle.js` once. Beside Tailwind, state `@layer theme, base, trellis, components, utilities;` first.
 3. Copy `product.template.css` to the project's own product file, keep the knobs you change, put `data-product` on `<html>`.
 4. Write the budget (`--budget check.budget.json --write`) on day one, while it is all zeros.

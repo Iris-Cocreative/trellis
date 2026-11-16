@@ -17,6 +17,7 @@
     "./tokens.json": "./tokens.json",
     "./math.js": "./math.js",
     "./presets.js": "./presets.js",
+    "./float.js": "./float.js",
     "./package.json": "./package.json"
   },
   "files": [
@@ -26,6 +27,7 @@
     "tokens.json",
     "math.js",
     "presets.js",
+    "float.js",
     "README.md",
     "CHANGELOG.md",
     "REACT.md",

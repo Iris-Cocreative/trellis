@@ -23,7 +23,8 @@
 //           while scrolling; swipe to the actions and back; detents open at
 //           half, rest full, close when dragged down; share names and runs
 //   floats  a closed popover float has no box and takes no clicks; it opens
-//           and closes to nothing again
+//           and closes to nothing again; float.js places one by its anchor, keeps it on
+//           screen, flips it, follows it in a scroller and closes it
 //   forced  in forced colors, current and selected marks, the switch, dots,
 //           badges and avatar rings still draw
 // Usage: node layout.js <url> [webkit] [WxH] [touch]
@@ -184,15 +185,17 @@ const ready = require('./ready');
         + '<div class="float options-card" id="dk-opt"><button class="options-card-item" type="button">A</button></div>';
       document.body.appendChild(host);
       const el = id => document.getElementById('dk-' + id), near = (a, b) => Math.abs(a - b) < .05;
+      const len = v => { const i = document.createElement('i'); i.style.cssText = `display: block; width: ${v}`; host.appendChild(i); const w = i.getBoundingClientRect().width; i.remove(); return w; };
+      const q = len('var(--sp-q)'), hh = len('var(--sp-h)'), xs = len('var(--size-control-xs)'), sm = len('var(--size-control-sm)'), lg = len('var(--size-control-lg)');
       const item = () => el('opt').querySelector('.options-card-item'), fs = () => parseFloat(getComputedStyle(item()).fontSize);
       const was = fs();
-      expect(near(parseFloat(getComputedStyle(el('opt')).paddingTop), u / 4), "an options card's padding is not a quarter cell by default");
+      expect(near(parseFloat(getComputedStyle(el('opt')).paddingTop), q), "an options card's padding is not a quarter cell by default");
       root.style.setProperty('--density-seg-h', 'var(--size-control-xs)');
-      expect(near(box(el('seg')).height, u * 3), `with --density-seg-h alone the ring should follow, keeping three cells: ${box(el('seg')).height}px`);
+      expect(near(box(el('seg')).height, lg), `with --density-seg-h alone the ring should follow, keeping three cells: ${box(el('seg')).height}px`);
       Object.entries({ '--density-seg-pad': 'var(--sp-q)', '--density-option-h': 'var(--size-control-sm)', '--density-option-fs': 'var(--fs-control-sm)', '--density-options-pad': 'var(--sp-h)' }).forEach(([k, v]) => root.style.setProperty(k, v));
-      expect(near(box(el('seg')).height, u * 2), `a compact product's segmented control is ${box(el('seg')).height}px, not two cells`);
-      expect(near(box(item()).height, u * 2) && fs() < was, `a compact product's menu row is ${box(item()).height}px in ${fs()}px type, not two cells in smaller type`);
-      expect(near(parseFloat(getComputedStyle(el('opt')).paddingTop), u / 2), "--density-options-pad does not set an options card's padding");
+      expect(near(box(el('seg')).height, xs + 2 * q), `a compact product's segmented control is ${box(el('seg')).height}px, not two cells`);
+      expect(near(box(item()).height, sm) && fs() < was, `a compact product's menu row is ${box(item()).height}px in ${fs()}px type, not two cells in smaller type`);
+      expect(near(parseFloat(getComputedStyle(el('opt')).paddingTop), hh), "--density-options-pad does not set an options card's padding");
       ['--density-seg-h', '--density-seg-pad', '--density-option-h', '--density-option-fs', '--density-options-pad'].forEach(k => root.style.removeProperty(k));
       host.remove();
     }
@@ -466,6 +469,51 @@ const ready = require('./ready');
     f.hidePopover();
     await Promise.all(f.getAnimations().map(a => a.finished.catch(() => {}))); await wait(50);
     gone('closed after opening');
+    // float.js: placed by its anchor through --float-x and --float-y, kept on
+    // the screen, flipped when there is no room, and closed by Escape, a press
+    // elsewhere, a toggle, and its anchor scrolling out of view.
+    if (!window.Trellis || !Trellis.float) fails.push('float.js did not load');
+    else {
+      const u = Trellis.cell(), F = Trellis.float, frame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const W = document.documentElement.clientWidth, H = innerHeight, near = (a, b) => Math.abs(a - b) < 1.5;
+      const btn = (x, y) => { const b = document.createElement('button'); b.className = 'button cc-sm'; b.type = 'button'; b.textContent = 'Open'; b.setAttribute('aria-expanded', 'false'); b.style.cssText = `position: fixed; left: ${x}px; top: ${y}px`; host.appendChild(b); return b; };
+      const fr = () => { const c = getComputedStyle(f), left = parseFloat(c.left), top = parseFloat(c.top); return { left, top, right: left + f.offsetWidth, bottom: top + f.offsetHeight }; };   // where it is placed: its box is scaled while it fades in
+      let a = btn(Math.round(W / 2), u * 4), r = a.getBoundingClientRect();   // room for its width on either side, on a phone too
+      F.open(f, a);
+      if (!f.matches(':popover-open')) fails.push('Trellis.float.open did not open the float');
+      if (!near(fr().left, r.left) || !near(fr().top, r.bottom + u / 4)) fails.push(`a float is not under its anchor's start, a quarter cell down: ${fr().left.toFixed(0)},${fr().top.toFixed(0)} for ${r.left.toFixed(0)},${r.bottom.toFixed(0)}`);
+      if (!f.style.getPropertyValue('--float-x') || !f.style.getPropertyValue('--float-y')) fails.push('float.js did not write --float-x and --float-y');
+      if (a.getAttribute('aria-expanded') !== 'true') fails.push("an open float's anchor is not aria-expanded");
+      F.place(f, a, { align: 'end' });
+      if (!near(fr().right, r.right)) fails.push(`align: 'end' does not line a float up with its anchor's end: ${fr().right.toFixed(0)} for ${r.right.toFixed(0)}`);
+      a.style.left = u * 2 + 'px'; r = a.getBoundingClientRect();
+      F.place(f, a, { side: 'inline-end' });
+      if (!near(fr().left, r.right + u / 4) || !near(fr().top, r.top)) fails.push(`side: 'inline-end' does not put a float beside its anchor: ${fr().left.toFixed(0)},${fr().top.toFixed(0)}`);
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      if (f.matches(':popover-open') || a.getAttribute('aria-expanded') !== 'false') fails.push('Escape did not close the float');
+      if (document.activeElement !== a) fails.push('Escape did not give focus back to the anchor');
+      // At the screen's bottom right: flipped above, and kept a half cell from the edge.
+      a.remove(); a = btn(W - u * 3, H - u * 3); r = a.getBoundingClientRect();
+      F.open(f, a);
+      if (!near(fr().bottom, r.top - u / 4)) fails.push(`a float with no room under its anchor did not flip above it: its bottom ${fr().bottom.toFixed(0)}, the anchor's top ${r.top.toFixed(0)}`);
+      if (fr().right > W - u / 2 + 1) fails.push(`a float left the screen: its right edge at ${fr().right.toFixed(0)} of ${W}`);
+      document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      if (f.matches(':popover-open')) fails.push('a press elsewhere did not close the float');
+      F.toggle(f, a); F.toggle(f, a);
+      if (f.matches(':popover-open')) fails.push('Trellis.float.toggle did not close an open float');
+      // In a scroller: it follows its anchor, and closes once the anchor is out of view.
+      a.remove();
+      const box = document.createElement('div');
+      box.style.cssText = `position: fixed; left: 0; top: 0; width: ${u * 20}px; height: ${u * 10}px; overflow: auto`;
+      box.innerHTML = `<div style="height: ${u * 40}px; padding-top: ${u * 2}px"><button class="button cc-sm" type="button">Open</button></div>`;
+      host.appendChild(box); a = box.querySelector('button');
+      F.open(f, a);
+      const top0 = fr().top;
+      box.scrollTop = u; await frame();
+      if (!f.matches(':popover-open') || !near(fr().top, top0 - u)) fails.push(`a float did not follow its anchor in a scroller: ${fr().top.toFixed(0)}, was ${top0.toFixed(0)}`);
+      box.scrollTop = u * 10; await frame();
+      if (f.matches(':popover-open')) fails.push('a float stayed open after its anchor scrolled out of view');
+    }
     host.remove();
     return fails;
   }));

@@ -1903,9 +1903,10 @@
 
   /* Floating surfaces -----------------------------------------------------
      One surface for every popover, options card and tooltip, in the top layer
-     at a fixed position, with its motion defined once. Placing it by its anchor,
-     following the anchor and closing when it scrolls away are the app's job
-     (rule 16). */
+     at a fixed position, with its motion defined once. Open it as a popover
+     (popover="manual" for one a script opens) and place it through
+     --float-x and --float-y. Placing it by its anchor, following the anchor
+     and closing it are float.js's, or the app's (rule 16). */
   .float {
     --float-pad: var(--sp-h);
     --float-radius: var(--shape-float);
@@ -1920,8 +1921,12 @@
     box-shadow: var(--lift);
     padding: var(--float-pad);
   }
+  /* A float opens as a manual popover and is placed through two variables,
+     which float.js writes (or an app's own script): its left and top on the
+     screen. Unset, it sits where the browser puts it. */
   .float[popover] {
     position: fixed; inset: auto; margin: 0;
+    left: var(--float-x, auto); top: var(--float-y, auto);
     z-index: var(--z-float);
     opacity: 0; scale: .98;
     transition: opacity var(--dur-out) var(--ease-in), scale var(--dur-out) var(--ease-in),
