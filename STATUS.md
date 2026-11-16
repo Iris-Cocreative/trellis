@@ -61,6 +61,7 @@ Everything here lands before the first app pins a version.
 | Stacked surfaces | done | `3b7b59e` | Rule 21: a three-step ground ladder from nesting, concentric corners, `.list.cc-group`, a tray grabber, trays that step back, three at most (D81); `tests/layout.js` and `tests/contract.js`, both engines. |
 | Interaction presets | done | `6d91f7d` | Fade and press in `core.css`; glow, reveal, detents, swipe and share in the optional `presets.js` (D82); `tests/layout.js` drives each, both engines, wide and touch. |
 | Ink on solid fills | done | `9a48945` | Computed from the fill; three seeds a step darker; `tests/contract.js` holds every solid kind and status at 4.5:1 (D83). |
+| Measures a compact app needs | done | `744f409` | `--seg-pad`, `--option-h`, `--option-fs`, `--options-w`, `--options-max-h`, `--float-ink` (D84), each defaulting to what was fixed; `tests/layout.js` checks each default and each variable; `contract.js` ok; the matrix 16/16 in Chromium and in WebKit. Asked for by Agent Weaver; it has not taken them up yet. |
 | Floats that follow and close | idea | | |
 | Density at scale | idea | | |
 | Theme name mapping | idea | | |
