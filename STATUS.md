@@ -50,7 +50,7 @@ Everything here lands before the first app pins a version.
 | Modal dismiss on a drag | done | `8d9b88e` | `settle.js` closes a modal only on a true backdrop click; `tests/layout.js` checks the drag and `data-trellis-stay`, both engines, wide and touch. |
 | Every control has every state | done | `55f8915` | One state layer; hover and press measured on primary and ghost buttons, rows and tabs in both engines and both themes. |
 | A switch primitive | done | `dff93ee` | `.switch` in core, the specimen's bar and a demo; both engines. |
-| Design feedback on the specimen | underway | `3efbed7` | The second round, 2026-11-16. Done: Measure in 0.4s, one level of dots, straight marks (D85), a frame's reserve (D87), the hero redrawn, three levels by ground alone (D88). With sub-sessions: the cell as counts (D86), the ratio playground. Next: the color playground. |
+| Design feedback on the specimen | done | `44a92c9` | The second round, 2026-11-16, every note built: Measure in 0.4s, one level of dots, straight marks (D85), the cell as counts (D86), a frame's reserve (D87), three levels by ground alone (D88), the hero redrawn, the ratio playground, a palette from one color. Waiting on the owner's eye, and on two decisions the studies raise: the ratio model and what core derives of color. |
 
 ## Before the second app
 
