@@ -41,6 +41,8 @@ A variant is a `cc-*` modifier, and a modifier needs its base beside it: `.icon-
 
 A class of your own on a primitive's element may carry two things: the primitive's variables, and the primitive's place in its parent (`margin`, `flex`, `order`, `align-self`, `grid-area`, `position` and its insets, `z-index`), or hiding it (`display: none`). Nothing the primitive draws: `.my-tb { width: 28px; border-radius: 7px }` on `class="button icon-button my-tb"` restyles the button as surely as `.my-bar .icon-button { width: 28px }` does, and `tools/check.js` counts both (the second as `restyled-own`). A primitive's variables are listed in the README's Public API; in a pinned copy without the README they are the `--name:` lines that open its rule in `core.css`.
 
+A compact app does not set the same variables in every context: its product layer sets the density knobs once (`--density-control-h`, `--density-control-fs`, `--density-option-h`, `--density-option-fs`, `--density-options-pad`, `--density-seg-h`, `--density-seg-pad`), and every button, input, menu row and segmented control follows. Two cells for a control is `--density-seg-h: var(--size-control-xs); --density-seg-pad: var(--sp-q)`; a menu row two cells in small type is `--density-option-h: var(--size-control-sm); --density-option-fs: var(--fs-control-sm)`.
+
 Never redeclare a primitive's properties (`.my-toolbar .button { height: 26px }` is the mistake this skill exists to prevent). When the property you want to change is not a variable, use the primitive as it is and record the gap (see below).
 
 ## When you do write CSS

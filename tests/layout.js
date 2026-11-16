@@ -7,7 +7,8 @@
 //   board   it scrolls inside itself, and its lanes are the set width
 //   input   every height is whole cells; on touch, at least 44px and 16px type
 //   knobs   a segmented control's ring, an option's height and type and its
-//           card's width and cap, a float's ink: the default, and the variable
+//           card's width and cap, a float's ink: the default, and the variable; and the
+//           compact density knobs a product sets once
 //   wrap    a cap-centered label that wraps is marked, hangs from its row's
 //           top line and rounds up to whole cells; one that doesn't, centers
 //   modal   the real dialog: modal, page locked, on screen, a tray flush to
@@ -173,6 +174,26 @@ const ready = require('./ready');
       expect(near(box(el('opt-b')).width, u * 20) && near(parseFloat(cs('opt-b').maxHeight), u * 30), "--options-w and --options-max-h do not set an options card's width and cap");
       expect(cs('tip-a').color === cs('q').color, "a tooltip's ink is not the page by default");
       expect(cs('tip-b').color === cs('t').color, '--float-ink does not set the ink of a float');
+      host.remove();
+    }
+    // Compact density as knobs: a product sets them once and every menu and
+    // segmented control follows, with no variable set on the primitives.
+    {
+      const root = document.documentElement, host = document.createElement('div');
+      host.innerHTML = '<div class="tabs cc-seg" id="dk-seg"><button class="tab" type="button">A</button></div>'
+        + '<div class="float options-card" id="dk-opt"><button class="options-card-item" type="button">A</button></div>';
+      document.body.appendChild(host);
+      const el = id => document.getElementById('dk-' + id), near = (a, b) => Math.abs(a - b) < .05;
+      const item = () => el('opt').querySelector('.options-card-item'), fs = () => parseFloat(getComputedStyle(item()).fontSize);
+      const was = fs();
+      expect(near(parseFloat(getComputedStyle(el('opt')).paddingTop), u / 4), "an options card's padding is not a quarter cell by default");
+      root.style.setProperty('--density-seg-h', 'var(--size-control-xs)');
+      expect(near(box(el('seg')).height, u * 3), `with --density-seg-h alone the ring should follow, keeping three cells: ${box(el('seg')).height}px`);
+      Object.entries({ '--density-seg-pad': 'var(--sp-q)', '--density-option-h': 'var(--size-control-sm)', '--density-option-fs': 'var(--fs-control-sm)', '--density-options-pad': 'var(--sp-h)' }).forEach(([k, v]) => root.style.setProperty(k, v));
+      expect(near(box(el('seg')).height, u * 2), `a compact product's segmented control is ${box(el('seg')).height}px, not two cells`);
+      expect(near(box(item()).height, u * 2) && fs() < was, `a compact product's menu row is ${box(item()).height}px in ${fs()}px type, not two cells in smaller type`);
+      expect(near(parseFloat(getComputedStyle(el('opt')).paddingTop), u / 2), "--density-options-pad does not set an options card's padding");
+      ['--density-seg-h', '--density-seg-pad', '--density-option-h', '--density-option-fs', '--density-options-pad'].forEach(k => root.style.removeProperty(k));
       host.remove();
     }
     // Skeleton: the placeholder settles to whole cells, so the real words won't move anything.

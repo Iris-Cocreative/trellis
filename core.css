@@ -367,6 +367,15 @@
     --density-card-pad-block: var(--density-card-pad);
     --density-control-h: var(--size-control-lg);
     --density-control-fs: var(--fs-control);
+    /* A compact product sets these once, and every menu and segmented control
+       follows; a context still sets the primitive's own variable for a one-off.
+       Two cells for a control: --density-seg-h at 1½ cells and --density-seg-pad
+       at a quarter; menu rows two cells in small type. */
+    --density-option-h: var(--size-control-md);
+    --density-option-fs: var(--fs-control);
+    --density-options-pad: var(--sp-q);
+    --density-seg-h: var(--size-control-sm);
+    --density-seg-pad: calc((var(--size-control-lg) - var(--density-seg-h)) / 2);
     --tag-default-h: var(--size-control-sm);
     --tag-default-fs: var(--tag-fs-md);
     --tag-fs-sm: .6875rem;
@@ -1927,11 +1936,11 @@
   @starting-style { .float[popover]:popover-open { opacity: 0; scale: .98; } }
 
   .options-card {
-    --float-pad: var(--sp-q);
+    --float-pad: var(--density-options-pad);
     --options-w: var(--sp-16);
     --options-max-h: calc(var(--u) * 24);
-    --option-h: var(--size-control-md);   /* an item's height and type: a compact card sets the two together */
-    --option-fs: var(--fs-control);
+    --option-h: var(--density-option-h);   /* an item's height and type: a compact card sets the two together */
+    --option-fs: var(--density-option-fs);
     container-type: inline-size;   /* a surface with a set width is a container */
     display: flex; flex-direction: column;
     width: var(--options-w);
@@ -1942,10 +1951,10 @@
   .options-card-item {
     display: flex; align-items: center; gap: var(--sp-h);
     width: 100%;
-    min-height: var(--option-h, var(--size-control-md));   /* the fallbacks: an item outside a card */
+    min-height: var(--option-h, var(--density-option-h));   /* the fallbacks: an item outside a card */
     padding-inline: var(--sp-h);
     border-radius: max(var(--r-q), calc(var(--float-radius) - var(--float-pad)));
-    font-size: var(--option-fs, var(--fs-control));
+    font-size: var(--option-fs, var(--density-option-fs));
     text-align: start;
     color: var(--text); text-decoration: none;
   }
@@ -2085,14 +2094,15 @@
     background: var(--tab-mark);
   }
   .tabs.cc-seg {
-    --tab-h: var(--size-control-sm); --tab-fs: var(--fs-control-sm); --tab-mark-h: 0px; --tab-on-bg: var(--bg-raised);
+    --tab-h: var(--density-seg-h); --tab-fs: var(--fs-control-sm); --tab-mark-h: 0px; --tab-on-bg: var(--bg-raised);
     --tab-radius: max(var(--r-q), calc(var(--shape-control) - var(--sp-q)));
     --tab-gap: var(--line);
     width: fit-content; max-width: 100%;
     /* Its tabs plus the ring around them: the large control height, until a tab
        outgrows its own. A compact one sets the two together, --tab-h and
-       --seg-pad: 1½ cells and ¼ make a control two cells tall. */
-    --seg-pad: calc((var(--size-control-lg) - var(--size-control-sm)) / 2);
+       --seg-pad (a product: --density-seg-h and --density-seg-pad): 1½ cells
+       and ¼ make a control two cells tall. */
+    --seg-pad: var(--density-seg-pad);
     height: auto;
     padding: var(--seg-pad);
     border-radius: var(--shape-control);
