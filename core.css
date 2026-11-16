@@ -209,14 +209,14 @@
        holds at its hue; a status keeps its own hue; the neutral is a trace of the accent's hue. */
     --derived-base: oklch(from var(--seed-accent) calc((1 - clamp(0, (l - var(--ink-flip)) * 1000, 1)) * clamp(.61 - var(--color-lift), l, .54) + clamp(0, (l - var(--ink-flip)) * 1000, 1) * max(l, .61)) c h);   /* the accent, its lightness kept clear of the flip */
     --derived-neutral: oklch(from var(--seed-accent) .55 .004 h);
-    --derived-person: oklch(from var(--derived-base) l min(c * .85, l * (.272 + .12 * cos((h + 144 - 330) * .01745329) + .053 * cos((h + 144 - 140) * .03490659))) calc(h + 144));
-    --derived-group: oklch(from var(--derived-base) l min(c * .85, l * (.272 + .12 * cos((h + 288 - 330) * .01745329) + .053 * cos((h + 288 - 140) * .03490659))) calc(h + 288));
-    --derived-event: oklch(from var(--derived-base) l min(c * .85, l * (.272 + .12 * cos((h + 72 - 330) * .01745329) + .053 * cos((h + 72 - 140) * .03490659))) calc(h + 72));
-    --derived-course: oklch(from var(--derived-base) l min(c * .85, l * (.272 + .12 * cos((h + 216 - 330) * .01745329) + .053 * cos((h + 216 - 140) * .03490659))) calc(h + 216));
+    --derived-person: oklch(from var(--derived-base) l min(c * .85, l * (.2764 - .0014 * clamp(0, h, 6) - .0047333 * clamp(0, h - 6, 15) - .0012667 * clamp(0, h - 21, 30) - .0001667 * clamp(0, h - 51, 30) + .0048333 * clamp(0, h - 81, 30) + .0066667 * clamp(0, h - 111, 15) - .0004 * clamp(0, h - 216, 30) - .0075333 * clamp(0, h - 246, 15) - .0032667 * clamp(0, h - 261, 15) - .0011667 * clamp(0, h - 276, 30) + .0013 * clamp(0, h - 306, 30) + .004 * clamp(0, h - 336, 15) - .0014 * clamp(0, h - 351, 9))) calc(h + 144));
+    --derived-group: oklch(from var(--derived-base) l min(c * .85, l * (.399 - .0004 * clamp(0, h - 72, 30) - .0075333 * clamp(0, h - 102, 15) - .0032667 * clamp(0, h - 117, 15) - .0011667 * clamp(0, h - 132, 30) + .0013 * clamp(0, h - 162, 30) + .004 * clamp(0, h - 192, 15) - .0014 * clamp(0, h - 207, 15) - .0047333 * clamp(0, h - 222, 15) - .0012667 * clamp(0, h - 237, 30) - .0001667 * clamp(0, h - 267, 30) + .0048333 * clamp(0, h - 297, 30) + .0066667 * clamp(0, h - 327, 15))) calc(h + 288));
+    --derived-event: oklch(from var(--derived-base) l min(c * .85, l * (.211 - .0011667 * clamp(0, h, 18) + .0013 * clamp(0, h - 18, 30) + .004 * clamp(0, h - 48, 15) - .0014 * clamp(0, h - 63, 15) - .0047333 * clamp(0, h - 78, 15) - .0012667 * clamp(0, h - 93, 30) - .0001667 * clamp(0, h - 123, 30) + .0048333 * clamp(0, h - 153, 30) + .0066667 * clamp(0, h - 183, 15) - .0004 * clamp(0, h - 288, 30) - .0075333 * clamp(0, h - 318, 15) - .0032667 * clamp(0, h - 333, 15) - .0011667 * clamp(0, h - 348, 12))) calc(h + 72));
+    --derived-course: oklch(from var(--derived-base) l min(c * .85, l * (.1555 - .0001667 * clamp(0, h, 9) + .0048333 * clamp(0, h - 9, 30) + .0066667 * clamp(0, h - 39, 15) - .0004 * clamp(0, h - 144, 30) - .0075333 * clamp(0, h - 174, 15) - .0032667 * clamp(0, h - 189, 15) - .0011667 * clamp(0, h - 204, 30) + .0013 * clamp(0, h - 234, 30) + .004 * clamp(0, h - 264, 15) - .0014 * clamp(0, h - 279, 15) - .0047333 * clamp(0, h - 294, 15) - .0012667 * clamp(0, h - 309, 30) - .0001667 * clamp(0, h - 339, 21))) calc(h + 216));
     --derived-topic: oklch(from var(--seed-accent) calc((1 - clamp(0, ((l - .045) - var(--ink-flip)) * 1000, 1)) * clamp(.61 - var(--color-lift), (l - .045), .54) + clamp(0, ((l - .045) - var(--ink-flip)) * 1000, 1) * max((l - .045), .61)) calc(c * min(1, calc((1 - clamp(0, ((l - .045) - var(--ink-flip)) * 1000, 1)) * clamp(.61 - var(--color-lift), (l - .045), .54) + clamp(0, ((l - .045) - var(--ink-flip)) * 1000, 1) * max((l - .045), .61)) / l)) h);   /* the accent a step darker */
-    --derived-ok: oklch(from var(--derived-base) l min(clamp(.1, c * .9, .17), l * .26) 152);
-    --derived-warn: oklch(from var(--derived-base) l min(clamp(.1, c * .9, .17), l * .2) 70);
-    --derived-alert: oklch(from var(--derived-base) l min(clamp(.1, c * .9, .17), l * .38) 30);
+    --derived-ok: oklch(from var(--derived-base) l min(clamp(.1, c * .9, .17), l * .2585333) 152);
+    --derived-warn: oklch(from var(--derived-base) l min(clamp(.1, c * .9, .17), l * .2133333) 70);
+    --derived-alert: oklch(from var(--derived-base) l min(clamp(.1, c * .9, .17), l * .387) 30);
 
     /* Neutral roles: the neutral seed's hue and chroma at a lightness for each theme */
     --bg: light-dark(oklch(from var(--seed-neutral) .973 c h), oklch(from var(--seed-neutral) .176 c h));
@@ -269,13 +269,13 @@
       --accent: light-dark(#2c6fd1, #60a5ff);
       --accent-ink: light-dark(#ffffff, #020c22);
       --focus: light-dark(#2c6fd1, #60a5ff);
-      --kind-person: light-dark(#af4d22, #e88258);
-      --kind-group: light-dark(#068077, #52b4ab);
+      --kind-person: light-dark(#af4d20, #e98156);
+      --kind-group: light-dark(#0e8077, #54b4aa);
       --kind-event: light-dark(#9b4c95, #d27fcb);
-      --kind-course: light-dark(#6e7518, #a0a953);
+      --kind-course: light-dark(#6e7606, #a0aa4b);
       --kind-topic: light-dark(#2662bb, #5997f4);
-      --ok: light-dark(#068543, #52ba75);
-      --warn: light-dark(#966217, #cd9551);
+      --ok: light-dark(#088543, #53ba75);
+      --warn: light-dark(#986106, #cf944a);
       --alert: light-dark(#b54436, #f07968);
       --gradient-accent: in oklab, var(--accent), var(--accent);
       --gradient-surface: in oklab, var(--bg-raised), var(--bg-sunken);

@@ -26,7 +26,7 @@
     square:    { person: 90, group: 180, event: 270, course: 135 }      // quarters, and one between
   };
   var STATUS = {};
-  Object.keys(base.derive.statuses).forEach(function (k) { STATUS[k] = base.derive.statuses[k][0]; });
+  Object.keys(base.derive.statuses).forEach(function (k) { STATUS[k] = base.derive.statuses[k]; });
   var KINDS = ['person', 'group', 'event', 'course', 'topic'], ORDER = ['accent', 'neutral'].concat(KINDS, ['ok', 'warn', 'alert']);
   var NAMES = { accent: 'Accent', neutral: 'Neutral', person: 'Person', group: 'Group', event: 'Event', course: 'Course', topic: 'Topic', ok: 'Ok', warn: 'Warn', alert: 'Alert' };
 

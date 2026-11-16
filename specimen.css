@@ -665,6 +665,9 @@
     border-radius: var(--r-h);
     background: var(--c); color: var(--i);
     font-size: var(--fs-control-xs); font-family: var(--font-mono); line-height: 1;
+    /* At the largest text sizes the two figures are wider than the chip: they
+       are cut at its edge, and never push the page sideways. */
+    min-width: 0; overflow: clip;
   }
   .pal-chip b { font-family: var(--font-sans); font-size: var(--fs-control-lg); font-weight: var(--fw-strong); }
   .pal-seed.cc-chosen .pal-chip { box-shadow: 0 0 0 calc(var(--line) * 2) var(--bg), 0 0 0 calc(var(--line) * 4) var(--c); }

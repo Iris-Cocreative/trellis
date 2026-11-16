@@ -103,7 +103,7 @@ function build(tokens) {
   const col = tokens.color, short = v => n(v).replace(/^(-?)0\./, '$1.');
   const oklch = v => `oklch(${v.components.map((x, i) => (i === 2 ? n(x) : short(x))).join(' ')})`;
   const HUES = { accent: 'accent', person: 'kind-person', group: 'kind-group', event: 'kind-event', course: 'kind-course', topic: 'kind-topic', ok: 'ok', warn: 'warn', alert: 'alert' };
-  const d = col.derive, dv = k => d[k].$value, KINDS = keys(d['kind-turn']), STATUSES = keys(d.status);
+  const d = col.derive, dv = k => d[k].$value, KINDS = keys(d['kind-turn']), STATUSES = keys(d['status-hue']);
   const FOLLOW = ['neutral', ...KINDS, 'topic', ...STATUSES];
   out.push('    /* Seeds: one color each, in its light-theme form. A product sets the accent. The other seeds',
     '       follow from it, and a product may set any of them in its place. Never a role. */');
@@ -118,12 +118,29 @@ function build(tokens) {
   // white and 1 where it is dark, the step the ink itself is written with.
   const S = x => `clamp(0, (${x} - var(--ink-flip)) * 1000, 1)`;
   const clear = x => `calc((1 - ${S(x)}) * clamp(${short(dv('clear-above'))} - var(--color-lift), ${x}, ${short(dv('clear-below'))}) + ${S(x)} * max(${x}, ${short(dv('clear-above'))}))`;
-  // limit(hue): the most chroma sRGB holds there for each unit of lightness, as two waves.
-  // The angles are plain numbers, in radians (π ÷ 180 a degree): WebKit drops a
-  // deg unit multiplied onto a channel inside a relative color, and reads the
-  // number of degrees as radians.
-  const w = d.limit, wv = k => w[k].$value, RAD = '.01745329', RAD2 = '.03490659';
-  const limit = hue => `(${short(wv('base'))} + ${short(wv('wave'))} * cos((${hue} - ${n(wv('wave-at'))}) * ${RAD}) + ${short(wv('wave-two'))} * cos((${hue} - ${n(wv('wave-two-at'))}) * ${RAD2}))`;
+  // The limit: the most chroma sRGB holds at a hue for each unit of lightness,
+  // as straight segments between a few hues. In CSS a segment is its slope
+  // times clamp(0, hue − its start, its length), and the limit is the sum:
+  // clamp and calc alone. cos() on a channel inside a relative color is not
+  // safe to use: WebKit reads degrees there as radians, and Chromium before
+  // 2026 reads the channel as nothing.
+  const KNOTS = names(d.limit).map(k => [Number(k), d.limit[k].$value]).sort((a, b) => a[0] - b[0]);
+  const limitAt = hue => { const x = ((hue % 360) + 360) % 360; let i = 0; while (i < KNOTS.length - 2 && KNOTS[i + 1][0] <= x) i++;
+    return KNOTS[i][1] + (KNOTS[i + 1][1] - KNOTS[i][1]) * (x - KNOTS[i][0]) / (KNOTS[i + 1][0] - KNOTS[i][0]); };
+  const num = v => String(Number(v.toFixed(7))).replace(/^(-?)0\./, '$1.');
+  // limit(turn): the limit at the accent's hue turned by `turn`, for h from 0 to 360.
+  const limit = turn => {
+    const two = KNOTS.concat(KNOTS.slice(1).map(k => [k[0] + 360, k[1]]));
+    let text = num(limitAt(turn));
+    for (let i = 0; i < two.length - 1; i++) {
+      const a = Math.max(two[i][0], turn), b = Math.min(two[i + 1][0], turn + 360);
+      const slope = (two[i + 1][1] - two[i][1]) / (two[i + 1][0] - two[i][0]);
+      if (b <= a || Math.abs(slope) < 1e-9) continue;
+      const from = a - turn;
+      text += ` ${slope < 0 ? '-' : '+'} ${num(Math.abs(slope))} * clamp(0, ${from ? `h - ${n(from)}` : 'h'}, ${n(b - a)})`;
+    }
+    return `(${text})`;
+  };
   out.push('', '    /* The seeds that follow from the accent. Each takes its lightness, kept clear of the ink flip so',
     '       its ink reads; a kind is the accent turned around the hue wheel, with no more chroma than sRGB',
     '       holds at its hue; a status keeps its own hue; the neutral is a trace of the accent\'s hue. */');
@@ -131,12 +148,12 @@ function build(tokens) {
   line('derived-neutral', `oklch(from var(--seed-accent) .55 ${short(dv('neutral-chroma'))} h)`);
   for (const k of KINDS) {
     const turn = n(d['kind-turn'][k].$value);
-    line(`derived-${k}`, `oklch(from var(--derived-base) l min(c * ${short(dv('kind-chroma'))}, l * ${limit(`h + ${turn}`)}) calc(h + ${turn}))`);
+    line(`derived-${k}`, `oklch(from var(--derived-base) l min(c * ${short(dv('kind-chroma'))}, l * ${limit(d['kind-turn'][k].$value)}) calc(h + ${turn}))`);
   }
   const step = dv('topic-step'), stepped = step < 0 ? `l - ${short(-step)}` : `l + ${short(step)}`;
   line('derived-topic', `oklch(from var(--seed-accent) ${clear(`(${stepped})`)} calc(c * min(1, ${clear(`(${stepped})`)} / l)) h)`, 'the accent a step darker');
   for (const k of STATUSES)
-    line(`derived-${k}`, `oklch(from var(--derived-base) l min(clamp(${short(dv('status-chroma-min'))}, c * ${short(dv('status-chroma'))}, ${short(dv('status-chroma-max'))}), l * ${short(d.status[k].limit.$value)}) ${n(d.status[k].hue.$value)})`);
+    line(`derived-${k}`, `oklch(from var(--derived-base) l min(clamp(${short(dv('status-chroma-min'))}, c * ${short(dv('status-chroma'))}, ${short(dv('status-chroma-max'))}), l * ${num(limitAt(d['status-hue'][k].$value))}) ${n(d['status-hue'][k].$value)})`);
 
   head('Neutral roles: the neutral seed\'s hue and chroma at a lightness for each theme');
   const at = (seed, l) => `oklch(from var(--seed-${seed}) ${short(l)} c h)`;

@@ -46,8 +46,8 @@
       // How the other seeds follow from the accent: see derived(), below.
       derive: {
         below: 0.54, above: 0.61, kind: 0.85, turn: { person: 144, group: 288, event: 72, course: 216 }, topic: -0.045,
-        status: 0.9, statusMin: 0.1, statusMax: 0.17, statuses: { ok: [152, 0.26], warn: [70, 0.2], alert: [30, 0.38] },
-        tint: 0.004, limit: [0.272, 0.12, 330, 0.053, 140]
+        status: 0.9, statusMin: 0.1, statusMax: 0.17, statuses: { ok: 152, warn: 70, alert: 30 },
+        tint: 0.004, limit: [[0, 0.399], [30, 0.387], [45, 0.274], [60, 0.225], [90, 0.19], [120, 0.229], [135, 0.289], [150, 0.268], [165, 0.197], [195, 0.159], [225, 0.154], [255, 0.299], [270, 0.399], [360, 0.399]]
       }
     }
   };
@@ -264,8 +264,8 @@
   //           (and no darker than `above` less the lift, since the dark theme
   //           lifts it), no darker than `above` where its ink is dark.
   //   limit   the most chroma sRGB holds at a hue, for each unit of lightness:
-  //           two waves around the hue wheel, under the real limit at every
-  //           hue for a seed whose ink is white.
+  //           straight segments between a few hues, under the real limit at
+  //           every hue for a seed whose ink is white.
   //   follow  a kind: the accent turned around the wheel, at a share of its
   //           chroma and never more than the limit.
   function clear(l, seed) {
@@ -273,8 +273,9 @@
     return l < c.flip ? clamp(d.above - c.lift, l, d.below) : Math.max(l, d.above);
   }
   function chromaLimit(l, h, seed) {
-    var w = (seed || SEED).color.derive.limit, r = Math.PI / 180;
-    return l * (w[0] + w[1] * Math.cos((h - w[2]) * r) + w[3] * Math.cos((h - w[4]) * 2 * r));
+    var k = (seed || SEED).color.derive.limit, x = mod(h, 360), i = 0;
+    while (i < k.length - 2 && k[i + 1][0] <= x) i++;
+    return l * (k[i][1] + (k[i + 1][1] - k[i][1]) * (x - k[i][0]) / (k[i + 1][0] - k[i][0]));
   }
   function follow(accent, turn, seed) {
     var a = parseColor(accent), d = (seed || SEED).color.derive, l = clear(a[0], seed), h = mod(a[2] + turn, 360);
@@ -293,7 +294,7 @@
     for (k in d.turn) out[k] = follow(a, d.turn[k], seed);
     var tl = clear(a[0] + d.topic, seed);
     out.topic = [tl, a[1] * Math.min(1, tl / a[0]), a[2]];
-    for (k in d.statuses) out[k] = [l, Math.min(clamp(d.statusMin, a[1] * d.status, d.statusMax), l * d.statuses[k][1]), d.statuses[k][0]];
+    for (k in d.statuses) out[k] = [l, Math.min(clamp(d.statusMin, a[1] * d.status, d.statusMax), chromaLimit(l, d.statuses[k], seed)), d.statuses[k]];
     return out;
   }
   // All ten seeds: the accent, and each of the others as it was set, or as it follows.
@@ -325,10 +326,10 @@
     Object.keys(col.neutral).forEach(function (k) { if (k[0] !== '$') neutrals[k] = [col.neutral[k].light.$value, col.neutral[k].dark.$value]; });
     var d = col.derive, turn = {}, statuses = {};
     Object.keys(d['kind-turn']).forEach(function (k) { if (k[0] !== '$') turn[k] = d['kind-turn'][k].$value; });
-    Object.keys(d.status).forEach(function (k) { if (k[0] !== '$') statuses[k] = [d.status[k].hue.$value, d.status[k].limit.$value]; });
+    Object.keys(d['status-hue']).forEach(function (k) { if (k[0] !== '$') statuses[k] = d['status-hue'][k].$value; });
     var derive = { below: v(d, 'clear-below'), above: v(d, 'clear-above'), kind: v(d, 'kind-chroma'), turn: turn, topic: v(d, 'topic-step'),
       status: v(d, 'status-chroma'), statusMin: v(d, 'status-chroma-min'), statusMax: v(d, 'status-chroma-max'), statuses: statuses,
-      tint: v(d, 'neutral-chroma'), limit: ['base', 'wave', 'wave-at', 'wave-two', 'wave-two-at'].map(function (k) { return v(d.limit, k); }) };
+      tint: v(d, 'neutral-chroma'), limit: Object.keys(d.limit).filter(function (k) { return k[0] !== '$'; }).map(function (k) { return [+k, d.limit[k].$value]; }).sort(function (a, b) { return a[0] - b[0]; }) };
     return {
       color: { seeds: seeds, lift: v(col, 'lift'), flip: v(col, 'ink-flip'), neutrals: neutrals, derive: derive },
       cell: { targetNarrow: v(c, 'target-narrow'), targetWide: v(c, 'target-wide'), screenNarrow: v(c, 'screen-narrow'), screenWide: v(c, 'screen-wide'), textScaleMax: v(c, 'text-scale-max') },
