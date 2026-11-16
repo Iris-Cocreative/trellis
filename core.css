@@ -1485,6 +1485,19 @@
   .switch:has(> input:focus-visible) { outline: calc(var(--line) * 2) solid var(--focus); outline-offset: var(--line); }
   [dir="rtl"] .switch { --switch-x: 100%; }
   [dir="rtl"] .switch:is([aria-checked="true"], :has(> input:checked)) { --switch-x: 0%; }
+  /* A switch in a menu row. The row is the control (role="menuitemcheckbox"
+     with aria-checked), its label and hint at the start, and the switch an
+     empty span at its end: it keeps no room for a label it doesn't have, it is
+     lit by its row, and it lends the row no extra hit area, which would reach
+     into the rows around it. The row is not washed as a chosen option (see the
+     states). Markup: button.options-card-item[role=menuitemcheckbox]
+     [aria-checked] > .options-card-label + span.switch[aria-hidden=true]. */
+  .switch:empty { padding-inline-start: var(--switch-w); }
+  .options-card-item > .switch { flex: none; margin-inline-start: auto; }
+  .options-card-item > .switch::before { content: none; }
+  .options-card-item[aria-checked="true"] > .switch { --switch-x: 100%; --switch-fill: var(--switch-on); --switch-thumb: var(--accent-ink); }
+  [dir="rtl"] .options-card-item[aria-checked="true"] > .switch { --switch-x: 0%; }
+  .options-card-item:is(:disabled, [aria-disabled="true"]) > .switch { --switch-fill: color-mix(in oklab, var(--text) 10%, transparent); --switch-thumb: var(--bg-sunken); }
 
   /* SLIDER. A value along a line: an input[type=range] on the cells. The row
      is two cells tall, the track a quarter cell thick, the thumb a cell and a
@@ -2415,6 +2428,8 @@
   }
   :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .outline-link, .list-item:is(a, button), .options-card-item, .u-state, .switch, .prose summary):active { --state-act: var(--state-press); }
   :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .outline-link, .list-item:is(a, button), .options-card-item, .u-state):is([aria-pressed="true"], [aria-checked="true"], [aria-current]:not([aria-current="false"]), [aria-selected="true"]) { --state-on: var(--state-selected); }
+  /* A row that holds a switch shows its state on the switch alone. */
+  .options-card-item:has(> .switch):is([aria-pressed="true"], [aria-checked="true"], [aria-current]:not([aria-current="false"]), [aria-selected="true"]) { --state-on: 0%; }
   :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .list-item:is(a, button), .options-card-item, .u-state, .switch):is(:disabled, [aria-disabled="true"]) { --state-act: 0%; cursor: not-allowed; }
 }
 
@@ -2468,7 +2483,7 @@
     }
     .tab[aria-selected="true"]::after { forced-color-adjust: none; background: Highlight; }
     .switch::after { forced-color-adjust: none; outline: var(--line) solid CanvasText; outline-offset: calc(var(--line) * -1); --switch-fill: Canvas; --switch-thumb: CanvasText; }
-    .switch:is([aria-checked="true"], :has(> input:checked))::after { --switch-fill: Highlight; --switch-thumb: HighlightText; outline-color: Highlight; }
+    :is(.switch:is([aria-checked="true"], :has(> input:checked)), .options-card-item[aria-checked="true"] > .switch)::after { --switch-fill: Highlight; --switch-thumb: HighlightText; outline-color: Highlight; }
     .switch:is(:disabled, [aria-disabled="true"], :has(> input:disabled))::after { --switch-thumb: GrayText; outline-color: GrayText; }
     .dot { forced-color-adjust: none; background: CanvasText; }
     .badge { outline: var(--line) solid CanvasText; outline-offset: calc(var(--line) * -1); }

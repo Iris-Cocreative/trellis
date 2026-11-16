@@ -25,6 +25,8 @@
 //   floats  a closed popover float has no box and takes no clicks; it opens
 //           and closes to nothing again; float.js places one by its anchor, keeps it on
 //           screen, flips it, follows it in a scroller and closes it
+//   switch  in a menu row: no room for a label, at the row's end, lit by the
+//           row, the row not washed
 //   forced  in forced colors, current and selected marks, the switch, dots,
 //           badges and avatar rings still draw
 // Usage: node layout.js <url> [webkit] [WxH] [touch]
@@ -514,6 +516,30 @@ const ready = require('./ready');
       box.scrollTop = u * 10; await frame();
       if (f.matches(':popover-open')) fails.push('a float stayed open after its anchor scrolled out of view');
     }
+    host.remove();
+    return fails;
+  }));
+  // A switch in a menu row: the row is the control, the switch an empty span at
+  // its end. It keeps no room for a label, ends where a row's end icon does, is
+  // lit by its row's aria-checked, and the row is not washed as chosen.
+  fails.push(...await page.evaluate(async () => {
+    const fails = [], host = document.createElement('div');
+    host.innerHTML = '<div class="float options-card"><button class="options-card-item" type="button" role="menuitemcheckbox" aria-checked="false" id="sw-row"><span class="options-card-label">Listen</span><span class="switch" aria-hidden="true"></span></button>'
+      + '<button class="options-card-item" type="button" id="sw-plain"><span class="options-card-label">Plain</span><svg class="icon cc-end" viewBox="0 0 14 14" aria-hidden="true"></svg></button></div>'
+      + '<div class="cluster"><button class="switch" type="button" role="switch" aria-checked="true" id="sw-on"><span class="switch-label">On</span></button><button class="switch" type="button" role="switch" aria-checked="false" id="sw-off"><span class="switch-label">Off</span></button></div>';
+    document.body.appendChild(host);
+    const $ = id => document.getElementById(id), row = $('sw-row'), sw = row.querySelector('.switch'), near = (a, b) => Math.abs(a - b) < .6;
+    const track = e => getComputedStyle(e, '::after'), r = e => e.getBoundingClientRect();
+    if (!near(r(sw).width, parseFloat(track(sw).width))) fails.push(`an empty switch is ${r(sw).width.toFixed(1)}px wide, not its track's ${track(sw).width}: it keeps room for a label`);
+    const end = r($('sw-plain').querySelector('.icon')).right;
+    if (!near(r(sw).right, end)) fails.push(`a menu row's switch ends at ${r(sw).right.toFixed(1)}, not where a row's end icon does (${end.toFixed(1)})`);
+    if (track(sw).backgroundColor !== track($('sw-off')).backgroundColor) fails.push("an unchecked row's switch is not drawn off");
+    const ground = getComputedStyle(row).backgroundColor;
+    row.setAttribute('aria-checked', 'true');
+    await Promise.all(sw.getAnimations({ subtree: true }).map(x => x.finished.catch(() => {})));   // the track's color transition
+    if (track(sw).backgroundColor !== track($('sw-on')).backgroundColor) fails.push("a checked row's switch is not lit by its row");
+    if (getComputedStyle(row).backgroundColor !== ground) fails.push(`a checked row that holds a switch is washed as a chosen option: ${getComputedStyle(row).backgroundColor}, was ${ground}`);
+    if (matchMedia('(pointer: coarse)').matches && getComputedStyle(sw, '::before').content !== 'none') fails.push("a menu row's switch grows a hit area of its own, into the rows around it");
     host.remove();
     return fails;
   }));

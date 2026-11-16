@@ -23,7 +23,7 @@ Find the need here first. If it is here, use it and write no CSS for it.
 | Rows: sessions, files, members, results | `.list` > `.list-item` > `.list-body`, `.list-end`; `.cc-group` for rows sharing one surface; `.cc-dense` for tight rows |
 | A button, an icon button | `.button`; `.button.icon-button` for an icon alone, never `.icon-button` by itself: `<button class="button icon-button cc-ghost cc-sm" aria-label="…">`; `.cc-primary`, `.cc-ghost`; `.cc-sm`, `.cc-md`, `.cc-lg` |
 | A text field, select, textarea, search box | `.input` inside `.field` with `.field-label`, `.field-hint`; `.cc-sm`, `.cc-lg` |
-| On or off | `.switch` |
+| On or off | `.switch`; in a menu row, the row is `button.options-card-item[role=menuitemcheckbox][aria-checked]` and the switch an empty `<span class="switch" aria-hidden="true">` at its end, with no script to copy the state |
 | A value along a line (a slider) | `input.range`; `.cc-zone` to ink a stretch between two values |
 | One of several (a filter, a view switch) | `.tabs.cc-seg` > `.tab[aria-selected]`; plain `.tabs` for tabs |
 | A label, a status, a chip | `.tag` (kinds `.cc-ok`, `.cc-warn`, `.cc-alert`…; `.cc-solid`, `.cc-outline`) |
