@@ -204,13 +204,13 @@
     /* Neutral roles: the neutral seed's hue and chroma at a lightness for each theme */
     --bg: light-dark(oklch(from var(--seed-neutral) .973 c h), oklch(from var(--seed-neutral) .176 c h));
     --bg-raised: light-dark(oklch(from var(--seed-neutral) 1 c h), oklch(from var(--seed-neutral) .213 c h));
-    --bg-raised-2: light-dark(oklch(from var(--seed-neutral) .985 c h), oklch(from var(--seed-neutral) .245 c h));
-    --bg-raised-3: light-dark(oklch(from var(--seed-neutral) .97 c h), oklch(from var(--seed-neutral) .277 c h));
+    --bg-raised-2: light-dark(oklch(from var(--seed-neutral) .975 c h), oklch(from var(--seed-neutral) .245 c h));
+    --bg-raised-3: light-dark(oklch(from var(--seed-neutral) .95 c h), oklch(from var(--seed-neutral) .277 c h));
     --bg-sunken: light-dark(oklch(from var(--seed-neutral) .943 c h), oklch(from var(--seed-neutral) .148 c h));
     --bg-hover: light-dark(oklch(from var(--seed-neutral) .936 c h), oklch(from var(--seed-neutral) .264 c h));
     --text: light-dark(oklch(from var(--seed-neutral) .213 c h), oklch(from var(--seed-neutral) .967 c h));
     --text-secondary: light-dark(oklch(from var(--seed-neutral) .397 c h), oklch(from var(--seed-neutral) .823 c h));
-    --text-tertiary: light-dark(oklch(from var(--seed-neutral) .544 c h), oklch(from var(--seed-neutral) .655 c h));
+    --text-tertiary: light-dark(oklch(from var(--seed-neutral) .52 c h), oklch(from var(--seed-neutral) .655 c h));
     --text-faint: light-dark(oklch(from var(--seed-neutral) .695 c h), oklch(from var(--seed-neutral) .495 c h));
     --border: light-dark(oklch(from var(--seed-neutral) .879 c h), oklch(from var(--seed-neutral) .308 c h));
     --border-subtle: light-dark(oklch(from var(--seed-neutral) .921 c h), oklch(from var(--seed-neutral) .259 c h));
@@ -238,13 +238,13 @@
     :root {
       --bg: light-dark(#f7f6f3, #11110f);
       --bg-raised: light-dark(#fffffc, #191917);
-      --bg-raised-2: light-dark(#fbfaf7, #21201e);
-      --bg-raised-3: light-dark(#f6f5f2, #282826);
+      --bg-raised-2: light-dark(#f7f7f4, #21201e);
+      --bg-raised-3: light-dark(#efeeeb, #282826);
       --bg-sunken: light-dark(#edece9, #0b0b09);
       --bg-hover: light-dark(#eaeae7, #252523);
       --text: light-dark(#191917, #f5f4f1);
       --text-secondary: light-dark(#474744, #c5c5c2);
-      --text-tertiary: light-dark(#70706d, #91918e);
+      --text-tertiary: light-dark(#696966, #91918e);
       --text-faint: light-dark(#9d9d9a, #62625f);
       --border: light-dark(#d8d7d4, #30302e);
       --border-subtle: light-dark(#e5e5e2, #242422);
@@ -1300,16 +1300,42 @@
   .card, .list.cc-group { --surface-level: 1; }
   :is(.card, .list.cc-group, .modal-inner, .float) :is(.card, .list.cc-group) { --surface-level: 2; --surface: var(--bg-raised-2); }
   :is(.card, .list.cc-group, .modal-inner, .float) :is(.card, .list.cc-group, .modal-inner, .float) :is(.card, .list.cc-group) { --surface-level: 3; --surface: var(--bg-raised-3); }
-  /* Nested corners are concentric: a card in a card takes its parent's corner
-     less its parent's padding, never under a quarter cell. Each level reads
-     the one above from a variable that level alone writes, so none refers to
+  /* A surface on a surface is drawn by its ground alone (D88): no edge of its
+     own, since an outline inside an outline inside an outline is a wireframe,
+     and one cell of padding, so with its step out its text stands on the same
+     line as the text of the surface it is in. */
+  :is(.card, .list.cc-group, .modal-inner, .float) .card {
+    --card-border: transparent;
+    --card-pad-inline: var(--card-pad, min(var(--density-card-pad-inline), var(--sp-1)));
+    --card-pad-block: var(--card-pad, min(var(--density-card-pad-block), var(--sp-1)));
+  }
+  /* A nested card steps out only into padding its parent can spare, so at
+     least a cell stays between the two edges: a card in a two-cell card steps
+     out a cell, a card in a one-cell card stays where it is. And nested
+     corners are concentric with the real gap between the edges: the parent's
+     corner less that gap, never under a quarter cell. Each level reads the
+     one above from variables that level alone writes, so none refers to
      itself. */
-  .card:not(.card .card) { --card-nest-r: max(var(--r-q), calc(var(--card-radius) - min(var(--card-pad-inline), var(--card-pad-block)))); }
+  .card:not(.card .card) {
+    --card-nest-out: min(calc(var(--outset) * var(--u)), max(0px, calc(var(--card-pad-inline) - var(--u))));
+    --card-nest-r: max(var(--r-q), calc(var(--card-radius) - min(calc(var(--card-pad-inline) - var(--card-nest-out)), var(--card-pad-block))));
+  }
   .card .card:not(.card .card .card) {
     --card-radius: var(--card-nest-r);
-    --card-nest-r2: max(var(--r-q), calc(var(--card-radius) - min(var(--card-pad-inline), var(--card-pad-block))));
+    --card-nest-out2: min(calc(var(--outset) * var(--u)), max(0px, calc(var(--card-pad-inline) - var(--u))));
+    --card-nest-r2: max(var(--r-q), calc(var(--card-radius) - min(calc(var(--card-pad-inline) - var(--card-nest-out2)), var(--card-pad-block))));
   }
   .card .card .card { --card-radius: var(--card-nest-r2); }
+  :is(.card, .card *):where(.stack, .section-body):not(:where(.cols, .split, .grid, .rail) > *) > .card,
+  :is(.card, .card *):where(.cols, .grid, .split, .rail):has(> .card):not(:has(> :not(.card))) { margin-inline: calc(var(--card-nest-out) * -1); }
+  :is(.card .card, .card .card *):where(.stack, .section-body):not(:where(.cols, .split, .grid, .rail) > *) > .card,
+  :is(.card .card, .card .card *):where(.cols, .grid, .split, .rail):has(> .card):not(:has(> :not(.card))) { margin-inline: calc(var(--card-nest-out2) * -1); }
+  /* A nested card that opens or closes its parent steps out at that end too,
+     so the same cell parts the two edges all the way round. */
+  .card > .card:first-child { margin-block-start: calc(var(--card-nest-out) * -1); }
+  .card > .card:last-child { margin-block-end: calc(var(--card-nest-out) * -1); }
+  .card .card > .card:first-child { margin-block-start: calc(var(--card-nest-out2) * -1); }
+  .card .card > .card:last-child { margin-block-end: calc(var(--card-nest-out2) * -1); }
   /* A scroller in a card. It spans the card's sides, so its scrollbar runs on
      the card's edge, and stays inside the card's block padding, so the edge it
      runs on is straight: the corners are above and below it. Where a product
@@ -2345,6 +2371,8 @@
     .dot { forced-color-adjust: none; background: CanvasText; }
     .badge { outline: var(--line) solid CanvasText; outline-offset: calc(var(--line) * -1); }
     .avatar { outline: var(--av-ring) solid CanvasText; outline-offset: var(--av-gap); }
+    /* A nested surface has no edge of its own (D88), and here its ground is gone too. */
+    :is(.card, .list.cc-group, .modal-inner, .float) .card { --card-border: CanvasText; }
   }
 }
 

@@ -6,7 +6,7 @@
 <title>Trellis</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 18 18%27%3E%3Crect x=%27.5%27 y=%27.5%27 width=%2717%27 height=%2717%27 rx=%274.5%27 fill=%27%23101111%27 stroke=%27%236aa5f5%27/%3E%3Cline x1=%27.5%27 y1=%2712.5%27 x2=%2717.5%27 y2=%2712.5%27 stroke=%27%236aa5f5%27/%3E%3Ccircle cx=%276%27 cy=%276%27 r=%272%27 fill=%27%23f4f4f2%27/%3E%3C/svg%3E">
 <meta name="description" content="Trellis: a CSS framework from a cell and a ratio, in context.">
-<link rel="stylesheet" href="core.css?v=0.10.3">
+<link rel="stylesheet" href="core.css?v=0.10.4">
 <link rel="stylesheet" id="product-layer">
 <script>
   // Before first paint, so nothing flashes: the saved view settings, and one
@@ -38,7 +38,7 @@
     if (s.fit === 'on' || s.fit === 'off') d.setAttribute('data-unit-fit', s.fit);
   })();
 </script>
-<link rel="stylesheet" href="specimen.css?v=0.10.3">
+<link rel="stylesheet" href="specimen.css?v=0.10.4">
 </head>
 <body>
 
@@ -825,19 +825,19 @@
     <header class="section-head stack">
       <p class="t-eyebrow">Surfaces on surfaces</p>
       <h2 class="t-h4">Depth is the ground</h2>
-      <p class="t-sm muted">A surface inside a surface takes the next step of the neutral ladder, not a shadow: in light it steps back toward the page, in dark it steps lighter. Three levels, then it stops. Corners nest concentric. Rows in a group share one surface, their rules starting at the text. A tray over a tray lets the one behind peek by two cells.</p>
+      <p class="t-sm muted">A surface inside a surface takes the next step of the neutral ladder, not a shadow: in light it steps back toward the page, in dark it steps lighter. Three levels, then it stops. A nested surface draws no edge of its own, pads a cell, and keeps a cell from the surface around it; corners nest concentric. Rows in a group share one surface, their rules starting at the text. A tray over a tray lets the one behind peek by two cells.</p>
     </header>
     <div class="section-body stack">
       <h3 class="t-h5">Three levels</h3>
       <article class="card stack" id="demo-nest-1">
         <p class="t-label">Level 1 · --bg-raised</p>
-        <p class="t-sm">A card on the page.</p>
+        <p class="t-sm">A card on the page. It has the only edge: the page and the card are too close in tone to part without one.</p>
         <div class="card stack" id="demo-nest-2">
           <p class="t-label">Level 2 · --bg-raised-2</p>
-          <p class="t-sm">Its corner is the one outside it less that card's padding.</p>
+          <p class="t-sm">A surface in the card, drawn by its ground alone: a step back toward the page, and no edge. It steps out a cell and pads a cell, so this line starts where the card's own text does.</p>
           <div class="card stack" id="demo-nest-3">
             <p class="t-label">Level 3 · --bg-raised-3</p>
-            <p class="t-sm">The last step. A fourth level stays here.</p>
+            <p class="t-sm">The last step: a fourth level stays here. Each corner is the one outside it less the gap between the two edges, so the corners share a center.</p>
           </div>
         </div>
       </article>
@@ -1369,11 +1369,11 @@
 
 <script src="settle.js?v=0.10.0"></script>
 <script src="presets.js?v=0.10.0"></script>
-<script src="math.js?v=0.10.3"></script>
+<script src="math.js?v=0.10.4"></script>
 <script src="experiments/solids.js?v=0.10.0"></script>
 <script src="experiments/vines.js?v=0.10.0"></script>
-<script src="specimen.js?v=0.10.3"></script>
-<script src="hero.js?v=0.10.3"></script>
+<script src="specimen.js?v=0.10.4"></script>
+<script src="hero.js?v=0.10.4"></script>
 <script src="tuner.js?v=0.10.0"></script>
 </body>
 </html>

@@ -4,6 +4,9 @@ Semver, staying 0.x until two apps ship on the same version. A 0.x minor may bre
 
 ## Unreleased
 
+**Breaking**
+- **A surface on a surface is drawn by its ground alone (D88).** A card inside a card, a grouped list, a modal or a float no longer draws an edge, pads one cell where it padded the product's card padding, and steps out only into padding its parent can spare, so a cell always parts the two edges (a card in a one-cell card used to step out onto its parent's edge). Where it opens or closes its parent it steps out at that end too. Its corner is its parent's less the real gap between the edges (18, 6, 3 at the defaults), where it was the parent's less the parent's padding. The light ladder opens: `--bg-raised-2` 0.985 to 0.975 and `--bg-raised-3` 0.97 to 0.95, and `--text-tertiary` goes 0.544 to 0.52 in light so it still reads at 4.5:1 on the third level. To keep an edge on a nested card, set `--card-border`; to keep its padding, set `--card-pad`.
+
 **Added**
 - **A frame keeps a reserve (D87):** `--frame-reserve-start` and `--frame-reserve-end` on `.frame`, or above it. Something that lives in a margin, a column of navigation beside the page, asks for the space it needs; the frame stays centered while both margins cover their reserves, then gives up the other margin, then its own width a module at a time. `--frame-shift` is how far that has moved the frame, and a cover's media reads it to reach both screen edges. `math.js`: `wideFrame()` takes `reserveStart` and `reserveEnd` and returns `margin` and `marginEnd`. With no reserve nothing moves. The specimen's "On this page" column uses it, and no longer sits over the frame in a narrow window.
 

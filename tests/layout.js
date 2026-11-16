@@ -250,11 +250,22 @@ const ready = require('./ready');
       if (cs(id).getPropertyValue('--surface-level').trim() !== level) fails.push(`${id} should be level ${level}`);
     });
     probe.remove();
-    const r = id => parseFloat(cs(id).borderTopLeftRadius), pad = id => Math.min(parseFloat(cs(id).paddingLeft), parseFloat(cs(id).paddingTop));
+    // Concentric with the real gap between the two edges (D88): a nested card
+    // steps out into its parent's padding, so the gap is what is left of it.
+    const r = id => parseFloat(cs(id).borderTopLeftRadius), box = id => document.getElementById(id).getBoundingClientRect();
     const q = Math.max(1, Math.round(u / 4));
     [['demo-nest-1', 'demo-nest-2'], ['demo-nest-2', 'demo-nest-3']].forEach(([a, b]) => {
-      const want = Math.max(q, r(a) - pad(a));
-      if (Math.abs(r(b) - want) > .5) fails.push(`${b}'s corner is ${r(b)}, not ${a}'s less its padding (${want})`);
+      const gap = Math.min(box(b).left - box(a).left, parseFloat(cs(a).paddingTop));
+      if (gap < u - .5) fails.push(`${b}'s edge is ${gap}px from ${a}'s: under a cell`);
+      const want = Math.max(q, r(a) - gap);
+      if (Math.abs(r(b) - want) > .5) fails.push(`${b}'s corner is ${r(b)}, not ${a}'s less the gap between them (${want})`);
+      if (!whole(box(b).left - box(a).left)) fails.push(`${b} is not whole cells inside ${a}`);
+    });
+    // A nested surface has no edge of its own, and a cell of padding.
+    ['demo-nest-2', 'demo-nest-3'].forEach(id => {
+      if (Math.abs(parseFloat(cs(id).paddingLeft) - u) > .5) fails.push(`${id}'s padding is ${cs(id).paddingLeft}, not a cell`);
+      const edge = getComputedStyle(document.getElementById(id), '::after').borderTopColor;
+      if (!/rgba?\(0, 0, 0, 0\)|transparent/.test(edge)) fails.push(`${id} draws an edge: ${edge}`);
     });
     const rows = [...document.querySelectorAll('#demo-group > .list-item')];
     rows.forEach((e, i) => { if (!whole(e.getBoundingClientRect().height)) fails.push(`grouped row ${i} is not whole cells`); });
