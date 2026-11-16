@@ -1685,7 +1685,7 @@
   /* Navigation --------------------------------------------------------------
      The parts the shell's navigation is made of. In a top bar (.shell.cc-top):
      .shell-brand, a .shell-menu button, .shell-links and .shell-nav-end.
-     Markup: header.shell-nav > a.shell-brand + button.shell-menu.icon-button
+     Markup: header.shell-nav > a.shell-brand + button.button.shell-menu.icon-button
      [popovertarget=id] + nav.shell-links#id[popover] > .shell-link… +
      .shell-nav-end. The links are one element at every width: wide, a
      [popover] shown in the bar; under 48rem, hidden until the menu button

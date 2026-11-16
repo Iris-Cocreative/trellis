@@ -21,7 +21,7 @@ Find the need here first. If it is here, use it and write no CSS for it.
 | A sideways scroller, lanes | `.rail`, `.board` (give each `tabindex="0"`, a role and a label) |
 | A panel, a box, a tile | `.card` (`--card-pad`); nested cards step their ground by themselves |
 | Rows: sessions, files, members, results | `.list` > `.list-item` > `.list-body`, `.list-end`; `.cc-group` for rows sharing one surface; `.cc-dense` for tight rows |
-| A button, an icon button | `.button`, `.icon-button`; `.cc-primary`, `.cc-ghost`; `.cc-sm`, `.cc-md`, `.cc-lg` |
+| A button, an icon button | `.button`; `.button.icon-button` for an icon alone, never `.icon-button` by itself: `<button class="button icon-button cc-ghost cc-sm" aria-label="…">`; `.cc-primary`, `.cc-ghost`; `.cc-sm`, `.cc-md`, `.cc-lg` |
 | A text field, select, textarea, search box | `.input` inside `.field` with `.field-label`, `.field-hint`; `.cc-sm`, `.cc-lg` |
 | On or off | `.switch` |
 | A value along a line (a slider) | `input.range`; `.cc-zone` to ink a stretch between two values |
@@ -37,7 +37,9 @@ Find the need here first. If it is here, use it and write no CSS for it.
 | Text | `.t-h1`…`.t-h6`, `.t-xl`, `.t-lg`, `.t-body`, `.t-sm`, `.t-xs`, `.t-label`, `.t-eyebrow`; `.u-text-secondary`, `.u-truncate` |
 | Hover, press and selected on a control of your own | `.u-state` with `--state-fill` and `--state-ink` |
 
-A variant is a `cc-*` modifier. A one-off adjustment sets the primitive's own variable, on the primitive, in a context: `.my-toolbar .button { --btn-h: var(--size-control-sm); }`. Name the primitive in the selector, or give its element a class of your own (`<span class="dot my-light">` with `.my-light { --dot-size: var(--sp-1); }`). Set on the ancestor alone (`.my-toolbar { --btn-h: … }`) it does nothing: a primitive declares its variables on its own element, and that beats what it inherits. Only the layout gaps (`--stack-gap`, `--cluster-gap`) are read from an ancestor. A primitive's variables are listed in the README's Public API; in a pinned copy without the README they are the `--name:` lines that open its rule in `core.css`.
+A variant is a `cc-*` modifier, and a modifier needs its base beside it: `.icon-button` and `cc-*` alone draw nothing (`.cc-dense` and the scrollbar modifiers, which core uses as contexts, are the exceptions). A one-off adjustment sets the primitive's own variable, on the primitive, in a context: `.my-toolbar .button { --btn-h: var(--size-control-sm); }`. Name the primitive in the selector, or give its element a class of your own (`<span class="dot my-light">` with `.my-light { --dot-size: var(--sp-1); }`). Set on the ancestor alone (`.my-toolbar { --btn-h: … }`) it does nothing: a primitive declares its variables on its own element, and that beats what it inherits. Only the layout gaps (`--stack-gap`, `--cluster-gap`) are read from an ancestor.
+
+A class of your own on a primitive's element may carry two things: the primitive's variables, and the primitive's place in its parent (`margin`, `flex`, `order`, `align-self`, `grid-area`, `position` and its insets, `z-index`), or hiding it (`display: none`). Nothing the primitive draws: `.my-tb { width: 28px; border-radius: 7px }` on `class="button icon-button my-tb"` restyles the button as surely as `.my-bar .icon-button { width: 28px }` does, and `tools/check.js` counts both (the second as `restyled-own`). A primitive's variables are listed in the README's Public API; in a pinned copy without the README they are the `--name:` lines that open its rule in `core.css`.
 
 Never redeclare a primitive's properties (`.my-toolbar .button { height: 26px }` is the mistake this skill exists to prevent). When the property you want to change is not a variable, use the primitive as it is and record the gap (see below).
 
@@ -83,7 +85,7 @@ node <trellis>/tools/check.js <folder> --show restyled                # list one
 node <trellis>/tools/check.js <folder> --budget check.budget.json     # fails if a count rose
 ```
 
-If the project has a budget file, run the third form before you finish: your change must not raise any count, and lowering one is part of the job. After lowering, rewrite the budget with `--write`. `node <trellis>/tests/contract.js <product layer file>` checks a product layer.
+It also counts a modifier without its base (`--show bare-modifiers`). If the project has a budget file, run the third form before you finish: your change must not raise any count, and lowering one is part of the job. After lowering, rewrite the budget with `--write`. `node <trellis>/tests/contract.js <product layer file>` checks a product layer.
 
 ## Starting a project on Trellis
 
