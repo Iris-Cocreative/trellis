@@ -72,10 +72,16 @@
   .toggle[data-on] { --btn-border: var(--border); }
 
   /* ---- On this page ------------------------------------------------------
-     A column in the space left of the field: the margin past the frame and
-     the gutter. specimen.js measures that space into --toc-w. Each section is
-     a point (a .dot), its name beside it when there is room; the section in
-     view takes the accent. Rows are whole cells, so the points sit on lines. */
+     A column in the margin before the frame, never over it. It asks the frame
+     to keep that margin clear (--frame-reserve-start): three cells for a
+     column of points, fourteen where the names fit too. The frame gives up
+     its far margin before the column is ever covered. specimen.js measures
+     the margin into --toc-w. Each section is a point (a .dot), its name
+     beside it when there is room; the section in view takes the accent. Rows
+     are whole cells, so the points sit on lines. */
+  @media (min-width: 64rem) and (hover: hover) and (pointer: fine) { :root { --frame-reserve-start: calc(var(--u) * 3); } }
+  @media (min-width: 85rem) and (hover: hover) and (pointer: fine) { :root { --frame-reserve-start: calc(var(--u) * 14); } }
+  html[data-css] { --frame-reserve-start: 0px; }
   .toc {
     position: fixed; z-index: var(--z-sticky);
     top: calc(var(--nav-h) + var(--sp-6)); left: var(--toc-x, 0px);

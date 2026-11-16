@@ -4,6 +4,9 @@ Semver, staying 0.x until two apps ship on the same version. A 0.x minor may bre
 
 ## Unreleased
 
+**Added**
+- **A frame keeps a reserve (D87):** `--frame-reserve-start` and `--frame-reserve-end` on `.frame`, or above it. Something that lives in a margin, a column of navigation beside the page, asks for the space it needs; the frame stays centered while both margins cover their reserves, then gives up the other margin, then its own width a module at a time. `--frame-shift` is how far that has moved the frame, and a cover's media reads it to reach both screen edges. `math.js`: `wideFrame()` takes `reserveStart` and `reserveEnd` and returns `margin` and `marginEnd`. With no reserve nothing moves. The specimen's "On this page" column uses it, and no longer sits over the frame in a narrow window.
+
 **Changed**
 - **A mark is a straight line (D85):** a current `.shell-link` or `.outline-link` squares the two corners its accent edge touches, so the mark no longer curls into a rounded corner. In a top bar the mark is under the link and the bottom corners are square.
 - **The specimen:** the dot grid is one quiet level, a dot every second cell. The qualities are headed "What is Trellis?".

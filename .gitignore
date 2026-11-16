@@ -2,3 +2,4 @@
 node_modules/
 .page-editor/
 *.notes.md
+.claude/

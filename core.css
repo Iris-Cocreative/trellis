@@ -658,12 +658,25 @@
      and centered, so the grid fits whatever frames the page: the screen's
      edges when fitted, the frame's own edges on a wide screen, where the
      margins take the rest. The 1/16px tolerance stops an exact fit losing a
-     step. */
+     step.
+     A reserve (D87): something that lives in a margin, a column of navigation
+     beside the page, asks the frame to keep that much clear with
+     --frame-reserve-start or --frame-reserve-end, set on the frame or above
+     it. The frame stays centered while both margins cover their reserves.
+     When one no longer does, the frame gives up the other margin first, then
+     its own width, a module at a time. With no reserve nothing changes. */
   .frame {
-    --frame-w: min(round(down, calc(100% - var(--hair) + 1px / 16), var(--frame-step)), var(--frame-max));
+    --frame-w: min(round(down, calc(100% - var(--frame-reserve-start, 0px) - var(--frame-reserve-end, 0px) - var(--hair) + 1px / 16), var(--frame-step)), var(--frame-max));
+    --frame-spare: calc(100% - var(--frame-w) - var(--hair));
+    --frame-margin-start: clamp(var(--frame-reserve-start, 0px), var(--frame-spare) / 2, var(--frame-spare) - var(--frame-reserve-end, 0px));
     width: var(--frame-w);
-    margin-inline: calc((100% - var(--frame-w) - var(--hair)) / 2);
+    margin-inline: var(--frame-margin-start) calc(var(--frame-spare) - var(--frame-margin-start));
     padding-inline: var(--gutter);
+    /* How far a reserve has moved the frame off the screen's center, in screen
+       terms (no percentages), so what's inside can still reach the screen's
+       edges: a cover's media reads it. Zero with no reserve. */
+    --frame-spare-screen: calc(var(--fit-width, 100vw) - var(--hair) - min(round(down, calc(var(--fit-width, 100vw) - var(--frame-reserve-start, 0px) - var(--frame-reserve-end, 0px) - var(--hair) + 1px / 16), var(--frame-step)), var(--frame-max)));
+    --frame-shift: calc(clamp(var(--frame-reserve-start, 0px), var(--frame-spare-screen) / 2, var(--frame-spare-screen) - var(--frame-reserve-end, 0px)) - var(--frame-spare-screen) / 2);
   }
 
   /* SECTION. A band: a head (label, title, a line of intro) and a body. */
@@ -1185,7 +1198,7 @@
   .cover-media {
     position: absolute; z-index: -1;
     inset-block: 0;
-    inset-inline: calc((100% - var(--fit-width, 100vw)) / 2);
+    inset-inline: calc((100% - var(--fit-width, 100vw)) / 2 - var(--frame-shift, 0px)) calc((100% - var(--fit-width, 100vw)) / 2 + var(--frame-shift, 0px));
     overflow: hidden;
     background: var(--bg-sunken);
   }

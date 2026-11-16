@@ -97,3 +97,4 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D83](D83.md) | Ink on every solid fill, and marks that survive forced colors | 2026-11-13 | accepted |
 | [D84](D84.md) | Measures a compact app needs are variables, not a second scale | 2026-11-15 | accepted |
 | [D85](D85.md) | A mark is a straight line: the corners it touches are square | 2026-11-16 | accepted |
+| [D87](D87.md) | A frame keeps a reserve: it gives up its far margin first | 2026-11-16 | accepted |

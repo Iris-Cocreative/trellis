@@ -58,7 +58,7 @@ Grown from these: lines are planes · edges land on lines · headlines stand on 
 
 **The frame, the field and the module.** The page sits in a centered `.frame`: a **field** of whole **modules** (4 cells each) with a gutter of whole cells either side. The field's edges, and every fourth line in from them, are the strongest lines, so the structure is symmetric about the screen whatever its width. The grid bleeds past the frame to the screen's edges.
 
-**Whole, on wide screens.** The target rounds to an even pixel, so ½u is whole. The frame steps by a module (at most 100u) and the gutter by two cells; the margins take the remainder.
+**Whole, on wide screens.** The target rounds to an even pixel, so ½u is whole. The frame steps by a module (at most 100u) and the gutter by two cells; the margins take the remainder. Something that lives in a margin, a column of navigation beside the page, asks the frame for a **reserve** (`--frame-reserve-start`, `--frame-reserve-end`): the frame stays centered while both margins cover their reserves, then gives up the other margin, then its own width (D87).
 
 **Fitted, on touch screens** (coarse pointer, 1.5× and up: phones in either orientation, foldables, tablets). The screen's edge is the frame, so whole cells must span it.
 - `--cells` = the even number nearest (width − hair) ÷ target, and `--u` = (width − hair) ÷ cells, rounded down to 1/32px. Even, so the screen's center is a line; minus a hair, because the last line needs its pixel.
@@ -353,7 +353,7 @@ This is what a consumer may rely on. Anything here changing is a changelog entry
 |---|---|---|
 | Type roles | `.t-h1`, `.t-h2`, `.t-h3`, `.t-h4`, `.t-h5`, `.t-h6`, `.t-xl`, `.t-lg`, `.t-body`, `.t-sm`, `.t-xs`, `.t-label`, `.t-eyebrow` · `.t-serif`, `.t-mono` · `.snap`, `.snap-x`, `.settle`, `.cap-center` | |
 | `.prose` | | `--prose-inner-gap`, `--stack-gap`, `--embed-w`, `--embed-h`, `--details-ink`, `--details-chevron` |
-| `.frame` | | |
+| `.frame` | | `--frame-reserve-start`, `--frame-reserve-end` (space the frame keeps clear in a margin, in whole cells; it gives up the other margin first), `--frame-shift` (read it) |
 | `.section` | `.section-head`, `.section-body`, `.cc-split`, `.cc-band` | `--section-head-w`, `--band-bg` |
 | `.cover` | `.cover-media`, `.cover-body` | `--cover-h`, `--cover-pad`, `--cover-scrim` |
 | `.shell` | `.shell-grid`, `.shell-nav`, `.shell-main`, `.shell-aside`, `.shell-foot`, `.shell-link` · `.cc-top` with `.shell-brand`, `.shell-menu`, `.shell-links` (a `[popover]`: in the bar when wide, a left tray from `.shell-menu` under 48rem), `.shell-nav-end` | `--shell-h`, `--shell-nav-w`, `--shell-aside-w`, `--shell-pad`, `--shell-bar-h` |

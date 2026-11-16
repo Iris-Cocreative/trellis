@@ -927,18 +927,18 @@
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
 
   // ---- On this page ------------------------------------------------------
-  // The column takes the space left of the field: the margin past the frame
-  // plus the gutter, less a cell so it never touches the text, at most 14
-  // cells, its right edge a cell before the field. Names show
-  // when that is at least ten cells; under two, it steps aside.
+  // The column takes the margin before the frame, less a cell so it never
+  // touches the frame, at most 14 cells, its far edge a cell before the
+  // frame. Names show when that is at least twelve cells; under two, it steps
+  // aside. The frame keeps the margin clear (--frame-reserve-start).
   var toc = document.getElementById('toc');
   function placeToc() {
     if (!toc) return;
-    var u = unitPx(), left = page.getBoundingClientRect().left + parseFloat(getComputedStyle(page).paddingLeft);
+    var u = unitPx(), left = page.getBoundingClientRect().left;
     var w = Math.min(Math.floor((left - u) / u), 14) * u;
     toc.style.setProperty('--toc-w', Math.max(0, w) + 'px');
     toc.style.setProperty('--toc-x', Math.max(0, left - u - w) + 'px');
-    toc.classList.toggle('cc-labels', w >= 10 * u);
+    toc.classList.toggle('cc-labels', w >= 12 * u);
     toc.classList.toggle('cc-none', w < 2 * u);
   }
   if (toc && 'IntersectionObserver' in window) {

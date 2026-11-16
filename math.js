@@ -114,15 +114,20 @@
   }
 
   // Not fitted (a wide screen): the frame steps by a module, at most frame.max
-  // cells, and the gutter by two cells, between 2 and 4.
+  // cells, and the gutter by two cells, between 2 and 4. A reserve at either
+  // side (reserveStart, reserveEnd, in points) is space the frame keeps clear:
+  // it stays centered while both margins cover their reserves, then gives up
+  // the other margin, then its own width.
   function wideFrame(o, seed) {
     var f = (seed || SEED).frame, hair = 1 / (o.dpr || 1), u = o.cell, step = u * f.module;
-    var width = Math.min(Math.floor((o.width - hair + 1 / 16) / step) * step, u * f.max);
+    var rs = o.reserveStart || 0, re = o.reserveEnd || 0;
+    var width = Math.min(Math.floor((o.width - rs - re - hair + 1 / 16) / step) * step, u * f.max);
+    var spare = o.width - width - hair, start = Math.max(rs, Math.min(spare / 2, spare - re));
     var two = u * 2, g = Math.floor(clamp(two, o.width * 0.04, u * 4) / two) * two;
     var safe = Math.max(Math.ceil((o.safeLeft || 0) / two) * two, Math.ceil((o.safeRight || 0) / two) * two);
     var gutter = Math.max(g, safe);
     return { frameCells: Math.round(width / u), gutterCells: Math.round(gutter / u), fieldCells: Math.round((width - 2 * gutter) / u),
-      modules: (width - 2 * gutter) / step, margin: (o.width - width - hair) / 2 };
+      modules: (width - 2 * gutter) / step, margin: start, marginEnd: spare - start };
   }
 
   // ---- The ratio ------------------------------------------------------------

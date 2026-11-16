@@ -50,7 +50,10 @@ const CASES = [
         expect(Number.isInteger(f.modules), `fit: the field is ${f.modules} modules, not whole`);
       } else {
         expect(near(M.wholeCell(t), u, .001), `whole: the cell is ${u}, math says ${M.wholeCell(t)}`);
-        const w = M.wideFrame({ width: root.clientWidth, cell: u, dpr });
+        // A reserve, if the page sets one, read as the browser resolved it.
+        const reserve = k => { const p = document.createElement('i'); p.style.cssText = `position:absolute;visibility:hidden;height:0;width:var(--frame-reserve-${k}, 0px)`; frame.appendChild(p); const v = p.getBoundingClientRect().width; p.remove(); return v; };
+        const w = M.wideFrame({ width: root.clientWidth, cell: u, dpr, reserveStart: reserve('start'), reserveEnd: reserve('end') });
+        expect(near(box.left, w.margin, .51), `whole: the frame starts at ${box.left}, math says ${w.margin}`);
         expect(Math.round(box.width / u) === w.frameCells, `whole: the frame is ${Math.round(box.width / u)} cells, math says ${w.frameCells}`);
         expect(Math.round(gutter / u) === w.gutterCells, `whole: the gutter is ${Math.round(gutter / u)} cells, math says ${w.gutterCells}`);
         expect(Number.isInteger(w.modules), `whole: the field is ${w.modules} modules, not whole`);
