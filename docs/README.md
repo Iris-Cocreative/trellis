@@ -16,6 +16,7 @@ After the audit:
 | Chapter | What it holds | IDs |
 |---|---|---|
 | [Color and Theme](color/README.md) | Seeds and roles, light and dark, kinds, the contrast floors, forced colors | `C1` … `C5` |
+| [Figma](figma/README.md) | What a Figma file generated from the tokens can't express, and what stands in for it | |
 
 The other chapters (Start Here, Type, Primitives, Products and Platforms, Support and Degradation, Tooling, Adoption, Versioning, Open Questions and Roadmap) come after the audit.
 

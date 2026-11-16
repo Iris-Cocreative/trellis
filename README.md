@@ -18,6 +18,7 @@
 | `math.js` | The fit, the ratio, standing, hanging, the gutter parity rule and the palette as plain functions, in points and OKLCH, with no DOM. The specimen's math view runs on it, and a native screen uses it as is. |
 | `product.template.css` | Every knob, with its default and a line on what it does. Copy it to start a product layer. |
 | `package.json` | Exports `core.css`, `settle.js` and the template. The product layers aren't exports: products will own them. |
+| `tools/figma-variables.js` | The Figma file's variables, generated from `tokens.json` through `math.js`: Space and Type at a phone and a wide screen, Color in light and dark, each named as its CSS variable. What Figma can't express is in [docs/figma](docs/figma/README.md). |
 | `tools/check.js` | The check for an app built on Trellis: it counts raw lengths, type, colors and radii, restyled primitives, modifiers without their base, variables in a product layer that are not knobs, and inline styles that are not variables, per file. With `--budget` it fails when a count rises. No browser, no dependencies. |
 | `skill/SKILL.md` | The same contract as instructions for a coding agent: which primitive answers which need, the five rules for an app's own CSS, what a raw number becomes, how to mock up, and how to start a project. Copy it to where your agent loads skills. |
 | `REACT.md` | The contract for a React app, with the pull request checklist. |

@@ -76,6 +76,19 @@ for (const line of read('product.template.css').split('\n')) {
   if (m) check(line.includes('/*'), `product.template.css: ${m[1]} has no one-line meaning`);
 }
 
+// The Figma variables: generated, complete, every mode filled.
+{
+  const { execFileSync } = require('child_process');
+  const fv = JSON.parse(execFileSync(process.execPath, [path.join(dir, 'tools', 'figma-variables.js')], { encoding: 'utf8' }));
+  const names = new Set();
+  for (const c of fv.collections) for (const v of c.variables) {
+    check(!names.has(v.name), `figma-variables: ${v.name} twice`); names.add(v.name);
+    for (const m of c.modes) check(v.values[m] !== undefined && v.values[m] !== null && !Number.isNaN(v.values[m]), `figma-variables: ${v.name} has no ${m} value`);
+  }
+  const color = fv.collections.find((c) => c.name === 'Color');
+  check(color && color.variables.length === Object.keys(require(path.join(dir, 'math.js')).palette('light')).length, 'figma-variables: the Color collection is not every role');
+}
+
 // Package.
 const pkg = JSON.parse(read('package.json'));
 for (const f of ['./core.css', './settle.js', './presets.js', './float.js', './product.template.css', './tokens.json', './math.js']) {
