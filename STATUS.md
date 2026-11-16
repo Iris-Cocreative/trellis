@@ -67,7 +67,7 @@ Everything here lands before the first app pins a version.
 | Theme name mapping | idea | | |
 | Person colors | decided | | No change for now. |
 | Headings never under body text | decided | | Yes: floor every heading at the body size, and H1 may be larger. At root two H5 and H6 fall under body text; at the golden ratio H4 does too. The work is its own item. |
-| The ratio model | planning | | The playground sets type from seven values. Before core changes, mock up what core's own model consists of beside it, so the two can be compared: core may stay richer than the playground. |
+| The ratio model | planning | | The playground sets type from seven values; core sets twelve, and has seven more for lines and space. The two are set side by side on the specimen, under the playground: every knob, which the playground sets and which it works out, and every role's size in each. At core's defaults five of the twelve differ. Core is unchanged, and waits on the owner's choice: core may stay richer than the playground. |
 | A default ratio of root two | idea | | Waits on the floor and on the comparison above. |
 | Color from one seed | decided | | Yes: core derives the kinds, the statuses and the neutral from the accent, each still settable, as the specimen's study does. The work is its own item. |
 | A slider | idea | | The ratio playground and the color study each built a range input; core has none. |

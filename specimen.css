@@ -615,6 +615,61 @@
   .play-line[data-flag="small"] .bar { background: var(--warn); }
   .type-ref { --stack-gap: var(--sp-1); }
 
+  /* ---- The two models, compared ----------------------------------------
+     Core's type model beside the playground's, as tables. A table is a grid
+     and each row takes its tracks, so every column lines up; a row is two
+     cells tall and a hairline parts it from the one above, drawn as a
+     background so it adds no height. Every track can shrink to nothing, so at
+     the largest text sizes a value breaks before the page scrolls sideways.
+     tuner.js writes the values. */
+  .cmp { --stack-gap: var(--sp-2); container-type: inline-size; }
+  .cmp-part { --stack-gap: var(--sp-1); }
+  .cmp > .cmp-part:not(:first-child) { padding-block-start: var(--sp-2); }
+  .cmp-table {
+    display: grid; column-gap: var(--sp-2);
+    grid-template-columns: repeat(4, minmax(0, max-content)) minmax(0, 1fr);
+  }
+  .cmp-table.cc-own { grid-template-columns: repeat(3, minmax(0, max-content)) minmax(0, 1fr); }
+  .cmp-table.cc-roles { grid-template-columns: repeat(2, minmax(0, max-content)) repeat(6, minmax(0, 1fr)); }
+  .cmp-row {
+    display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; align-items: center; min-block-size: var(--sp-2);
+    background: linear-gradient(var(--border-subtle), var(--border-subtle)) top / 100% var(--line) no-repeat;
+  }
+  .cmp-row.cc-head { background: none; }
+  .cmp-row > * { min-inline-size: 0; }
+  .cmp-row > .t-mono { font-size: var(--fs-control-xs); }
+  .cmp-role b { font-weight: 600; color: var(--text-secondary); }
+  .cmp-var, .cmp-how { color: var(--text-tertiary); }
+  .cmp-num { justify-self: end; text-align: end; }
+  .cmp-row > .t-mono.cmp-num { color: var(--text); }
+  /* Two columns under one name: the name sits over both, on a rule as wide as the pair. */
+  .cmp-span { grid-column: span 2; justify-self: stretch; text-align: center; position: relative; }
+  .cmp-span::after { content: ""; position: absolute; inset-inline: 0; inset-block-end: calc((100% - var(--sp-2)) / 2); block-size: var(--line); background: var(--border); }
+  /* Where the two models part: the playground's value is set in the strong weight. */
+  .cmp-row[data-differs] > [data-cmp-play], .cmp-row > [data-differs] { font-weight: 600; }
+  .cmp-row[data-differs] > [data-cmp-how] { color: var(--text-secondary); }
+  .cmp-row > .t-mono[data-flag="under"] { color: var(--text-faint); }
+  .cmp-sides { row-gap: var(--sp-2); --split-a: 1; --split-b: 1; }
+  /* In a narrow column a knob takes two lines: its name and the two values,
+     then its variable and how the playground comes by it. The roles keep
+     their four sizes and drop where they come from, the line and the space. */
+  @container (width < 36rem) {
+    .cmp-table { column-gap: var(--sp-1); grid-template-columns: minmax(0, 1fr) repeat(2, minmax(0, max-content)); }
+    .cmp-table.cc-own { grid-template-columns: minmax(0, 1fr) minmax(0, max-content); }
+    .cmp-table.cc-roles { grid-template-columns: minmax(0, 1fr) repeat(4, minmax(0, max-content)); }
+    .cmp-row { grid-auto-rows: minmax(var(--sp-2), auto); }
+    .cmp-table:not(.cc-roles) > .cmp-row:not(.cc-head) > :nth-child(1) { grid-area: 1 / 1; }
+    .cmp-table:not(.cc-roles) > .cmp-row:not(.cc-head) > :nth-child(2) { grid-area: 2 / 1; }
+    .cmp-table:not(.cc-roles, .cc-own) > .cmp-row:not(.cc-head) > :nth-child(3) { grid-area: 1 / 2; }
+    .cmp-table:not(.cc-roles, .cc-own) > .cmp-row:not(.cc-head) > :nth-child(4) { grid-area: 1 / 3; }
+    .cmp-table:not(.cc-roles, .cc-own) > .cmp-row:not(.cc-head) > :nth-child(5) { grid-area: 2 / 2 / auto / -1; justify-self: end; text-align: end; }
+    .cmp-table.cc-own > .cmp-row:not(.cc-head) > :nth-child(3) { grid-area: 1 / 2; }
+    .cmp-table.cc-own > .cmp-row:not(.cc-head) > :nth-child(4) { grid-area: 3 / 1 / auto / -1; }
+    .cmp-table:not(.cc-roles) > .cmp-row.cc-head > :nth-child(2), .cmp-table.cc-own > .cmp-row.cc-head > :nth-child(4) { display: none; }
+    .cmp-table:not(.cc-roles, .cc-own) > .cmp-row.cc-head > :nth-child(5) { display: none; }
+    .cmp-from, .cmp-extra { display: none; }
+  }
+
   /* ---- Color ---------------------------------------------------------- */
   .color-part { --stack-gap: var(--sp-1); }
   /* The palette study: one color in, every seed out. palette.js computes with

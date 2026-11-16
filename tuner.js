@@ -25,7 +25,13 @@
      live     a box as wide as the "This box" slider says. The stage cuts off
               what runs past the column; the type still answers to all of it.
    The page keeps its own knobs unless "Apply to the whole page" puts these on
-   :root. Nothing is stored. */
+   :root. Nothing is stored.
+
+   Under the playground, core's own model is set beside it (compare, below):
+   the twelve numbers core sizes type from, each one set, against the seven
+   the playground sets and the five it works out; the seven numbers only core
+   has, for lines and the space after a heading; and every role's size at
+   both ends in each model, from math.js. Core is not changed by it. */
 (function () {
   'use strict';
   var M = window.TrellisMath, root = document.documentElement;
@@ -52,7 +58,7 @@
   var SAMPLE = { h1: 'Trellis', h2: 'Seed library', h3: 'Garden Stewards', h4: 'Upcoming gatherings', h5: 'Resources and gallery', h6: 'Members of this circle',
     xl: 'A living map of people.', lg: 'Join a circle near you.', body: 'Circles are small groups.',
     sm: 'Posted in the Seed Library.', xs: 'Last active 2 hours ago', eyebrow: 'Seed library', label: 'Seeking · Offering' };
-  var COUNT = ['no', 'one', 'two', 'three', 'four', 'five', 'six'];
+  var COUNT = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
   var num = function (v, d) { return String(+(+v).toFixed(d == null ? 3 : d)); };
   var px = function (v) { return num(v, 1) + 'px'; };
 
@@ -93,6 +99,7 @@
   function put(k, v) { inputs[k].value = v; state[k] = +inputs[k].value; }
   // The seven values the page itself has: core's, or a product layer's.
   function read() {
+    readPage();
     var cs = getComputedStyle(root), K = function (k) { return parseFloat(cs.getPropertyValue('--' + k)); };
     put('h1', K('h1-max') * REM); put('body', K('body-max') * REM); put('label', K('label-max') * REM);
     put('rw', K('rh-max')); put('rn', K('rh-min'));
@@ -172,6 +179,98 @@
       '       but they are not product knobs yet, so here they are a comment. */\n  }\n}\n';
   }
 
+  // ---- The two models, compared ---------------------------------------------
+  // `page` is the page's own knobs, core's or a product layer's: the twelve
+  // for size and the seven for lines and space. They are read with the
+  // playground's values off :root, and put back in the same breath.
+  var cmp = one('[data-cmp]'), page = {}, roleRows = {};
+  var OWN = ['lh-h1', 'lh-h-step', 'lh-body', 'lh-p-step', 'lh-label', 'mb-h1', 'mb-h-step'];
+  var FROM = { h1: 'anchor', h2: 'h1 ÷ r', h3: 'h1 ÷ r²', h4: 'h1 ÷ r³', h5: 'h1 ÷ r⁴', h6: 'h1 ÷ r⁵',
+    xl: 'body × s²', lg: 'body × s', body: 'anchor', sm: 'body ÷ s', xs: 'body ÷ s²', eyebrow: 'label × s', label: 'anchor' };
+  // How the playground works out each of the five it does not set.
+  var HOW = {
+    'h1-min': function (k) { return num(k['body-min'] * REM, 1) + ' × ' + num(state.rn) + '^' + num(place(state), 2); },
+    'body-min': function () { return num(state.body) + ' ÷ √' + num(state.rn); },
+    'label-min': function () { return 'the wide label'; },
+    'rp-max': function () { return '√' + num(state.rw); },
+    'rp-min': function () { return '√' + num(state.rn); }
+  };
+  function readPage() {
+    var all = KNOBS.concat(SPACES), held = applied ? all.map(function (n) { return root.style.getPropertyValue('--' + n); }) : null;
+    if (held) all.forEach(function (n) { root.style.removeProperty('--' + n); });
+    var cs = getComputedStyle(root);
+    all.concat(OWN).forEach(function (n) { page[n] = parseFloat(cs.getPropertyValue('--' + n)); });
+    if (held) all.forEach(function (n, i) { root.style.setProperty('--' + n, held[i]); });
+  }
+  // A set of knobs as math.js takes them: sizes in points, and core's lines.
+  function seedOf(k) {
+    var pair = function (n) { return [k[n + '-min'] * REM, k[n + '-max'] * REM]; };
+    return { type: { h1: pair('h1'), body: pair('body'), label: pair('label'),
+      headingRatio: [k['rh-min'], k['rh-max']], paragraphRatio: [k['rp-min'], k['rp-max']],
+      lineH1: page['lh-h1'], lineHeadingStep: page['lh-h-step'], lineBody: page['lh-body'], lineParagraphStep: page['lh-p-step'], lineLabel: page['lh-label'],
+      afterH1: page['mb-h1'], afterHeadingStep: page['mb-h-step'] } };
+  }
+  // The roles' rows, built once: a name, where it comes from, four sizes, and
+  // core's line and space after.
+  if (cmp) (function () {
+    var table = one('[data-cmp-roles]'), cell = function (c, d) { return '<span class="t-mono snap cap-center ' + c + '" role="cell" ' + d + '></span>'; };
+    ROLES.forEach(function (r) {
+      var row = document.createElement('div');
+      row.className = 'cmp-row'; row.setAttribute('role', 'row');
+      row.innerHTML = '<span class="t-mono snap cap-center cmp-role" role="rowheader"><b>' + r + '</b></span>' +
+        '<span class="t-mono snap cap-center cmp-how cmp-from" role="cell">' + FROM[r] + '</span>' +
+        cell('cmp-num', 'data-c="0"') + cell('cmp-num', 'data-c="1"') + cell('cmp-num', 'data-p="0"') + cell('cmp-num', 'data-p="1"') +
+        cell('cmp-num cmp-extra', 'data-line') + cell('cmp-num cmp-extra', 'data-after');
+      table.appendChild(row); roleRows[r] = row;
+    });
+  })();
+  // Which headings a model puts under body text, and where: "h6 at both ends".
+  function sunk(ends) {
+    var list = [];
+    ROLES.forEach(function (r) {
+      if (!M.isHeading(r)) return;
+      var n = ends[r][0] < ends.body[0] - .05, w = ends[r][1] < ends.body[1] - .05;
+      if (n || w) list.push(r + (n && w ? ' at both ends' : n ? ' in a narrow space' : ' in a wide space'));
+    });
+    return list;
+  }
+  function compare(k) {
+    if (!cmp) return;
+    var differ = [];
+    each('[data-cmp-knob]', function (row) {
+      var n = row.dataset.cmpKnob, unit = row.dataset.cmpUnit;
+      var show = function (v) { return unit === 'ratio' ? num(v) : unit === 'space' ? Math.round(v * REM) + 'px' : px(v * REM); };
+      var a = show(page[n]), b = show(k[n]);
+      say(row.querySelector('[data-cmp-core]'), a);
+      say(row.querySelector('[data-cmp-play]'), b);
+      if (HOW[n]) say(row.querySelector('[data-cmp-how]'), HOW[n](k));
+      if (a !== b) { row.dataset.differs = ''; differ.push('--' + n); } else delete row.dataset.differs;
+    });
+    say(one('[data-cmp-note]'), differ.length ? 'At these values ' + COUNT[differ.length] + ' of the twelve differ: ' + words(differ) + '.'
+      : 'At these values the two agree on all twelve.');
+    each('[data-cmp-own]', function (row) { say(row.querySelector('[data-cmp-core]'), num(page[row.dataset.cmpOwn])); });
+
+    var seeds = [seedOf(page), seedOf(k)], ends = [{}, {}];
+    ROLES.forEach(function (r) { ends[0][r] = M.typeEnds(r, seeds[0]); ends[1][r] = M.typeEnds(r, seeds[1]); });
+    ROLES.forEach(function (r) {
+      var row = roleRows[r], heading = M.isHeading(r);
+      [0, 1].forEach(function (end) {
+        var c = row.querySelector('[data-c="' + end + '"]'), p = row.querySelector('[data-p="' + end + '"]');
+        var a = num(ends[0][r][end], 1), b = num(ends[1][r][end], 1);
+        say(c, a); say(p, b);
+        if (a !== b) p.dataset.differs = ''; else delete p.dataset.differs;
+        [[c, 0], [p, 1]].forEach(function (x) {
+          if (heading && ends[x[1]][r][end] < ends[x[1]].body[end] - .05) x[0].dataset.flag = 'under'; else delete x[0].dataset.flag;
+        });
+      });
+      say(row.querySelector('[data-line]'), num(M.lineRatio(r, seeds[0]), 2));
+      say(row.querySelector('[data-after]'), heading ? num(page['mb-h1'] + page['mb-h-step'] * -M.ROLES[r][1], 2) : '');
+    });
+    var a = sunk(ends[0]), b = sunk(ends[1]);
+    say(one('[data-cmp-roles-note]'), !a.length && !b.length ? 'No heading is smaller than body text in either.'
+      : 'Smaller than body text, and shown fainter: in core, ' + (a.length ? words(a) : 'no heading') + '; in the playground, ' + (b.length ? words(b) : 'no heading') + '.');
+  }
+
   // ---- Write the knobs, and say what was worked out -------------------------
   function apply() {
     var k = derive(state), on = whole.getAttribute('aria-checked') === 'true';
@@ -205,6 +304,7 @@
       b.setAttribute('aria-pressed', hit ? 'true' : 'false');
     });
     say(out, exportText());
+    compare(k);
     stale = true;
     requestAnimationFrame(draw);
   }
@@ -270,7 +370,7 @@
     var ro = new ResizeObserver(function () { requestAnimationFrame(draw); });
     [stage, boxes.wide, boxes.narrow].forEach(function (el) { ro.observe(el); });
   }
-  new MutationObserver(function () { if (!touched && !applied) read(); apply(); })
+  new MutationObserver(function () { if (!touched && !applied) read(); else readPage(); apply(); })
     .observe(root, { attributes: true, attributeFilter: ['data-product'] });
 
   read(); apply();
