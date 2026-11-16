@@ -86,7 +86,29 @@ for (const line of read('product.template.css').split('\n')) {
     for (const m of c.modes) check(v.values[m] !== undefined && v.values[m] !== null && !Number.isNaN(v.values[m]), `figma-variables: ${v.name} has no ${m} value`);
   }
   const color = fv.collections.find((c) => c.name === 'Color');
-  check(color && color.variables.length === Object.keys(require(path.join(dir, 'math.js')).palette('light')).length, 'figma-variables: the Color collection is not every role');
+  const have = new Set(color ? color.variables.map((x) => x.name) : []);
+  for (const k of Object.keys(require(path.join(dir, 'math.js')).palette('light'))) check(have.has('color/' + k), `figma-variables: the Color collection has no ${k}`);
+  // A product is a mode, and every example layer is one.
+  const product = fv.collections.find((c) => c.name === 'Product');
+  for (const f of EXAMPLES) check(fv.products.some((p) => p.layer === f), `figma-variables: ${f} is not a Product mode`);
+  for (const p of fv.products) check(!p.notCarried.length, `figma-variables: ${p.mode} sets knobs the file can't hold: ${p.notCarried.join(', ')}`);
+  // An alias names a variable the file holds.
+  for (const c of fv.collections) for (const x of c.variables) for (const a of [...Object.values(x.aliases || {}), ...Object.values(x.values).map((y) => y && y.alias)].filter(Boolean))
+    check(names.has(a), `figma-variables: ${x.name} aliases ${a}, which isn't generated`);
+  check(product && product.modes[0] === 'Core', 'figma-variables: the Product collection opens on Core');
+  // The two plugin scripts that write the file parse as the body of an async
+  // function, as Figma's plugin tool runs them, and every variable the
+  // components name is generated.
+  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+  const plugin = execFileSync(process.execPath, [path.join(dir, 'tools', 'figma-variables.js'), '--plugin'], { encoding: 'utf8' });
+  const components = read('tools/figma-components.js');
+  for (const [name, src] of [['figma-variables --plugin', plugin], ['figma-components.js', components]]) {
+    try { new AsyncFunction('figma', src); } catch (e) { check(false, `${name} does not parse: ${e.message}`); }
+  }
+  check(plugin.length < 50000, `figma-variables --plugin is ${plugin.length} characters; an agent's Figma tool takes 50,000`);
+  check(components.length < 50000, `figma-components.js is ${components.length} characters; an agent's Figma tool takes 50,000`);
+  for (const [, n] of components.matchAll(/'((?:space|size|radius|knob|derived|type|color)\/[a-z0-9/-]+)'/g))
+    check(names.has(n), `figma-components.js binds ${n}, which isn't generated`);
 }
 
 // Package.
