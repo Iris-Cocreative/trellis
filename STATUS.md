@@ -115,8 +115,8 @@ Work that grows from the grid or leaves it, and still belongs to it.
 | Right-sized images | idea |
 | Calendar standards | idea |
 | Specimen as knob editor | done: `e252bf0`, the specimen's Tune it |
-| Figma conventions | planning: how a design file says cells, roles and layouts (variables, modes, auto layout, what Figma can't express) |
-| Figma template | idea: a library generated from `tokens.json` and `math.js`, components named by their class chains; a one-screen spike first |
+| Figma conventions | decided: code is the source and the file is generated from it; variables named as the tokens, with Phone and Wide modes for the cell and Light and Dark for color; layouts as auto layout; what Figma can't express is written down before anyone designs in it. Mockups are HTML on `core.css` by default; Figma is for work that needs a designer's hands on it |
+| Figma template | planning: one library, products as modes, generated from `tokens.json` and `math.js`, components named by their class chains; a one-screen spike first. Due before the next product is rebuilt on Trellis |
 
 ## Platforms
 
