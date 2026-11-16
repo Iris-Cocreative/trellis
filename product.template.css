@@ -47,16 +47,16 @@
     /* ---- Palette: seeds. Every role is derived from one; a product never
        sets a role. Each seed is one color in its light-theme form; the dark
        theme lifts it. tests/contract.js checks the contrast that results. -- */
-    --seed-neutral: oklch(.55 .004 100);                 /* surfaces, ink and edges: its hue and chroma */
-    --seed-accent: oklch(.553 .166 258.4);               /* the primary action and the focus ring */
-    --seed-person: oklch(.617 .132 68.7);                /* a person: rings and tags */
-    --seed-group: oklch(.555 .09 212);                   /* a group */
-    --seed-event: oklch(.487 .155 313.5);                /* an event */
-    --seed-course: oklch(.519 .127 154.1);               /* a course */
-    --seed-topic: oklch(.508 .163 257.5);                /* a topic, and the default tag */
-    --seed-ok: oklch(.547 .146 152.3);                   /* success */
-    --seed-warn: oklch(.572 .125 69.8);                  /* caution */
-    --seed-alert: oklch(.558 .168 36.3);                 /* errors and counts */
+    --seed-accent: oklch(.553 .166 258.4);               /* the primary action and the focus ring; every seed below follows from it */
+    --seed-neutral: var(--derived-neutral);              /* surfaces, ink and edges: its hue and chroma. Follows the accent; set a color to choose your own */
+    --seed-person: var(--derived-person);                /* a person: rings and tags. Follows the accent; set a color to choose your own */
+    --seed-group: var(--derived-group);                  /* a group. Follows the accent, as above */
+    --seed-event: var(--derived-event);                  /* an event. Follows the accent, as above */
+    --seed-course: var(--derived-course);                /* a course. Follows the accent, as above */
+    --seed-topic: var(--derived-topic);                  /* a topic, and the default tag: the accent a step darker */
+    --seed-ok: var(--derived-ok);                        /* success: its own hue, the accent's strength */
+    --seed-warn: var(--derived-warn);                    /* caution: its own hue, the accent's strength */
+    --seed-alert: var(--derived-alert);                  /* errors and counts: its own hue, the accent's strength */
     --color-lift: .17;                                   /* how much lighter every hue is in the dark theme */
     --ink-flip: .58;                                     /* ink on the accent is white below this lightness, dark above */
     --gradient-space: oklch;                             /* the space gradients interpolate in */

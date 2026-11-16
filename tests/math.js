@@ -124,6 +124,27 @@ const CASES = [
         });
         floored(`in the playground's ${end} box`, inBox);
       });
+      // One seed (D90). With no product layer, the nine seeds that follow from the
+      // accent are what math.js derives, for core's accent and for four others:
+      // light and dark inks, strong and quiet, round the wheel.
+      if (!root.hasAttribute('data-product')) {
+        const probe = document.createElement('i');
+        document.body.appendChild(probe);
+        for (const accent of [null, [0.62, 0.19, 30], [0.7, 0.14, 150], [0.45, 0.2, 300], [0.36, 0.1, 200]]) {
+          const seed = JSON.parse(JSON.stringify(M.SEED));
+          if (accent) { seed.color.seeds.accent = accent; root.style.setProperty('--seed-accent', `oklch(${accent.join(' ')})`); }
+          const want = M.derived(seed);
+          for (const k of Object.keys(want)) {
+            probe.style.color = `var(--seed-${k})`;
+            const css = getComputedStyle(probe).color, m = /^oklch\(([\d.]+) ([\d.]+) ([\d.-]+)\)$/.exec(css);
+            const turn = m ? Math.abs((((+m[3] - want[k][2]) % 360) + 540) % 360 - 180) : 999;
+            expect(m && near(+m[1], want[k][0], .002) && near(+m[2], want[k][1], .002) && turn < .2,
+              `one seed: --seed-${k} from ${accent ? 'oklch(' + accent.join(' ') + ')' : "core's accent"} is ${css}, math says ${want[k].map(x => +x.toFixed(4)).join(' ')}`);
+          }
+          root.style.removeProperty('--seed-accent');
+        }
+        probe.remove();
+      }
       return { fails: out, n, u, fitted };
     });
     checked += r.n;

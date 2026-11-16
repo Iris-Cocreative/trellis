@@ -30,21 +30,24 @@
       lineH1: 1.05, lineHeadingStep: 0.05, lineBody: 1.45, lineParagraphStep: 0.03, lineLabel: 1.2,
       afterH1: 0.33, afterHeadingStep: 0.11
     },
-    // The palette: seeds, each one color in its light-theme form as OKLCH
-    // [lightness, chroma, hue], and every role derived from one of them.
+    // The palette: one seed, the accent, in its light-theme form as OKLCH
+    // [lightness, chroma, hue]. The other nine seeds follow from it (derive),
+    // and every role is a seed at a lightness. Add a seed here (neutral, person,
+    // group, event, course, topic, ok, warn, alert) to set it yourself.
     color: {
-      seeds: {
-        neutral: [0.55, 0.004, 100], accent: [0.553, 0.166, 258.4],
-        person: [0.617, 0.132, 68.7], group: [0.555, 0.09, 212], event: [0.487, 0.155, 313.5],
-        course: [0.519, 0.127, 154.1], topic: [0.508, 0.163, 257.5],
-        ok: [0.547, 0.146, 152.3], warn: [0.572, 0.125, 69.8], alert: [0.558, 0.168, 36.3]
-      },
+      seeds: { accent: [0.553, 0.166, 258.4] },
       lift: 0.17, flip: 0.58,
       // Neutral roles: the neutral seed's hue and chroma at a lightness for each theme.
       neutrals: {
         bg: [0.973, 0.176], 'bg-raised': [1, 0.213], 'bg-raised-2': [0.975, 0.245], 'bg-raised-3': [0.95, 0.277], 'bg-sunken': [0.943, 0.148], 'bg-hover': [0.936, 0.264],
         text: [0.213, 0.967], 'text-secondary': [0.397, 0.823], 'text-tertiary': [0.52, 0.655], 'text-faint': [0.695, 0.495],
         border: [0.879, 0.308], 'border-subtle': [0.921, 0.259], 'border-strong': [0.741, 0.419]
+      },
+      // How the other seeds follow from the accent: see derived(), below.
+      derive: {
+        below: 0.54, above: 0.61, kind: 0.85, turn: { person: 144, group: 288, event: 72, course: 216 }, topic: -0.045,
+        status: 0.9, statusMin: 0.1, statusMax: 0.17, statuses: { ok: [152, 0.26], warn: [70, 0.2], alert: [30, 0.38] },
+        tint: 0.004, limit: [0.272, 0.12, 330, 0.053, 140]
       }
     }
   };
@@ -200,8 +203,9 @@
   function spaceAfterInStack(own, gap) { return Math.max(0, own - gap); }
 
   // ---- Color --------------------------------------------------------------
-  // A relational palette. A product chooses a few seeds; every role is one of
-  // them at a lightness. Neutral roles take the neutral seed's hue and chroma
+  // A relational palette. A product chooses one seed, the accent; the other
+  // seeds follow from it, and any of them can be set in its place. Every role
+  // is a seed at a lightness. Neutral roles take the neutral seed's hue and chroma
   // at a lightness for each theme. A hue (the accent, each kind, each status)
   // is its seed in the light theme, and in the dark theme the same color
   // lifted by `lift`. Ink on a fill flips at `flip`: white on a fill darker
@@ -252,9 +256,56 @@
     var f = parseColor(fill), flip = (seed || SEED).color.flip;
     return f[0] < flip ? [1, 0, f[2]] : [0.16, f[1] * 0.3, f[2]];
   }
+  // ---- One seed --------------------------------------------------------------
+  // The seeds that follow from the accent (D90). core.css says the same with
+  // relative colors, so it is arithmetic CSS can state: no search, no loop.
+  //   clear   a derived seed keeps clear of the ink flip, so its ink reads at
+  //           4.5:1 at any hue: no lighter than `below` where its ink is white
+  //           (and no darker than `above` less the lift, since the dark theme
+  //           lifts it), no darker than `above` where its ink is dark.
+  //   limit   the most chroma sRGB holds at a hue, for each unit of lightness:
+  //           two waves around the hue wheel, under the real limit at every
+  //           hue for a seed whose ink is white.
+  //   follow  a kind: the accent turned around the wheel, at a share of its
+  //           chroma and never more than the limit.
+  function clear(l, seed) {
+    var c = (seed || SEED).color, d = c.derive;
+    return l < c.flip ? clamp(d.above - c.lift, l, d.below) : Math.max(l, d.above);
+  }
+  function chromaLimit(l, h, seed) {
+    var w = (seed || SEED).color.derive.limit, r = Math.PI / 180;
+    return l * (w[0] + w[1] * Math.cos((h - w[2]) * r) + w[3] * Math.cos((h - w[4]) * 2 * r));
+  }
+  function follow(accent, turn, seed) {
+    var a = parseColor(accent), d = (seed || SEED).color.derive, l = clear(a[0], seed), h = mod(a[2] + turn, 360);
+    return [l, Math.min(a[1] * d.kind, chromaLimit(l, h, seed)), h];
+  }
+  // The nine seeds that follow from the accent.
+  //   neutral  the accent's hue, a trace of chroma (its lightness is not used)
+  //   kinds    person, group, event and course follow the accent, each turned
+  //            its own way; topic is the accent a step darker, with the
+  //            chroma that fits there
+  //   statuses their own hues, the accent's lightness, a share of its chroma
+  //            held between two ends and under what sRGB holds at that hue
+  function derived(seed) {
+    var col = (seed || SEED).color, d = col.derive, a = parseColor(col.seeds.accent), l = clear(a[0], seed), out = {}, k;
+    out.neutral = [0.55, d.tint, a[2]];
+    for (k in d.turn) out[k] = follow(a, d.turn[k], seed);
+    var tl = clear(a[0] + d.topic, seed);
+    out.topic = [tl, a[1] * Math.min(1, tl / a[0]), a[2]];
+    for (k in d.statuses) out[k] = [l, Math.min(clamp(d.statusMin, a[1] * d.status, d.statusMax), l * d.statuses[k][1]), d.statuses[k][0]];
+    return out;
+  }
+  // All ten seeds: the accent, and each of the others as it was set, or as it follows.
+  function seeds(seed) {
+    var set = (seed || SEED).color.seeds, out = derived(seed), k;
+    for (k in set) out[k] = parseColor(set[k]);
+    return out;
+  }
+
   // Every role in one theme, as OKLCH triples.
   function palette(theme, seed) {
-    var col = (seed || SEED).color, s = col.seeds, out = {}, n = parseColor(s.neutral), k;
+    var col = (seed || SEED).color, s = seeds(seed), out = {}, n = s.neutral, k;
     var dark = theme === 'dark' ? 1 : 0;
     for (k in col.neutrals) out[k] = [col.neutrals[k][dark], n[1], n[2]];
     out.accent = hue(s.accent, theme, seed);
@@ -272,8 +323,14 @@
     var seeds = {}, neutrals = {};
     Object.keys(col.seed).forEach(function (k) { if (k[0] !== '$') seeds[k] = triple(col.seed[k].$value); });
     Object.keys(col.neutral).forEach(function (k) { if (k[0] !== '$') neutrals[k] = [col.neutral[k].light.$value, col.neutral[k].dark.$value]; });
+    var d = col.derive, turn = {}, statuses = {};
+    Object.keys(d['kind-turn']).forEach(function (k) { if (k[0] !== '$') turn[k] = d['kind-turn'][k].$value; });
+    Object.keys(d.status).forEach(function (k) { if (k[0] !== '$') statuses[k] = [d.status[k].hue.$value, d.status[k].limit.$value]; });
+    var derive = { below: v(d, 'clear-below'), above: v(d, 'clear-above'), kind: v(d, 'kind-chroma'), turn: turn, topic: v(d, 'topic-step'),
+      status: v(d, 'status-chroma'), statusMin: v(d, 'status-chroma-min'), statusMax: v(d, 'status-chroma-max'), statuses: statuses,
+      tint: v(d, 'neutral-chroma'), limit: ['base', 'wave', 'wave-at', 'wave-two', 'wave-two-at'].map(function (k) { return v(d.limit, k); }) };
     return {
-      color: { seeds: seeds, lift: v(col, 'lift'), flip: v(col, 'ink-flip'), neutrals: neutrals },
+      color: { seeds: seeds, lift: v(col, 'lift'), flip: v(col, 'ink-flip'), neutrals: neutrals, derive: derive },
       cell: { targetNarrow: v(c, 'target-narrow'), targetWide: v(c, 'target-wide'), screenNarrow: v(c, 'screen-narrow'), screenWide: v(c, 'screen-wide'), textScaleMax: v(c, 'text-scale-max') },
       frame: { max: v(tokens.frame, 'max'), module: SEED.frame.module },
       type: Object.assign({}, SEED.type, {
@@ -291,6 +348,7 @@
     typeSteps: typeSteps, typeEnds: typeEnds, typeSize: typeSize, lineRatio: lineRatio, lineHeight: lineHeight,
     standPad: standPad, hang: hang, settleCluster: settleCluster, spaceAfter: spaceAfter, spaceAfterInStack: spaceAfterInStack,
     stands: stands, isHeading: isHeading, seedFromTokens: seedFromTokens,
-    parseColor: parseColor, hex: hex, contrast: contrast, hue: hue, ink: ink, palette: palette
+    parseColor: parseColor, hex: hex, contrast: contrast, hue: hue, ink: ink, palette: palette,
+    clear: clear, chromaLimit: chromaLimit, follow: follow, derived: derived, seeds: seeds
   };
 });

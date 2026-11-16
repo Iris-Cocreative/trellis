@@ -1,56 +1,52 @@
 /* Trellis specimen · the palette study
-   How few colors does a palette need? One. From a chosen accent this derives
-   every seed core takes: the five kinds by a harmony around the hue wheel, the
-   three statuses at their fixed hues and the accent's strength, and a neutral
-   with a trace of a hue. math.js then makes every role in both themes, as it
-   does for any seeds. A study in the page: core still takes a seed for each.
-   Not part of the package. */
+   How few colors does a palette need? One. Core takes an accent and derives
+   the other nine seeds from it (D90): the five kinds turned around the hue
+   wheel, the three statuses at their own hues and the accent's strength, and
+   a neutral with a trace of its hue. This draws that, with math.js, which
+   says in arithmetic what core.css says with relative colors, and then goes
+   past it: three other harmonies for the kinds, and two other neutrals. What
+   it writes out is a product layer: the accent, and only the seeds core
+   would not have derived the same way. Not part of the package. */
 (function () {
   'use strict';
   var sec = document.querySelector('[data-pal]'), M = window.TrellisMath;
   if (!sec || !M) return;
   var root = document.documentElement, TAU = Math.PI * 2;
   var base = M.SEED.color;
-  var DEFAULT = { h: base.seeds.accent[2], c: base.seeds.accent[1], l: base.seeds.accent[0], harmony: 'pentad', neutral: 'warm', tint: base.seeds.neutral[1], lift: base.lift, turn: 40 };
+  var DEFAULT = { h: base.seeds.accent[2], c: base.seeds.accent[1], l: base.seeds.accent[0], harmony: 'pentad', neutral: 'accent', tint: base.derive.tint, lift: base.lift, turn: 40 };
+  var WARM = 100;   // the hue of a warm gray
   var state = Object.assign({}, DEFAULT), whole = false;
 
   // Where each kind sits from the accent, in degrees of hue. Topic keeps the
-  // accent's own hue: it is the default tag.
+  // accent's own hue: it is the default tag. Even is core's own.
   var HARMONY = {
-    pentad:    { person: 72, group: 144, event: 216, course: 288 },     // five, evenly
+    pentad:    base.derive.turn,                                        // five, evenly: core's
     analogous: { person: -50, group: -25, event: 25, course: 50 },      // neighbors
     split:     { person: 150, group: 210, event: 30, course: -30 },     // either side of the opposite, and of itself
     square:    { person: 90, group: 180, event: 270, course: 135 }      // quarters, and one between
   };
-  var STATUS = { ok: 152, warn: 70, alert: 30 };
+  var STATUS = {};
+  Object.keys(base.derive.statuses).forEach(function (k) { STATUS[k] = base.derive.statuses[k][0]; });
   var KINDS = ['person', 'group', 'event', 'course', 'topic'], ORDER = ['accent', 'neutral'].concat(KINDS, ['ok', 'warn', 'alert']);
   var NAMES = { accent: 'Accent', neutral: 'Neutral', person: 'Person', group: 'Group', event: 'Event', course: 'Course', topic: 'Topic', ok: 'Ok', warn: 'Warn', alert: 'Alert' };
 
   function mod(v, n) { return ((v % n) + n) % n; }
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
   function css(c, a) { return 'oklch(' + (+c[0].toFixed(3)) + ' ' + (+c[1].toFixed(3)) + ' ' + (+mod(c[2], 360).toFixed(1)) + (a == null ? '' : ' / ' + a) + ')'; }
-  // Is an OKLCH color inside sRGB? math.js clips; a derived seed should not need it.
-  function inGamut(c) {
-    var a = c[1] * Math.cos(c[2] * Math.PI / 180), b = c[1] * Math.sin(c[2] * Math.PI / 180);
-    var l = Math.pow(c[0] + 0.3963377774 * a + 0.2158037573 * b, 3), m = Math.pow(c[0] - 0.1055613458 * a - 0.0638541728 * b, 3), s = Math.pow(c[0] - 0.0894841775 * a - 1.291485548 * b, 3);
-    return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s, -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s]
-      .every(function (x) { return x > -0.001 && x < 1.001; });
-  }
-  // A derived seed: brought inside the gamut, then held where its ink reads at 4.5:1.
-  function hold(c) {
-    c = c.slice(); c[2] = mod(c[2], 360);
-    while (c[1] > 0.01 && !inGamut(c)) c[1] -= 0.004;
-    var seed = { color: { flip: base.flip } }, n = 0;
-    while (M.contrast(M.ink(c, seed), c) < 4.5 && n++ < 80) c[0] += c[0] < base.flip ? -0.004 : 0.004;
-    return c;
-  }
+  // Every seed, by core's own rule (math.js: derived, follow). Topic and the
+  // statuses are always core's. A kind is core's under Even, and under another
+  // harmony the same rule with another turn. The neutral is core's when it
+  // takes the accent's hue at core's tint.
   function derive() {
-    var acc = [state.l, state.c, state.h], off = HARMONY[state.harmony], seeds = { accent: acc };
-    var nh = state.neutral === 'accent' ? state.h : state.neutral === 'complement' ? state.h + 180 : base.seeds.neutral[2];
+    var acc = [state.l, state.c, state.h], off = HARMONY[state.harmony];
+    var col = { color: { seeds: { accent: acc }, lift: state.lift, flip: base.flip, neutrals: base.neutrals, derive: base.derive } };
+    var d = M.derived(col), seeds = { accent: acc };
+    var nh = state.neutral === 'accent' ? state.h : state.neutral === 'complement' ? state.h + 180 : WARM;
     seeds.neutral = [0.55, state.tint, mod(nh, 360)];
-    KINDS.forEach(function (k) { seeds[k] = hold(k === 'topic' ? [state.l - 0.045, state.c, state.h] : [state.l, state.c * 0.85, state.h + off[k]]); });
-    Object.keys(STATUS).forEach(function (k) { seeds[k] = hold([state.l, clamp(state.c * 0.9, 0.1, 0.17), STATUS[k]]); });
-    return { color: { seeds: seeds, lift: state.lift, flip: base.flip, neutrals: base.neutrals } };
+    KINDS.forEach(function (k) { seeds[k] = k === 'topic' ? d.topic : M.follow(acc, off[k], col); });
+    Object.keys(STATUS).forEach(function (k) { seeds[k] = d[k]; });
+    col.color.seeds = seeds;
+    return col;
   }
 
   // ---- The wheel ---------------------------------------------------------------
@@ -150,15 +146,23 @@
     var S = { 1: '0 var(--sp-q) var(--sp-1) ' + shade(0.12), 2: '0 var(--sp-h) var(--sp-2) ' + shade(0.14), 3: '0 var(--sp-1) var(--sp-4) ' + shade(0.16) };
     sec.querySelectorAll('[data-pal-shadow]').forEach(function (el) { el.style.setProperty('--s', S[el.dataset.palShadow]); });
   }
-  function vars(seed) {
-    var s = seed.color.seeds, v = {};
-    ['neutral', 'accent'].concat(KINDS, ['ok', 'warn', 'alert']).forEach(function (k) { v['--seed-' + k] = css(s[k]); });
-    v['--color-lift'] = String(+state.lift.toFixed(3)); v['--gradient-turn'] = String(Math.round(state.turn));
+  // Every seed and setting, for the page; and for a product layer, only what
+  // core would not have made the same: the accent always, a kind under another
+  // harmony, the neutral when it is not the accent's hue at core's tint.
+  function vars(seed, all) {
+    var s = seed.color.seeds, v = {}, own = { accent: true };
+    if (state.harmony !== 'pentad') KINDS.slice(0, 4).forEach(function (k) { own[k] = true; });
+    if (state.neutral !== 'accent' || state.tint !== DEFAULT.tint) own.neutral = true;
+    ['accent', 'neutral'].concat(KINDS, ['ok', 'warn', 'alert']).forEach(function (k) { if (all || own[k]) v['--seed-' + k] = css(s[k]); });
+    if (all || state.lift !== DEFAULT.lift) v['--color-lift'] = String(+state.lift.toFixed(3));
+    if (all || state.turn !== DEFAULT.turn) v['--gradient-turn'] = String(Math.round(state.turn));
     return v;
   }
   var out = sec.querySelector('[data-pal-export]');
   function exportLayer(v) {
-    out.textContent = '@layer trellis.product {\n  :root[data-product="yours"] {\n' + Object.keys(v).map(function (k) { return '    ' + k + ': ' + v[k] + ';'; }).join('\n') + '\n  }\n}\n';
+    var n = Object.keys(v).filter(function (k) { return /^--seed-/.test(k); }).length;
+    out.textContent = '/* ' + (n === 1 ? 'One seed. Core derives the other nine from it.' : n + ' seeds. Core derives the rest from the accent.') + ' */\n' +
+      '@layer trellis.product {\n  :root[data-product="yours"] {\n' + Object.keys(v).map(function (k) { return '    ' + k + ': ' + v[k] + ';'; }).join('\n') + '\n  }\n}\n';
   }
   var applied = [];
   function page(v) {
@@ -168,8 +172,8 @@
   }
 
   function render() {
-    var seed = derive(), v = vars(seed);
-    controls(); drawWheel(seed); seedsRow(seed); schemes(seed); extras(seed); exportLayer(v); page(v);
+    var seed = derive();
+    controls(); drawWheel(seed); seedsRow(seed); schemes(seed); extras(seed); exportLayer(vars(seed)); page(vars(seed, true));
   }
   var wholeBtn = sec.querySelector('[data-pal-whole]');
   wholeBtn.addEventListener('click', function () { whole = wholeBtn.getAttribute('aria-checked') !== 'true'; wholeBtn.setAttribute('aria-checked', String(whole)); render(); });

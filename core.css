@@ -187,21 +187,36 @@
 }
 @layer trellis.theme {
   :root {
-    /* Seeds: one color each, in its light-theme form. A product sets these, never a role. */
-    --seed-neutral: oklch(.55 .004 100);
+    /* Seeds: one color each, in its light-theme form. A product sets the accent. The other seeds
+       follow from it, and a product may set any of them in its place. Never a role. */
     --seed-accent: oklch(.553 .166 258.4);
-    --seed-person: oklch(.617 .132 68.7);
-    --seed-group: oklch(.555 .09 212);
-    --seed-event: oklch(.487 .155 313.5);
-    --seed-course: oklch(.519 .127 154.1);
-    --seed-topic: oklch(.508 .163 257.5);
-    --seed-ok: oklch(.547 .146 152.3);
-    --seed-warn: oklch(.572 .125 69.8);
-    --seed-alert: oklch(.558 .168 36.3);
+    --seed-neutral: var(--derived-neutral);
+    --seed-person: var(--derived-person);
+    --seed-group: var(--derived-group);
+    --seed-event: var(--derived-event);
+    --seed-course: var(--derived-course);
+    --seed-topic: var(--derived-topic);
+    --seed-ok: var(--derived-ok);
+    --seed-warn: var(--derived-warn);
+    --seed-alert: var(--derived-alert);
     --color-lift: .17;   /* how much lighter a hue is in the dark theme */
     --ink-flip: .58;   /* ink on a fill: white below this lightness, dark above it */
     --gradient-space: oklch;   /* the space gradients interpolate in */
     --gradient-turn: 40;   /* degrees the accent gradient turns its hue */
+
+    /* The seeds that follow from the accent. Each takes its lightness, kept clear of the ink flip so
+       its ink reads; a kind is the accent turned around the hue wheel, with no more chroma than sRGB
+       holds at its hue; a status keeps its own hue; the neutral is a trace of the accent's hue. */
+    --derived-base: oklch(from var(--seed-accent) calc((1 - clamp(0, (l - var(--ink-flip)) * 1000, 1)) * clamp(.61 - var(--color-lift), l, .54) + clamp(0, (l - var(--ink-flip)) * 1000, 1) * max(l, .61)) c h);   /* the accent, its lightness kept clear of the flip */
+    --derived-neutral: oklch(from var(--seed-accent) .55 .004 h);
+    --derived-person: oklch(from var(--derived-base) l min(c * .85, l * (.272 + .12 * cos((h + 144 - 330) * .01745329) + .053 * cos((h + 144 - 140) * .03490659))) calc(h + 144));
+    --derived-group: oklch(from var(--derived-base) l min(c * .85, l * (.272 + .12 * cos((h + 288 - 330) * .01745329) + .053 * cos((h + 288 - 140) * .03490659))) calc(h + 288));
+    --derived-event: oklch(from var(--derived-base) l min(c * .85, l * (.272 + .12 * cos((h + 72 - 330) * .01745329) + .053 * cos((h + 72 - 140) * .03490659))) calc(h + 72));
+    --derived-course: oklch(from var(--derived-base) l min(c * .85, l * (.272 + .12 * cos((h + 216 - 330) * .01745329) + .053 * cos((h + 216 - 140) * .03490659))) calc(h + 216));
+    --derived-topic: oklch(from var(--seed-accent) calc((1 - clamp(0, ((l - .045) - var(--ink-flip)) * 1000, 1)) * clamp(.61 - var(--color-lift), (l - .045), .54) + clamp(0, ((l - .045) - var(--ink-flip)) * 1000, 1) * max((l - .045), .61)) calc(c * min(1, calc((1 - clamp(0, ((l - .045) - var(--ink-flip)) * 1000, 1)) * clamp(.61 - var(--color-lift), (l - .045), .54) + clamp(0, ((l - .045) - var(--ink-flip)) * 1000, 1) * max((l - .045), .61)) / l)) h);   /* the accent a step darker */
+    --derived-ok: oklch(from var(--derived-base) l min(clamp(.1, c * .9, .17), l * .26) 152);
+    --derived-warn: oklch(from var(--derived-base) l min(clamp(.1, c * .9, .17), l * .2) 70);
+    --derived-alert: oklch(from var(--derived-base) l min(clamp(.1, c * .9, .17), l * .38) 30);
 
     /* Neutral roles: the neutral seed's hue and chroma at a lightness for each theme */
     --bg: light-dark(oklch(from var(--seed-neutral) .973 c h), oklch(from var(--seed-neutral) .176 c h));
@@ -238,30 +253,30 @@
   /* Without relative colors: core's palette, resolved by math.js. */
   @supports not (color: oklch(from red l c h)) {
     :root {
-      --bg: light-dark(#f7f6f3, #11110f);
-      --bg-raised: light-dark(#fffffc, #191917);
-      --bg-raised-2: light-dark(#f7f7f4, #21201e);
-      --bg-raised-3: light-dark(#efeeeb, #282826);
-      --bg-sunken: light-dark(#edece9, #0b0b09);
-      --bg-hover: light-dark(#eaeae7, #252523);
-      --text: light-dark(#191917, #f5f4f1);
-      --text-secondary: light-dark(#474744, #c5c5c2);
-      --text-tertiary: light-dark(#696966, #91918e);
-      --text-faint: light-dark(#9d9d9a, #62625f);
-      --border: light-dark(#d8d7d4, #30302e);
-      --border-subtle: light-dark(#e5e5e2, #242422);
-      --border-strong: light-dark(#ababa8, #4d4d4a);
+      --bg: light-dark(#f4f6f9, #101112);
+      --bg-raised: light-dark(#fdffff, #18191b);
+      --bg-raised-2: light-dark(#f5f7f9, #1f2022);
+      --bg-raised-3: light-dark(#edeef1, #27282a);
+      --bg-sunken: light-dark(#eaecef, #0a0b0c);
+      --bg-hover: light-dark(#e8eaec, #242527);
+      --text: light-dark(#18191b, #f2f4f7);
+      --text-secondary: light-dark(#464749, #c3c5c8);
+      --text-tertiary: light-dark(#67696b, #8f9193);
+      --text-faint: light-dark(#9b9d9f, #606264);
+      --border: light-dark(#d5d7da, #2f3032);
+      --border-subtle: light-dark(#e3e5e8, #232426);
+      --border-strong: light-dark(#a9abae, #4b4d4f);
       --accent: light-dark(#2c6fd1, #60a5ff);
       --accent-ink: light-dark(#ffffff, #020c22);
       --focus: light-dark(#2c6fd1, #60a5ff);
-      --kind-person: light-dark(#b8740b, #f0a953);
-      --kind-group: light-dark(#1b8192, #5ab5c7);
-      --kind-event: light-dark(#7e3e9c, #b371d3);
-      --kind-course: light-dark(#0c7d45, #52b276);
-      --kind-topic: light-dark(#1b62c0, #5197fa);
-      --ok: light-dark(#008843, #4fbd75);
-      --warn: light-dark(#a66800, #de9c4a);
-      --alert: light-dark(#c2441f, #fe7b57);
+      --kind-person: light-dark(#af4d22, #e88258);
+      --kind-group: light-dark(#068077, #52b4ab);
+      --kind-event: light-dark(#9b4c95, #d27fcb);
+      --kind-course: light-dark(#6e7518, #a0a953);
+      --kind-topic: light-dark(#2662bb, #5997f4);
+      --ok: light-dark(#068543, #52ba75);
+      --warn: light-dark(#966217, #cd9551);
+      --alert: light-dark(#b54436, #f07968);
       --gradient-accent: in oklab, var(--accent), var(--accent);
       --gradient-surface: in oklab, var(--bg-raised), var(--bg-sunken);
     }

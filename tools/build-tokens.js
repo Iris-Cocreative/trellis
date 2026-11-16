@@ -99,22 +99,50 @@ function build(tokens) {
   out.push('  }', '}', '@layer trellis.theme {', '  :root {');
   // The palette is relational: seeds are knobs, roles are derived from them with
   // relative colors. light-dark() reads color-scheme, so one declaration carries
-  // both themes. math.js derives the same roles in arithmetic.
-  const col = tokens.color, short = v => n(v).replace(/^0\./, '.');
+  // both themes. math.js derives the same seeds and roles in arithmetic.
+  const col = tokens.color, short = v => n(v).replace(/^(-?)0\./, '$1.');
   const oklch = v => `oklch(${v.components.map((x, i) => (i === 2 ? n(x) : short(x))).join(' ')})`;
   const HUES = { accent: 'accent', person: 'kind-person', group: 'kind-group', event: 'kind-event', course: 'kind-course', topic: 'kind-topic', ok: 'ok', warn: 'warn', alert: 'alert' };
-  out.push('    /* Seeds: one color each, in its light-theme form. A product sets these, never a role. */');
+  const d = col.derive, dv = k => d[k].$value, KINDS = keys(d['kind-turn']), STATUSES = keys(d.status);
+  const FOLLOW = ['neutral', ...KINDS, 'topic', ...STATUSES];
+  out.push('    /* Seeds: one color each, in its light-theme form. A product sets the accent. The other seeds',
+    '       follow from it, and a product may set any of them in its place. Never a role. */');
   for (const k of keys(col.seed)) line(`seed-${k}`, oklch(col.seed[k].$value));
+  for (const k of FOLLOW) if (!col.seed[k]) line(`seed-${k}`, `var(--derived-${k})`);
   line('color-lift', short(col.lift.$value), 'how much lighter a hue is in the dark theme');
   line('ink-flip', short(col['ink-flip'].$value), 'ink on a fill: white below this lightness, dark above it');
   line('gradient-space', col.gradient.space.$value, 'the space gradients interpolate in');
   line('gradient-turn', n(col.gradient.turn.$value), 'degrees the accent gradient turns its hue');
+  // The seeds that follow from the accent (D90), as math.js's derived() has them.
+  // clear(x): a lightness kept clear of the ink flip. S is 0 where the ink is
+  // white and 1 where it is dark, the step the ink itself is written with.
+  const S = x => `clamp(0, (${x} - var(--ink-flip)) * 1000, 1)`;
+  const clear = x => `calc((1 - ${S(x)}) * clamp(${short(dv('clear-above'))} - var(--color-lift), ${x}, ${short(dv('clear-below'))}) + ${S(x)} * max(${x}, ${short(dv('clear-above'))}))`;
+  // limit(hue): the most chroma sRGB holds there for each unit of lightness, as two waves.
+  // The angles are plain numbers, in radians (π ÷ 180 a degree): WebKit drops a
+  // deg unit multiplied onto a channel inside a relative color, and reads the
+  // number of degrees as radians.
+  const w = d.limit, wv = k => w[k].$value, RAD = '.01745329', RAD2 = '.03490659';
+  const limit = hue => `(${short(wv('base'))} + ${short(wv('wave'))} * cos((${hue} - ${n(wv('wave-at'))}) * ${RAD}) + ${short(wv('wave-two'))} * cos((${hue} - ${n(wv('wave-two-at'))}) * ${RAD2}))`;
+  out.push('', '    /* The seeds that follow from the accent. Each takes its lightness, kept clear of the ink flip so',
+    '       its ink reads; a kind is the accent turned around the hue wheel, with no more chroma than sRGB',
+    '       holds at its hue; a status keeps its own hue; the neutral is a trace of the accent\'s hue. */');
+  line('derived-base', `oklch(from var(--seed-accent) ${clear('l')} c h)`, 'the accent, its lightness kept clear of the flip');
+  line('derived-neutral', `oklch(from var(--seed-accent) .55 ${short(dv('neutral-chroma'))} h)`);
+  for (const k of KINDS) {
+    const turn = n(d['kind-turn'][k].$value);
+    line(`derived-${k}`, `oklch(from var(--derived-base) l min(c * ${short(dv('kind-chroma'))}, l * ${limit(`h + ${turn}`)}) calc(h + ${turn}))`);
+  }
+  const step = dv('topic-step'), stepped = step < 0 ? `l - ${short(-step)}` : `l + ${short(step)}`;
+  line('derived-topic', `oklch(from var(--seed-accent) ${clear(`(${stepped})`)} calc(c * min(1, ${clear(`(${stepped})`)} / l)) h)`, 'the accent a step darker');
+  for (const k of STATUSES)
+    line(`derived-${k}`, `oklch(from var(--derived-base) l min(clamp(${short(dv('status-chroma-min'))}, c * ${short(dv('status-chroma'))}, ${short(dv('status-chroma-max'))}), l * ${short(d.status[k].limit.$value)}) ${n(d.status[k].hue.$value)})`);
+
   head('Neutral roles: the neutral seed\'s hue and chroma at a lightness for each theme');
   const at = (seed, l) => `oklch(from var(--seed-${seed}) ${short(l)} c h)`;
   for (const k of keys(col.neutral)) line(k, `light-dark(${at('neutral', col.neutral[k].light.$value)}, ${at('neutral', col.neutral[k].dark.$value)})`);
   head('Hues: the seed in the light theme, lifted in the dark. Kinds: what sort of thing this is; shape and color both follow kind');
-  for (const k of keys(col.seed)) {
-    if (!HUES[k]) continue;
+  for (const k of Object.keys(HUES)) {
     line(HUES[k], `light-dark(var(--seed-${k}), oklch(from var(--seed-${k}) calc(l + var(--color-lift)) c h))`);
     if (k === 'accent') {
       line('accent-ink', 'oklch(from var(--accent) clamp(.16, (var(--ink-flip) - l) * 1000, 1) calc(clamp(0, (l - var(--ink-flip)) * 1000, 1) * c * .3) h)', 'white on a dark accent, a dark ink of its hue on a light one');

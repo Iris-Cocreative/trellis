@@ -136,7 +136,10 @@ for (const f of [null, ...PRODUCTS]) {
   const seed = JSON.parse(JSON.stringify(M.SEED));
   if (f) {
     const css = stripComments(read(f));
+    // A seed a layer sets is that color; one it leaves, or leaves as the
+    // template has it (var(--derived-…)), follows from its accent.
     for (const [, k, v] of css.matchAll(/--seed-([a-z]+)\s*:\s*([^;]+);/g)) {
+      if (/^var\(--derived-[a-z]+\)$/.test(v.trim())) continue;
       try { seed.color.seeds[k] = M.parseColor(v); } catch (e) { fails.push(`${f}: --seed-${k}: ${e.message}`); }
     }
     const lift = css.match(/--color-lift\s*:\s*([\d.]+)/), flip = css.match(/--ink-flip\s*:\s*([\d.]+)/);
@@ -155,6 +158,33 @@ for (const f of [null, ...PRODUCTS]) {
       check(r >= 4.5, `contrast: ${f || 'core'} ${theme}: ink on a solid --${k} is ${r.toFixed(2)}:1, under 4.5`);
     }
   }
+}
+// One seed (D90). Whatever accent a product chooses, inside sRGB, the seeds that
+// follow from it carry an ink that reads, in both themes, and those whose ink
+// is white are inside sRGB themselves.
+{
+  const rgb = c => { const a = c[1] * Math.cos(c[2] * Math.PI / 180), b = c[1] * Math.sin(c[2] * Math.PI / 180);
+    const l = (c[0] + 0.3963377774 * a + 0.2158037573 * b) ** 3, m = (c[0] - 0.1055613458 * a - 0.0638541728 * b) ** 3, s = (c[0] - 0.0894841775 * a - 1.291485548 * b) ** 3;
+    return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s, -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s]; };
+  const inside = c => rgb(c).every(x => x > -0.002 && x < 1.002);
+  let low = [99], out = null, n = 0;
+  for (let l = 0.3; l <= 0.861; l += 0.04) for (let c = 0.02; c <= 0.241; c += 0.02) for (let h = 0; h < 360; h += 6) {
+    if (!inside([l, c, h])) continue;
+    const seed = JSON.parse(JSON.stringify(M.SEED)); seed.color.seeds = { accent: [l, c, h] };
+    const d = M.derived(seed);
+    for (const k of Object.keys(d)) {
+      if (k === 'neutral') continue;
+      n++;
+      for (const theme of ['light', 'dark']) { const fill = M.hue(d[k], theme, seed), r = M.contrast(M.ink(fill, seed), fill); if (r < low[0]) low = [r, k, theme, l, c, h]; }
+      if (d[k][0] < seed.color.flip && !inside(d[k]) && !out) out = [k, l, c, h, d[k]];
+    }
+  }
+  check(n > 10000, `one seed: only ${n} derived seeds were checked`);
+  check(low[0] >= 4.5, `one seed: ink on the ${low[1]} seed derived from oklch(${low.slice(3).map(x => +x.toFixed(2)).join(' ')}) is ${low[0].toFixed(2)}:1 in ${low[2]}, under 4.5`);
+  check(!out, out ? `one seed: the ${out[0]} seed derived from oklch(${out.slice(1, 4).map(x => +x.toFixed(2)).join(' ')}) is outside sRGB: oklch(${out[4].map(x => +x.toFixed(3)).join(' ')})` : '');
+  // core.css states the same rule: every seed but the accent defaults to its derived token.
+  for (const k of ['neutral', 'person', 'group', 'event', 'course', 'topic', 'ok', 'warn', 'alert'])
+    check(coreDefaults.get(`--seed-${k}`) === `var(--derived-${k})` && coreDefaults.has(`--derived-${k}`), `core.css: --seed-${k} should default to var(--derived-${k})`);
 }
 for (const [k, name] of [['lineH1', '--lh-h1'], ['lineHeadingStep', '--lh-h-step'], ['lineBody', '--lh-body'], ['lineParagraphStep', '--lh-p-step'], ['lineLabel', '--lh-label'], ['afterH1', '--mb-h1'], ['afterHeadingStep', '--mb-h-step']])
   check(parseFloat(coreDefaults.get(name)) === M.SEED.type[k], `math.js's ${k} is ${M.SEED.type[k]}; core's ${name} is ${coreDefaults.get(name)}`);

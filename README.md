@@ -219,18 +219,19 @@ Our apps carry rich content from editors and markdown, which arrives as bare tag
 
 ## Color
 
-**A relational palette.** A product chooses a few seeds and every color role is derived from one, so a palette stays in harmony the way type does with its ratio. Seeds are knobs; roles are tokens a product reads and never sets.
+**A relational palette.** A product chooses one seed, the accent. The other seeds follow from it, each still settable, and every color role is derived from a seed, so a palette stays in harmony the way type does with its ratio. Seeds are knobs; roles are tokens a product reads and never sets.
 
 | | What it is |
 |---|---|
-| **Seeds** | `--seed-neutral`, `--seed-accent`, and one per kind (`--seed-person`, `--seed-group`, `--seed-event`, `--seed-course`, `--seed-topic`) and per status (`--seed-ok`, `--seed-warn`, `--seed-alert`). Each is one color, in its light-theme form. |
+| **Seeds** | `--seed-accent`, and nine that follow from it: `--seed-neutral`, one per kind (`--seed-person`, `--seed-group`, `--seed-event`, `--seed-course`, `--seed-topic`) and one per status (`--seed-ok`, `--seed-warn`, `--seed-alert`). Each is one color, in its light-theme form. Set any of the nine to choose your own. |
+| **One seed** | Each of the nine defaults to a token derived from the accent, `--derived-neutral` to `--derived-alert` (D90). A kind is the accent turned around the hue wheel, a fifth of it apart; a status keeps its own hue and takes the accent's strength; topic is the accent a step darker; the neutral is a trace of the accent's hue. Each takes the accent's lightness, kept clear of `--ink-flip` so its ink reads at 4.5:1 at any hue, and no more chroma than sRGB holds there. The numbers are in `tokens.json` (`color.derive`), and `math.js` has it as `derived()`. |
 | **Neutral roles** | `--bg`, `--bg-raised`, `--bg-sunken`, `--bg-hover`, `--text`, `--text-secondary`, `--text-tertiary`, `--text-faint`, `--border`, `--border-subtle`, `--border-strong`: the neutral seed's hue and chroma at a lightness for each theme. The lightness ladder is in `tokens.json`. |
 | **Hues** | `--accent`, `--kind-*`, `--ok`, `--warn`, `--alert`: the seed in the light theme, and in the dark the same color lifted by `--color-lift` (0.17 of OKLCH lightness). `--focus` is the accent. `--bg-hover` no longer paints hover (the state layer does) and stays one minor for products that read it. |
 | **Ink** | Ink on a solid fill is computed from the fill: white on a fill darker than `--ink-flip` (0.58), a dark ink of the fill's own hue on a lighter one. `--accent-ink` is the accent's; a solid tag and a badge compute theirs from their kind or status the same way. |
 | **Mixes** | A tint, an edge or a wash is a role mixed with `color-mix(in oklab, …)`: a tag's fill and edge from its kind, an avatar's wash from its ring, the scrollbar and the skeleton from the ink, a scrim from black. A color is a role, or a mix of a role. |
 | **Gradients** | `--gradient-accent` (the accent turning its hue by `--gradient-turn`) and `--gradient-surface` (raised to sunken) are an interpolation space and stops, in `--gradient-space` (OKLCH). Add a direction or a shape: `linear-gradient(to right var(--gradient-accent))`. |
 
-Every role is `light-dark()` of two relative colors (`oklch(from var(--seed-…) …)`), and `math.js` derives the same roles in arithmetic for a native screen. `tests/contract.js` checks contrast for core and every product layer, in both themes: text, secondary and tertiary ink at 4.5:1 or more on the page and on every raised level, ink on the accent and on every solid kind and status at 4.5:1, the accent at 3:1 on the page. A seed that fails a floor fails the contract. A role derives from the root's seeds, so a context that changes `--seed-accent` on an inner box does not recolor it: change the role there instead.
+Every role is `light-dark()` of two relative colors (`oklch(from var(--seed-…) …)`), and `math.js` derives the same seeds and roles in arithmetic for a native screen. `tests/contract.js` checks contrast for core and every product layer, in both themes: text, secondary and tertiary ink at 4.5:1 or more on the page and on every raised level, ink on the accent and on every solid kind and status at 4.5:1, the accent at 3:1 on the page. A seed that fails a floor fails the contract. A role derives from the root's seeds, so a context that changes `--seed-accent` on an inner box does not recolor it: change the role there instead.
 
 ## Rules
 

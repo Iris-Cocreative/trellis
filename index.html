@@ -6,7 +6,7 @@
 <title>Trellis</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 18 18%27%3E%3Crect x=%27.5%27 y=%27.5%27 width=%2717%27 height=%2717%27 rx=%274.5%27 fill=%27%23101111%27 stroke=%27%236aa5f5%27/%3E%3Cline x1=%27.5%27 y1=%2712.5%27 x2=%2717.5%27 y2=%2712.5%27 stroke=%27%236aa5f5%27/%3E%3Ccircle cx=%276%27 cy=%276%27 r=%272%27 fill=%27%23f4f4f2%27/%3E%3C/svg%3E">
 <meta name="description" content="Trellis: a CSS framework from a cell and a ratio, in context.">
-<link rel="stylesheet" href="core.css?v=0.10.7">
+<link rel="stylesheet" href="core.css?v=0.10.8">
 <link rel="stylesheet" id="product-layer">
 <script>
   // Before first paint, so nothing flashes: the saved view settings, and one
@@ -512,13 +512,13 @@
   <section class="section cc-split" id="color">
     <header class="section-head stack">
       <p class="t-eyebrow">Color</p>
-      <h2 class="t-h4">A few seeds, and every color follows</h2>
-      <p class="t-sm muted">A product chooses seeds: one neutral, an accent, one per kind and one per status, each one color in its light form. Every role is a seed at a lightness, written with relative colors, so one declaration carries both themes, and the dark theme lifts each hue by <code>--color-lift</code>. The ink on a fill is computed from the fill. Everything else is a mix of a role into a ground.</p>
+      <h2 class="t-h4">One seed, and every color follows</h2>
+      <p class="t-sm muted">A product chooses one seed, the accent, in its light form. The other nine follow from it, the neutral, a seed for each kind and one for each status, and a product may set any of them in its place. Every role is a seed at a lightness, written with relative colors, so one declaration carries both themes, and the dark theme lifts each hue by <code>--color-lift</code>. The ink on a fill is computed from the fill. Everything else is a mix of a role into a ground.</p>
     </header>
     <div class="section-body stack">
       <div class="stack color-part pal" id="palette" data-pal>
         <h3 class="t-h6">Start from one color</h3>
-        <p class="t-sm muted">How few colors does a palette need? One. Choose an accent. A harmony places the five kinds around the wheel from it, the three statuses keep their meanings and take its strength, and the neutral takes a trace of a hue. Every role in both themes then follows as before. Each derived seed is held dark enough for its ink to read at 4.5:1. This is a study in the page, drawn with <code>math.js</code>: core still takes a seed for each.</p>
+        <p class="t-sm muted">How few colors does a palette need? One. Choose an accent. Core turns it around the wheel for the five kinds, a fifth apart; the three statuses keep their own hues and take its strength; the neutral takes a trace of its hue. Each takes the accent's lightness, kept clear of where ink flips from white to dark, so its ink reads at 4.5:1 at any hue, and no more chroma than sRGB holds there. Every role in both themes then follows as before. Even and The accent are core's own rule. The other harmonies and neutrals go past it, and are written out as seeds of their own.</p>
         <div class="pal-top">
           <div class="pal-wheel-box"><canvas class="pal-wheel" data-pal-wheel data-settle-skip role="img" aria-label="The hue wheel: the accent and the kinds placed from it. Drag the accent around the wheel."></canvas></div>
           <div class="stack pal-controls">
@@ -1531,12 +1531,12 @@
 
 <script src="settle.js?v=0.10.0"></script>
 <script src="presets.js?v=0.10.0"></script>
-<script src="math.js?v=0.10.5"></script>
+<script src="math.js?v=0.10.6"></script>
 <script src="experiments/solids.js?v=0.10.0"></script>
 <script src="experiments/vines.js?v=0.10.0"></script>
 <script src="specimen.js?v=0.10.8"></script>
 <script src="hero.js?v=0.10.5"></script>
-<script src="palette.js?v=0.10.5"></script>
+<script src="palette.js?v=0.10.6"></script>
 <script src="tuner.js?v=0.10.9"></script>
 </body>
 </html>
