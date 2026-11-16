@@ -504,6 +504,66 @@
 
   /* ---- Color ---------------------------------------------------------- */
   .color-part { --stack-gap: var(--sp-1); }
+  /* The palette study: one color in, every seed out. palette.js computes with
+     math.js and writes variables; everything drawn is sized in cells. */
+  .pal { --stack-gap: var(--sp-2); }
+  .pal-part { --stack-gap: var(--sp-1); }
+  .pal-top { display: grid; grid-template-columns: calc(var(--u) * 16) minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-2) var(--sp-4); align-items: start; }
+  @container page (width < 1100px) { .pal-top { grid-template-columns: calc(var(--u) * 16) minmax(0, 1fr); } }
+  @container page (width < 576px) { .pal-top { grid-template-columns: minmax(0, 1fr); } }
+  .pal-wheel-box { width: calc(var(--u) * 16); height: calc(var(--u) * 16); }
+  .pal-wheel { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; border-radius: var(--r-round); }
+  .pal-wheel:active { cursor: grabbing; }
+  .pal-controls { --stack-gap: var(--sp-1); }
+  .pal-out { font-family: var(--font-mono); color: var(--text-secondary); letter-spacing: 0; text-transform: none; }
+  /* A range input, on the cells: two cells tall, a half-cell track, a thumb a
+     cell and a half across. There is no slider in core yet. */
+  .pal-range {
+    -webkit-appearance: none; appearance: none;
+    display: block; width: 100%; height: var(--sp-2); margin: 0;
+    background: none; cursor: pointer;
+    --range-track: color-mix(in oklab, var(--text) 14%, transparent);
+  }
+  .pal-range::-webkit-slider-runnable-track { height: var(--sp-h); border-radius: var(--r-round); background: var(--range-fill, var(--range-track)); }
+  .pal-range::-moz-range-track { height: var(--sp-h); border-radius: var(--r-round); background: var(--range-fill, var(--range-track)); }
+  .pal-range::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: var(--sp-1h); height: var(--sp-1h); margin-top: calc(var(--sp-h) * -1);
+    border-radius: var(--r-round); border: calc(var(--line) * 2) solid var(--bg-raised);
+    background: var(--range-thumb, var(--text)); box-shadow: 0 0 0 var(--line) var(--border-strong);
+  }
+  .pal-range::-moz-range-thumb {
+    width: var(--sp-1); height: var(--sp-1);
+    border-radius: var(--r-round); border: calc(var(--line) * 2) solid var(--bg-raised);
+    background: var(--range-thumb, var(--text)); box-shadow: 0 0 0 var(--line) var(--border-strong);
+  }
+  .pal-range:focus-visible { outline: calc(var(--line) * 2) solid var(--focus); outline-offset: var(--line); border-radius: var(--r-h); }
+  /* The seeds: the one chosen, then what follows from it. */
+  .pal-seeds { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: var(--sp-1); }
+  @container page (width < 1100px) { .pal-seeds { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+  @container page (width < 576px) { .pal-seeds { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  /* Whole cells: a five-cell chip, half a cell, two one-cell lines, half a cell. */
+  .pal-seed { display: flex; flex-direction: column; min-width: 0; padding-bottom: var(--sp-h); }
+  .pal-chip {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    height: calc(var(--u) * 5); padding: var(--sp-h);
+    border-radius: var(--r-h);
+    background: var(--c); color: var(--i);
+    font-size: var(--fs-control-xs); font-family: var(--font-mono); line-height: 1;
+  }
+  .pal-chip b { font-family: var(--font-sans); font-size: var(--fs-control-lg); font-weight: var(--fw-strong); }
+  .pal-seed.cc-chosen .pal-chip { box-shadow: 0 0 0 calc(var(--line) * 2) var(--bg), 0 0 0 calc(var(--line) * 4) var(--c); }
+  .pal-seed-name { margin-top: var(--sp-h); font-size: var(--fs-control-xs); font-weight: var(--fw-label); color: var(--text-secondary); line-height: var(--sp-1); height: var(--sp-1); white-space: nowrap; overflow: clip; text-overflow: ellipsis; }
+  .pal-seed-val { font-size: var(--fs-control-xs); font-family: var(--font-mono); color: var(--text-tertiary); line-height: var(--sp-1); height: var(--sp-1); white-space: nowrap; overflow: clip; text-overflow: ellipsis; }
+  /* Each scheme is its own little page: palette.js writes every role on it. */
+  .pal-scheme { --stack-gap: var(--sp-1); }
+  .pal-grounds { display: flex; height: var(--sp-4); border-radius: var(--r-h); overflow: clip; box-shadow: inset 0 0 0 var(--line) var(--border); }
+  .pal-ground { flex: 1; display: flex; align-items: flex-end; padding: var(--sp-h); background: var(--c); min-width: 0; }
+  .pal-ground i { font-style: normal; font-size: var(--fs-control-xs); line-height: 1; color: var(--text-tertiary); white-space: nowrap; }
+  .pal-gradients, .pal-shadows { --cols: 3; }
+  @container page (width < 576px) { .pal-gradients, .pal-shadows { --cols: 1; } }
+  .pal-gradients .gradient-bar { height: var(--sp-3); }
+  .pal-shadow { height: var(--sp-6); margin: var(--sp-1) var(--sp-2) var(--sp-2); border-radius: var(--r-1); background: var(--bg-raised); box-shadow: var(--s); }
   .swatches { --cols: 5; --cols-gap: var(--sp-1); row-gap: var(--sp-2); }
   @container page (width < 1100px) { .swatches { --cols: 4; } }
   @container page (width < 720px) { .swatches { --cols: 2; } }

@@ -43,6 +43,21 @@
 
   var art = {};
   document.querySelectorAll('[data-art]').forEach(function (el) { art[el.dataset.art] = el; });
+
+  // Everything a frame needs from the page is measured here, once, and again
+  // only when the page changes (a resize, the theme, the cell). A frame itself
+  // reads no layout and no computed style: asking for either sixty times a
+  // second makes the browser lay the whole page out sixty times a second.
+  var G = { u: 12, dpr: 1, text: '#000', group: '#000', cellsW: 0, cellsH: 0, ctxMax: 14, threadW: 0, threadH: 0 }, dirty = true;
+  function measure() {
+    if (!dirty) return;
+    dirty = false;
+    G.u = cell(); G.dpr = window.devicePixelRatio || 1;
+    G.text = ink('--text'); G.group = ink('--kind-group');
+    if (art.cells) { G.cellsW = art.cells.clientWidth; G.cellsH = art.cells.clientHeight; }
+    if (art.context) G.ctxMax = Math.max(8, Math.min(14, Math.floor(art.context.clientWidth / G.u)));
+    if (thread) { G.threadW = thread.clientWidth; G.threadH = thread.clientHeight; buildThread(); }
+  }
   function readout(el, text) { var r = el.querySelector('[data-art-readout]'); if (r && r.textContent !== text) r.textContent = text; }
 
   // ---- Cells ----------------------------------------------------------------
@@ -53,18 +68,18 @@
   var SWEEPS = [['h', 0, 0, 13], ['v', 5, 0, 4], ['h', 5, 0, 11], ['v', 0, 0, 8], ['h', 4, 0, 11], ['v', 8, 0, 9], ['v', 3, 5, 9]];
   function drawCells(t) {
     var el = art.cells; if (!el) return;
-    var k = still.matches ? 1 : cellK(t).v, u = cell(), c = u * k;
+    var k = still.matches ? 1 : cellK(t).v, u = G.u, c = u * k;
     el.style.setProperty('--k', round(k, 4));
     readout(el, '1 cell = ' + round(c, 1) + 'px');
-    var cv = el.querySelector('canvas'), dpr = window.devicePixelRatio || 1;
-    var W = el.clientWidth, H = el.clientHeight;
+    var cv = el.querySelector('canvas'), dpr = G.dpr;
+    var W = G.cellsW, H = G.cellsH;
     if (cv.width !== Math.round(W * dpr)) cv.width = Math.round(W * dpr);
     if (cv.height !== Math.round(H * dpr)) cv.height = Math.round(H * dpr);
     var ctx = cv.getContext('2d');
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, cv.width, cv.height);
     // The card's grid, a device pixel a line, as the page's grid is drawn.
-    ctx.fillStyle = ink('--text'); ctx.globalAlpha = .1;
+    ctx.fillStyle = G.text; ctx.globalAlpha = .1;
     for (var x = 0; x <= W + .5; x += c) ctx.fillRect(Math.round(x * dpr), 0, 1, cv.height);
     for (var y = 0; y <= H + .5; y += c) ctx.fillRect(0, Math.round(y * dpr), cv.width, 1);
     if (still.matches) { ctx.globalAlpha = 1; return; }
@@ -73,7 +88,7 @@
     var p = ease(lt / 1.1), fade = 1 - clamp((lt - 1.5) / .9, 0, 1);
     if (fade > 0) {
       var a = s[2] * c, b = a + (s[3] - s[2]) * c * p, at = s[1] * c, lw = Math.max(1, Math.round(dpr));
-      ctx.fillStyle = ink('--kind-group'); ctx.globalAlpha = .9 * fade;
+      ctx.fillStyle = G.group; ctx.globalAlpha = .9 * fade;
       if (s[0] === 'h') ctx.fillRect(Math.round(a * dpr), Math.round(at * dpr), Math.round((b - a) * dpr), lw);
       else ctx.fillRect(Math.round(at * dpr), Math.round(a * dpr), lw, Math.round((b - a) * dpr));
     }
@@ -94,7 +109,7 @@
   var ctxW = null, ctxMax = 0;
   function drawContext(t) {
     var el = art.context; if (!el) return;
-    var max = Math.max(8, Math.min(14, Math.floor(el.clientWidth / cell())));
+    var max = G.ctxMax;
     if (max !== ctxMax) { ctxMax = max; ctxW = track([[max, 2.4, 1.5], [max - 6, 2.2, 1.2], [max - 3, 2.2, 1.2]]); }
     var w = still.matches ? max : ctxW(t).v;
     el.style.setProperty('--w', round(w, 3));
@@ -115,16 +130,14 @@
   // channel between them, and another a cell outside the row. The thread keeps
   // to those lines: up one channel, over a card, down the next, under the next
   // card, turning each corner on a radius of two cells. It draws, then fades.
-  var thread = document.getElementById('seed-thread'), pts = [], len = 0, threadKey = '';
+  var thread = document.getElementById('seed-thread'), pts = [], len = 0;
   function buildThread() {
-    var u = cell(), R = 2 * u, cr = thread.getBoundingClientRect();
+    var u = G.u, R = 2 * u, cr = thread.getBoundingClientRect();
     var cards = [].slice.call(wrap.querySelectorAll('.seeds > .card')).map(function (c) {
       var r = c.getBoundingClientRect();
       return { l: r.left - cr.left, t: r.top - cr.top, r: r.right - cr.left, b: r.bottom - cr.top };
     });
-    var key = u + '|' + cr.width + '|' + cr.height + '|' + cards.map(function (c) { return [c.l, c.t, c.r, c.b].join(','); }).join(';');
-    if (key === threadKey) return;
-    threadKey = key; pts = []; len = 0;
+    pts = []; len = 0;
     // The thread needs a cell either side of the cards: three cells of canvas.
     if (!cards.length || cards[0].l < 2 * u - 1) return;
     var rows = [];
@@ -170,15 +183,14 @@
   }
   function drawThread(t) {
     if (!thread) return;
-    var dpr = window.devicePixelRatio || 1, W = thread.clientWidth, H = thread.clientHeight;
-    if (thread.width !== Math.round(W * dpr)) { thread.width = Math.round(W * dpr); threadKey = ''; }
-    if (thread.height !== Math.round(H * dpr)) { thread.height = Math.round(H * dpr); threadKey = ''; }
-    buildThread();
+    var dpr = G.dpr, W = G.threadW, H = G.threadH;
+    if (thread.width !== Math.round(W * dpr)) thread.width = Math.round(W * dpr);
+    if (thread.height !== Math.round(H * dpr)) thread.height = Math.round(H * dpr);
     var ctx = thread.getContext('2d');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
     if (pts.length < 2) return;
-    var u = cell(), color = ink('--kind-group');
+    var u = G.u, color = G.group;
     ctx.lineWidth = 1.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = color; ctx.fillStyle = color;
     function stroke(from, to, alpha) {
       if (alpha <= .005) return;
@@ -214,17 +226,20 @@
   function frame(now) {
     if (!t0) t0 = now;
     var t = (now - t0) / 1000;
+    measure();
     drawCells(t); drawRatio(t + 1.2); drawContext(t + .6); drawExpression(t + 2); drawThread(t);
     raf = still.matches || !seen ? 0 : requestAnimationFrame(frame);
   }
   function play() { if (!raf) raf = requestAnimationFrame(frame); }
+  function changed() { dirty = true; play(); }
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(function (es) { seen = es[es.length - 1].isIntersecting; if (seen) play(); }, { rootMargin: '10% 0px' }).observe(wrap);
   }
-  if ('ResizeObserver' in window) new ResizeObserver(function () { threadKey = ''; play(); }).observe(wrap);
-  window.addEventListener('resize', function () { threadKey = ''; play(); });
-  if (still.addEventListener) still.addEventListener('change', play);
+  if ('ResizeObserver' in window) new ResizeObserver(changed).observe(wrap);
+  window.addEventListener('resize', changed);
+  if (still.addEventListener) still.addEventListener('change', changed);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(changed);
   // The theme and the cell change from the bar above: redraw at rest states too.
-  new MutationObserver(play).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'style', 'data-product'] });
+  new MutationObserver(changed).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'style', 'data-product'] });
   play();
 })();

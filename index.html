@@ -38,7 +38,7 @@
     if (s.fit === 'on' || s.fit === 'off') d.setAttribute('data-unit-fit', s.fit);
   })();
 </script>
-<link rel="stylesheet" href="specimen.css?v=0.10.4">
+<link rel="stylesheet" href="specimen.css?v=0.10.5">
 </head>
 <body>
 
@@ -397,6 +397,49 @@
       <p class="t-sm muted">A product chooses seeds: one neutral, an accent, one per kind and one per status, each one color in its light form. Every role is a seed at a lightness, written with relative colors, so one declaration carries both themes, and the dark theme lifts each hue by <code>--color-lift</code>. The ink on a fill is computed from the fill. Everything else is a mix of a role into a ground.</p>
     </header>
     <div class="section-body stack">
+      <div class="stack color-part pal" id="palette" data-pal>
+        <h3 class="t-h6">Start from one color</h3>
+        <p class="t-sm muted">How few colors does a palette need? One. Choose an accent. A harmony places the five kinds around the wheel from it, the three statuses keep their meanings and take its strength, and the neutral takes a trace of a hue. Every role in both themes then follows as before. Each derived seed is held dark enough for its ink to read at 4.5:1. This is a study in the page, drawn with <code>math.js</code>: core still takes a seed for each.</p>
+        <div class="pal-top">
+          <div class="pal-wheel-box"><canvas class="pal-wheel" data-pal-wheel data-settle-skip role="img" aria-label="The hue wheel: the accent and the kinds placed from it. Drag the accent around the wheel."></canvas></div>
+          <div class="stack pal-controls">
+            <div class="field"><label class="field-label t-label" for="pal-h">Hue <output class="pal-out" data-pal-out="h"></output></label><input class="pal-range" id="pal-h" type="range" min="0" max="360" step="1" data-pal-in="h"></div>
+            <div class="field"><label class="field-label t-label" for="pal-c">Strength <output class="pal-out" data-pal-out="c"></output></label><input class="pal-range" id="pal-c" type="range" min="0.02" max="0.24" step="0.002" data-pal-in="c"></div>
+            <div class="field"><label class="field-label t-label" for="pal-l">Lightness <output class="pal-out" data-pal-out="l"></output></label><input class="pal-range" id="pal-l" type="range" min="0.42" max="0.66" step="0.002" data-pal-in="l"></div>
+            <div class="field"><span class="field-label t-label" id="pal-harmony-l">Harmony</span><div class="tabs cc-seg" role="tablist" aria-labelledby="pal-harmony-l"><button class="tab" role="tab" aria-selected="true" type="button" data-pal-harmony="pentad">Even</button><button class="tab" role="tab" aria-selected="false" type="button" data-pal-harmony="analogous">Analogous</button><button class="tab" role="tab" aria-selected="false" type="button" data-pal-harmony="split">Split</button><button class="tab" role="tab" aria-selected="false" type="button" data-pal-harmony="square">Square</button></div></div>
+          </div>
+          <div class="stack pal-controls">
+            <div class="field"><span class="field-label t-label" id="pal-neutral-l">The neutral takes its hue from</span><div class="tabs cc-seg" role="tablist" aria-labelledby="pal-neutral-l"><button class="tab" role="tab" aria-selected="true" type="button" data-pal-neutral="accent">The accent</button><button class="tab" role="tab" aria-selected="false" type="button" data-pal-neutral="complement">Its opposite</button><button class="tab" role="tab" aria-selected="false" type="button" data-pal-neutral="warm">Warm gray</button></div></div>
+            <div class="field"><label class="field-label t-label" for="pal-tint">Tint <output class="pal-out" data-pal-out="tint"></output></label><input class="pal-range" id="pal-tint" type="range" min="0" max="0.03" step="0.001" data-pal-in="tint"></div>
+            <div class="field"><label class="field-label t-label" for="pal-lift">Lift in the dark <output class="pal-out" data-pal-out="lift"></output></label><input class="pal-range" id="pal-lift" type="range" min="0.08" max="0.3" step="0.005" data-pal-in="lift"></div>
+            <div class="field"><label class="field-label t-label" for="pal-turn">Gradient turn <output class="pal-out" data-pal-out="turn"></output></label><input class="pal-range" id="pal-turn" type="range" min="0" max="120" step="1" data-pal-in="turn"></div>
+          </div>
+        </div>
+        <div class="pal-seeds" data-pal-seeds></div>
+        <div class="cols schemes"><article class="card stack scheme pal-scheme cc-light" data-pal-scheme="light"><p class="t-label">Light</p><div class="pal-grounds"><span class="pal-ground" style="--c: var(--bg)"><i>page</i></span><span class="pal-ground" style="--c: var(--bg-raised)"><i>raised</i></span><span class="pal-ground" style="--c: var(--bg-raised-2)"><i>2</i></span><span class="pal-ground" style="--c: var(--bg-raised-3)"><i>3</i></span><span class="pal-ground" style="--c: var(--bg-sunken)"><i>sunken</i></span></div><p class="t-sm">Primary ink, <span class="u-text-secondary">secondary</span>, <span class="u-text-tertiary">tertiary</span>, and <a href="#color">a link</a> in the accent.</p><div class="cluster"><span class="tag cc-person"><span class="tag-label">Person</span></span><span class="tag cc-group"><span class="tag-label">Group</span></span><span class="tag cc-event"><span class="tag-label">Event</span></span><span class="tag cc-course"><span class="tag-label">Course</span></span><span class="tag"><span class="tag-label">Topic</span></span></div><div class="cluster"><span class="tag cc-solid cc-ok"><span class="tag-label">Open</span></span><span class="tag cc-solid cc-warn"><span class="tag-label">Waiting</span></span><span class="tag cc-solid cc-alert"><span class="tag-label">Closed</span></span><span class="button cc-primary cc-sm"><span class="button-label">Join</span></span><span class="button cc-sm"><span class="button-label">Later</span></span></div><p class="t-xs faint" data-pal-contrast></p></article><article class="card stack scheme pal-scheme cc-dark" data-pal-scheme="dark"><p class="t-label">Dark</p><div class="pal-grounds"><span class="pal-ground" style="--c: var(--bg)"><i>page</i></span><span class="pal-ground" style="--c: var(--bg-raised)"><i>raised</i></span><span class="pal-ground" style="--c: var(--bg-raised-2)"><i>2</i></span><span class="pal-ground" style="--c: var(--bg-raised-3)"><i>3</i></span><span class="pal-ground" style="--c: var(--bg-sunken)"><i>sunken</i></span></div><p class="t-sm">Primary ink, <span class="u-text-secondary">secondary</span>, <span class="u-text-tertiary">tertiary</span>, and <a href="#color">a link</a> in the accent.</p><div class="cluster"><span class="tag cc-person"><span class="tag-label">Person</span></span><span class="tag cc-group"><span class="tag-label">Group</span></span><span class="tag cc-event"><span class="tag-label">Event</span></span><span class="tag cc-course"><span class="tag-label">Course</span></span><span class="tag"><span class="tag-label">Topic</span></span></div><div class="cluster"><span class="tag cc-solid cc-ok"><span class="tag-label">Open</span></span><span class="tag cc-solid cc-warn"><span class="tag-label">Waiting</span></span><span class="tag cc-solid cc-alert"><span class="tag-label">Closed</span></span><span class="button cc-primary cc-sm"><span class="button-label">Join</span></span><span class="button cc-sm"><span class="button-label">Later</span></span></div><p class="t-xs faint" data-pal-contrast></p></article></div>
+        <div class="stack pal-part">
+          <h4 class="t-label">Gradients</h4>
+          <div class="cols pal-gradients">
+            <div class="stack"><div class="gradient-bar" data-pal-gradient="accent"></div><p class="t-xs faint">The accent, turning its hue.</p></div>
+            <div class="stack"><div class="gradient-bar" data-pal-gradient="harmony"></div><p class="t-xs faint">Through the kinds, in the order of the wheel.</p></div>
+            <div class="stack"><div class="gradient-bar" data-pal-gradient="ground"></div><p class="t-xs faint">The ground, from the page to the accent's own tint.</p></div>
+          </div>
+        </div>
+        <div class="stack pal-part">
+          <h4 class="t-label">Shadows</h4>
+          <div class="cols pal-shadows">
+            <div class="stack"><div class="pal-shadow" data-pal-shadow="1"></div><p class="t-xs faint">A quarter cell down, a cell of blur.</p></div>
+            <div class="stack"><div class="pal-shadow" data-pal-shadow="2"></div><p class="t-xs faint">Half a cell down, two cells of blur.</p></div>
+            <div class="stack"><div class="pal-shadow" data-pal-shadow="3"></div><p class="t-xs faint">A cell down, four cells of blur.</p></div>
+          </div>
+          <p class="t-xs faint">A shadow is the ink at a low share, tinted toward the accent's opposite, as light does: offsets and blurs are cells, doubling. Depth still never depends on one (rule 21).</p>
+        </div>
+        <div class="stack pal-part">
+          <h4 class="t-label">The seeds, for a product layer</h4>
+          <pre class="code cc-wrap settle" data-pal-export tabindex="0"></pre>
+          <div class="cluster"><button class="switch" type="button" role="switch" aria-checked="false" data-pal-whole><span class="switch-label">Apply to the whole page</span></button><button class="button cc-sm" type="button" data-pal-copy><span class="button-label">Copy</span></button><button class="button cc-sm" type="button" data-pal-reset><span class="button-label">Reset</span></button></div>
+        </div>
+      </div>
       <div class="stack color-part">
         <h3 class="t-h6">Seeds</h3>
         <div class="cols swatches">
@@ -1373,7 +1416,8 @@
 <script src="experiments/solids.js?v=0.10.0"></script>
 <script src="experiments/vines.js?v=0.10.0"></script>
 <script src="specimen.js?v=0.10.4"></script>
-<script src="hero.js?v=0.10.4"></script>
+<script src="hero.js?v=0.10.5"></script>
+<script src="palette.js?v=0.10.5"></script>
 <script src="tuner.js?v=0.10.0"></script>
 </body>
 </html>
