@@ -630,8 +630,10 @@
        Don't follow a cluster with less than a cell. */
     .cluster { height: calc-size(fit-content, max(var(--u), round(down, calc(size + var(--sp-h) - 0.5px), var(--u)))); }
     /* At the end of a surface nothing follows a cluster but the surface's own
-       padding, which half a cell of overflow would eat: there it rounds up. */
-    :is(.card, .modal-body, .member-tile) > .cluster:last-child { height: calc-size(fit-content, round(up, size, var(--u))); }
+       padding, which half a cell of overflow would eat: there it rounds up.
+       What it gains sits above its row, in the gap, so the space under it is
+       the surface's padding and no more (D92). */
+    :is(.card, .modal-body, .member-tile) > .cluster:last-child { height: calc-size(fit-content, round(up, size, var(--u))); align-content: end; }
     :where(.t-h1, .t-h2, .t-h3, .prose :is(h1, h2, h3)) { height: calc-size(fit-content, round(nearest, size, var(--u))); }
     .cap-center[data-trellis-wrap] { height: calc-size(fit-content, round(up, size, var(--u))); }
   }
@@ -2420,6 +2422,8 @@
      space as end margin: important, because their own padding is theirs. */
   @supports not (height: calc-size(fit-content, size)) {
     .cluster, .settle, .field, :where(.prose :is(pre, table, figure, details, dl, video, audio), .prose > :not(h1, h2, h3, h4, h5, h6, p, ul, ol, hr, blockquote, iframe, div:not([class]))) { margin-block-end: var(--settle, 0px) !important; }
+    /* A cluster at a surface's end takes it above its row, inside its box (D92). */
+    :is(.card, .modal-body, .member-tile) > .cluster:last-child { margin-block-end: 0 !important; padding-block-start: var(--settle, 0px) !important; }
   }
   .u-gap-h  { --cluster-gap: var(--sp-h); }
   .u-gap-1  { --stack-gap: var(--sp-1);  --cluster-gap: var(--sp-1); }

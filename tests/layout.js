@@ -105,6 +105,15 @@ const ready = require('./ready');
     expect(Math.abs(box(lane).width - 24 * u) < 1, `a lane is ${box(lane).width}px, not 24 cells`);
     // To the end: a small scroll snaps straight back to the first lane, as it should.
     if (board.scrollWidth > board.clientWidth) { board.scrollLeft = board.scrollWidth; expect(board.scrollLeft > 0, 'the board does not scroll'); board.scrollLeft = 0; }
+    // A cluster at a surface's end (D92): a dense card's last row is 2½-cell
+    // buttons in three cells, and the spare half cell is above them, so the
+    // space under them is the card's padding.
+    document.querySelectorAll('.cc-dense .card > .cluster:last-child').forEach(c => {
+      const b = c.querySelector('.button'); if (!b) return;
+      const card = c.parentElement, under = box(card).bottom - box(b).bottom - parseFloat(getComputedStyle(card).borderBottomWidth);
+      expect(Math.abs(under - parseFloat(getComputedStyle(card).paddingBottom)) < .75, `under a dense card's buttons is ${under.toFixed(2)}px, not its padding of ${getComputedStyle(card).paddingBottom}`);
+      expect(whole(box(c).height), `a card's last cluster is ${box(c).height.toFixed(2)}px, not whole cells`);
+    });
     // Slider (D91): a row of whole cells, two on a fine pointer and the touch
     // target on a coarse one; settle.js says how far along the thumb is, when
     // it moves, when a script asks, and for a slider added later.

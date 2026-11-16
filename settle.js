@@ -258,8 +258,11 @@
     var k = kindOf(el);
     var have = parseFloat(el.style.getPropertyValue('--settle')) || 0;
     // At the end of a surface a cluster rounds up, as core.css does: only the
-    // surface's padding follows it.
-    var nearest = (k & IS_CLUSTER) && !el.matches(CLUSTER_END);
+    // surface's padding follows it. What it gains is padding above its row,
+    // inside its box (D92), so it is taken off the height measured here.
+    var end = (k & IS_CLUSTER) && el.matches(CLUSTER_END);
+    if (end) h -= have;
+    var nearest = (k & IS_CLUSTER) && !end;
     var cells = nearest ? Math.max(1, Math.ceil(h / unit - 0.5 - 1e-3)) : Math.ceil(h / unit - 1e-3);
     var need = cells * unit - h;
     if (Math.abs(need - have) > 0.02) writes.push([el, '--settle', need]);
