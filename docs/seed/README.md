@@ -14,7 +14,7 @@ Above the pages sit the [principles](principles.md): the higher-order ideas, one
 
 | ID | Page | In one line |
 |---|---|---|
-| [S1](S1.md) | The cell | The measure of space. It halves and doubles, and follows the reader's text size up to 1.5 times. |
+| [S1](S1.md) | The cell | The measure of space. Space is counted in cells, and the cell follows the reader's text size up to 1.5 times. |
 | [S2](S2.md) | The ratio | The measure of type. Headings step down from H1 by one ratio, paragraphs step out from body by another. |
 | [S3](S3.md) | Response | Both measures answer to the screen: whole cells on a wide screen, fitted cells on a touch screen. |
 | [S4](S4.md) | Context | Both measures answer to the box they are in: type sizes come from the container, and a context changes variables. |

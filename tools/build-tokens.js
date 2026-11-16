@@ -23,7 +23,7 @@ function build(tokens) {
   const keys = group => (group === tokens.space || group === tokens.radius
     ? names(group).sort((a, b) => group[a].$value - group[b].$value) : names(group));
   const SP = Object.fromEntries(keys(tokens.space).map(k => [val(tokens.space, k), k]));
-  // A length in cells is an octave if there is one, and a product of the cell if not.
+  // A length in cells is a named count if there is one, and a product of the cell if not.
   const cells = c => (SP[c] ? `var(--sp-${SP[c]})` : `calc(var(--u) * ${n(c)})`);
   const out = [];
   const line = (name, value, note) => out.push(`    --${name}: ${value};${note ? `   /* ${note} */` : ''}`);
@@ -48,7 +48,7 @@ function build(tokens) {
     `clamp(${px(lo * cap)}, calc(${px(intercept * cap)} + ${n(slope * 100)}vw), ${px(hi * cap)}))`);
   line('frame-max-n', val(tokens.frame, 'max'));
 
-  head('Octaves: the cell halved and doubled');
+  head('Counts: space in cells. Any whole count is on the grid; these have names');
   for (const k of keys(tokens.space)) {
     const v = val(tokens.space, k);
     if (v === 0.25) {
@@ -59,7 +59,7 @@ function build(tokens) {
     else line(`sp-${k}`, `calc(var(--u) * ${n(v)})`, `${n(v)}u ${at12(v)}`);
   }
 
-  head('Sizes: named roles, each an octave or an octave plus a line');
+  head('Sizes: named roles, each in cells, or in cells plus a line');
   for (const k of keys(tokens.size.icon)) {
     const t = tokens.size.icon[k], lines = ((t.$extensions || {}).trellis || {}).lines;
     line(k === 'base' ? 'size-icon' : `size-icon-${k}`, lines ? `calc(${cells(t.$value)} + var(--line) * ${lines})` : cells(t.$value), at12(t.$value) + (lines ? ` + ${lines} lines` : ''));
@@ -70,7 +70,7 @@ function build(tokens) {
   head('Control type: fixed sizes, deliberately not fluid');
   for (const k of keys(tokens['control-type'])) line(k === 'base' ? 'fs-control' : `fs-control-${k}`, rem(val(tokens['control-type'], k)));
 
-  head('Radii: octaves too. Nested radius = outer radius − padding');
+  head('Radii: measured in cells too. Nested radius = outer radius − padding');
   for (const k of keys(tokens.radius)) line(`r-${k}`, k === 'round' ? val(tokens.radius, k) + 'px' : cells(val(tokens.radius, k)));
 
   head('Layers: one scale for everything that stacks');

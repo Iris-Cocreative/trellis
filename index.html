@@ -6,7 +6,7 @@
 <title>Trellis</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 18 18%27%3E%3Crect x=%27.5%27 y=%27.5%27 width=%2717%27 height=%2717%27 rx=%274.5%27 fill=%27%23101111%27 stroke=%27%236aa5f5%27/%3E%3Cline x1=%27.5%27 y1=%2712.5%27 x2=%2717.5%27 y2=%2712.5%27 stroke=%27%236aa5f5%27/%3E%3Ccircle cx=%276%27 cy=%276%27 r=%272%27 fill=%27%23f4f4f2%27/%3E%3C/svg%3E">
 <meta name="description" content="Trellis: a CSS framework from a cell and a ratio, in context.">
-<link rel="stylesheet" href="core.css?v=0.10.4">
+<link rel="stylesheet" href="core.css?v=0.10.6">
 <link rel="stylesheet" id="product-layer">
 <script>
   // Before first paint, so nothing flashes: the saved view settings, and one
@@ -38,7 +38,7 @@
     if (s.fit === 'on' || s.fit === 'off') d.setAttribute('data-unit-fit', s.fit);
   })();
 </script>
-<link rel="stylesheet" href="specimen.css?v=0.10.5">
+<link rel="stylesheet" href="specimen.css?v=0.10.6">
 </head>
 <body>
 
@@ -249,25 +249,49 @@
   <!-- ============================================================ UNIT -->
   <section class="section cc-split" id="unit">
     <header class="section-head stack">
-      <p class="t-eyebrow">The unit</p>
-      <h2 class="t-h4">It halves and doubles</h2>
-      <p class="t-sm muted">The unit is 0.75rem, so it follows the reader's font-size setting. On a wide screen it's rounded to an even pixel, so every half unit is whole. On a touch screen, in either orientation, it's fitted instead: an even number of cells spans the screen exactly, whole modules of four between the gutters, and the cell stretches by a percent or two to fill it. Lines never stretch: a hairline is one device pixel. Its target is 10px on a phone, rising to 12px on a wide screen. Step the cell in the bar above and every space, control, corner and avatar on this page follows.</p>
+      <p class="t-eyebrow">The cell</p>
+      <h2 class="t-h4">Space is counted in cells</h2>
+      <p class="t-sm muted">A space is a whole count of cells: one, two, three, five, as many as the design asks for. Halves and quarters live inside things. The cell's target is 10px on a phone, rising to 0.75rem (12px) on a wide screen, and it follows the reader's text size. On a wide screen it rounds to an even pixel, so half a cell is whole. On a touch screen it is fitted: an even number of cells spans the screen exactly. Step the cell in the bar above and every count here follows.</p>
     </header>
     <div class="section-body stack">
-      <div class="plate" tabindex="0">
-        <div class="ladder stack">
-          <div class="ladder-row"><span class="t-mono snap">line</span><span class="bar cc-hair" style="--w: var(--line)"></span><span class="t-sm muted">1px. Borders, rules, rings. The one value that never scales.</span></div>
-          <div class="ladder-rule"></div>
-          <div class="ladder-row"><span class="t-mono snap" data-px="0.25">¼u</span><span class="bar" style="--w: var(--sp-q)"></span><span class="t-sm muted">Insets, the gap inside a tag, an avatar's ring.</span></div>
-          <div class="ladder-row"><span class="t-mono snap" data-px="0.5">½u</span><span class="bar" style="--w: var(--sp-h)"></span><span class="t-sm muted">Half a cell. The space between things that belong together.</span></div>
-          <div class="ladder-row"><span class="t-mono snap" data-px="1">u</span><span class="bar" style="--w: var(--sp-1)"></span><span class="t-sm muted">Padding in dense places; the gap between groups.</span></div>
-          <div class="ladder-row"><span class="t-mono snap" data-px="1.5">1½u</span><span class="bar" style="--w: var(--sp-1h)"></span><span class="t-sm muted">Small controls and icons.</span></div>
-          <div class="ladder-row"><span class="t-mono snap" data-px="2">2u</span><span class="bar" style="--w: var(--sp-2)"></span><span class="t-sm muted">Card padding, standard controls, a body line.</span></div>
-          <div class="ladder-row"><span class="t-mono snap" data-px="3">3u</span><span class="bar" style="--w: var(--sp-3)"></span><span class="t-sm muted">Large controls; the space between blocks.</span></div>
-          <div class="ladder-row"><span class="t-mono snap" data-px="4">4u</span><span class="bar" style="--w: var(--sp-4)"></span><span class="t-sm muted">The nav; the space between groups of blocks.</span></div>
-          <div class="ladder-row"><span class="t-mono snap" data-px="6">6u</span><span class="bar" style="--w: var(--sp-6)"></span><span class="t-sm muted">Page padding.</span></div>
-          <div class="ladder-row"><span class="t-mono snap" data-px="8">8u</span><span class="bar" style="--w: var(--sp-8)"></span><span class="t-sm muted">Section rhythm.</span></div>
+      <!-- Every rod is drawn from real cells, one element each, on the page's
+           own lines: turn the grid on to check. -->
+      <div class="grid counts">
+        <div class="count stack"><span class="rod" aria-hidden="true"><i class="cc-part cc-q"></i></span><p class="t-label">¼ cell</p><span class="t-mono snap" data-px="0.25">--sp-q</span><p class="t-sm muted">Inside things only. The gap in a small tag, an avatar's ring.</p></div>
+        <div class="count stack"><span class="rod" aria-hidden="true"><i class="cc-part cc-h"></i></span><p class="t-label">½ cell</p><span class="t-mono snap" data-px="0.5">--sp-h</span><p class="t-sm muted">Inside things only. The space between parts that belong together.</p></div>
+        <div class="count stack"><span class="rod" aria-hidden="true"><i></i></span><p class="t-label">1 cell</p><span class="t-mono snap" data-px="1">--sp-1</span><p class="t-sm muted">Padding in dense places. The gap between groups.</p></div>
+        <div class="count stack"><span class="rod" aria-hidden="true"><i></i><i class="cc-part cc-h"></i></span><p class="t-label">1½ cells</p><span class="t-mono snap" data-px="1.5">--sp-1h</span><p class="t-sm muted">Small controls and icons.</p></div>
+        <div class="count stack"><span class="rod" aria-hidden="true"><i></i><i></i></span><p class="t-label">2 cells</p><span class="t-mono snap" data-px="2">--sp-2</span><p class="t-sm muted">Card padding, standard controls, a body line.</p></div>
+        <div class="count stack"><span class="rod" aria-hidden="true"><i></i><i></i><i></i></span><p class="t-label">3 cells</p><span class="t-mono snap" data-px="3">--sp-3</span><p class="t-sm muted">Large controls. The space between blocks.</p></div>
+        <div class="count stack"><span class="rod" aria-hidden="true"><i></i><i></i><i></i><i></i></span><p class="t-label">4 cells</p><span class="t-mono snap" data-px="4">--sp-4</span><p class="t-sm muted">The nav. A module of the frame. The space between groups of blocks.</p></div>
+        <div class="count stack"><span class="rod" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><p class="t-label">5 cells</p><span class="t-mono snap" data-px="5">--sp-5</span><p class="t-sm muted">A roomy gap, where four is tight and six is loose.</p></div>
+        <div class="count stack"><span class="rod" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><p class="t-label">6 cells</p><span class="t-mono snap" data-px="6">--sp-6</span><p class="t-sm muted">The padding of a page or a band.</p></div>
+        <div class="count stack"><span class="rod" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><p class="t-label">8 cells</p><span class="t-mono snap" data-px="8">--sp-8</span><p class="t-sm muted">A large avatar. A column of labels beside rows.</p></div>
+        <div class="count stack"><span class="rod" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><p class="t-label">12 cells</p><span class="t-mono snap" data-px="12">--sp-12</span><p class="t-sm muted">A sidebar. The space between the sections of this page.</p></div>
+        <div class="count stack"><span class="rod" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><p class="t-label">16 cells</p><span class="t-mono snap" data-px="16">--sp-16</span><p class="t-sm muted">A menu's width. A grid's track.</p></div>
+      </div>
+      <div class="stack count-group">
+        <h3 class="t-h6">Lines</h3>
+        <p class="t-sm muted">A line is not a count of cells. It is counted in pixels and never scales with the cell. It is a plane too, however thin: it takes the pixels just after its coordinate, so cells drawn with their edges need one line more than their count.</p>
+        <div class="grid counts">
+          <div class="count stack"><span class="stroke" aria-hidden="true"></span><p class="t-label">Line</p><span class="t-mono snap">--line</span><p class="t-sm muted">One CSS pixel, which is three device pixels on a 3× phone. Borders, rings, and the edges of the cells drawn here.</p></div>
+          <div class="count stack"><span class="stroke cc-hair" aria-hidden="true"></span><p class="t-label">Hair</p><span class="t-mono snap">--hair</span><p class="t-sm muted">One device pixel, the thinnest mark a screen can make. The grid on this page, and the rule between rows. On a 1× screen it is the same as a line.</p></div>
         </div>
+      </div>
+      <div class="stack count-group">
+        <h3 class="t-h6">Counts and ratios</h3>
+        <p class="t-sm muted">Counts measure space and a ratio measures type. They can agree. A product may favor a set of counts, as it chooses a ratio. Two sets, as examples:</p>
+        <div class="count-set stack">
+          <p class="t-label">Doubling</p>
+          <div class="rods" role="img" aria-label="Rods of 1, 2, 4, 8 and 16 cells"><span class="rod-of stack"><span class="rod" aria-hidden="true"><i></i></span><span class="t-mono snap" aria-hidden="true">1</span></span><span class="rod-of stack"><span class="rod" aria-hidden="true"><i></i><i></i></span><span class="t-mono snap" aria-hidden="true">2</span></span><span class="rod-of stack"><span class="rod" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="t-mono snap" aria-hidden="true">4</span></span><span class="rod-of stack"><span class="rod" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="t-mono snap" aria-hidden="true">8</span></span><span class="rod-of stack"><span class="rod" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="t-mono snap" aria-hidden="true">16</span></span></div>
+          <p class="t-sm muted">Each count is twice the one before.</p>
+        </div>
+        <div class="count-set stack">
+          <p class="t-label">Fibonacci</p>
+          <div class="rods" role="img" aria-label="Rods of 1, 2, 3, 5, 8 and 13 cells"><span class="rod-of stack"><span class="rod" aria-hidden="true"><i></i></span><span class="t-mono snap" aria-hidden="true">1</span></span><span class="rod-of stack"><span class="rod" aria-hidden="true"><i></i><i></i></span><span class="t-mono snap" aria-hidden="true">2</span></span><span class="rod-of stack"><span class="rod" aria-hidden="true"><i></i><i></i><i></i></span><span class="t-mono snap" aria-hidden="true">3</span></span><span class="rod-of stack"><span class="rod" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span class="t-mono snap" aria-hidden="true">5</span></span><span class="rod-of stack"><span class="rod" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="t-mono snap" aria-hidden="true">8</span></span><span class="rod-of stack"><span class="rod" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="t-mono snap" aria-hidden="true">13</span></span></div>
+          <p class="t-sm muted">Each count is the sum of the two before it, and each step comes closer to 1.618. It is the natural partner of a golden type ratio: margins, gaps and type then share one proportion.</p>
+        </div>
+        <p class="t-sm">Trellis enforces neither. Any whole count is on the grid. Much of the art is knowing when to count and when to use a ratio.</p>
       </div>
     </div>
   </section>
@@ -1332,7 +1356,7 @@
     <header class="section-head stack">
       <p class="t-eyebrow">Organic</p>
       <h2 class="t-h4">Grow from the grid</h2>
-      <p class="t-sm muted">A community map, a constellation of people, a field of work and a web of relationships don't sit on a grid, and shouldn't. Their rules branch from the same seed. Positions may be free or sit on a lattice; sizes, strokes and labels still come from the unit, the octaves and the cells. This lattice slopes 2:1, so every lattice point is also a cell corner: the square grid is included, not left behind.</p>
+      <p class="t-sm muted">A community map, a constellation of people, a field of work and a web of relationships don't sit on a grid, and shouldn't. Their rules branch from the same seed. Positions may be free or sit on a lattice; sizes, strokes and labels still come from the cell: counts of cells, and the line. This lattice slopes 2:1, so every lattice point is also a cell corner: the square grid is included, not left behind.</p>
     </header>
     <div class="section-body stack">
       <div class="plate organic" tabindex="0"><svg id="organic-art" role="img" aria-label="A constellation of groups and people placed on a 2:1 isometric lattice"></svg></div>
@@ -1340,7 +1364,7 @@
         <div class="master stack"><p class="t-label">Kandinsky</p><p class="t-sm">Point, line, plane. The dot and hairline, the edge of a cell, the surface. Every mark is one of the three.</p></div>
         <div class="master stack"><p class="t-label">Mondrian</p><p class="t-sm">A few proportions in asymmetric balance, with the empty field doing work. Columns favor 1:2 over equal halves; space is a component, not leftovers.</p></div>
         <div class="master stack"><p class="t-label">Frank Lloyd Wright</p><p class="t-sm">The unit system: plans drawn on one module, the whole grown from the part. Organic means part and whole share one principle. That's u.</p></div>
-        <div class="master stack"><p class="t-label">Buckminster Fuller</p><p class="t-sm">Triangulation and growth by frequency. The isometric lattice for maps and constellations; detail added by doubling, never by new numbers.</p></div>
+        <div class="master stack"><p class="t-label">Buckminster Fuller</p><p class="t-sm">Triangulation and growth by frequency. The isometric lattice for maps and constellations; detail added by more of the same part, never by new numbers.</p></div>
         <div class="master stack"><p class="t-label">Christopher Alexander</p><p class="t-sm">Levels of scale, strong centers, boundaries. Neighboring sizes differ by about two, every element has a center, and a boundary, like a ring or a border, is proportional to what it bounds.</p></div>
       </div>
     </div>
