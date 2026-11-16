@@ -21,6 +21,8 @@
 //   presets fade at the edges where there is more; glow under a touch; reveal
 //           while scrolling; swipe to the actions and back; detents open at
 //           half, rest full, close when dragged down; share names and runs
+//   floats  a closed popover float has no box and takes no clicks; it opens
+//           and closes to nothing again
 //   forced  in forced colors, current and selected marks, the switch, dots,
 //           badges and avatar rings still draw
 // Usage: node layout.js <url> [webkit] [WxH] [touch]
@@ -419,6 +421,30 @@ const ready = require('./ready');
     if (short.hasAttribute('data-trellis-wrap')) fails.push('a one-line cap-centered label is marked as wrapped');
     const s = short.getBoundingClientRect(), b = short.nextElementSibling.getBoundingClientRect();
     if (Math.abs((s.top + s.bottom) / 2 - (b.top + b.bottom) / 2) > .75) fails.push('a one-line cap-centered label does not center on its control');
+    host.remove();
+    return fails;
+  }));
+  // Floats as popovers: a closed one is gone, not laid out unseen where it
+  // takes clicks; it opens and fades, and closes to nothing again.
+  fails.push(...await page.evaluate(async () => {
+    const fails = [], wait = ms => new Promise(r => setTimeout(r, ms));
+    const host = document.createElement('div');
+    host.innerHTML = '<div class="float options-card" popover="manual" id="pop-card"><button class="options-card-item" type="button">A</button><button class="options-card-item" type="button">B</button></div>';
+    document.body.appendChild(host);
+    const f = document.getElementById('pop-card'), cs = () => getComputedStyle(f);
+    const gone = what => {
+      if (cs().display !== 'none') fails.push(`an options card ${what} is display: ${cs().display}, not none`);
+      const r = f.getBoundingClientRect();
+      if (r.width || r.height) fails.push(`an options card ${what} still has a box: ${r.width.toFixed(0)} by ${r.height.toFixed(0)}`);
+      if (f.contains(document.elementFromPoint(4, 4))) fails.push(`an options card ${what} takes clicks at the page's corner`);
+    };
+    gone('closed');
+    f.showPopover();
+    await Promise.all(f.getAnimations().map(a => a.finished)); await wait(50);
+    if (!f.matches(':popover-open') || cs().display !== 'flex' || cs().opacity !== '1') fails.push(`an open options card is display: ${cs().display}, opacity ${cs().opacity}`);
+    f.hidePopover();
+    await Promise.all(f.getAnimations().map(a => a.finished.catch(() => {}))); await wait(50);
+    gone('closed after opening');
     host.remove();
     return fails;
   }));

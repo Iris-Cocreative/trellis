@@ -1918,6 +1918,11 @@
     transition: opacity var(--dur-out) var(--ease-in), scale var(--dur-out) var(--ease-in),
                 display var(--dur-out) allow-discrete, overlay var(--dur-out) allow-discrete;
   }
+  /* Closed, it is gone. A primitive's own display (.options-card is a flex
+     column) is an author rule and beats the browser's rule for a closed
+     popover, so without this a closed float is laid out unseen and takes
+     clicks. The exit fade survives: display is in the transition above. */
+  .float[popover]:not(:popover-open) { display: none; }
   .float[popover]:popover-open { opacity: 1; scale: 1; transition-duration: var(--dur-in); transition-timing-function: var(--ease-out); }
   @starting-style { .float[popover]:popover-open { opacity: 0; scale: .98; } }
 
