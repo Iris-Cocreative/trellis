@@ -1777,8 +1777,9 @@
     --float-pad: var(--sp-h);
     --float-radius: var(--shape-float);
     --surface: var(--bg-raised);
+    --float-ink: var(--text);   /* a float on a ground of your own sets the two together: --surface and --float-ink */
     background: var(--surface);
-    color: var(--text);
+    color: var(--float-ink);
     outline: var(--line) solid var(--border);
     outline-offset: calc(var(--line) * -1);
     border: 0;
@@ -1798,20 +1799,24 @@
 
   .options-card {
     --float-pad: var(--sp-q);
+    --options-w: var(--sp-16);
+    --options-max-h: calc(var(--u) * 24);
+    --option-h: var(--size-control-md);   /* an item's height and type: a compact card sets the two together */
+    --option-fs: var(--fs-control);
     container-type: inline-size;   /* a surface with a set width is a container */
     display: flex; flex-direction: column;
-    width: var(--sp-16);
-    max-height: calc(var(--u) * 24);
+    width: var(--options-w);
+    max-height: var(--options-max-h);
     overflow-y: auto;
     overflow-x: clip;   /* it scrolls down, never sideways: a long label truncates instead */
   }
   .options-card-item {
     display: flex; align-items: center; gap: var(--sp-h);
     width: 100%;
-    min-height: var(--size-control-md);
+    min-height: var(--option-h, var(--size-control-md));   /* the fallbacks: an item outside a card */
     padding-inline: var(--sp-h);
     border-radius: max(var(--r-q), calc(var(--float-radius) - var(--float-pad)));
-    font-size: var(--fs-control);
+    font-size: var(--option-fs, var(--fs-control));
     text-align: start;
     color: var(--text); text-decoration: none;
   }
@@ -1827,7 +1832,7 @@
     --float-pad: var(--sp-q);
     --float-radius: var(--r-q);
     --surface: var(--text);
-    color: var(--bg);
+    --float-ink: var(--bg);
     outline-color: transparent;
     padding-inline: var(--sp-h);
     font-size: var(--fs-control-sm);
@@ -1955,8 +1960,12 @@
     --tab-radius: max(var(--r-q), calc(var(--shape-control) - var(--sp-q)));
     --tab-gap: var(--line);
     width: fit-content; max-width: 100%;
-    height: auto;   /* its tabs plus the padding: the large control height, until a tab outgrows its own */
-    padding: calc((var(--size-control-lg) - var(--size-control-sm)) / 2);
+    /* Its tabs plus the ring around them: the large control height, until a tab
+       outgrows its own. A compact one sets the two together, --tab-h and
+       --seg-pad: 1½ cells and ¼ make a control two cells tall. */
+    --seg-pad: calc((var(--size-control-lg) - var(--size-control-sm)) / 2);
+    height: auto;
+    padding: var(--seg-pad);
     border-radius: var(--shape-control);
     background: var(--bg-sunken);
     box-shadow: inset 0 0 0 var(--line) var(--border-subtle);

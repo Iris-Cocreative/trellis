@@ -95,3 +95,4 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D81](D81.md) | Depth is the ground | 2026-11-13 | accepted |
 | [D82](D82.md) | Interaction presets: CSS where it can, one optional file | 2026-11-13 | accepted |
 | [D83](D83.md) | Ink on every solid fill, and marks that survive forced colors | 2026-11-13 | accepted |
+| [D84](D84.md) | Measures a compact app needs are variables, not a second scale | 2026-11-15 | accepted |

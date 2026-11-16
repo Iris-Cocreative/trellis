@@ -6,6 +6,8 @@
 //   cover   its media reaches both screen edges and adds no sideways scroll
 //   board   it scrolls inside itself, and its lanes are the set width
 //   input   every height is whole cells; on touch, at least 44px and 16px type
+//   knobs   a segmented control's ring, an option's height and type and its
+//           card's width and cap, a float's ink: the default, and the variable
 //   wrap    a cap-centered label that wraps is marked, hangs from its row's
 //           top line and rounds up to whole cells; one that doesn't, centers
 //   modal   the real dialog: modal, page locked, on screen, a tray flush to
@@ -121,6 +123,30 @@ const ready = require('./ready');
     // Tabs
     const tabs = $('#demo-tabs');
     expect(whole(box(tabs).height), `tabs are ${box(tabs).height}px, not whole cells`);
+    // Measures a context can change (D84): each default is what was fixed, and each variable moves its own measure.
+    {
+      const host = document.createElement('div');
+      host.innerHTML = '<div class="tabs cc-seg" id="d84-seg-a"><button class="tab" type="button">A</button></div>'
+        + '<div class="tabs cc-seg" id="d84-seg-b" style="--tab-h: var(--size-control-xs); --seg-pad: var(--sp-q)"><button class="tab" type="button">A</button></div>'
+        + '<div class="float options-card" id="d84-opt-a"><button class="options-card-item" type="button">A</button></div>'
+        + '<div class="float options-card" id="d84-opt-b" style="--option-h: var(--size-control-sm); --option-fs: var(--fs-control-sm); --options-w: calc(var(--u) * 20); --options-max-h: calc(var(--u) * 30)"><button class="options-card-item" type="button">A</button></div>'
+        + '<div class="float tooltip" id="d84-tip-a">a</div><div class="float tooltip" id="d84-tip-b" style="--surface: var(--bg-raised); --float-ink: var(--text)">b</div>'
+        + '<i id="d84-q" style="display: block; width: var(--sp-q); color: var(--bg)"></i><i id="d84-t" style="color: var(--text)"></i>';
+      document.body.appendChild(host);
+      const el = id => document.getElementById('d84-' + id), cs = id => getComputedStyle(el(id)), near = (a, b) => Math.abs(a - b) < .05;
+      const item = id => el(id).querySelector('.options-card-item'), q = box(el('q')).width;
+      expect(near(box(el('seg-a')).height, u * 3), `a segmented control is ${box(el('seg-a')).height}px by default, not three cells`);
+      expect(near(parseFloat(cs('seg-a').paddingTop), u / 2), "a segmented control's ring is not half a cell by default");
+      expect(near(parseFloat(cs('seg-b').paddingTop), q), '--seg-pad does not set the ring of a segmented control');
+      expect(near(box(el('seg-b')).height, u * 1.5 + q * 2), `a segmented control with 1½-cell tabs and a ¼-cell ring is ${box(el('seg-b')).height}px`);
+      expect(near(box(item('opt-a')).height, u * 2.5) && near(box(el('opt-a')).width, u * 16), 'an options card is not 16 cells wide with 2½-cell items by default');
+      expect(near(box(item('opt-b')).height, u * 2), '--option-h does not set the height of an item');
+      expect(parseFloat(getComputedStyle(item('opt-b')).fontSize) < parseFloat(getComputedStyle(item('opt-a')).fontSize), '--option-fs does not set the type of an item');
+      expect(near(box(el('opt-b')).width, u * 20) && near(parseFloat(cs('opt-b').maxHeight), u * 30), "--options-w and --options-max-h do not set an options card's width and cap");
+      expect(cs('tip-a').color === cs('q').color, "a tooltip's ink is not the page by default");
+      expect(cs('tip-b').color === cs('t').color, '--float-ink does not set the ink of a float');
+      host.remove();
+    }
     // Skeleton: the placeholder settles to whole cells, so the real words won't move anything.
     document.querySelectorAll('.skeleton:not(.cc-block)').forEach(e => expect(whole(box(e).height), 'a skeleton line is not whole cells'));
     return fails;

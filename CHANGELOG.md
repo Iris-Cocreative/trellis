@@ -2,6 +2,11 @@
 
 Semver, staying 0.x until two apps ship on the same version. A 0.x minor may break, and must say so here. The public API is defined in the [README](README.md#public-api). Changing the rhythm model is a major entry, with a note in the specimen's history.
 
+## Unreleased
+
+**Added**
+- **Measures a compact app needs (D84):** three sets of variables, each defaulting to what was fixed, so nothing moves. `--seg-pad`, the ring around a segmented control's tabs: with `--tab-h` it sets the control's height (1½ cells and ¼ make two cells, where the default is three). On an options card, `--option-h` and `--option-fs`, an item's height and type, and `--options-w` and `--options-max-h`, the card's width and its cap. `--float-ink`, a float's ink, beside `--surface`: a tooltip sets the pair to the page's ink and the page, and a product that wants its tooltip on another ground sets both. Asked for by Agent Weaver's Sessions panel, where a 36px segmented control sat beside 24px controls and a menu's 14px type beside 12px rows. `tests/layout.js` checks each default and each variable.
+
 ## 0.10.0 · 2026-11-15
 
 **Knowledge base**
