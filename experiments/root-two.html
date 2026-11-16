@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trellis · root two, tried</title>
+<meta name="description" content="A trial for Trellis: root two as the default wide ratio, beside today's perfect fourth.">
+<link rel="stylesheet" href="../core.css">
+<style>
+  /* This page's own parts, from tokens alone. A variant is a set of knobs on a
+     box; the roles inside it are core's, sized by the browser. */
+  .trial { padding-block: var(--sp-6) var(--sp-8); display: grid; gap: var(--sp-8); grid-template-columns: minmax(0, 1fr); }
+  .trial-head { --stack-gap: var(--sp-2); max-inline-size: calc(var(--u) * 64); }
+  .trial-part { --stack-gap: var(--sp-3); }
+  .trial-intro { --stack-gap: var(--sp-1); max-inline-size: calc(var(--u) * 64); }
+
+  .v-root { --rh-max: 1.414; }
+  .v-root-h1 { --rh-max: 1.414; --h1-max: 4.5; }
+  /* A column can't be a wide space, so a ladder's two spaces are moved below
+     any width it can have, and every role holds at its wide end. */
+  .at-wide { --c-min: -2; --c-max: -1; }
+
+  .trial-cols { --cols: 3; --cols-gap: var(--sp-4); }
+  @container (width < 60rem) { .trial-cols { --cols: 1; } }
+  .ladder { --stack-gap: var(--sp-2); container-type: inline-size; min-inline-size: 0; }
+  .ladder-name { --stack-gap: var(--sp-1); }
+  .ladder-lines { --stack-gap: var(--sp-1); padding-block-start: var(--sp-2); overflow-x: clip; }
+  .ladder-line { display: grid; grid-template-columns: calc(var(--u) * 7) minmax(0, 1fr); column-gap: var(--sp-1); align-items: start; }
+  .ladder-line > p { margin-block-end: 0; min-inline-size: 0; overflow-wrap: anywhere; }
+  .ladder-line.cc-stands > .ladder-meta { align-self: end; }
+  .ladder-meta { font: 400 var(--fs-control-xs) / var(--sp-1) var(--font-mono); color: var(--text-tertiary); white-space: nowrap; }
+  .ladder-meta b { font-weight: 600; color: var(--text-secondary); }
+  .ladder-line[data-held] .ladder-meta, .ladder-line[data-held] .ladder-meta b { color: var(--text-faint); }
+
+  .sheet { --stack-gap: var(--sp-3); }
+  .sheet-name { --stack-gap: var(--sp-1); padding-block-start: var(--sp-2); }
+  /* A rule above a block, drawn as a background so it adds no height at any pixel ratio. */
+  .ladder-lines, .sheet-name { background: linear-gradient(var(--border), var(--border)) top / 100% var(--line) no-repeat; }
+  .sheet-page { --stack-gap: var(--sp-2); container-type: inline-size; }
+  .sheet-split { --split-a: 2; --split-b: 1; column-gap: var(--sp-4); row-gap: var(--sp-3); }
+  .sheet-text { --stack-gap: var(--sp-2); }
+</style>
+</head>
+<body>
+
+<main class="frame trial">
+  <header class="stack trial-head">
+    <p class="t-eyebrow u-text-secondary">A trial · <a href="../#ratio">back to the specimen</a></p>
+    <h1 class="t-h2">Root two as the wide ratio</h1>
+    <p class="t-body u-text-secondary">Core's headings step down from H1 by 1.333 in a wide space, a perfect fourth. This page tries 1.414, root two, where two steps double a size. Nothing in core has changed: each column below turns the knob on a box, and the type in it is the real roles, sized by the browser.</p>
+    <p class="t-body u-text-secondary">A wider step runs out of room sooner. H1 at 64 is 3.66 steps of root two above body's 18, so the fifth and sixth headings would come out under body text, and are held at its size. A larger H1 buys a step back: at 72 it is exactly four steps above body.</p>
+  </header>
+
+  <section class="stack trial-part" aria-labelledby="t-ladder">
+    <div class="stack trial-intro">
+      <h2 class="t-h4" id="t-ladder">The six headings, in a wide space</h2>
+      <p class="t-sm u-text-secondary">Every heading at its wide end, with body for scale. A size shown fainter is a heading the ratio would put under body text, held at body's size. In a narrow space all three are the same, since the narrow ratio stays 1.2: 36, 30, 25, 20.8, 17.4 and 16.</p>
+    </div>
+    <div class="cols trial-cols">
+      <div class="stack ladder" data-ladder>
+        <div class="stack ladder-name"><p class="t-label">Today</p><p class="t-sm u-text-secondary">A perfect fourth, 1.333. H1 at 64.</p></div>
+        <div class="stack ladder-lines at-wide" data-lines></div>
+        <p class="t-xs u-text-secondary" data-note></p>
+      </div>
+      <div class="stack ladder v-root" data-ladder>
+        <div class="stack ladder-name"><p class="t-label">Root two</p><p class="t-sm u-text-secondary">1.414. H1 at 64, as today.</p></div>
+        <div class="stack ladder-lines at-wide" data-lines></div>
+        <p class="t-xs u-text-secondary" data-note></p>
+      </div>
+      <div class="stack ladder v-root-h1" data-ladder>
+        <div class="stack ladder-name"><p class="t-label">Root two, a larger H1</p><p class="t-sm u-text-secondary">1.414. H1 at 72.</p></div>
+        <div class="stack ladder-lines at-wide" data-lines></div>
+        <p class="t-xs u-text-secondary" data-note></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="stack trial-part" aria-labelledby="t-page">
+    <div class="stack trial-intro">
+      <h2 class="t-h4" id="t-page">On a page</h2>
+      <p class="t-sm u-text-secondary">The same page three times, at this window's width, so each size is where it would really be between its two ends. All six headings are in it.</p>
+    </div>
+    <div class="stack sheet" data-sheet><div class="stack sheet-name"><p class="t-label">Today</p><p class="t-xs u-text-secondary" data-sizes></p></div><div class="stack sheet-page" data-page></div></div>
+    <div class="stack sheet v-root" data-sheet><div class="stack sheet-name"><p class="t-label">Root two</p><p class="t-xs u-text-secondary" data-sizes></p></div><div class="stack sheet-page" data-page></div></div>
+    <div class="stack sheet v-root-h1" data-sheet><div class="stack sheet-name"><p class="t-label">Root two, a larger H1</p><p class="t-xs u-text-secondary" data-sizes></p></div><div class="stack sheet-page" data-page></div></div>
+  </section>
+
+  <section class="stack trial-part" aria-labelledby="t-whole">
+    <div class="stack trial-intro">
+      <h2 class="t-h4" id="t-whole">The whole specimen under it</h2>
+      <p class="t-sm u-text-secondary">Each trial is also a layer of one or two knobs, so every section of the specimen can be read at root two.</p>
+    </div>
+    <div class="cluster">
+      <a class="button cc-primary" href="../?layer=experiments/root-two.css&amp;product=root-two"><span class="button-label">Specimen at root two</span></a>
+      <a class="button" href="../?layer=experiments/root-two-larger.css&amp;product=root-two-larger"><span class="button-label">Specimen at root two, H1 at 72</span></a>
+      <a class="button cc-ghost" href="../"><span class="button-label">Specimen today</span></a>
+    </div>
+  </section>
+</main>
+
+<template id="page">
+  <p class="t-eyebrow">Seed library</p>
+  <p class="t-h1">Garden Stewards Circle</p>
+  <p class="t-lg u-text-secondary">A living map of the people and groups tending the same ground.</p>
+  <div class="split sheet-split">
+    <div class="stack sheet-text">
+      <p class="t-h2">Upcoming gatherings</p>
+      <p class="t-body">Circles are small groups organized around a shared purpose. Each one has a wall for conversation, a library of resources and a room for live calls.</p>
+      <p class="t-h3">Work day at the trial bed</p>
+      <p class="t-body">Every other Monday, from nine. We weed, thin and take notes on what has come up true to type.</p>
+      <p class="t-h4">What to bring</p>
+      <p class="t-body">Gloves, a trowel and envelopes for seed. Labels are in the shed.</p>
+    </div>
+    <article class="card stack">
+      <p class="t-h5">Resources and gallery</p>
+      <p class="t-sm u-text-secondary">Intake forms, the germination log and photographs of each variety at harvest.</p>
+      <p class="t-h6">Members of this circle</p>
+      <p class="t-sm u-text-secondary">Twelve members, three of them stewards.</p>
+      <div class="cluster"><button class="button cc-primary" type="button"><span class="button-label">Join</span></button><button class="button" type="button"><span class="button-label">Later</span></button></div>
+    </article>
+  </div>
+</template>
+
+<script>
+  // Build each variant from one template, then read back what the browser made
+  // of it. Nothing here sets a size: the knobs are in the stylesheet above.
+  (function () {
+    var ROLES = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'body'];
+    var SAMPLE = { h1: 'Trellis', h2: 'Library', h3: 'Stewards', h4: 'Gatherings', h5: 'Resources and gallery', h6: 'Members of this circle', body: 'Circles are small groups.' };
+    var each = function (s, f) { Array.prototype.forEach.call(document.querySelectorAll(s), f); };
+    var num = function (v) { return String(+v.toFixed(1)); };
+    var words = function (l) { return l.length < 2 ? l.join('') : l.slice(0, -1).join(', ') + ' and ' + l[l.length - 1]; };
+    each('[data-lines]', function (list) {
+      ROLES.forEach(function (r) {
+        var line = document.createElement('div');
+        line.className = 'ladder-line' + (/^h[123]$/.test(r) ? ' cc-stands' : '');
+        line.dataset.role = r;
+        line.innerHTML = '<span class="ladder-meta"><b>' + r + '</b> <span data-size></span></span><p class="t-' + r + '">' + SAMPLE[r] + '</p>';
+        list.appendChild(line);
+      });
+    });
+    each('[data-page]', function (page) { page.appendChild(document.getElementById('page').content.cloneNode(true)); });
+
+    function say(el, text) { if (el.textContent !== text) el.textContent = text; }
+    function draw() {
+      var k = parseFloat(getComputedStyle(document.documentElement).fontSize) / 16;
+      each('[data-ladder]', function (box) {
+        var sizes = {}, held = [], lands = [];
+        Array.prototype.forEach.call(box.querySelectorAll('.ladder-line'), function (line) { sizes[line.dataset.role] = parseFloat(getComputedStyle(line.lastElementChild).fontSize) / k; });
+        // The step is H1 over H2. A heading whose own step is under body's size
+        // is held there; one whose step is body's size lands on it by the ratio.
+        var step = sizes.h1 / sizes.h2;
+        Array.prototype.forEach.call(box.querySelectorAll('.ladder-line'), function (line, n) {
+          var r = line.dataset.role, own = sizes.h1 / Math.pow(step, n);
+          say(line.querySelector('[data-size]'), num(sizes[r]));
+          if (r !== 'body' && own < sizes.body - .05) { line.dataset.held = ''; held.push(r); } else delete line.dataset.held;
+          if (r !== 'body' && Math.abs(own - sizes.body) <= .05) lands.push(r);
+        });
+        var steps = Math.log(sizes.h1 / sizes.body) / Math.log(step);
+        say(box.querySelector('[data-note]'), 'H1 is ' + String(+steps.toFixed(2)) + ' steps above body. ' +
+          (lands.length ? words(lands) + ' lands on body’s size by the ratio. ' : '') +
+          (held.length ? words(held) + (held.length > 1 ? ' are' : ' is') + ' held at body’s size.' : 'No heading is held.'));
+      });
+      each('[data-sheet]', function (sheet) {
+        var out = ROLES.map(function (r) {
+          var el = sheet.querySelector('[data-page] .t-' + r);
+          return r + ' ' + num(parseFloat(getComputedStyle(el).fontSize) / k);
+        });
+        say(sheet.querySelector('[data-sizes]'), 'At this width: ' + out.join(' · ') + '.');
+      });
+    }
+    var queued = false;
+    function queue() { if (queued) return; queued = true; requestAnimationFrame(function () { queued = false; draw(); }); }
+    draw();
+    addEventListener('resize', queue);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(queue);
+  })();
+</script>
+<script src="../settle.js"></script>
+</body>
+</html>

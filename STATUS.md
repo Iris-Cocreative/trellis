@@ -2,11 +2,11 @@
 
 Where each planned piece of Trellis stands. One line per item: its state, the commit that last changed it, and the test result that backs it. The plan itself lives outside this repository; this file mirrors its state for anyone, or any agent, reading the code alone. The [changelog](CHANGELOG.md) cites the same items by name.
 
-**Updated 2026-11-15.** Version 0.10.0.
+**Updated 2026-11-16.** Version 0.10.0.
 
 States: **idea** (named, not started) · **planning** (its condition is written) · **underway** · **done** (its condition holds and the evidence is recorded) · **integrated** (the owner has confirmed it) · **decided** (the owner has chosen; the work that follows is its own item).
 
-**The suite, last full run** (2026-11-15, 0.10.0). `contract.js` ok. Chromium 16/16 and WebKit 16/16 on the development laptop: `align.js` 0 off in 21 runs, `pixel.js` 0 of 176 card edges off, `perf.js` 0 of 5,000 blocks off and inside its budgets (first settle 1,453ms in WebKit). Before that (2026-11-12, then unreleased): `contract.js` ok. Chromium 16/16 and WebKit 15/16 on the development laptop: the miss is `perf.js` timing with the machine busy, 0 of 5,000 blocks off. `align.js` 0 off in 21 runs, four of them at 312% text. On 2026-11-11: Chromium 14/14 and WebKit 14/14, and green in CI; `align.js` 0 off in 17 runs, `pixel.js` 0 of 60 card edges off, `math.js` 320 checks ok in both engines, `perf.js` 0 of 5,000 blocks off their lines and inside its laptop budgets (first settle 1,219ms in WebKit). Earlier the same day, with the laptop busy, `perf.js` missed those budgets; the timings follow the machine's load.
+**The suite, last full run** (2026-11-16, unreleased, with the heading floor). `contract.js` ok. Chromium 16/16 and WebKit 15/16 on the development laptop: the miss is `perf.js` timing with the machine busy (first settle 1,740ms against 1,500ms), 0 of 5,000 blocks off. `align.js` 0 off in 21 runs, `math.js` 779 checks ok. On 2026-11-15, 0.10.0: `contract.js` ok. Chromium 16/16 and WebKit 16/16: `align.js` 0 off in 21 runs, `pixel.js` 0 of 176 card edges off, `perf.js` 0 of 5,000 blocks off and inside its budgets (first settle 1,453ms in WebKit). Before that (2026-11-12, then unreleased): `contract.js` ok. Chromium 16/16 and WebKit 15/16 on the development laptop: the miss is `perf.js` timing with the machine busy, 0 of 5,000 blocks off. `align.js` 0 off in 21 runs, four of them at 312% text. On 2026-11-11: Chromium 14/14 and WebKit 14/14, and green in CI; `align.js` 0 off in 17 runs, `pixel.js` 0 of 60 card edges off, `math.js` 320 checks ok in both engines, `perf.js` 0 of 5,000 blocks off their lines and inside its laptop budgets (first settle 1,219ms in WebKit). Earlier the same day, with the laptop busy, `perf.js` missed those budgets; the timings follow the machine's load.
 
 ## Before the first app
 
@@ -67,9 +67,9 @@ Everything here lands before the first app pins a version.
 | Theme name mapping | idea | | |
 | Person colors | decided | | No change for now. |
 | Headings never under body text | decided | | Yes: floor every heading at the body size, and H1 may be larger. At root two H5 and H6 fall under body text; at the golden ratio H4 does too. The work is its own item. |
-| Apply the heading floor | done | COMMIT | D89: each end of a heading is `max()` of its own step and body's, in `core.css` and `math.js` (`typeEnds()`, `typeSteps()`). At the defaults h6 is 16 to 18. `tests/math.js` reads every heading from the browser and fails one under body's. |
+| Apply the heading floor | done | `87eb93e` | D89: each end of a heading is `max()` of its own step and body's, in `core.css` and `math.js` (`typeEnds()`, `typeSteps()`). At the defaults h6 is 16 to 18. `tests/math.js` reads every heading from the browser and fails one under body's. |
 | The ratio model | planning | | The playground sets type from seven values; core sets twelve, and has seven more for lines and space. The two are set side by side on the specimen, under the playground: every knob, which the playground sets and which it works out, and every role's size in each. At core's defaults five of the twelve differ. Core is unchanged, and waits on the owner's choice: core may stay richer than the playground. |
-| A default ratio of root two | idea | | Waits on the floor and on the comparison above. |
+| A default ratio of root two | planning | | Tried, not applied: `experiments/root-two.html` sets today's 1.333 beside 1.414 with H1 at 64 and at 72, on the real roles, and two trial layers (`experiments/root-two.css`, `root-two-larger.css`) put the whole specimen under each. At 64, h5 and h6 are held at body's size in a wide space; at 72, h5 lands on it by the ratio and only h6 is held. Core's default is unchanged, and waits on the owner's eye and on the ratio model. |
 | Color from one seed | decided | | Yes: core derives the kinds, the statuses and the neutral from the accent, each still settable, as the specimen's study does. The work is its own item. |
 | A slider | idea | | The ratio playground and the color study each built a range input; core has none. |
 
