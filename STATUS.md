@@ -73,6 +73,7 @@ One chapter each. Rules, decisions and primitives will carry stable IDs that the
 | Item | State |
 |---|---|
 | Start Here | idea |
+| Agent skill | done: `skill/SKILL.md`, every class and variable it names checked against `core.css` |
 | The Seed | done |
 | Rules | done |
 | Decisions | done: every record has its alternatives |
@@ -137,7 +138,7 @@ The repository is public from the start. This is the release, and it waits until
 | Item | State |
 |---|---|
 | Possibilities demo | idea |
-| Lint rules | idea |
+| Lint rules | underway: `tools/check.js` counts raw values, restyled primitives, a product layer's non-knobs and inline styles, with a budget; alignment in a consuming app is not checked yet |
 | Contributing guide | idea |
 | About page | idea |
 | First release | planning |

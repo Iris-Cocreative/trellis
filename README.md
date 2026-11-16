@@ -18,6 +18,8 @@
 | `math.js` | The fit, the ratio, standing, hanging, the gutter parity rule and the palette as plain functions, in points and OKLCH, with no DOM. The specimen's math view runs on it, and a native screen uses it as is. |
 | `product.template.css` | Every knob, with its default and a line on what it does. Copy it to start a product layer. |
 | `package.json` | Exports `core.css`, `settle.js` and the template. The product layers aren't exports: products will own them. |
+| `tools/check.js` | The check for an app built on Trellis: it counts raw lengths, type, colors and radii, restyled primitives, variables in a product layer that are not knobs, and inline styles that are not variables, per file. With `--budget` it fails when a count rises. No browser, no dependencies. |
+| `skill/SKILL.md` | The same contract as instructions for a coding agent: which primitive answers which need, the five rules for an app's own CSS, what a raw number becomes, how to mock up, and how to start a project. Copy it to where your agent loads skills. |
 | `REACT.md` | The contract for a React app, with the pull request checklist. |
 | `CHANGELOG.md` | What changed in each version, and what broke. |
 | `experiments/solids.js` | An experiment: point, line, plane carried on into solid, motion and transformation (the cube turning a quarter at a time, and truncating through the cuboctahedron to the octahedron and back). Not part of the package. |
@@ -396,7 +398,7 @@ Today, in CI on every push and pull request ([`tests/README.md`](tests/README.md
 - **`perf.js`**: 5,000 blocks stay on their lines, inside the budgets.
 - **`contract.js`**: the Public API is complete, **products only turn knobs**, the template matches core.
 
-Intended, not built yet: **no raw values** outside the token layer, **every class registered** in the consuming app, and **inline styles set variables only**. Until those lints exist, the five rules are the review checklist in [`REACT.md`](REACT.md).
+In an app built on Trellis, `tools/check.js` counts what breaks three of the rules (**no raw values**, **products turn knobs**, **inline styles set variables only**) and a primitive redrawn from outside, and holds each file to a budget that only goes down. It reads source and never opens a browser, so **edges land on lines** and **every class registered** are still the review checklist in [`REACT.md`](REACT.md).
 
 ## Browser support
 
