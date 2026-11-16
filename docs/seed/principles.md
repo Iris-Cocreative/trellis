@@ -13,7 +13,7 @@ The higher-order ideas above the rules. Each principle is one sentence, with the
 | ID | Principle | Kept by |
 |---|---|---|
 | P1 | The cell is the only line: every edge and every block of text meets one line, the cell's. | R1, R2, R3, R4, R6 |
-| P2 | Closeness is a scale: space inside a thing is half or quarter cells, space between things is whole cells, and sizes step by doubling. | R6, [S1](S1.md) (the octaves) |
+| P2 | Closeness is counted: space inside a thing is half or quarter cells, and space between things is a whole count of cells. | R6, [S1](S1.md) (the counts) |
 | P3 | Density is a dial, not a redesign: making a surface denser or roomier turns a variable, never a new layout, and never costs a missed tap. | R14, R15, R18; `--u-scale` |
 | P4 | The reader's settings win: type follows the reader's text size all the way, the cell follows it up to its cap, and a control grows with its label. | R17, R18, R19, F2 |
 | P5 | One concept has one archetype: variants change the primitive's own variables instead of making a second primitive. | R13, R16 |

@@ -345,13 +345,47 @@
   .plp-plane::after { top: calc(var(--sp-6) - var(--line) / 2); }
   @container page (width < 576px) { .plp { --cols: 1; } }
 
-  /* Octave ladder */
-  .ladder { --stack-gap: 0; }
-  .ladder-row { display: grid; grid-template-columns: var(--sp-4) var(--sp-8) minmax(0, 1fr); column-gap: var(--sp-1); align-items: end; min-height: var(--sp-2); }
-  .ladder-row > .t-mono { font-size: .75rem; line-height: var(--sp-2); }
+  /* Counts. A rod is real cells, one element each, on the page's own lines:
+     tracks and gaps are whole cells. A cell is drawn as lines are planes: one
+     cell square plus the line that closes it, stepped back by that line, so
+     neighbors share an edge and N cells take N cells and one line. A part of
+     a cell (¼, ½) is drawn inside an empty one, so it has a whole to be part
+     of. */
+  .counts { --grid-min: calc(var(--u) * 17); --grid-gap: var(--sp-3) var(--sp-2); }
+  @container page (width >= 69rem) { .counts { --grid-min: calc(var(--u) * 20); --grid-gap: var(--sp-3); } }
+  .count, .count-set, .rod-of { --stack-gap: var(--sp-1); }
+  .count-group { --stack-gap: var(--sp-2); }
+  .count-group > p, .count-set > p { max-inline-size: calc(var(--u) * 43); }   /* two tracks and their gap */
+  .count .t-mono, .rod-of .t-mono { font-size: var(--fs-control-sm); line-height: var(--sp-2); color: var(--text-tertiary); }
+  .rod { display: flex; flex-wrap: wrap; --ink: var(--kind-group); --fill: color-mix(in oklab, var(--kind-group) 22%, transparent); }
+  .rod i {
+    flex: none; box-sizing: border-box; position: relative;
+    width: calc(var(--u) + var(--line)); height: calc(var(--u) + var(--line));
+    margin: 0 calc(var(--line) * -1) calc(var(--line) * -1) 0;
+    border: var(--line) solid var(--ink);
+    background: var(--fill);
+  }
+  .rod i.cc-part { border-color: var(--border-strong); background: none; }
+  .rod i.cc-part::before {
+    content: ""; position: absolute; box-sizing: border-box;
+    inset: calc(var(--line) * -1) auto calc(var(--line) * -1) calc(var(--line) * -1);
+    width: calc(var(--part) + var(--line));
+    border: var(--line) solid var(--ink);
+    background: var(--fill);
+  }
+  .rod i.cc-q { --part: var(--sp-q); }
+  .rod i.cc-h { --part: var(--sp-h); }
+  /* A set of rods, laid end to end a cell apart. */
+  .rods { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-1); }
+  .rod-of { flex: none; max-width: 100%; }
+  .rod-of > .t-mono { width: 0; white-space: nowrap; }   /* the number never widens its rod, at any text size */
+  /* Lines: a cell of room, and the line in the pixels just after its
+     coordinate. Neither is a cell, so neither takes the cells' color. */
+  .stroke { position: relative; height: var(--sp-1); width: min(100%, var(--sp-8)); }
+  .stroke::after { content: ""; position: absolute; inset: 100% 0 auto; height: var(--line); background: var(--text); }
+  .stroke.cc-hair::after { height: var(--hair); }
+
   .bar { height: var(--sp-1); width: var(--w); background: var(--kind-group); }
-  .bar.cc-hair { background: var(--text); }
-  .ladder-rule { height: var(--line); background: var(--border-subtle); margin-block: calc(var(--sp-h) - var(--line)) var(--sp-h); }
 
   /* Type list */
   .type-list { --stack-gap: var(--sp-2); }

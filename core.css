@@ -3,7 +3,7 @@
 
    Two seeds, and how they meet the world:
      the CELL      u = 0.75rem: a whole even pixel, or fitted to the screen.
-                   Space is counted in cells. It doubles and halves.
+                   Space is counted in cells: any whole count is on the grid.
      the RATIO     type sizes step by a ratio that itself grows with the space.
      RESPONSE      both answer to the screen: the cell fits it, the ratio opens
                    with it, and the reader's dial scales them together.
@@ -109,7 +109,7 @@
     --u-base: min(clamp(0.625rem, calc(0.5rem + 0.4vw), 0.75rem), clamp(15px, calc(12px + 0.4vw), 18px));
     --frame-max-n: 100;
 
-    /* Octaves: the cell halved and doubled */
+    /* Counts: space in cells. Any whole count is on the grid; these have names */
     --sp-q: max(var(--line), round(nearest, calc(var(--u) / 4), 1px));   /* ¼u 3 */
     --sp-q2: calc(var(--sp-h) - var(--sp-q));   /* the other quarter: ¼u + this is exactly ½u at any cell */
     --sp-h: calc(var(--u) / 2);   /* ½u 6 */
@@ -118,12 +118,14 @@
     --sp-2: calc(var(--u) * 2);   /* 2u 24 */
     --sp-3: calc(var(--u) * 3);   /* 3u 36 */
     --sp-4: calc(var(--u) * 4);   /* 4u 48 */
+    --sp-5: calc(var(--u) * 5);   /* 5u 60 */
     --sp-6: calc(var(--u) * 6);   /* 6u 72 */
     --sp-8: calc(var(--u) * 8);   /* 8u 96 */
     --sp-12: calc(var(--u) * 12);   /* 12u 144 */
+    --sp-13: calc(var(--u) * 13);   /* 13u 156 */
     --sp-16: calc(var(--u) * 16);   /* 16u 192 */
 
-    /* Sizes: named roles, each an octave or an octave plus a line */
+    /* Sizes: named roles, each in cells, or in cells plus a line */
     --size-icon-sm: var(--sp-1);   /* 12 */
     --size-icon: calc(var(--sp-1) + var(--line) * 2);   /* 12 + 2 lines */
     --size-icon-md: var(--sp-1h);   /* 18 */
@@ -142,7 +144,7 @@
     --fs-control: 0.875rem;
     --fs-control-lg: 1rem;
 
-    /* Radii: octaves too. Nested radius = outer radius − padding */
+    /* Radii: measured in cells too. Nested radius = outer radius − padding */
     --r-q: var(--sp-q);
     --r-h: var(--sp-h);
     --r-1: var(--sp-1);

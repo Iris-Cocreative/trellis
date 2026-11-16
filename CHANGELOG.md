@@ -5,6 +5,8 @@ Semver, staying 0.x until two apps ship on the same version. A 0.x minor may bre
 ## Unreleased
 
 **Changed**
+- **Space is counted in cells, not doubled (D86):** the framework no longer says the cell "halves and doubles", and the space tokens are named counts, not octaves. Any whole count of cells is on the grid; halves and quarters live inside things; a product may favor a set of counts that suits its ratio (the Fibonacci counts beside a golden type ratio, or doubling counts), and Trellis enforces no set. Words only: the README (The seed, The cell, Organic interfaces), the seed pages S1, S6, S7 and principle P2, the descriptions in `tokens.json` and the comments in `core.css`. No value changes.
+- **The specimen's cell section** is "Space is counted in cells". The ladder of bars is gone. Each count, from a quarter cell to sixteen, is drawn as that many real cells on the page's own lines, with its name, its token and its use. The two lines, `--line` and `--hair`, have their own group, and two sets a product might favor, doubling and Fibonacci, are drawn in cells.
 - **A mark is a straight line (D85):** a current `.shell-link` or `.outline-link` squares the two corners its accent edge touches, so the mark no longer curls into a rounded corner. In a top bar the mark is under the link and the bottom corners are square.
 - **The specimen:** the dot grid is one quiet level, a dot every second cell. The qualities are headed "What is Trellis?".
 
@@ -13,6 +15,7 @@ Semver, staying 0.x until two apps ship on the same version. A 0.x minor may bre
 - **The specimen's Measure took about 24 seconds to turn on** at 1440 wide: it added each of its 5,280 boxes to the page as it went, and every one forced a layout of the whole page. It builds them aside and adds them once: 0.4 seconds. The frame's own drawing stops once it has faded, where it redrew every frame while Measure was on.
 
 **Added**
+- **Two counts, `--sp-5` and `--sp-13` (D86):** five and thirteen cells (`tokens.json`: `space.5`, `space.13`), so the Fibonacci counts 1, 2, 3, 5, 8 and 13 are all tokens.
 - **Measures a compact app needs (D84):** three sets of variables, each defaulting to what was fixed, so nothing moves. `--seg-pad`, the ring around a segmented control's tabs: with `--tab-h` it sets the control's height (1½ cells and ¼ make two cells, where the default is three). On an options card, `--option-h` and `--option-fs`, an item's height and type, and `--options-w` and `--options-max-h`, the card's width and its cap. `--float-ink`, a float's ink, beside `--surface`: a tooltip sets the pair to the page's ink and the page, and a product that wants its tooltip on another ground sets both. Asked for by Agent Weaver's Sessions panel, where a 36px segmented control sat beside 24px controls and a menu's 14px type beside 12px rows. `tests/layout.js` checks each default and each variable.
 
 ## 0.10.0 · 2026-11-15
