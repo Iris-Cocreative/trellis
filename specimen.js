@@ -660,9 +660,9 @@
   var ROLES = {
     h1: ['anchor', 'h1', '', 0], h2: ['h1 ÷ r', 'h1', 'rh', -1], h3: ['h1 ÷ r²', 'h1', 'rh', -2],
     h4: ['h1 ÷ r³', 'h1', 'rh', -3], h5: ['h1 ÷ r⁴', 'h1', 'rh', -4], h6: ['h1 ÷ r⁵', 'h1', 'rh', -5],
-    xl: ['body × p²', 'body', 'rp', 2], lg: ['body × p', 'body', 'rp', 1], body: ['anchor', 'body', '', 0],
-    sm: ['body ÷ p', 'body', 'rp', -1], xs: ['body ÷ p²', 'body', 'rp', -2], label: ['anchor', 'label', '', 0],
-    eyebrow: ['label × p', 'label', 'rp', 1]
+    xl: ['body × s²', 'body', 'rp', 2], lg: ['body × s', 'body', 'rp', 1], body: ['anchor', 'body', '', 0],
+    sm: ['body ÷ s', 'body', 'rp', -1], xs: ['body ÷ s²', 'body', 'rp', -2], label: ['anchor', 'label', '', 0],
+    eyebrow: ['label × s', 'label', 'rp', 1]
   };
   var SUP = ['', '', '²', '³', '⁴', '⁵'];
   function f(v, d) { return String(+v.toFixed(d == null ? 3 : d)); }

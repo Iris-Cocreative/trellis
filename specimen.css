@@ -430,34 +430,113 @@
 
   .split > .stack { --stack-gap: var(--sp-1); }
 
-  /* ---- Tune it ------------------------------------------------------- */
-  .tune-controls { --cols: 2; }
-  @container page (width < 720px) { .tune-controls { --cols: 1; } }
-  .tune-knobs { --cols: 2; padding-block-start: var(--sp-2); row-gap: var(--sp-1); }
-  .tune-fine > summary { cursor: pointer; color: var(--text-secondary); }
-  .tune-plate { padding: var(--sp-1); }
-  .tune-graph { display: block; width: 100%; height: calc(var(--u) * 24); overflow: visible; }
-  .tune-axis { stroke: var(--border); stroke-width: 1; stroke-dasharray: 2 3; }
-  .tune-now { stroke: var(--accent); stroke-width: 1; }
-  .tune-curve { fill: none; stroke-width: 1.5; }
-  .tune-tick, .tune-role { fill: var(--text-tertiary); font: 400 10px var(--font-mono); }
-  /* The box answers to its own width: drag its corner. It clips, so its cards
-     don't step out (rule 5). */
-  .tune-box {
+  /* ---- The ratio: a playground ----------------------------------------- */
+  /* A slider. Core has no range primitive yet, so this one is the specimen's
+     own, from tokens alone: a track a quarter cell thick, a thumb a cell and a
+     half across, on a row two cells tall. --range-at is how far along the
+     thumb sits, from 0 to 1; tuner.js writes it. Nothing here moves by itself. */
+  .range {
+    --range-thumb: var(--sp-1h);
+    --range-track: var(--sp-q);
+    --range-ink: var(--text-secondary);
+    --range-rest: var(--border);
+    --range-at: 0;
+    --range-x: calc(var(--range-thumb) / 2 + (100% - var(--range-thumb)) * var(--range-at));
+    --range-fill: linear-gradient(to right, var(--range-ink) var(--range-x), var(--range-rest) 0);
+    -webkit-appearance: none; appearance: none;
+    display: block; inline-size: 100%; min-inline-size: 0; block-size: var(--sp-2);
+    margin: 0; padding: 0;
+    background: none; border-radius: var(--r-round);
+    cursor: pointer; touch-action: pan-y;
+  }
+  .range::-webkit-slider-runnable-track { block-size: var(--range-track); border-radius: var(--r-round); background: var(--range-fill); }
+  .range::-moz-range-track { block-size: var(--range-track); border-radius: var(--r-round); background: var(--range-fill); }
+  .range::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    box-sizing: border-box; inline-size: var(--range-thumb); block-size: var(--range-thumb);
+    margin-block-start: calc((var(--range-track) - var(--range-thumb)) / 2);
+    border: var(--line) solid var(--range-ink); border-radius: 50%;
+    background: var(--bg-raised);
+  }
+  .range::-moz-range-thumb {
+    box-sizing: border-box; inline-size: var(--range-thumb); block-size: var(--range-thumb);
+    border: var(--line) solid var(--range-ink); border-radius: 50%;
+    background: var(--bg-raised);
+  }
+  .range:is(:hover, :active, :focus-visible) { --range-ink: var(--text); }
+  @media (pointer: coarse) { .range { --range-thumb: var(--sp-2); block-size: var(--sp-3); } }
+  /* A slider that shows a zone: the stretch between two values, from
+     --range-a to --range-b, is inked and the rest is not. */
+  .range.cc-zone {
+    --range-xa: calc(var(--range-thumb) / 2 + (100% - var(--range-thumb)) * var(--range-a, 0));
+    --range-xb: calc(var(--range-thumb) / 2 + (100% - var(--range-thumb)) * var(--range-b, 1));
+    --range-fill: linear-gradient(to right, var(--range-rest) var(--range-xa), var(--range-ink) 0, var(--range-ink) var(--range-xb), var(--range-rest) 0);
+  }
+
+  /* Two ends, the wide space and the narrow one, each a column: what is set
+     or worked out there, then the real roles at that end. */
+  .play { --stack-gap: var(--sp-3); }
+  .play-ends { --split-a: 9; --split-b: 7; row-gap: var(--sp-4); }
+  .play-end, .play-between { --stack-gap: var(--sp-2); container-type: inline-size; min-inline-size: 0; }
+  /* A knob is a row: its name, its slider or its sum, its value. The rows of
+     a column share its three tracks, so sliders and values line up. */
+  .play-knobs {
+    display: grid; column-gap: var(--sp-1); row-gap: var(--sp-1);
+    grid-template-columns: minmax(calc(var(--u) * 5), max-content) minmax(0, 1fr) minmax(calc(var(--u) * 5), max-content);
+  }
+  .play-knob { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; align-items: center; min-block-size: var(--sp-2); }
+  .play-value, .play-sum { font-size: var(--fs-control-xs); min-inline-size: 0; }
+  .play-value { justify-self: end; color: var(--text); }
+  .play-sum { color: var(--text-tertiary); }
+  /* In a narrow column the slider takes a row of its own, under its name. */
+  @container (width < 20rem) {
+    .play-knobs { grid-template-columns: minmax(0, 1fr) max-content; }
+    .play-knob { grid-auto-rows: minmax(var(--sp-2), auto); }
+    .play-knob > :nth-child(2) { grid-area: 2 / 1 / auto / -1; }
+    .play-knob > :nth-child(3) { grid-area: 1 / 2; }
+  }
+  /* A sample box is a container, and its content box is the space its type
+     answers to. tuner.js writes the knobs onto it. It clips sideways, so a
+     word too long for it never widens the page. */
+  .play-box { container-type: inline-size; overflow-x: clip; }
+  /* The narrow end is real: a box as wide as the narrow space, or as its
+     column where that is narrower. The wide end can't be, in a column, so its
+     two spaces are moved below any width a box can have, and every role holds
+     at its wide size. A rule above each is as long as the box is wide, and
+     is given back in the padding, so the first line still starts on a line. */
+  .play-box:is(.cc-narrow, .cc-wide) { padding-block: calc(var(--sp-2) - var(--line)) var(--sp-1); border-block-start: var(--line) solid var(--border); }
+  .play-box.cc-narrow { inline-size: min(100%, var(--c-min) * 1rem); }
+  .play-box.cc-wide { --c-min: -2; --c-max: -1; }
+  /* The live box is as wide as it is asked to be, and the stage cuts off what
+     doesn't fit in the column. Its content stays within the stage, and its
+     cards don't step out (rule 5). */
+  .play-stage { overflow: clip; }
+  .play-box.cc-live {
     --outset: 0;
-    container-type: inline-size;
-    display: flex; flex-direction: column; gap: var(--sp-3);
-    min-width: calc(var(--u) * 20); max-width: 100%;
+    box-sizing: content-box;
+    inline-size: var(--play-w, calc(100% - var(--sp-4)));
     padding: var(--sp-2);
-    resize: horizontal; overflow: hidden;
     outline: var(--line) dashed var(--border-strong); outline-offset: calc(var(--line) * -1);
     border-radius: var(--shape-card);
   }
-  .tune-list { --stack-gap: var(--sp-1); }
-  .tune-line { display: grid; grid-template-columns: calc(var(--u) * 10) minmax(0, 1fr); column-gap: var(--sp-1); align-items: start; }
-  .tune-meta { font: 400 var(--fs-control-xs) / var(--sp-1) var(--font-mono); color: var(--text-tertiary); }
-  .tune-meta b { font-weight: 600; color: var(--text-secondary); }
-  @container (width < 30rem) { .tune-line { grid-template-columns: minmax(0, 1fr); } }
+  .play-page { --stack-gap: var(--sp-2); max-inline-size: var(--play-fit, 100%); }
+  .play-lines { --stack-gap: var(--sp-1); }
+  .play-line { display: grid; grid-template-columns: calc(var(--u) * 8) minmax(0, 1fr); column-gap: var(--sp-1); align-items: start; }
+  .play-line > p { min-inline-size: 0; margin-block-end: 0; overflow-wrap: anywhere; }
+  .play-line.cc-stands > .play-meta { align-self: end; }
+  .play-meta { position: relative; display: block; min-inline-size: 0; font: 400 var(--fs-control-xs) / var(--sp-1) var(--font-mono); color: var(--text-tertiary); white-space: nowrap; }
+  .play-meta b { font-weight: 600; color: var(--text-secondary); }
+  /* Each role's size again as a length, so the sizes read as a sequence. It
+     is drawn in the gap under its line and takes no room: a line of small type
+     is one cell tall, and its name must not make it taller. */
+  .play-meta .bar { position: absolute; inset: calc(100% + var(--sp-q)) auto auto 0; block-size: var(--sp-q); max-inline-size: 100%; }
+  /* Two flags, both quiet. A heading that has sunk under body text recedes;
+     a size under 11px takes the caution ink. The note under the box says which. */
+  .play-line[data-flag="under"] .play-meta b { color: var(--text-tertiary); }
+  .play-line[data-flag="under"] .bar { background: var(--border-strong); }
+  .play-line[data-flag="small"] .play-meta, .play-line[data-flag="small"] .play-meta b { color: var(--warn); }
+  .play-line[data-flag="small"] .bar { background: var(--warn); }
+  .type-ref { --stack-gap: var(--sp-1); }
 
   /* ---- Color ---------------------------------------------------------- */
   .color-part { --stack-gap: var(--sp-1); }
