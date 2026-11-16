@@ -2,7 +2,7 @@
 
 Semver, staying 0.x until two apps ship on the same version. A 0.x minor may break, and must say so here. The public API is defined in the [README](README.md#public-api). Changing the rhythm model is a major entry, with a note in the specimen's history.
 
-## Unreleased
+## 0.10.0 · 2026-11-15
 
 **Knowledge base**
 - **Knowledge base, Color and Theme:** `docs/color/`, seeds and roles, light and dark, kinds, contrast and forced colors (`C1` to `C5`). Two are questioned, with what is missing: C4 lists the inks the contract does not check, four of which miss the text floor (a solid tag's white label on person, group, ok and warn in light; a badge's white count on the alert in dark, 2.57:1), and C5 lists what forced colors removes (the current and selected marks, the switch, dots), measured in Chromium.

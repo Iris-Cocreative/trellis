@@ -1,4 +1,4 @@
-/* Trellis · runtime · v0.9
+/* Trellis · runtime · v0.10
    The foundation is CSS plus this one small script. Load it once with core.css;
    it is safe to import more than once and does nothing on a server.
 

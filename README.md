@@ -2,7 +2,7 @@
 
 > **Pre-1.0.** Trellis will break between minor versions, and says so in the [changelog](CHANGELOG.md). It is not yet taking contributions. Public is not a release: there is no npm package and no 1.0 until two apps run on it.
 
-**v0.9 · 2026-11-11.** A CSS framework from a cell and a ratio, in context: one design and development seed that a product reshapes by turning knobs, never by redrawing a primitive. From [Iris Cocreative](https://iriscocreative.com). Live specimen: <https://iris-cocreative.github.io/trellis/>. What changed: [CHANGELOG.md](CHANGELOG.md). License: [MIT](LICENSE).
+**v0.10 · 2026-11-15.** A CSS framework from a cell and a ratio, in context: one design and development seed that a product reshapes by turning knobs, never by redrawing a primitive. From [Iris Cocreative](https://iriscocreative.com). Live specimen: <https://iris-cocreative.github.io/trellis/>. What changed: [CHANGELOG.md](CHANGELOG.md). License: [MIT](LICENSE).
 
 **It is CSS plus a small runtime.** Load `core.css`, a product layer, and `settle.js`, once. Safari needs the script for rhythm; every browser needs it for exact device pixels and the fit width.
 

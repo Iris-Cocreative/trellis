@@ -2,11 +2,11 @@
 
 Where each planned piece of Trellis stands. One line per item: its state, the commit that last changed it, and the test result that backs it. The plan itself lives outside this repository; this file mirrors its state for anyone, or any agent, reading the code alone. The [changelog](CHANGELOG.md) cites the same items by name.
 
-**Updated 2026-11-13.** Version 0.9.0, with changes under Unreleased.
+**Updated 2026-11-15.** Version 0.10.0.
 
 States: **idea** (named, not started) · **planning** (its condition is written) · **underway** · **done** (its condition holds and the evidence is recorded) · **integrated** (the owner has confirmed it) · **decided** (the owner has chosen; the work that follows is its own item).
 
-**The suite, last full run** (2026-11-12, Unreleased). `contract.js` ok. Chromium 16/16 and WebKit 15/16 on the development laptop: the miss is `perf.js` timing with the machine busy, 0 of 5,000 blocks off. `align.js` 0 off in 21 runs, four of them at 312% text. On 2026-11-11: Chromium 14/14 and WebKit 14/14, and green in CI; `align.js` 0 off in 17 runs, `pixel.js` 0 of 60 card edges off, `math.js` 320 checks ok in both engines, `perf.js` 0 of 5,000 blocks off their lines and inside its laptop budgets (first settle 1,219ms in WebKit). Earlier the same day, with the laptop busy, `perf.js` missed those budgets; the timings follow the machine's load.
+**The suite, last full run** (2026-11-15, 0.10.0). `contract.js` ok. Chromium 16/16 and WebKit 16/16 on the development laptop: `align.js` 0 off in 21 runs, `pixel.js` 0 of 176 card edges off, `perf.js` 0 of 5,000 blocks off and inside its budgets (first settle 1,453ms in WebKit). Before that (2026-11-12, then unreleased): `contract.js` ok. Chromium 16/16 and WebKit 15/16 on the development laptop: the miss is `perf.js` timing with the machine busy, 0 of 5,000 blocks off. `align.js` 0 off in 21 runs, four of them at 312% text. On 2026-11-11: Chromium 14/14 and WebKit 14/14, and green in CI; `align.js` 0 off in 17 runs, `pixel.js` 0 of 60 card edges off, `math.js` 320 checks ok in both engines, `perf.js` 0 of 5,000 blocks off their lines and inside its laptop budgets (first settle 1,219ms in WebKit). Earlier the same day, with the laptop busy, `perf.js` missed those budgets; the timings follow the machine's load.
 
 ## Before the first app
 
@@ -39,28 +39,28 @@ Everything here lands before the first app pins a version.
 | Apply the cap on the cell | done | `bcc9438`, `f077de3` | The cap in the token source, the math module, core and rule 19; `align.js` at 312% in both engines and all three layers: 0 off, no sideways scroll. |
 | Read the cell from a probe | done | `379a604` | WebKit at 312% text now reports the cell Chromium does (18 wide, 15.09 on a phone); suite at baseline. |
 | Controls past the cap | done | `f077de3` | Button, icon button, tag, input, tab and badge are never shorter than their type; nothing moves at default sizes. |
-| Cap-centered text that wraps | idea | | A cap-centered label that wraps is not rounded to whole cells. |
+| Cap-centered text that wraps | done | `005048f` | `settle.js` marks a wrapped label and core hangs it from its row's top, in whole cells (D67); `tests/align.js` and `tests/layout.js`, both engines. |
 | Perf on a quiet laptop | idea | | Rerun `perf.js webkit` with nothing else running. |
 | Padding clears the corner | idea | | A floor on card padding from its radius. |
 | Private files off the site | idea | | Product layers kept where no public site serves them. |
 | Keyboard reach for scrollers | done | `3f5499c` | Rule 20: markup for rails and boards, `settle.js` for prose; `align.js` fails a scroller with no way in, 0 in all 21 runs. |
-| A relational palette | done | (this commit) | Seeds and derived roles; `contract.js` checks contrast for core and both examples in both themes; ink on the dark accent 7.7:1 (was 2.5:1). Suite at baseline. |
-| Heading space rounds up | done | (this commit) | Rounds up in `core.css` and `math.js`; `tests/math.js` checks every heading's margin, 368 checks in both engines. |
+| A relational palette | done | `4a78c5e` | Seeds and derived roles; `contract.js` checks contrast for core and both examples in both themes; ink on the dark accent 7.7:1 (was 2.5:1). Suite at baseline. |
+| Heading space rounds up | done | `5308e58` | Rounds up in `core.css` and `math.js`; `tests/math.js` checks every heading's margin, 368 checks in both engines. |
 | Primitive fixes from the specimen | underway | `08bea9a` | Dense cluster at a surface's end rounds up (D55). |
-| Modal dismiss on a drag | done | (this commit) | `settle.js` closes a modal only on a true backdrop click; `tests/layout.js` checks the drag and `data-trellis-stay`, both engines, wide and touch. |
-| Every control has every state | done | (this commit) | One state layer; hover and press measured on primary and ghost buttons, rows and tabs in both engines and both themes. |
-| A switch primitive | done | (this commit) | `.switch` in core, the specimen's bar and a demo; both engines. |
-| Design feedback on the specimen | underway | (this commit) | The first round of notes on the specimen: copy and styling changed, framework notes waiting on decisions. |
+| Modal dismiss on a drag | done | `8d9b88e` | `settle.js` closes a modal only on a true backdrop click; `tests/layout.js` checks the drag and `data-trellis-stay`, both engines, wide and touch. |
+| Every control has every state | done | `55f8915` | One state layer; hover and press measured on primary and ghost buttons, rows and tabs in both engines and both themes. |
+| A switch primitive | done | `dff93ee` | `.switch` in core, the specimen's bar and a demo; both engines. |
+| Design feedback on the specimen | underway | `be76f2e` | The first round of notes on the specimen: copy and styling changed, framework notes waiting on decisions. |
 
 ## Before the second app
 
 | Item | State | Commit | Evidence |
 |---|---|---|---|
 | Tailwind coexistence spike | idea | | `layers.js` proves the order against the shape of Tailwind's layers, not Tailwind itself. |
-| Navigation templates | done | (this commit) | `.shell.cc-top` with a menu tray, `.float.cc-anchor`, `.shell-foot`, `.outline`, `.crumbs`, `.skip-link` (D80); `tests/layout.js` in both engines, wide and touch. |
-| Stacked surfaces | done | (this commit) | Rule 21: a three-step ground ladder from nesting, concentric corners, `.list.cc-group`, a tray grabber, trays that step back, three at most (D81); `tests/layout.js` and `tests/contract.js`, both engines. |
-| Interaction presets | done | (this commit) | Fade and press in `core.css`; glow, reveal, detents, swipe and share in the optional `presets.js` (D82); `tests/layout.js` drives each, both engines, wide and touch. |
-| Ink on solid fills | done | (this commit) | Computed from the fill; three seeds a step darker; `tests/contract.js` holds every solid kind and status at 4.5:1 (D83). |
+| Navigation templates | done | `d3c54f7` | `.shell.cc-top` with a menu tray, `.float.cc-anchor`, `.shell-foot`, `.outline`, `.crumbs`, `.skip-link` (D80); `tests/layout.js` in both engines, wide and touch. |
+| Stacked surfaces | done | `3b7b59e` | Rule 21: a three-step ground ladder from nesting, concentric corners, `.list.cc-group`, a tray grabber, trays that step back, three at most (D81); `tests/layout.js` and `tests/contract.js`, both engines. |
+| Interaction presets | done | `6d91f7d` | Fade and press in `core.css`; glow, reveal, detents, swipe and share in the optional `presets.js` (D82); `tests/layout.js` drives each, both engines, wide and touch. |
+| Ink on solid fills | done | `9a48945` | Computed from the fill; three seeds a step darker; `tests/contract.js` holds every solid kind and status at 4.5:1 (D83). |
 | Floats that follow and close | idea | | |
 | Density at scale | idea | | |
 | Theme name mapping | idea | | |
@@ -107,14 +107,16 @@ Work that grows from the grid or leaves it, and still belongs to it.
 |---|---|
 | Review Outlines and mentions | idea |
 | Fold | idea |
-| Stacked surfaces | idea |
-| Interaction presets | idea |
+| Stacked surfaces | done: see Before the second app |
+| Interaction presets | done: see Before the second app |
 | Component and collection contract | idea |
-| Navigation templates | idea |
+| Navigation templates | done: see Before the second app |
 | Icons | idea |
 | Right-sized images | idea |
 | Calendar standards | idea |
-| Specimen as knob editor | idea |
+| Specimen as knob editor | done: `e252bf0`, the specimen's Tune it |
+| Figma conventions | planning: how a design file says cells, roles and layouts (variables, modes, auto layout, what Figma can't express) |
+| Figma template | idea: a library generated from `tokens.json` and `math.js`, components named by their class chains; a one-screen spike first |
 
 ## Platforms
 
