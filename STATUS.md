@@ -133,7 +133,7 @@ Work that grows from the grid or leaves it, and still belongs to it.
 | Calendar standards | idea |
 | Specimen as knob editor | done: `e252bf0`, the specimen's Tune it |
 | Figma conventions | decided: code is the source and the file is generated from it; variables named as the tokens, with Phone and Wide modes for the cell and Light and Dark for color; layouts as auto layout; what Figma can't express is written down before anyone designs in it. Mockups are HTML on `core.css` by default; Figma is for work that needs a designer's hands on it |
-| Figma template | underway: what Figma can't express is written down (`docs/figma/README.md`), and `tools/figma-variables.js` generates the variables (Space and Type at Phone and Wide, Color at Light and Dark) from `tokens.json` and `math.js`. Next, the one-screen spike in a Figma file, waiting on the owner's go-ahead to create the file. Due before the next product is rebuilt on Trellis |
+| Figma template | underway: what Figma can't express is written down (`docs/figma/README.md`), and `tools/figma-variables.js` generates the variables (Space and Type at Phone and Wide, Color at Light and Dark) from `tokens.json` and `math.js`. The one-screen spike is built in a Figma file of the team's: 92 variables in three collections with Phone, Wide, Light and Dark modes, scoped and with code syntax; 13 text styles bound to them; `button` (kind × size, 6 variants), `switch` and `options-card-item` as components bound to the variables; a settings card composed from them, shown Wide in light and Phone in dark by modes alone. Next: products as modes, the rest of the primitives, and regenerating the file from the script. Due before the next product is rebuilt on Trellis |
 
 ## Platforms
 

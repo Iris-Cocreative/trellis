@@ -9,7 +9,8 @@ The variables come from `tools/figma-variables.js`, which reads `tokens.json` th
 - **Every token, named as in the code.** `sp-1`, `size-control-lg`, `r-1h`, `text-secondary`, each with its code syntax set to `var(--…)`, so a handoff reads in the code's words.
 - **Two screens as modes.** Space and Type have a Phone mode (a 393pt screen, the cell 9.8125) and a Wide mode (1440pt, the cell 12). Color has Light and Dark.
 - **Auto layout bound to the counts.** Gaps and padding bind to the space variables, corners to the radius variables, heights to the control sizes.
-- **Type roles as text styles,** their size and line height bound to the Type variables, trimmed to the capitals and the baseline (Figma's vertical trim: cap height to baseline).
+- **Type roles as text styles,** their size and line height bound to the Type variables, trimmed to the capitals and the baseline (Figma's vertical trim: cap height to baseline). Trimmed, a descender hangs below its box, as it does in the code: a frame that holds text must not clip its content, or the last line loses its tails.
+- **Products and themes as modes on a frame.** A screen is built once; setting a frame's Space and Type to Phone and its Color to Dark shows it on a phone in the dark theme, with no second set of layers. The spike does exactly this.
 - **Components named by their class chains:** `button icon-button cc-ghost cc-sm` is a component set `button` with properties for the modifiers, so the name a designer picks is the class a builder writes.
 
 ## What it can't, and what stands in
@@ -26,6 +27,7 @@ The variables come from `tools/figma-variables.js`, which reads `tokens.json` th
 | **Context changes variables.** `.cc-dense`, a compact product's density knobs, a container that turns a column into a tab bar. | No inheritance of variables through a subtree, no container queries. | Variants for each context that changes a measure (dense, compact) and for the shell at each width; a product becomes a mode of a Product collection when the second one is generated. |
 | **An edge is a plane.** A card's edge is drawn on its grid line's pixels, one line wide, stepping out a cell. | A stroke is inside, outside or centered on a box, at any position. | Strokes inside, on boxes placed on the grid. The step out is drawn by placing the box a cell wider. Pixel precision is the code's. |
 | **Floats** sit in the top layer, are placed by their anchor, flip at the screen's edge and close when it scrolls away. | Overlays exist only in prototypes, placed by hand. | A float is drawn beside its anchor where it would open, and the flip is not shown. |
+| **A role's size is a class.** `.t-h1` sets a size and a line; there is no `--h1-size` to name. | Code syntax names a variable. | A role's two variables give `.t-h1` as their code syntax. |
 | **Touch targets.** On touch every control's hit area is 44pt, whatever it draws. | Not drawn. | Annotated once, in the file's cover notes; nobody needs to draw it per control. |
 | **Motion.** Durations and easings are tokens; the fade, the press, the trays. | Variables hold no durations; prototype transitions are set per connection. | The durations are listed as notes; a prototype sets them by hand, and is not the spec. |
 | **System fonts.** Core's default is the platform's sans. | A file needs a named family. | Inter stands in for the sans, Georgia for the serif. A product with its own fonts names them in its layer, and its mode carries them. |
