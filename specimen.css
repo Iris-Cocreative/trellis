@@ -209,109 +209,145 @@
   @container page (width < 576px) { .seeds { --cols: 1; } }
   .hero-more { color: var(--text-tertiary); max-width: calc(var(--u) * 56); }
   .seed { --stack-gap: var(--sp-1); }
-  .seed-value { font-family: var(--font-mono); font-weight: 400; letter-spacing: -.02em; }
   .seed .t-label { color: var(--text-tertiary); }
   .qualities { --stack-gap: var(--sp-2); }
   .qualities .rules { --cols: 5; }
   @container page (width < 1100px) { .qualities .rules { --cols: 2; } }
   @container page (width < 576px) { .qualities .rules { --cols: 1; } }
 
-  /* The seed cards draw what they name. Each drawing is six cells tall, so
-     the card's text after it stays on its lines; the motion runs once, from
-     nothing to its rest state, and readers who ask for less motion get the
-     rest state. */
-  .seed-art { position: relative; height: var(--sp-6); }
-  .sa-cells { display: flex; align-items: flex-end; gap: var(--sp-h); }
-  .sa-cells i {
-    flex: none; width: var(--s); height: var(--s);
-    background: color-mix(in oklab, var(--kind-group) 22%, transparent);
-    box-shadow: inset 0 0 0 var(--line) var(--kind-group);
-    transform-origin: 0 100%;
-    animation: sa-grow var(--dur-in-slow) var(--ease-out) both;
+  /* The seed cards draw what they name, inside themselves. Each drawing is ten
+     cells tall and clipped to its box, so the card's text after it stays on
+     its lines and nothing leaves the card. hero.js moves them by setting
+     variables (--k, --r, --w) and one attribute (data-look); the rest is here.
+     Readers who ask for less motion get each drawing at rest. */
+  .seed { position: relative; }
+  .seed-art { position: relative; height: calc(var(--u) * 10); overflow: clip; }
+  .sa-readout {
+    position: absolute; inset: auto 0 0 auto;
+    padding: var(--sp-q) var(--sp-h);
+    font-family: var(--font-mono); font-size: var(--fs-control-xs); line-height: 1;
+    color: var(--text-tertiary);
+    background: color-mix(in oklab, var(--bg-raised) 88%, transparent);
+    border-radius: var(--r-q);
   }
-  .sa-cells i:nth-child(1) { --s: var(--sp-q); animation-delay: 200ms; }
-  .sa-cells i:nth-child(2) { --s: var(--sp-h); animation-delay: 350ms; }
-  .sa-cells i:nth-child(3) { --s: var(--sp-1); animation-delay: 500ms; }
-  .sa-cells i:nth-child(4) { --s: var(--sp-2); animation-delay: 650ms; }
-  .sa-cells i:nth-child(5) { --s: var(--sp-4); animation-delay: 800ms; }
-  @keyframes sa-grow { from { transform: scale(0); opacity: 0; } }
 
-  .sa-ratio { display: flex; align-items: last baseline; gap: var(--sp-h); line-height: 1; }
-  .sa-ratio i {
-    font-style: normal; font-family: var(--font-heading); font-weight: var(--fw-heading);
-    font-size: calc(var(--sp-1) * 1.25 * pow(var(--rh-max), var(--n)));
-    color: color-mix(in oklab, var(--text) calc(40% + var(--n) * 15%), transparent);
-    animation: sa-rise var(--dur-in-slow) var(--ease-out) both;
-    animation-delay: calc(200ms + var(--n) * 150ms);
+  /* Cells: shapes made of whole cells, a cell apart, on the card's own grid.
+     --k is the cell's scale: at rest it is 1 and the grid is the page's. */
+  .sa-cells { --k: 1; --c: calc(var(--u) * var(--k)); }
+  .sa-lattice { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .sa-bento i {
+    position: absolute;
+    left: calc(var(--x) * var(--c)); top: calc(var(--y) * var(--c));
+    width: calc(var(--w) * var(--c)); height: calc(var(--h) * var(--c));
+    background: color-mix(in oklab, var(--kind-group) 20%, transparent);
+    box-shadow: inset 0 0 0 var(--line) color-mix(in oklab, var(--kind-group) 80%, transparent);
   }
-  @keyframes sa-rise { from { opacity: 0; translate: 0 var(--sp-h); } }
 
-  /* Three boxes, each a container: the bar inside each is sized from its own
-     box, so as the outer box narrows, every bar follows its box, not the page. */
-  .sa-context > .sa-box { height: 100%; animation: sa-breathe 9s var(--ease-out) 1s infinite; }
-  .sa-box {
-    container-type: inline-size;
-    display: flex; flex-direction: column; gap: var(--sp-q);
+  /* Ratios: four lines, each the one under it times --r. The bar beside a
+     line is as tall as its type, so the sequence can be seen as well as read. */
+  .sa-ratio { --r: 1.333; }
+  .sa-lines { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-q); }
+  .sa-lines span {
+    display: flex; align-items: center; gap: var(--sp-h);
+    font-family: var(--font-heading); font-weight: var(--fw-heading); letter-spacing: var(--heading-tracking);
+    font-size: calc(var(--u) * .7 * pow(var(--r), var(--n)));
+    line-height: 1.15; white-space: nowrap;
+    color: color-mix(in oklab, var(--text) calc(55% + var(--n) * 15%), transparent);
+  }
+  .sa-lines span::before {
+    content: ""; flex: none; width: var(--sp-q); height: 1em;
+    background: color-mix(in oklab, var(--kind-topic) calc(40% + var(--n) * 20%), transparent);
+  }
+
+  /* Context: a window that is a container, holding tiles that are containers.
+     As --w (its width in cells) changes, what is inside rearranges by
+     container query: the side becomes a bar, three across becomes a column,
+     and each tile turns its own contents. Its font size is one cell, so the
+     queries below are written in cells (em). */
+  .sa-context { --w: 14; --ctx: var(--kind-event); }
+  .sa-window {
+    container: sa-window / inline-size;
+    font-size: var(--u);
+    width: min(100%, calc(var(--u) * var(--w))); height: calc(var(--u) * 8);
+    display: grid; grid-template-rows: var(--sp-1) minmax(0, 1fr); gap: var(--sp-h);
     padding: var(--sp-h);
     border-radius: var(--r-h);
-    box-shadow: inset 0 0 0 var(--line) color-mix(in oklab, var(--kind-event) 60%, transparent);
+    box-shadow: inset 0 0 0 var(--line) color-mix(in oklab, var(--ctx) 60%, transparent);
   }
-  .sa-box .sa-box { flex: 1; width: 72%; }
-  .sa-box > i { display: block; flex: none; width: 60%; height: clamp(2px, 5cqi, var(--sp-1)); border-radius: var(--r-q); background: color-mix(in oklab, var(--kind-event) 55%, transparent); }
-  @keyframes sa-breathe { 0%, 30%, 100% { width: 100%; } 55%, 80% { width: 58%; } }
+  .sa-w-bar { display: flex; align-items: center; gap: var(--sp-q); }
+  .sa-w-bar i { width: var(--sp-h); height: var(--sp-h); border-radius: var(--r-round); background: color-mix(in oklab, var(--ctx) 45%, transparent); }
+  .sa-w-body { display: grid; grid-template-columns: calc(var(--u) * 3) minmax(0, 1fr); gap: var(--sp-h); min-height: 0; }
+  .sa-w-side { display: flex; flex-direction: column; gap: var(--sp-q); padding: var(--sp-q); border-radius: var(--r-q); background: color-mix(in oklab, var(--ctx) 12%, transparent); }
+  .sa-w-side i { flex: none; height: var(--sp-q); border-radius: var(--r-round); background: color-mix(in oklab, var(--ctx) 50%, transparent); }
+  .sa-w-side i:nth-child(2) { width: 70%; }
+  .sa-w-side i:nth-child(3) { width: 85%; }
+  .sa-w-main { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-h); min-height: 0; }
+  .sa-tile {
+    container-type: inline-size;
+    display: flex; flex-direction: column; gap: var(--sp-q);
+    padding: var(--sp-q); min-height: 0;
+    border-radius: var(--r-q);
+    box-shadow: inset 0 0 0 var(--line) color-mix(in oklab, var(--ctx) 50%, transparent);
+  }
+  .sa-tile b { display: block; flex: 1; min-height: 0; border-radius: var(--r-q); background: color-mix(in oklab, var(--ctx) 28%, transparent); }
+  .sa-tile i { display: block; flex: none; width: 70%; height: var(--sp-q); border-radius: var(--r-round); background: color-mix(in oklab, var(--ctx) 50%, transparent); }
+  @container sa-window (width < 12.5em) {
+    .sa-w-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+    .sa-w-side { flex-direction: row; align-items: center; }
+    .sa-w-side i { flex: 1; width: auto; }
+  }
+  @container sa-window (width < 9.5em) {
+    .sa-w-main { grid-template-columns: minmax(0, 1fr); }
+    .sa-tile { flex-direction: row; align-items: center; }
+    .sa-tile b { flex: none; width: 30%; height: 100%; }
+    .sa-tile i { flex: 1; width: auto; }
+    .sa-tile:first-child b { background: color-mix(in oklab, var(--ctx) 70%, transparent); }
+  }
 
-  .sa-expression .sa-quarry { --tag-radius: var(--r-q); }
-  .sa-expression .sa-quarry .tag-label { text-transform: uppercase; letter-spacing: .1em; }
-  .sa-expression .sa-almanac .tag-label { font-family: var(--font-serif); font-style: italic; }
+  /* Expression: one small piece of interface, the same markup throughout,
+     under three sets of knobs. The knobs are set here, on the drawing, so the
+     real .tag, .button and .avatar inside it follow them. */
+  .sa-expression { --mock-r: var(--r-1); --mock-font: var(--font-heading); --mock-style: normal; --mock-weight: var(--fw-heading); --mock-case: none; --mock-tracking: 0em; }
+  .sa-mock {
+    display: flex; flex-direction: column; gap: var(--sp-1);
+    padding: var(--sp-1);
+    border-radius: var(--mock-r);
+    background: var(--bg-raised-2);
+    box-shadow: inset 0 0 0 var(--line) var(--border-subtle);
+  }
+  .sa-mock-head { display: flex; align-items: center; gap: var(--sp-1); height: var(--sp-2); }
+  .sa-mock-title { display: flex; flex-direction: column; gap: var(--sp-q); min-width: 0; line-height: 1; }
+  .sa-mock-title b { font-family: var(--mock-font); font-style: var(--mock-style); font-weight: var(--mock-weight); font-size: var(--fs-control); text-transform: var(--mock-case); letter-spacing: var(--mock-tracking); white-space: nowrap; }
+  .sa-mock-title span { font-size: var(--fs-control-xs); color: var(--text-tertiary); white-space: nowrap; }
+  .sa-mock, .sa-mock .tag, .sa-mock .button, .sa-mock .avatar, .sa-mock-title b {
+    transition: border-radius var(--dur-in-slow) var(--ease-out), background-color var(--dur-in-slow) var(--ease-out), color var(--dur-in-slow) var(--ease-out), letter-spacing var(--dur-in-slow) var(--ease-out), box-shadow var(--dur-in-slow) var(--ease-out);
+  }
+  .sa-expression[data-look="quarry"] {
+    --mock-r: var(--r-q); --mock-weight: 700; --mock-case: uppercase; --mock-tracking: .06em;
+    --shape-control: var(--r-q); --tag-r-fixed: var(--r-q); --tag-r-ratio: 0; --tag-case: uppercase; --tag-tracking: .08em;
+    --accent: light-dark(oklch(.553 .174 38.4), oklch(.74 .15 38.4)); --accent-ink: light-dark(var(--white), oklch(.2 .04 38.4));
+  }
+  .sa-expression[data-look="almanac"] {
+    --mock-r: var(--r-2); --mock-font: var(--font-serif); --mock-style: italic; --mock-weight: 400;
+    --shape-control: var(--r-h);
+    --accent: light-dark(oklch(.48 .107 136.8), oklch(.76 .12 136.8)); --accent-ink: light-dark(var(--white), oklch(.2 .04 136.8));
+  }
+  .sa-looks { position: absolute; inset: auto 0 0 0; display: flex; align-items: center; gap: var(--sp-h); height: var(--sp-1); }
+  .sa-looks i { width: var(--sp-h); height: var(--sp-h); border-radius: var(--r-round); background: color-mix(in oklab, var(--text) 18%, transparent); transition: background-color var(--dur-in-slow) var(--ease-out); }
+  .sa-expression[data-look="neutral"] .sa-looks i:nth-child(1),
+  .sa-expression[data-look="quarry"] .sa-looks i:nth-child(2),
+  .sa-expression[data-look="almanac"] .sa-looks i:nth-child(3) { background: var(--accent); }
+  .sa-looks .sa-readout { background: none; padding-inline-end: 0; }
 
-  /* Drawings that leave their boxes. Each grows out of its own card, upward or
-     behind it, never sideways past the frame, and never into the flow: they are
-     positioned, so the card's text keeps its lines. */
-  .seed { position: relative; }
-  /* Cells: the series keeps going, a cell at a time, up and out of the card. */
-  .sa-trail { position: absolute; inset: auto auto 0 0; width: 0; height: 0; }
-  .sa-trail i {
-    position: absolute; left: calc(var(--x) * var(--u)); bottom: calc(var(--y) * var(--u));
-    width: var(--sp-1); height: var(--sp-1);
-    background: color-mix(in oklab, var(--kind-group) 22%, transparent);
-    box-shadow: inset 0 0 0 var(--line) var(--kind-group);
-    opacity: 0;
-    animation: sa-step 6s var(--ease-out) infinite;
-    animation-delay: calc(1.2s + var(--d) * 180ms);
+  /* The thread: a canvas in its own layer around the four cards (rule F3). It
+     reaches three cells past them where the gutter has the room. */
+  .seeds-wrap { position: relative; }
+  .seed-thread {
+    position: absolute; z-index: -1; pointer-events: none;
+    inset: calc(var(--u) * -3) calc(min(var(--u) * 3, var(--gutter) - var(--u)) * -1);
+    width: calc(100% + min(var(--u) * 3, var(--gutter) - var(--u)) * 2); height: calc(100% + var(--u) * 6);
   }
-  @keyframes sa-step { 0% { opacity: 0; transform: scale(0); } 8%, 60% { opacity: calc(1 - var(--d) * .1); transform: none; } 75%, 100% { opacity: 0; transform: translateY(calc(var(--sp-h) * -1)); } }
-  /* Ratios: the next step is too large for the card, and rises out of its top. */
-  .sa-big {
-    position: absolute; right: calc(var(--sp-1) * -1); bottom: 0;
-    font-family: var(--font-heading); font-weight: var(--fw-heading); line-height: 1;
-    font-size: calc(var(--sp-1) * 1.25 * pow(var(--rh-max), 8.5));
-    color: transparent; -webkit-text-stroke: var(--line) color-mix(in oklab, var(--kind-topic) 55%, transparent);
-    pointer-events: none;
-    animation: sa-loom 1.4s var(--ease-out) 1.2s both;
-  }
-  @keyframes sa-loom { from { opacity: 0; transform: translateY(var(--sp-2)) scale(.8); transform-origin: 100% 100%; } }
-  /* Context: the card is a box too. Its own outline breathes with the boxes inside. */
-  .sa-halo {
-    position: absolute; inset: calc(var(--sp-1) * -1);
-    border-radius: calc(var(--card-radius) + var(--sp-1));
-    box-shadow: inset 0 0 0 var(--line) color-mix(in oklab, var(--kind-event) 45%, transparent);
-    pointer-events: none;
-    animation: sa-halo 9s var(--ease-out) 1s infinite;
-  }
-  @keyframes sa-halo { 0%, 30%, 100% { inset: calc(var(--sp-1) * -1); opacity: .9; } 55%, 80% { inset: calc(var(--sp-h) * -1); opacity: .4; } }
-  /* Expression: the same card, dealt three ways behind itself. */
-  /* Clipped a cell out to the sides, so the dealt cards never reach past a
-     two-cell gutter and a phone never scrolls sideways. Upward is free. */
-  .sa-fan { position: absolute; inset: calc(var(--sp-6) * -1) calc(var(--sp-1) * -1) 0; overflow: clip; z-index: -1; pointer-events: none; }
-  .sa-fan i { position: absolute; inset: var(--sp-6) var(--sp-1) 0; border-radius: var(--card-radius); transform-origin: 50% 100%; animation: sa-deal 1.2s var(--ease-spring) 1.4s both; }
-  .sa-fan-a { --turn: -5deg; background: color-mix(in oklab, var(--kind-group) 12%, var(--bg)); box-shadow: inset 0 0 0 var(--line) color-mix(in oklab, var(--kind-group) 45%, transparent); transform: rotate(var(--turn)); }
-  .sa-fan-b { --turn: 4deg; background: color-mix(in oklab, var(--kind-event) 12%, var(--bg)); box-shadow: inset 0 0 0 var(--line) color-mix(in oklab, var(--kind-event) 45%, transparent); transform: rotate(var(--turn)); }
-  .sa-fan-c { --turn: 9deg; background: color-mix(in oklab, var(--kind-person) 12%, var(--bg)); box-shadow: inset 0 0 0 var(--line) color-mix(in oklab, var(--kind-person) 45%, transparent); transform: rotate(var(--turn)); }
-  @keyframes sa-deal { from { transform: rotate(0deg); } }
-  @media (prefers-reduced-motion: reduce) {
-    .seed-art, .seed-art *, .sa-halo, .sa-fan i { animation: none !important; }
-    .sa-trail i { opacity: .5; }
-  }
+  .rule-icon { --icon-size: var(--size-icon-lg); --icon-stroke: 1.25; color: var(--kind-group); }
 
   /* ---- Plates: surfaces for diagrams ------------------------------------ */
   /* Plates scroll sideways on a phone, so, like every scrolling surface,

@@ -146,51 +146,53 @@
       </hgroup>
     </div>
     <p class="t-lg hero-lead">Trellis helps you grow a design system into a product. Choose a few things with care, and let everything else follow. It holds your core choices and lets them be expressed many ways without losing their harmony.</p>
-    <div class="cols seeds">
-      <article class="card seed stack">
-        <p class="t-label">Cells</p>
-        <div class="seed-art sa-cells" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><span class="sa-trail"><i style="--x: 9; --y: 3; --d: 0"></i><i style="--x: 10; --y: 5; --d: 1"></i><i style="--x: 11; --y: 7; --d: 2"></i><i style="--x: 12; --y: 9; --d: 3"></i><i style="--x: 13; --y: 11; --d: 4"></i><i style="--x: 14; --y: 13; --d: 5"></i></span></div>
-        <p class="t-h3 seed-value" id="seed-u">12px</p>
-        <p class="t-sm muted">The measure of space. Every gap, inset, control, corner and avatar is made of cells, and the cell answers to the screen and to the reader's text size.</p>
-        <p class="t-xs faint" id="seed-u-note">100 cells across this frame.</p>
-      </article>
-      <article class="card seed stack">
-        <p class="t-label">Ratios</p>
-        <div class="seed-art sa-ratio" aria-hidden="true"><i style="--n: 0">A</i><i style="--n: 1">A</i><i style="--n: 2">A</i><i style="--n: 3">A</i><i style="--n: 4">A</i><b class="sa-big">A</b></div>
-        <p class="t-h3 seed-value" id="seed-r">1.33</p>
-        <p class="t-sm muted">The measure of type. Headings step down from H1 by one ratio, paragraphs step out from body by another, and both open as the space grows.</p>
-        <p class="t-xs faint" id="seed-r-note">The ratio between H1 and H2, here.</p>
-      </article>
-      <article class="card seed stack">
-        <span class="sa-halo" aria-hidden="true"></span>
-        <p class="t-label">Context</p>
-        <div class="seed-art sa-context" aria-hidden="true"><div class="sa-box"><i></i><div class="sa-box"><i></i><div class="sa-box"><i></i></div></div></div></div>
-        <p class="t-h3 seed-value" id="seed-ctx">816px</p>
-        <p class="t-sm muted">Everything answers to the box it's in. Type is sized from its container, not the window, so a part nests at any depth and still looks like itself.</p>
-        <p class="t-xs faint" id="seed-ctx-note">The width of this card.</p>
-      </article>
-      <article class="card seed stack">
-        <span class="sa-fan" aria-hidden="true"><i class="sa-fan-a"></i><i class="sa-fan-b"></i><i class="sa-fan-c"></i></span>
-        <p class="t-label">Expression</p>
-        <div class="cluster sa-expression" aria-hidden="true"><span class="tag cc-group"><span class="tag-label">Neutral</span></span><span class="tag cc-event sa-quarry"><span class="tag-label">Quarry</span></span><span class="tag cc-person sa-almanac"><span class="tag-label">Almanac</span></span></div>
-        <p class="t-h3 seed-value">One seed</p>
-        <p class="t-sm muted">Many products. A product layer turns knobs (fonts, ratios, palette, shape, density) and never redraws a primitive, so every product stays in harmony with the seed.</p>
-        <p class="t-xs faint">Three layers ship as examples.</p>
-      </article>
+    <!-- The four pillars. Each card draws what it names, inside itself. A thread
+         runs the channels between them: the two-cell gap has a cell line down
+         its middle, and the thread keeps to it. hero.js draws all of it. -->
+    <div class="seeds-wrap">
+      <canvas class="seed-thread" id="seed-thread" aria-hidden="true" data-settle-skip></canvas>
+      <div class="cols seeds">
+        <article class="card seed stack">
+          <p class="t-label">Cells</p>
+          <div class="seed-art sa-cells" aria-hidden="true" data-art="cells"><canvas class="sa-lattice" data-settle-skip></canvas><div class="sa-bento"><i style="--x: 0; --y: 0; --w: 4; --h: 4"></i><i style="--x: 5; --y: 0; --w: 2; --h: 1"></i><i style="--x: 5; --y: 2; --w: 2; --h: 2"></i><i style="--x: 8; --y: 0; --w: 3; --h: 4"></i><i style="--x: 12; --y: 0; --w: 1; --h: 2"></i><i style="--x: 0; --y: 5; --w: 2; --h: 3"></i><i style="--x: 3; --y: 5; --w: 5; --h: 2"></i><i style="--x: 9; --y: 5; --w: 2; --h: 2"></i><i style="--x: 12; --y: 3; --w: 1; --h: 4"></i><i style="--x: 3; --y: 8; --w: 1; --h: 1"></i><i style="--x: 5; --y: 8; --w: 3; --h: 1"></i><i style="--x: 9; --y: 8; --w: 4; --h: 1"></i></div><span class="sa-readout" data-art-readout>1 cell</span></div>
+          <p class="t-h5 seed-title">Space is counted</p>
+          <p class="t-sm muted">One measure for every gap, inset, control and corner. A thing is so many cells wide, and its neighbor so many cells away. Change the cell and everything made of cells follows: the screen sets it, and so does the reader.</p>
+          <p class="t-xs faint" id="seed-u-note">100 cells across this frame.</p>
+        </article>
+        <article class="card seed stack">
+          <p class="t-label">Ratios</p>
+          <div class="seed-art sa-ratio" aria-hidden="true" data-art="ratio"><div class="sa-lines"><span style="--n: 3">Harmony</span><span style="--n: 2">in sequence,</span><span style="--n: 1">each step the same</span><span style="--n: 0">ratio from the last.</span></div><span class="sa-readout" data-art-readout>&times; 1.333</span></div>
+          <p class="t-h5 seed-title">Type keeps a proportion</p>
+          <p class="t-sm muted">Each size is the one before it times a ratio, so headings and text hold one harmony however many there are. Open the ratio and the whole hierarchy opens with it; a narrow space closes it again.</p>
+          <p class="t-xs faint" id="seed-r-note">The ratio between H1 and H2, here.</p>
+        </article>
+        <article class="card seed stack">
+          <p class="t-label">Context</p>
+          <div class="seed-art sa-context" aria-hidden="true" data-art="context"><div class="sa-window"><div class="sa-w-bar"><i></i><i></i><i></i></div><div class="sa-w-body"><div class="sa-w-side"><i></i><i></i><i></i></div><div class="sa-w-main"><div class="sa-tile"><b></b><i></i></div><div class="sa-tile"><b></b><i></i></div><div class="sa-tile"><b></b><i></i></div></div></div></div><span class="sa-readout" data-art-readout>14 cells</span></div>
+          <p class="t-h5 seed-title">Everything answers to its box</p>
+          <p class="t-sm muted">A window is a box, and so is a card. Whatever sits inside can resize, rearrange or restyle itself for the space it is given, at any depth, and the markup never changes.</p>
+        </article>
+        <article class="card seed stack">
+          <p class="t-label">Expression</p>
+          <div class="seed-art sa-expression" aria-hidden="true" data-art="expression" data-look="neutral"><div class="sa-mock"><div class="sa-mock-head"><span class="avatar cc-sm cc-group">SL</span><div class="sa-mock-title"><b>Seed library</b><span>12 members</span></div></div><div class="cluster"><span class="tag cc-ok cc-sm"><span class="tag-label">Open</span></span><span class="button cc-primary cc-sm"><span class="button-label">Join</span></span></div></div><div class="sa-looks"><i></i><i></i><i></i><span class="sa-readout" data-art-readout>Neutral</span></div></div>
+          <p class="t-h5 seed-title">Many products, one seed</p>
+          <p class="t-sm muted">A product turns knobs (type, ratio, palette, shape, density) and never redraws a part. Each one looks like itself, and all of them still belong to the same family.</p>
+        </article>
+      </div>
     </div>
     <div class="qualities stack">
       <p class="t-eyebrow">What is Trellis?</p>
       <div class="cols rules">
-        <div class="rule stack"><p class="t-label">Relational</p><p class="t-sm">Nothing has a value of its own. Sizes, spaces and colors are written as relationships to your core choices.</p></div>
-        <div class="rule stack"><p class="t-label">Proportional</p><p class="t-sm">Cells that share one measure, and ratios that open with the space, make harmonies you can feel before you can name them.</p></div>
-        <div class="rule stack"><p class="t-label">Rhythmic</p><p class="t-sm">Blocks land on lines at regular intervals. You set the tempo and the reader can change it. Regularity is what lets the expressive dance off the page.</p></div>
-        <div class="rule stack"><p class="t-label">Responsive</p><p class="t-sm">The grid answers to the screen, type flows to fit its container, and both follow the reader's settings, so your content reaches all eyes with equal care.</p></div>
-        <div class="rule stack"><p class="t-label">Fractal</p><p class="t-sm">The same structure repeats at every scale. Any card can be the context for what it contains, so the markup never has to change.</p></div>
-        <div class="rule stack"><p class="t-label">Tunable</p><p class="t-sm">Play with proportions and parameters until it feels right and works the way you need.</p></div>
-        <div class="rule stack"><p class="t-label">Legible</p><p class="t-sm">On the surface and beneath it. Classes and markup are named to be read by people and by agents. A measured vocabulary makes a measured interface.</p></div>
-        <div class="rule stack"><p class="t-label">Checkable</p><p class="t-sm">A test fails when an edge leaves its line.</p></div>
-        <div class="rule stack"><p class="t-label">Portable</p><p class="t-sm">One token file and one math module for every platform.</p></div>
-        <div class="rule stack"><p class="t-label">Collaborative</p><p class="t-sm">Shared roots and clear boundaries let many hands work at once.</p></div>
+        <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="17" r="2.5"/><circle cx="18" cy="7" r="2.5"/><path d="M8 15.4 16 8.6"/></svg><p class="t-label">Relational</p><p class="t-sm">Nothing has a value of its own. Sizes, spaces and colors are written as relationships to your core choices.</p></div>
+        <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13"/><path d="M14 5.5v13M14 13.5h6.5M17 13.5v5"/></svg><p class="t-label">Proportional</p><p class="t-sm">Cells that share one measure, and ratios that open with the space, make harmonies you can feel before you can name them.</p></div>
+        <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18V10M8 18v-4M12 18V6M16 18v-4M20 18v-8"/></svg><p class="t-label">Rhythmic</p><p class="t-sm">Blocks land on lines at regular intervals. You set the tempo and the reader can change it. Regularity is what lets the expressive dance off the page.</p></div>
+        <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6.5" width="13" height="10" rx="1"/><rect x="17.5" y="9.5" width="4" height="7" rx="1"/><path d="M6.5 19.5h5"/></svg><p class="t-label">Responsive</p><p class="t-sm">The grid answers to the screen, type flows to fit its container, and both follow the reader's settings, so your content reaches all eyes with equal care.</p></div>
+        <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17"/><path d="M3.5 12H12v8.5M3.5 16.25h4.25v4.25"/></svg><p class="t-label">Fractal</p><p class="t-sm">The same structure repeats at every scale. Any card can be the context for what it contains, so the markup never has to change.</p></div>
+        <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8h3M11 8h9.5M3.5 16h9.5M17.5 16h3"/><circle cx="8.75" cy="8" r="2.25"/><circle cx="15.25" cy="16" r="2.25"/></svg><p class="t-label">Tunable</p><p class="t-sm">Play with proportions and parameters until it feels right and works the way you need.</p></div>
+        <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6.5 3.5 12 8 17.5M16 6.5l4.5 5.5-4.5 5.5M10 12h4"/></svg><p class="t-label">Legible</p><p class="t-sm">On the surface and beneath it. Classes and markup are named to be read by people and by agents. A measured vocabulary makes a measured interface.</p></div>
+        <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="4.5" width="15" height="15"/><path d="m8.5 12.3 2.4 2.4 4.6-5.2"/></svg><p class="t-label">Checkable</p><p class="t-sm">A test fails when an edge leaves its line.</p></div>
+        <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="7.5" width="9" height="12" rx="1"/><path d="M12.5 12h8M17.5 9l3 3-3 3"/></svg><p class="t-label">Portable</p><p class="t-sm">One token file and one math module for every platform.</p></div>
+        <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9.5" cy="12" r="5.5"/><circle cx="14.5" cy="12" r="5.5"/></svg><p class="t-label">Collaborative</p><p class="t-sm">Shared roots and clear boundaries let many hands work at once.</p></div>
       </div>
     </div>
     <p class="t-sm muted hero-more">Use the bar above to switch theme and cell size, and turn on Measure to see every space on this page named in cells.</p>
@@ -1371,6 +1373,7 @@
 <script src="experiments/solids.js?v=0.10.0"></script>
 <script src="experiments/vines.js?v=0.10.0"></script>
 <script src="specimen.js?v=0.10.3"></script>
+<script src="hero.js?v=0.10.3"></script>
 <script src="tuner.js?v=0.10.0"></script>
 </body>
 </html>

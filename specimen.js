@@ -211,15 +211,11 @@
   function readouts() {
     var u = unitPx(), n = cells();
     document.getElementById('unit-value').textContent = px2(u) + 'px';
-    document.getElementById('seed-u').textContent = px2(u) + 'px';
     var g = gutterCells();
     var frameCells = Math.round(page.getBoundingClientRect().width / u);
     document.getElementById('seed-u-note').textContent = n
       ? n + ' cells span this screen exactly: ' + ((n - 2 * g) / 4) + ' modules of 4 between ' + g + '-cell gutters.'
       : frameCells + ' cells across this frame: ' + ((frameCells - 2 * g) / 4) + ' modules of 4 between ' + g + '-cell gutters.';
-    var cw = Math.round(containerWidth(document.getElementById('seed-ctx')));
-    document.getElementById('seed-ctx').textContent = cw + 'px';
-    document.getElementById('seed-ctx-note').textContent = 'The width of this card, which its type is sized from.';
 
     // The descender of the g, measured in the face that draws it.
     var ew = document.querySelector('.edge-word');
@@ -245,10 +241,9 @@
       out.textContent = px(fs) + ' / ' + px(lh) + 'px';
     });
     if (sizes.h1 && sizes.h2) {
-      document.getElementById('seed-r').textContent = (sizes.h1 / sizes.h2).toFixed(3);
       var rcs = getComputedStyle(root);
       var narrow = +parseFloat(rcs.getPropertyValue('--rh-min')).toFixed(3), wide = +parseFloat(rcs.getPropertyValue('--rh-max')).toFixed(3);
-      document.getElementById('seed-r-note').textContent = 'H1 to H2, here. It opens from ' + narrow + ' in a narrow space to ' + wide + ' in a wide one.';
+      document.getElementById('seed-r-note').textContent = 'On this page H1 is ' + (sizes.h1 / sizes.h2).toFixed(3) + ' times H2: the ratio opens from ' + narrow + ' in a narrow space to ' + wide + ' in a wide one.';
     }
     document.querySelectorAll('[data-ctx-readout]').forEach(function (o) {
       var h = o.closest('.card').querySelector('.t-h3');
@@ -963,14 +958,18 @@
 
   // ---- Vines on the trellis (experiments/vines.js) -------------------------
   var vines = document.getElementById('hero-vines');
-  if (vines && window.TrellisVines) TrellisVines.mount(vines, { seed: 7, edge: 'right', band: 18 });
+  if (vines && window.TrellisVines) TrellisVines.mount(vines, { seed: 7, edge: 'right', band: 30, count: 5 });
 
   // ---- The frame draws itself ---------------------------------------------
   // On arrival, the frame's own space is drawn as the cells it is made of:
   // the six cells of padding above the hero, the gutter's cells down each
-  // side, and the headline measured in cells. Then it fades, and comes back
-  // whenever Measure is turned on. It is a canvas in its own layer: nothing
-  // flows around it.
+  // side, and the headline measured in cells. Then most of it fades. What
+  // stays is the grid about the frame's top right corner, thinning with
+  // distance, over the lattice the vines climb, so the two read together
+  // (every lattice point is a cell's corner), and two rulers: the six cells
+  // above and the gutter's cells beside. All of it comes back whenever
+  // Measure is turned on. It is a canvas in its own layer: nothing flows
+  // around it.
   var intro = document.createElement('canvas');
   intro.className = 'frame-intro';
   intro.setAttribute('aria-hidden', 'true');
@@ -991,17 +990,23 @@
     var pcs = getComputedStyle(page);
     var padTop = parseFloat(pcs.paddingTop), gut = parseFloat(pcs.paddingLeft);
     var rows = Math.round(padTop / u), gcols = Math.round(gut / u), cols = Math.round(W / u), drows = Math.floor(H / u);
-    var fade = 1 - ease((t - 3.4) / 0.9);
-    if (fade <= 0 && !state.measure) { ctx.clearRect(0, 0, W, H); introRaf = 0; return; }
+    var fade = 1 - ease((t - 3.4) / 0.9), stay = 1 - fade;
     var alpha = state.measure ? Math.max(fade, 0.55) : fade;
+    var REM = Math.min(26, Math.floor(cols / 3));
+    function rem(cx, cy) {
+      var dx = cols - cx - 0.5, dy = cy + 0.5, d = Math.sqrt(dx * dx + dy * dy) / REM;
+      return d >= 1 ? 0 : Math.pow(1 - d, 1.5) * 0.85;
+    }
     var group = ink('--kind-group'), text = ink('--text');
     ctx.lineWidth = 1 / dpr;
     function cell(cx, cy, p, k) {
       if (p <= 0) return;
       k = k == null ? 1 : k;
+      var a = Math.max(alpha * k, stay * rem(cx, cy));
+      if (a < 0.004) return;
       var x = cx * u, y = cy * u, s = u * p;
-      ctx.globalAlpha = alpha * k * 0.08; ctx.fillStyle = group; ctx.fillRect(x, y, s, s);
-      ctx.globalAlpha = alpha * k * 0.32; ctx.strokeStyle = group; ctx.strokeRect(x + 0.5 / dpr, y + 0.5 / dpr, s - 1 / dpr, s - 1 / dpr);
+      ctx.globalAlpha = a * 0.08; ctx.fillStyle = group; ctx.fillRect(x, y, s, s);
+      ctx.globalAlpha = a * 0.32; ctx.strokeStyle = group; ctx.strokeRect(x + 0.5 / dpr, y + 0.5 / dpr, s - 1 / dpr, s - 1 / dpr);
     }
     // The padding above: a wave of cells from the field's center outward.
     var mid = cols / 2;
@@ -1014,16 +1019,24 @@
       var k = 1 - gr / drows;
       cell(gc, gr, p, k); cell(cols - 1 - gc, gr, p, k);
     }
-    // Labels, once the cells are in.
+    // The rest of what stays: the field's cells inside that radius.
+    if (stay > 0) for (var sr = rows; sr < REM; sr++) for (var sc = Math.max(gcols, cols - REM); sc < cols - gcols; sc++) cell(sc, sr, 1, 0);
+    // Two rulers, once the cells are in, and they stay: a line down the cells
+    // of padding above and one across the gutter's cells, a notch at every cell.
     ctx.font = '600 ' + Math.max(9, Math.round(u * 0.8)) + 'px ' + (getComputedStyle(root).getPropertyValue('--font-mono') || 'monospace');
     ctx.textBaseline = 'middle';
-    var la = ease((t - 1.1) / 0.4) * alpha;
+    var la = ease((t - 1.1) / 0.4) * Math.max(alpha, stay);
     if (la > 0) {
-      ctx.globalAlpha = la; ctx.fillStyle = text;
-      ctx.textAlign = 'left';
-      ctx.fillText(rows + ' cells', (gcols + 0.5) * u, rows * u / 2);
-      ctx.save(); ctx.translate(gcols * u / 2, (rows + 16) * u); ctx.rotate(-Math.PI / 2);
-      ctx.textAlign = 'center'; ctx.fillText(gcols + ' cells', 0, 0); ctx.restore();
+      var rx = (cols - gcols - 2) * u, ry = (rows + 2) * u, tk = Math.round(u / 3), i;
+      ctx.globalAlpha = la * 0.8; ctx.fillStyle = text;
+      ctx.fillRect(rx, 0, 1, rows * u + 1);
+      for (i = 0; i <= rows; i++) ctx.fillRect(rx - tk, i * u, tk * 2 + 1, 1);
+      ctx.textAlign = 'right';
+      ctx.fillText(rows + ' cells', rx - u, rows * u / 2);
+      ctx.fillRect((cols - gcols) * u, ry, gcols * u, 1);
+      for (i = 0; i <= gcols; i++) ctx.fillRect(Math.min((cols - gcols + i) * u, W - 1), ry - tk, 1, tk * 2 + 1);
+      ctx.textAlign = 'center';
+      ctx.fillText(gcols + ' cells', (cols - gcols / 2) * u, ry + u);
     }
     // The headline, measured: a bracket of whole cells beside it.
     var h1 = page.querySelector('.hero .t-h1');
@@ -1055,7 +1068,7 @@
     introRaf = requestAnimationFrame(drawIntro);
   }
   function playIntro() {
-    if (still.matches) { introStart = performance.now() - 3000; }
+    if (still.matches) { introStart = performance.now() - 6000; }
     else introStart = performance.now();
     if (!introRaf) introRaf = requestAnimationFrame(drawIntro);
   }
