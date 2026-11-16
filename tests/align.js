@@ -60,7 +60,8 @@ const target = require('./target');
     const u = Trellis.cell();
     const TEXT = /\bt-(h\d|xl|lg|body|sm|xs|label|eyebrow)\b/, STANDS = /\bt-h[123]\b/;
     const BOX = /\b(card|plate|tag|button|avatar|section|stack|cluster|cols|grid|float|row|list|board|shell|cover|field|input|tabs|chat-item|member-tile)\b/;
-    const SKIP = '.measure-layer,svg,[popover],.nav,.float,.avatar,.code-panel,.shell-nav';
+    // [data-by-ratio]: a type scale set by the ratio alone, off the cells on purpose (the specimen's playground).
+    const SKIP = '.measure-layer,svg,[popover],.nav,.float,.avatar,.code-panel,.shell-nav,[data-by-ratio]';
     const off = (v) => { const m = ((v % u) + u) % u; return m > .5 && m < u - .5; };
     const desc = e => e.tagName.toLowerCase() + '.' + [...e.classList].join('.') + ' "' + (e.textContent || '').trim().slice(0, 28) + '"';
     const out = { u, text: 0, box: 0, offText: [], offBox: [] };

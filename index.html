@@ -38,7 +38,7 @@
     if (s.fit === 'on' || s.fit === 'off') d.setAttribute('data-unit-fit', s.fit);
   })();
 </script>
-<link rel="stylesheet" href="specimen.css?v=0.10.13">
+<link rel="stylesheet" href="specimen.css?v=0.10.14">
 </head>
 <body>
 
@@ -306,7 +306,7 @@
       <h2 class="t-h4">Type grows with its space</h2>
       <p class="t-sm muted">One ratio measures type. Headings step down from H1 by it, and none comes out smaller than body text: one the ratio would put under it takes body's size. The text sizes step out from body by half a step, its square root. Every size has two ends, one in a narrow space and one in a wide one, and runs in a straight line between them.</p>
       <p class="t-sm muted">A narrow space shrinks the step and keeps every role's place: H1 sits as many steps above body there as in a wide space, so the hierarchy compresses without losing its shape.</p>
-      <p class="t-sm muted">Seven values set all of it: three sizes, two ratios and two spaces. Drag them, or start from a named ratio. Everything else is worked out, and shown beside its sum.</p>
+      <p class="t-sm muted">Seven values set all of it: three sizes, two ratios and two spaces. Drag them, or start from a named ratio. Everything else is worked out, and shown beside its sum. The two columns of samples are set by the ratio alone, each line on its own line height, so a size moves as its slider does; on a page the same roles stand and hang on the cells, as the box under the graph shows.</p>
     </header>
     <div class="section-body stack">
       <div class="play stack" data-play>
@@ -328,7 +328,7 @@
               <div class="play-knob"><span class="t-label cap-center muted">Half step</span><span class="t-mono snap cap-center play-sum" data-play-sum="pw">√1.333</span><span class="t-mono snap cap-center play-value" data-play-out="pw">1.155</span></div>
               <div class="play-knob"><label class="t-label cap-center muted" for="play-label">Label</label><input class="range" id="play-label" type="range" min="9" max="16" step="1" value="12" data-play-in="label"><output class="t-mono snap cap-center play-value" for="play-label" data-play-out="label">12px</output></div>
             </div>
-            <div class="play-box cc-wide" data-play-box="wide"><div class="stack play-lines" data-play-lines></div></div>
+            <div class="play-box cc-wide settle" data-play-box="wide"><div class="stack play-lines" data-play-lines data-by-ratio data-settle-skip></div></div>
             <p class="t-xs muted" data-play-note="wide"></p>
           </div>
           <div class="stack play-end" role="group" aria-labelledby="play-narrow">
@@ -340,17 +340,16 @@
               <div class="play-knob"><span class="t-label cap-center muted">Half step</span><span class="t-mono snap cap-center play-sum" data-play-sum="pn">√1.2</span><span class="t-mono snap cap-center play-value" data-play-out="pn">1.095</span></div>
               <div class="play-knob"><span class="t-label cap-center muted">Label</span><span class="t-mono snap cap-center play-sum">as in a wide space</span><span class="t-mono snap cap-center play-value" data-play-out="labeln">12px</span></div>
             </div>
-            <div class="play-box cc-narrow" data-play-box="narrow"><div class="stack play-lines" data-play-lines></div></div>
+            <div class="play-box cc-narrow settle" data-play-box="narrow"><div class="stack play-lines" data-play-lines data-by-ratio data-settle-skip></div></div>
             <p class="t-xs muted" data-play-note="narrow"></p>
           </div>
         </div>
         <div class="stack play-between" role="group" aria-labelledby="play-between">
           <p class="t-label" id="play-between">Between them</p>
-          <div class="play-knobs">
-            <div class="play-knob"><label class="t-label cap-center muted" for="play-sn">Narrow space</label><input class="range" id="play-sn" type="range" min="200" max="2000" step="8" value="320" data-play-in="sn"><output class="t-mono snap cap-center play-value" for="play-sn" data-play-out="sn">320px</output></div>
-            <div class="play-knob"><label class="t-label cap-center muted" for="play-sw">Wide space</label><input class="range" id="play-sw" type="range" min="200" max="2000" step="8" value="1440" data-play-in="sw"><output class="t-mono snap cap-center play-value" for="play-sw" data-play-out="sw">1440px</output></div>
-            <div class="play-knob"><label class="t-label cap-center muted" for="play-space">This box</label><input class="range cc-zone" id="play-space" type="range" min="200" max="2000" step="1" value="744" data-play-space><output class="t-mono snap cap-center play-value" for="play-space" data-play-out="space">744px</output></div>
-          </div>
+          <div class="play-graph-box"><svg class="play-graph" data-play-graph role="group" aria-label="Every role's size against the width of its space, from 200 to 2000 pixels, with three handles: the narrow space, the wide space, and the box below."></svg></div>
+          <p class="t-xs muted">Each line is a role's size against the width of its space: flat where it holds, rising between the two spaces. Drag the two spaces, and drag the third line to size the box below. <span class="t-mono">Narrow <span data-play-out="sn">320px</span> · wide <span data-play-out="sw">1440px</span> · this box <span data-play-out="space">744px</span></span></p>
+          <!-- The three values the graph's handles move. They hold each value to its step and its ends; the handles are the controls. -->
+          <input type="range" hidden min="200" max="2000" step="8" value="320" data-play-in="sn"><input type="range" hidden min="200" max="2000" step="8" value="1440" data-play-in="sw"><input type="range" hidden min="200" max="2000" step="1" value="744" data-play-space>
           <p class="t-xs muted" data-play-where></p>
           <div class="play-stage" data-play-stage>
             <div class="play-box cc-live" data-play-box="live">
@@ -1491,6 +1490,6 @@
 <script src="specimen.js?v=0.10.9"></script>
 <script src="hero.js?v=0.10.5"></script>
 <script src="palette.js?v=0.10.7"></script>
-<script src="tuner.js?v=0.10.10"></script>
+<script src="tuner.js?v=0.10.11"></script>
 </body>
 </html>

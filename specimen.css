@@ -548,6 +548,27 @@
   /* The live box is as wide as it is asked to be, and the stage cuts off what
      doesn't fit in the column. Its content stays within the stage, and its
      cards don't step out (rule 5). */
+  /* The graph: every role's size against the width of its space. tuner.js
+     draws it; its three handles are sliders, by pointer and by key. */
+  .play-graph-box { block-size: calc(var(--u) * 24); }
+  .play-graph { display: block; inline-size: 100%; block-size: 100%; overflow: visible; touch-action: pan-y; user-select: none; }
+  .play-zone { fill: color-mix(in oklab, var(--text) 4%, transparent); }
+  .play-axis { stroke: var(--border); stroke-width: var(--line); }
+  .play-curve { fill: none; stroke-width: calc(var(--line) * 1.5); stroke: var(--text-tertiary); vector-effect: non-scaling-stroke; }
+  .play-curve.cc-heading { stroke: var(--text); }
+  .play-curve.cc-text { stroke: var(--text-secondary); }
+  .play-name, .play-tick { font: 400 var(--fs-control-xs) var(--font-mono); fill: var(--text-tertiary); }
+  .play-tick { fill: var(--text-secondary); text-anchor: middle; }
+  .play-handle { cursor: ew-resize; touch-action: none; outline: none; }
+  .play-hit { fill: transparent; }
+  .play-rule { stroke: var(--border-strong); stroke-width: var(--line); stroke-dasharray: 2 3; }
+  .play-grip { fill: var(--bg-raised); stroke: var(--text-secondary); stroke-width: var(--line); }
+  .play-handle.cc-space .play-rule { stroke: var(--accent); stroke-dasharray: none; }
+  .play-handle.cc-space .play-grip { fill: var(--accent); stroke: var(--accent); }
+  .play-handle.cc-space .play-tick { fill: var(--accent); }
+  .play-handle:is(:hover, :active) .play-grip { stroke: var(--text); }
+  .play-handle:focus-visible .play-grip { stroke: var(--focus); stroke-width: calc(var(--line) * 2); }
+  .play-dot { fill: var(--accent); }
   .play-stage { overflow: clip; }
   .play-box.cc-live {
     --outset: 0;
@@ -558,10 +579,17 @@
     border-radius: var(--shape-card);
   }
   .play-page { --stack-gap: var(--sp-2); max-inline-size: var(--play-fit, 100%); }
-  .play-lines { --stack-gap: var(--sp-1); }
-  .play-line { display: grid; grid-template-columns: calc(var(--u) * 8) minmax(0, 1fr); column-gap: var(--sp-1); align-items: start; }
+  /* The two ends' samples are a type scale, set by the ratio alone (the cell
+     has no say in it): each line is one line of its own line height, with no
+     trimming, no standing and no rounding, so a size moves as its slider
+     does. The box rounds up to whole cells, so what follows is on a line. */
+  .play-lines { --stack-gap: var(--sp-h); }
+  .play-line { display: grid; grid-template-columns: calc(var(--u) * 8) minmax(0, 1fr); column-gap: var(--sp-1); align-items: baseline; }
   .play-line > p { min-inline-size: 0; margin-block-end: 0; overflow-wrap: anywhere; }
-  .play-line.cc-stands > .play-meta { align-self: end; }
+  [data-by-ratio] :is(.t-h1, .t-h2, .t-h3, .t-h4, .t-h5, .t-h6, .t-xl, .t-lg, .t-body, .t-sm, .t-xs, .t-label, .t-eyebrow) {
+    --t-line: calc(1em * var(--t-lh));
+    text-box: normal; padding-block-start: 0; block-size: auto; min-block-size: 0;
+  }
   .play-meta { position: relative; display: block; min-inline-size: 0; font: 400 var(--fs-control-xs) / var(--sp-1) var(--font-mono); color: var(--text-tertiary); white-space: nowrap; }
   .play-meta b { font-weight: 600; color: var(--text-secondary); }
   /* Each role's size again as a length, so the sizes read as a sequence. It

@@ -108,7 +108,7 @@
     var list = boxes[end].querySelector('[data-play-lines]');
     ROLES.forEach(function (r) {
       var line = document.createElement('div');
-      line.className = 'play-line' + (M.stands(r) ? ' cc-stands' : '');
+      line.className = 'play-line';
       line.dataset.role = r;
       line.innerHTML = '<span class="play-meta"><b>' + r + '</b> <span data-size></span><span class="bar" aria-hidden="true"></span></span><p class="t-' + r + '">' + SAMPLE[r] + '</p>';
       list.appendChild(line);
@@ -123,24 +123,29 @@
     if (stale) { stale = false; remeasure(); }
     var k = parseFloat(getComputedStyle(root).fontSize) / REM;   // the reader's text size
     ['wide', 'narrow'].forEach(function (end) {
-      var sizes = {}, under = [], small = [];
+      var sizes = {}, under = [], small = [], lands = [];
       var lines = boxes[end].querySelectorAll('.play-line');
       Array.prototype.forEach.call(lines, function (line) { sizes[line.dataset.role] = parseFloat(getComputedStyle(line.lastElementChild).fontSize) / k; });
       Array.prototype.forEach.call(lines, function (line) {
         var r = line.dataset.role, v = sizes[r];
-        var sunk = M.isHeading(r) && v < sizes.body + .05, tiny = v < SMALL;   // held at body's size (D89)
+        // A heading whose own step is under body's size is held there (D89); one
+        // whose step is body's size lands on it by the ratio, and is not held.
+        var own = M.isHeading(r) ? sizes.h1 / Math.pow(end === 'wide' ? state.rw : state.rn, +r.slice(1) - 1) : 0;
+        var sunk = M.isHeading(r) && own < sizes.body - .05, tiny = v < SMALL;
         if (sunk) under.push(r);
+        if (M.isHeading(r) && r !== 'h1' && Math.abs(own - sizes.body) <= .05) lands.push(r);
         if (tiny) small.push(r);
         say(line.querySelector('[data-size]'), num(v, 1));
         line.querySelector('.bar').style.setProperty('--w', (v * k).toFixed(2) + 'px');
         if (tiny) line.dataset.flag = 'small'; else if (sunk) line.dataset.flag = 'held'; else delete line.dataset.flag;
       });
-      var fit = 6 - under.length;
+      var fit = 6 - under.length - lands.length;
       var at = end === 'wide' ? 'At ' + num(state.rw) + ' H1 is ' + num(place(state), 2) + ' steps above body: '
         : 'At ' + num(state.rn) + ' the steps are smaller and the places are the same: ';
-      var a = !under.length ? at + 'all six headings are larger than body text.'
-        : at + (fit === 1 ? 'only h1 is' : fit ? COUNT[fit] + ' headings are' : 'no heading is') + ' larger than body text, and ' +
-          words(under) + (under.length > 1 ? ' are' : ' is') + ' held at its size.';
+      var a = !under.length && !lands.length ? at + 'all six headings are larger than body text.'
+        : at + (fit === 1 ? 'only h1 is' : fit ? COUNT[fit] + ' headings are' : 'no heading is') + ' larger than body text' +
+          (lands.length ? ', ' + words(lands) + ' lands on its size by the ratio' : '') +
+          (under.length ? ', and ' + words(under) + (under.length > 1 ? ' are' : ' is') + ' held at its size.' : '.');
       var b = small.length ? 'Under 11px: ' + words(small) + '.' : 'Nothing is under 11px.';
       say(one('[data-play-note="' + end + '"]'), a + ' ' + b);
     });
@@ -154,6 +159,7 @@
     say(outs.space, Math.round(s) + 'px');
     scrub.setAttribute('aria-valuetext', Math.round(s) + ' pixels');
     fill(scrub);
+    drawGraph(s);
     var t = (s - state.sn) / (state.sw - state.sn);
     say(where, (t < 0 ? 'Narrower than the narrow space, so every size holds at its narrow end.'
       : t > 1 ? 'Wider than the wide space, so every size holds at its wide end.'
@@ -172,6 +178,93 @@
     var lines = SEVEN.map(function (n) { return '    --' + n + ': ' + num(k[n], 4) + ';'; });
     return '/* A product layer, from the Trellis specimen\'s ratio playground: the seven values.\n   Core works the other five out. Load it after core.css and put\n   data-product="yours" on <html>. */\n' +
       '@layer trellis.product {\n  :root[data-product="yours"] {\n' + lines.join('\n') + '\n  }\n}\n';
+  }
+
+  // ---- The graph: every role's size against the width of its space -----------
+  // Three handles: the narrow space, the wide space, and the live box's own
+  // width. Each moves a hidden range input, which holds the value to its step
+  // and its ends and tells the rest of the playground, as a slider would.
+  var graph = one('[data-play-graph]'), SVG = 'http://www.w3.org/2000/svg', G = null;
+  var HANDLES = { sn: ['The narrow space', inputs.sn, 8], sw: ['The wide space', inputs.sw, 8], space: ['This box', scrub, 8] };
+  function svg(n, a, parent) { var e = document.createElementNS(SVG, n); for (var k in a) e.setAttribute(k, a[k]); if (parent) parent.appendChild(e); return e; }
+  function kind(r) { return M.isHeading(r) ? 'heading' : /^(label|eyebrow)$/.test(r) ? 'label' : 'text'; }
+  // A set of knobs as math.js takes them, in points.
+  function seedOf(k) {
+    var pair = function (n) { return [k[n + '-min'] * REM, k[n + '-max'] * REM]; };
+    return { type: { spaceNarrow: k['c-min'] * REM, spaceWide: k['c-max'] * REM, h1: pair('h1'), body: pair('body'), label: pair('label'),
+      headingRatio: [k['rh-min'], k['rh-max']], paragraphRatio: [k['rp-min'], k['rp-max']] } };
+  }
+  function setHandle(n, v) {
+    var i = HANDLES[n][1];
+    i.value = v;
+    i.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  function buildGraph() {
+    G = { curves: {}, names: {}, handles: {}, x: function () { return 0; } };
+    G.zone = svg('rect', { 'class': 'play-zone' }, graph);
+    G.base = svg('line', { 'class': 'play-axis' }, graph);
+    ROLES.forEach(function (r) {
+      G.curves[r] = svg('polyline', { 'class': 'play-curve cc-' + kind(r) }, graph);
+      G.names[r] = svg('text', { 'class': 'play-name' }, graph);
+      G.names[r].textContent = r;
+    });
+    Object.keys(HANDLES).forEach(function (n) {
+      var lo = +HANDLES[n][1].min, hi = +HANDLES[n][1].max;
+      var g = svg('g', { 'class': 'play-handle cc-' + n, role: 'slider', tabindex: '0', 'aria-label': HANDLES[n][0], 'aria-orientation': 'horizontal', 'aria-valuemin': lo, 'aria-valuemax': hi }, graph);
+      svg('rect', { 'class': 'play-hit' }, g); svg('line', { 'class': 'play-rule' }, g); svg('rect', { 'class': 'play-grip' }, g); svg('text', { 'class': 'play-tick' }, g);
+      G.handles[n] = g;
+      var move = function (e) { setHandle(n, Math.round(G.x(e.clientX - graph.getBoundingClientRect().left))); };
+      g.addEventListener('pointerdown', function (e) { g.setPointerCapture(e.pointerId); move(e); e.preventDefault(); g.focus(); });
+      g.addEventListener('pointermove', function (e) { if (g.hasPointerCapture(e.pointerId)) move(e); });
+      g.addEventListener('keydown', function (e) {
+        var step = HANDLES[n][2] * (e.shiftKey ? 5 : 1), v = +HANDLES[n][1].value;
+        var to = e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? v - step : e.key === 'ArrowRight' || e.key === 'ArrowUp' ? v + step : e.key === 'Home' ? lo : e.key === 'End' ? hi : null;
+        if (to == null) return;
+        e.preventDefault();
+        setHandle(n, to);
+      });
+    });
+  }
+  // s is the live box's space. Every role is three straight pieces: held at its
+  // narrow end, rising between the two spaces, held at its wide end.
+  function drawGraph(s) {
+    if (!graph) return;
+    if (!G) buildGraph();
+    var w = graph.clientWidth, h = graph.clientHeight, u = window.Trellis && Trellis.cell ? Trellis.cell() : 12;
+    if (!(w > 0 && h > 0)) return;
+    var k = derive(state), seed = seedOf(k), lo = +scrub.min, hi = +scrub.max;
+    var left = u, right = u * 6, top = u * 3, bottom = u;
+    var ymax = Math.max(k['h1-max'], k['h1-min']) * REM * 1.04;
+    var X = function (v) { return left + (v - lo) / (hi - lo) * (w - left - right); };
+    var Y = function (v) { return h - bottom - v / ymax * (h - top - bottom); };
+    G.x = function (px) { return lo + (px - left) / (w - left - right) * (hi - lo); };
+    graph.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+    var set = function (e, a) { for (var n in a) e.setAttribute(n, typeof a[n] === 'number' ? +a[n].toFixed(2) : a[n]); };
+    set(G.zone, { x: X(state.sn), y: top, width: Math.max(0, X(state.sw) - X(state.sn)), height: h - top - bottom });
+    set(G.base, { x1: left, x2: w - right, y1: h - bottom, y2: h - bottom });
+    var tags = [];
+    ROLES.forEach(function (r) {
+      var pts = [lo, state.sn, state.sw, hi].map(function (x) { return X(x).toFixed(1) + ',' + Y(M.typeSize(r, x, null, seed)).toFixed(1); });
+      G.curves[r].setAttribute('points', pts.join(' '));
+      tags.push([r, Y(M.typeSize(r, hi, null, seed))]);
+    });
+    // Names at the right end, pushed apart where the small roles crowd.
+    tags.sort(function (a, b) { return a[1] - b[1]; });
+    for (var i = 1; i < tags.length; i++) tags[i][1] = Math.max(tags[i][1], tags[i - 1][1] + u * .9);
+    var over = tags[tags.length - 1][1] - (h - bottom);
+    if (over > 0) tags.forEach(function (t) { t[1] -= over; });
+    tags.forEach(function (t) { set(G.names[t[0]], { x: w - right + u * .75, y: t[1] + u * .3 }); });
+    var at = { sn: state.sn, sw: state.sw, space: s };
+    Object.keys(at).forEach(function (n) {
+      var g = G.handles[n], x = X(Math.max(lo, Math.min(at[n], hi))), kids = g.children, grip = n === 'space' ? u * 1.5 : u;
+      set(kids[0], { x: x - u, y: 0, width: u * 2, height: h });
+      set(kids[1], { x1: x, x2: x, y1: n === 'space' ? u * 1.5 : u * 2.5, y2: h - bottom });
+      set(kids[2], { x: x - u * .5, y: n === 'space' ? 0 : u * 1.5, width: u, height: grip, rx: u * .25 });
+      set(kids[3], { x: x, y: n === 'space' ? u * 2.5 : u * 1.2 });
+      kids[3].setAttribute('display', n === 'space' ? 'none' : 'inline');
+      say(kids[3], Math.round(at[n]) + '');
+      set(g, { 'aria-valuenow': Math.round(at[n]), 'aria-valuetext': Math.round(at[n]) + ' pixels' });
+    });
   }
 
   // ---- Write the knobs, and say what was worked out -------------------------
