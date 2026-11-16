@@ -1473,6 +1473,61 @@
   [dir="rtl"] .switch { --switch-x: 100%; }
   [dir="rtl"] .switch:is([aria-checked="true"], :has(> input:checked)) { --switch-x: 0%; }
 
+  /* SLIDER. A value along a line: an input[type=range] on the cells. The row
+     is two cells tall, the track a quarter cell thick, the thumb a cell and a
+     half across. The track is inked up to the thumb. CSS can't read how far
+     along a range input is, so settle.js writes --range-at, 0 to 1, when a
+     slider arrives and when it moves; a script that sets .value calls
+     Trellis.range(el). Without the runtime the track is plain and the thumb
+     still moves.
+     A slider that draws a scale (a hue, a lightness) paints --range-fill
+     itself, and may fill its thumb with --range-thumb-fill.
+     .cc-zone inks the stretch between two values, --range-a to --range-b,
+     each 0 to 1: where the value has an effect. */
+  .range {
+    --range-h: var(--sp-2);
+    --range-track: var(--sp-q);
+    --range-thumb: var(--sp-1h);
+    --range-ink: var(--text-secondary);
+    --range-rest: var(--border);
+    --range-thumb-fill: var(--bg-raised);
+    --range-at: 0;
+    --range-to: right;
+    --range-x: calc(var(--range-thumb) / 2 + (100% - var(--range-thumb)) * var(--range-at));
+    --range-fill: linear-gradient(to var(--range-to), var(--range-ink) var(--range-x), var(--range-rest) 0);
+    -webkit-appearance: none; appearance: none;
+    display: block; inline-size: 100%; min-inline-size: 0; block-size: var(--range-h);
+    margin: 0; padding: 0;
+    background: none; border-radius: var(--r-round);
+    cursor: pointer; touch-action: pan-y;
+  }
+  .range::-webkit-slider-runnable-track { block-size: var(--range-track); border-radius: var(--r-round); background: var(--range-fill); }
+  .range::-moz-range-track { block-size: var(--range-track); border-radius: var(--r-round); background: var(--range-fill); }
+  .range::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    box-sizing: border-box; inline-size: var(--range-thumb); block-size: var(--range-thumb);
+    margin-block-start: calc((var(--range-track) - var(--range-thumb)) / 2);
+    border: var(--line) solid var(--range-ink); border-radius: 50%;
+    background: var(--range-thumb-fill);
+  }
+  .range::-moz-range-thumb {
+    box-sizing: border-box; inline-size: var(--range-thumb); block-size: var(--range-thumb);
+    border: var(--line) solid var(--range-ink); border-radius: 50%;
+    background: var(--range-thumb-fill);
+  }
+  .range:is(:hover, :active, :focus-visible) { --range-ink: var(--text); }
+  .range:disabled { --range-ink: var(--text-faint); --range-thumb-fill: var(--bg-sunken); cursor: not-allowed; }
+  [dir="rtl"] .range { --range-to: left; }
+  .range.cc-zone {
+    --range-xa: calc(var(--range-thumb) / 2 + (100% - var(--range-thumb)) * var(--range-a, 0));
+    --range-xb: calc(var(--range-thumb) / 2 + (100% - var(--range-thumb)) * var(--range-b, 1));
+    --range-fill: linear-gradient(to var(--range-to), var(--range-rest) var(--range-xa), var(--range-ink) 0, var(--range-ink) var(--range-xb), var(--range-rest) 0);
+  }
+  /* Touch. The row is the target: the whole of it takes a drag. */
+  @media (pointer: coarse) {
+    .range { --range-thumb: var(--sp-2); --range-h: round(up, var(--hit-min), var(--u)); }
+  }
+
   .icon { width: var(--icon-size, var(--size-icon)); height: var(--icon-size, var(--size-icon)); flex: none; fill: none; stroke: currentColor; stroke-width: var(--icon-stroke, 1.5); stroke-linecap: round; stroke-linejoin: round; }
 
   /* Tag: the archetype ---------------------------------------------------

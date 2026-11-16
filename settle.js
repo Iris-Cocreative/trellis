@@ -121,8 +121,34 @@
     restack();
   }).observe(document, { subtree: true, attributes: true, attributeFilter: ['open'] });
 
+  // ---- Sliders: how far along the thumb is ------------------------------------
+  // CSS can't read where a range input's thumb is (only Firefox has a
+  // pseudo-element for the filled stretch), so --range-at, 0 to 1, is written
+  // here: when a slider arrives, and when it moves. Setting .value from a
+  // script fires no event, so that script calls Trellis.range(el).
+  function rangeAt(el) {
+    var lo = el.min === '' ? 0 : +el.min, hi = el.max === '' ? 100 : +el.max, at = hi > lo ? (+el.value - lo) / (hi - lo) : 0;
+    el.style.setProperty('--range-at', String(+Math.max(0, Math.min(at, 1)).toFixed(4)));
+  }
+  function ranges(scope) {
+    var list = (scope || document).querySelectorAll('input.range');
+    for (var i = 0; i < list.length; i++) rangeAt(list[i]);
+  }
+  document.addEventListener('input', function (e) { if (e.target.matches && e.target.matches('input.range')) rangeAt(e.target); }, true);
+  if ('MutationObserver' in window) new MutationObserver(function (records) {
+    records.forEach(function (r) {
+      for (var i = 0; i < r.addedNodes.length; i++) {
+        var n = r.addedNodes[i];
+        if (n.nodeType !== 1) continue;
+        if (n.matches('input.range')) rangeAt(n); else if (n.firstElementChild) ranges(n);
+      }
+    });
+  }).observe(document, { subtree: true, childList: true });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { ranges(); }); else ranges();
+
   // presets.js may have made the object first: add to it, don't replace it.
   var api = window.Trellis || {};
+  api.range = function (el) { if (el) rangeAt(el); else ranges(); };
   api.fit = fit; api.cell = cell; api.all = function () {}; api.observe = function () {}; api.settled = function () { return Promise.resolve(); };
   window.Trellis = api;
 

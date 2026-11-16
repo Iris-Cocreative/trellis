@@ -24,6 +24,7 @@ Find the need here first. If it is here, use it and write no CSS for it.
 | A button, an icon button | `.button`, `.icon-button`; `.cc-primary`, `.cc-ghost`; `.cc-sm`, `.cc-md`, `.cc-lg` |
 | A text field, select, textarea, search box | `.input` inside `.field` with `.field-label`, `.field-hint`; `.cc-sm`, `.cc-lg` |
 | On or off | `.switch` |
+| A value along a line (a slider) | `input.range`; `.cc-zone` to ink a stretch between two values |
 | One of several (a filter, a view switch) | `.tabs.cc-seg` > `.tab[aria-selected]`; plain `.tabs` for tabs |
 | A label, a status, a chip | `.tag` (kinds `.cc-ok`, `.cc-warn`, `.cc-alert`…; `.cc-solid`, `.cc-outline`) |
 | A status light, a count | `.dot` (`--dot-color`, `--dot-size`), `.badge` |

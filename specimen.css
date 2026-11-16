@@ -508,47 +508,8 @@
   .split > .stack { --stack-gap: var(--sp-1); }
 
   /* ---- The ratio: a playground ----------------------------------------- */
-  /* A slider. Core has no range primitive yet, so this one is the specimen's
-     own, from tokens alone: a track a quarter cell thick, a thumb a cell and a
-     half across, on a row two cells tall. --range-at is how far along the
-     thumb sits, from 0 to 1; tuner.js writes it. Nothing here moves by itself. */
-  .range {
-    --range-thumb: var(--sp-1h);
-    --range-track: var(--sp-q);
-    --range-ink: var(--text-secondary);
-    --range-rest: var(--border);
-    --range-at: 0;
-    --range-x: calc(var(--range-thumb) / 2 + (100% - var(--range-thumb)) * var(--range-at));
-    --range-fill: linear-gradient(to right, var(--range-ink) var(--range-x), var(--range-rest) 0);
-    -webkit-appearance: none; appearance: none;
-    display: block; inline-size: 100%; min-inline-size: 0; block-size: var(--sp-2);
-    margin: 0; padding: 0;
-    background: none; border-radius: var(--r-round);
-    cursor: pointer; touch-action: pan-y;
-  }
-  .range::-webkit-slider-runnable-track { block-size: var(--range-track); border-radius: var(--r-round); background: var(--range-fill); }
-  .range::-moz-range-track { block-size: var(--range-track); border-radius: var(--r-round); background: var(--range-fill); }
-  .range::-webkit-slider-thumb {
-    -webkit-appearance: none; appearance: none;
-    box-sizing: border-box; inline-size: var(--range-thumb); block-size: var(--range-thumb);
-    margin-block-start: calc((var(--range-track) - var(--range-thumb)) / 2);
-    border: var(--line) solid var(--range-ink); border-radius: 50%;
-    background: var(--bg-raised);
-  }
-  .range::-moz-range-thumb {
-    box-sizing: border-box; inline-size: var(--range-thumb); block-size: var(--range-thumb);
-    border: var(--line) solid var(--range-ink); border-radius: 50%;
-    background: var(--bg-raised);
-  }
-  .range:is(:hover, :active, :focus-visible) { --range-ink: var(--text); }
-  @media (pointer: coarse) { .range { --range-thumb: var(--sp-2); block-size: var(--sp-3); } }
-  /* A slider that shows a zone: the stretch between two values, from
-     --range-a to --range-b, is inked and the rest is not. */
-  .range.cc-zone {
-    --range-xa: calc(var(--range-thumb) / 2 + (100% - var(--range-thumb)) * var(--range-a, 0));
-    --range-xb: calc(var(--range-thumb) / 2 + (100% - var(--range-thumb)) * var(--range-b, 1));
-    --range-fill: linear-gradient(to right, var(--range-rest) var(--range-xa), var(--range-ink) 0, var(--range-ink) var(--range-xb), var(--range-rest) 0);
-  }
+  /* The sliders are core's .range. tuner.js writes --range-at itself too, since
+     it sets values from a script. */
 
   /* Two ends, the wide space and the narrow one, each a column: what is set
      or worked out there, then the real roles at that end. */
@@ -670,6 +631,10 @@
     .cmp-from, .cmp-extra { display: none; }
   }
 
+  /* Three sliders side by side, one where the container is narrow. */
+  .demo-ranges { --cols: 3; }
+  @container page (width < 720px) { .demo-ranges { --cols: 1; } }
+
   /* ---- Color ---------------------------------------------------------- */
   .color-part { --stack-gap: var(--sp-1); }
   /* The palette study: one color in, every seed out. palette.js computes with
@@ -684,28 +649,10 @@
   .pal-wheel:active { cursor: grabbing; }
   .pal-controls { --stack-gap: var(--sp-1); }
   .pal-out { font-family: var(--font-mono); color: var(--text-secondary); letter-spacing: 0; text-transform: none; }
-  /* A range input, on the cells: two cells tall, a half-cell track, a thumb a
-     cell and a half across. There is no slider in core yet. */
-  .pal-range {
-    -webkit-appearance: none; appearance: none;
-    display: block; width: 100%; height: var(--sp-2); margin: 0;
-    background: none; cursor: pointer;
-    --range-track: color-mix(in oklab, var(--text) 14%, transparent);
-  }
-  .pal-range::-webkit-slider-runnable-track { height: var(--sp-h); border-radius: var(--r-round); background: var(--range-fill, var(--range-track)); }
-  .pal-range::-moz-range-track { height: var(--sp-h); border-radius: var(--r-round); background: var(--range-fill, var(--range-track)); }
-  .pal-range::-webkit-slider-thumb {
-    -webkit-appearance: none; appearance: none;
-    width: var(--sp-1h); height: var(--sp-1h); margin-top: calc(var(--sp-h) * -1);
-    border-radius: var(--r-round); border: calc(var(--line) * 2) solid var(--bg-raised);
-    background: var(--range-thumb, var(--text)); box-shadow: 0 0 0 var(--line) var(--border-strong);
-  }
-  .pal-range::-moz-range-thumb {
-    width: var(--sp-1); height: var(--sp-1);
-    border-radius: var(--r-round); border: calc(var(--line) * 2) solid var(--bg-raised);
-    background: var(--range-thumb, var(--text)); box-shadow: 0 0 0 var(--line) var(--border-strong);
-  }
-  .pal-range:focus-visible { outline: calc(var(--line) * 2) solid var(--focus); outline-offset: var(--line); border-radius: var(--r-h); }
+  /* The study's sliders are core's .range with a thicker track: three of them
+     draw a scale along it, and fill the thumb with the color chosen. */
+  .pal-range { --range-track: var(--sp-h); --range-ink: var(--border-strong); }
+  .pal-range:is(:hover, :active, :focus-visible) { --range-ink: var(--text); }
   /* The seeds: the one chosen, then what follows from it. */
   .pal-seeds { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: var(--sp-1); }
   @container page (width < 1100px) { .pal-seeds { grid-template-columns: repeat(5, minmax(0, 1fr)); } }

@@ -105,6 +105,23 @@ const ready = require('./ready');
     expect(Math.abs(box(lane).width - 24 * u) < 1, `a lane is ${box(lane).width}px, not 24 cells`);
     // To the end: a small scroll snaps straight back to the first lane, as it should.
     if (board.scrollWidth > board.clientWidth) { board.scrollLeft = board.scrollWidth; expect(board.scrollLeft > 0, 'the board does not scroll'); board.scrollLeft = 0; }
+    // Slider (D91): a row of whole cells, two on a fine pointer and the touch
+    // target on a coarse one; settle.js says how far along the thumb is, when
+    // it moves, when a script asks, and for a slider added later.
+    {
+      const r = $('#demo-range'), coarse = matchMedia('(pointer: coarse)').matches, at = e => getComputedStyle(e).getPropertyValue('--range-at').trim();
+      expect(whole(box(r).height), `a slider's row is ${box(r).height.toFixed(2)}px, not whole cells`);
+      expect(coarse ? box(r).height >= 44 : Math.abs(box(r).height - 2 * u) < .5, `a slider's row is ${box(r).height.toFixed(2)}px: ${coarse ? 'under the 44px touch target' : 'not two cells'}`);
+      expect(at(r) === '0.4', `a slider at 40 of 100 has --range-at ${at(r)}, not 0.4`);
+      r.value = 80; r.dispatchEvent(new Event('input', { bubbles: true }));
+      expect(at(r) === '0.8', `a slider moved to 80 has --range-at ${at(r)}, not 0.8`);
+      r.value = 40; window.Trellis.range(r);
+      expect(at(r) === '0.4', `Trellis.range() left --range-at at ${at(r)}, not 0.4`);
+      const off = $('#demo-range-off');
+      expect(getComputedStyle(off).cursor === 'not-allowed', 'a disabled slider does not say so');
+      const zone = getComputedStyle($('#demo-range-zone')).getPropertyValue('--range-fill');
+      expect(/--range-xa|--range-xb/.test(zone) || /calc|linear-gradient/.test(zone), 'a zone slider has no zone');
+    }
     // Field: every control height is whole cells, so what follows stays on a line.
     document.querySelectorAll('.field .input:not(textarea), .demo-inputs .input').forEach(i => {
       if (i.closest('dialog')) return;

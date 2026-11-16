@@ -103,7 +103,11 @@
   var FORMAT = { h: function (v) { return Math.round(v) + '°'; }, c: function (v) { return v.toFixed(3); }, l: function (v) { return v.toFixed(3); }, tint: function (v) { return v.toFixed(3); }, lift: function (v) { return v.toFixed(3); }, turn: function (v) { return Math.round(v) + '°'; } };
   function stops(fn, n) { var out = []; for (var i = 0; i <= n; i++) out.push(css(fn(i / n))); return 'linear-gradient(to right, ' + out.join(', ') + ')'; }
   function controls() {
-    Object.keys(inputs).forEach(function (k) { if (parseFloat(inputs[k].value) !== state[k]) inputs[k].value = state[k]; if (outs[k]) outs[k].textContent = FORMAT[k](state[k]); });
+    Object.keys(inputs).forEach(function (k) {
+      if (parseFloat(inputs[k].value) !== state[k]) inputs[k].value = state[k];
+      if (window.Trellis && Trellis.range) Trellis.range(inputs[k]);   // the value was set from a script
+      if (outs[k]) outs[k].textContent = FORMAT[k](state[k]);
+    });
     ['harmony', 'neutral'].forEach(function (name) {
       sec.querySelectorAll('[data-pal-' + name + ']').forEach(function (tab) { tab.setAttribute('aria-selected', String(tab.getAttribute('data-pal-' + name) === state[name])); });
     });
@@ -111,7 +115,7 @@
     inputs.h.style.setProperty('--range-fill', stops(function (t) { return [state.l, state.c, t * 360]; }, 24));
     inputs.c.style.setProperty('--range-fill', stops(function (t) { return [state.l, 0.02 + t * 0.22, state.h]; }, 6));
     inputs.l.style.setProperty('--range-fill', stops(function (t) { return [0.42 + t * 0.24, state.c, state.h]; }, 6));
-    ['h', 'c', 'l'].forEach(function (k) { inputs[k].style.setProperty('--range-thumb', acc); });
+    ['h', 'c', 'l'].forEach(function (k) { inputs[k].style.setProperty('--range-thumb-fill', acc); });
   }
 
   // ---- What follows ---------------------------------------------------------------
