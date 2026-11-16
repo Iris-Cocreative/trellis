@@ -400,13 +400,19 @@
   .count-group > p, .count-set > p { max-inline-size: calc(var(--u) * 43); }   /* two tracks and their gap */
   .count .t-mono, .rod-of .t-mono { font-size: var(--fs-control-sm); line-height: var(--sp-2); color: var(--text-tertiary); }
   .rod { display: flex; flex-wrap: wrap; --ink: var(--kind-group); --fill: color-mix(in oklab, var(--kind-group) 22%, transparent); }
+  /* Each line is drawn once: a cell draws its start edge, top and bottom, and
+     only the last cell draws the closing edge. When two cells each drew the
+     shared edge, overlapped by a line, at 125% the browser could snap the two
+     to neighboring device pixels, and the edge showed double. */
   .rod i {
     flex: none; box-sizing: border-box; position: relative;
-    width: calc(var(--u) + var(--line)); height: calc(var(--u) + var(--line));
-    margin: 0 calc(var(--line) * -1) calc(var(--line) * -1) 0;
+    width: var(--u); height: calc(var(--u) + var(--line));
+    margin: 0 0 calc(var(--line) * -1) 0;
     border: var(--line) solid var(--ink);
+    border-inline-end-width: 0;
     background: var(--fill);
   }
+  .rod i:last-child { width: calc(var(--u) + var(--line)); margin-inline-end: calc(var(--line) * -1); border-inline-end-width: var(--line); }   /* the closing line is a plane after the last cell: it takes no cell of its own */
   .rod i.cc-part { border-color: var(--border-strong); background: none; }
   .rod i.cc-part::before {
     content: ""; position: absolute; box-sizing: border-box;
@@ -554,10 +560,21 @@
   .play-graph { display: block; inline-size: 100%; block-size: 100%; overflow: visible; touch-action: pan-y; user-select: none; }
   .play-zone { fill: color-mix(in oklab, var(--text) 4%, transparent); }
   .play-axis { stroke: var(--border); stroke-width: var(--line); }
-  .play-curve { fill: none; stroke-width: calc(var(--line) * 1.5); stroke: var(--text-tertiary); vector-effect: non-scaling-stroke; }
-  .play-curve.cc-heading { stroke: var(--text); }
-  .play-curve.cc-text { stroke: var(--text-secondary); }
+  /* Colored by kind of role, from core's kinds: headings, body text, labels. */
+  .play-between { --play-heading: var(--kind-event); --play-text: var(--kind-group); --play-label: var(--kind-course); }
+  .play-curve { fill: none; stroke-width: calc(var(--line) * 1.5); stroke: var(--play-label); vector-effect: non-scaling-stroke; }
+  .play-curve.cc-heading { stroke: var(--play-heading); }
+  .play-curve.cc-text { stroke: var(--play-text); }
   .play-name, .play-tick { font: 400 var(--fs-control-xs) var(--font-mono); fill: var(--text-tertiary); }
+  .play-name.cc-heading { fill: var(--play-heading); }
+  .play-name.cc-text { fill: var(--play-text); }
+  .play-name.cc-label { fill: var(--play-label); }
+  .play-key { display: flex; flex-wrap: wrap; gap: var(--sp-1); }
+  .play-key > span { display: inline-flex; align-items: center; gap: var(--sp-h); }
+  .play-key > span::before { content: ""; width: var(--sp-1h); height: calc(var(--line) * 2); background: currentColor; }
+  .play-key .cc-heading { color: var(--play-heading); }
+  .play-key .cc-text { color: var(--play-text); }
+  .play-key .cc-label { color: var(--play-label); }
   .play-tick { fill: var(--text-secondary); text-anchor: middle; }
   .play-handle { cursor: ew-resize; touch-action: none; outline: none; }
   .play-hit { fill: transparent; }
@@ -729,10 +746,18 @@
   .rule { --stack-gap: var(--sp-1); border-top: var(--line) solid var(--border-subtle); padding-top: calc(var(--sp-1) - var(--line)); }
   .rule .t-label { color: var(--text-tertiary); }
 
-  .face { background-image:
-      radial-gradient(circle at 50% 36%, hsl(var(--av-hue) 38% 76%) 0 20%, transparent 21%),
-      radial-gradient(ellipse 62% 46% at 50% 100%, hsl(var(--av-hue) 32% 60%) 0 99%, transparent 100%),
-      linear-gradient(160deg, hsl(var(--av-hue) 26% 36%), hsl(calc(var(--av-hue) + 40) 28% 22%)); }
+  /* Stand-ins for photographs, drawn from the palette's roles, so they follow
+     the accent, the theme and a product's seeds like everything else. --ph is
+     the role; the gradient runs from it darkened toward black (--ph-from of
+     it kept) to --ph-to, or to itself. An image keeps its size with a
+     transparent source of the photograph's proportions. */
+  .ph { background: linear-gradient(135deg in oklab, color-mix(in oklab, var(--ph) var(--ph-from, 55%), var(--black)), var(--ph-to, var(--ph))); }
+  /* A face: a head and shoulders in a light and a mid step of its role, on a
+     dark step of it. */
+  .face { --face: var(--kind-person); background-image:
+      radial-gradient(circle at 50% 36%, color-mix(in oklab, var(--face) 45%, var(--white)) 0 20%, transparent 21%),
+      radial-gradient(ellipse 62% 46% at 50% 100%, color-mix(in oklab, var(--face) 80%, var(--white)) 0 99%, transparent 100%),
+      linear-gradient(160deg, color-mix(in oklab, var(--face) 60%, var(--black)), color-mix(in oklab, var(--face) 30%, var(--black))); }
 
   /* Tag matrix */
   .matrix { --stack-gap: var(--sp-2); }
@@ -746,7 +771,7 @@
   }
   .media-tile {
     position: relative; height: var(--sp-8); border-radius: var(--shape-card); overflow: hidden;
-    background: linear-gradient(140deg, #22545b, #1d2f52 55%, #5a2d5e);
+    background: linear-gradient(140deg in oklab, color-mix(in oklab, var(--kind-group) 45%, var(--black)), color-mix(in oklab, var(--accent) 40%, var(--black)) 55%, color-mix(in oklab, var(--kind-event) 45%, var(--black)));
     padding: var(--sp-1); display: flex; align-items: flex-end;
   }
 

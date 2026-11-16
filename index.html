@@ -6,7 +6,7 @@
 <title>Trellis</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 18 18%27%3E%3Crect x=%27.5%27 y=%27.5%27 width=%2717%27 height=%2717%27 rx=%274.5%27 fill=%27%23101111%27 stroke=%27%236aa5f5%27/%3E%3Cline x1=%27.5%27 y1=%2712.5%27 x2=%2717.5%27 y2=%2712.5%27 stroke=%27%236aa5f5%27/%3E%3Ccircle cx=%276%27 cy=%276%27 r=%272%27 fill=%27%23f4f4f2%27/%3E%3C/svg%3E">
 <meta name="description" content="Trellis: a CSS framework from a cell and a ratio, in context.">
-<link rel="stylesheet" href="core.css?v=0.10.13">
+<link rel="stylesheet" href="core.css?v=0.10.14">
 <link rel="stylesheet" id="product-layer">
 <script>
   // Before first paint, so nothing flashes: the saved view settings, and one
@@ -38,7 +38,7 @@
     if (s.fit === 'on' || s.fit === 'off') d.setAttribute('data-unit-fit', s.fit);
   })();
 </script>
-<link rel="stylesheet" href="specimen.css?v=0.10.14">
+<link rel="stylesheet" href="specimen.css?v=0.10.16">
 </head>
 <body>
 
@@ -347,6 +347,7 @@
         <div class="stack play-between" role="group" aria-labelledby="play-between">
           <p class="t-label" id="play-between">Between them</p>
           <div class="play-graph-box"><svg class="play-graph" data-play-graph role="group" aria-label="Every role's size against the width of its space, from 200 to 2000 pixels, with three handles: the narrow space, the wide space, and the box below."></svg></div>
+          <p class="t-xs play-key" aria-hidden="true"><span class="cc-heading">Headings</span><span class="cc-text">Body text</span><span class="cc-label">Labels</span></p>
           <p class="t-xs muted">Each line is a role's size against the width of its space: flat where it holds, rising between the two spaces. Drag the two spaces, and drag the third line to size the box below. <span class="t-mono">Narrow <span data-play-out="sn">320px</span> · wide <span data-play-out="sw">1440px</span> · this box <span data-play-out="space">744px</span></span></p>
           <!-- The three values the graph's handles move. They hold each value to its step and its ends; the handles are the controls. -->
           <input type="range" hidden min="200" max="2000" step="8" value="320" data-play-in="sn"><input type="range" hidden min="200" max="2000" step="8" value="1440" data-play-in="sw"><input type="range" hidden min="200" max="2000" step="1" value="744" data-play-space>
@@ -672,7 +673,7 @@
         <p>Three winters ago a dozen neighbors began trading seed in a borrowed church hall, with no plan beyond <em>not losing the beans</em>. The library now holds <strong>1,140 varieties</strong> and has outlasted two of the groups that founded it. This is what we learned about keeping a shared thing alive, written down for the next group that tries.</p>
         <p>None of it is original. Most of it we relearned from <a href="#prose">the people who kept seed before us</a>, and the rest we found by getting it wrong, usually in <abbr title="a period of cold that seeds need before they sprout">stratification</abbr> season, when a mistake takes a full year to show.</p>
         <figure>
-          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='713'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23154b52'/%3E%3Cstop offset='1' stop-color='%23c78a2c'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E" alt="A gradient standing in for a photograph of the seed room" width="1200" height="713">
+          <img class="ph" style="--ph: var(--kind-group); --ph-to: var(--warn)" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='713'/%3E" alt="A gradient standing in for a photograph of the seed room" width="1200" height="713">
           <figcaption>The seed room in its second year: shelves by family, not by crop, because that is how the plants cross.</figcaption>
         </figure>
         <h2>Start with what can be lost</h2>
@@ -731,16 +732,16 @@
         <h2>A season at the library</h2>
         <p>The swap is the part people see. It takes one Saturday; the rest of the year is what makes it possible.</p>
         <figure>
-          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='533'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23154b52'/%3E%3Cstop offset='1' stop-color='%23279daf'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E" alt="Gradient placeholder: seedlings on a bench">
-          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='800'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%235b3a7a'/%3E%3Cstop offset='1' stop-color='%23c06cc3'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E" alt="Gradient placeholder: a labeled jar">
-          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='800'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23956a1e'/%3E%3Cstop offset='1' stop-color='%23f5a524'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E" alt="Gradient placeholder: drying squash seed">
-          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='500'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230b5d3a'/%3E%3Cstop offset='1' stop-color='%232fb874'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E" alt="Gradient placeholder: the trial bed in June">
-          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='640'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231b3f70'/%3E%3Cstop offset='1' stop-color='%235b9cf0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E" alt="Gradient placeholder: beans sorted on a tray">
-          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='500'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23702a1e'/%3E%3Cstop offset='1' stop-color='%23ef6c44'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E" alt="Gradient placeholder: the swap table">
+          <img class="ph" style="--ph: var(--kind-group)" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='533'/%3E" alt="Gradient placeholder: seedlings on a bench">
+          <img class="ph" style="--ph: var(--kind-event)" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='800'/%3E" alt="Gradient placeholder: a labeled jar">
+          <img class="ph" style="--ph: var(--warn)" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='800'/%3E" alt="Gradient placeholder: drying squash seed">
+          <img class="ph" style="--ph: var(--ok)" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='500'/%3E" alt="Gradient placeholder: the trial bed in June">
+          <img class="ph" style="--ph: var(--accent)" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='640'/%3E" alt="Gradient placeholder: beans sorted on a tray">
+          <img class="ph" style="--ph: var(--alert)" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='500'/%3E" alt="Gradient placeholder: the swap table">
           <figcaption>Six months in six frames. Different shapes from the phone; the same squares here.</figcaption>
         </figure>
         <figure>
-          <video controls preload="none" poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1280' height='720'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23011012'/%3E%3Cstop offset='1' stop-color='%23279daf'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E" width="1280" height="720"></video>
+          <video class="ph" style="--ph: var(--kind-group); --ph-from: 30%" controls preload="none" poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1280' height='720'/%3E" width="1280" height="720"></video>
           <figcaption>A walk through the trial bed in June.</figcaption>
         </figure>
         <iframe title="Map of the trial beds" srcdoc="&lt;!doctype html&gt;&lt;body style='margin:0;display:grid;place-items:center;height:100vh;background:#042;color:#fff;font:16px sans-serif'&gt;An embed&lt;/body&gt;" width="560" height="315"></iframe>
@@ -1058,7 +1059,7 @@
   <!-- ============================================================ A POST TYPE -->
   <section class="post-type" id="post-type">
     <div class="cover" id="demo-cover">
-      <div class="cover-media"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23063840'/%3E%3Cstop offset='1' stop-color='%23c78a2c'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E" alt="A gradient standing in for a photograph"></div>
+      <div class="cover-media"><img class="ph" style="--ph: var(--kind-group); --ph-to: var(--warn); --ph-from: 40%" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'/%3E" alt="A gradient standing in for a photograph"></div>
       <div class="cover-body">
         <p class="t-label">A post type, worked through</p>
         <h2 class="t-h1">An article, with a cover and its people</h2>
@@ -1191,22 +1192,22 @@
         <div class="stack u-gap-2">
           <div class="avatar-rows">
           <div class="avatar-ladder">
-            <div class="avatar-cell stack"><span class="avatar cc-xs face" style="--av-hue: 200; --av-color: #4fb0c6"></span><span class="t-mono snap">u</span></div>
-            <div class="avatar-cell stack"><span class="avatar cc-sm face" style="--av-hue: 30"></span><span class="t-mono snap">2u</span></div>
-            <div class="avatar-cell stack"><span class="avatar cc-md face" style="--av-hue: 300; --av-color: #c66fd0"><span class="avatar-dot"></span></span><span class="t-mono snap">3u</span></div>
-            <div class="avatar-cell stack"><span class="avatar cc-lg" style="--av-color: #5cc08a"><span class="avatar-initials">TR</span></span><span class="t-mono snap">4u</span></div>
-            <div class="avatar-cell stack"><span class="avatar cc-xl face" style="--av-hue: 15; --av-color: #e07a5a"></span><span class="t-mono snap">6u</span></div>
-            <div class="avatar-cell stack"><span class="avatar cc-xxl face" style="--av-hue: 220; --av-color: #6f9be8"></span><span class="t-mono snap">8u</span></div>
+            <div class="avatar-cell stack"><span class="avatar cc-xs face" style="--face: var(--kind-group); --av-color: var(--kind-group)"></span><span class="t-mono snap">u</span></div>
+            <div class="avatar-cell stack"><span class="avatar cc-sm face" style="--face: var(--kind-person)"></span><span class="t-mono snap">2u</span></div>
+            <div class="avatar-cell stack"><span class="avatar cc-md face" style="--face: var(--kind-event); --av-color: var(--kind-event)"><span class="avatar-dot"></span></span><span class="t-mono snap">3u</span></div>
+            <div class="avatar-cell stack"><span class="avatar cc-lg" style="--av-color: var(--ok)"><span class="avatar-initials">TR</span></span><span class="t-mono snap">4u</span></div>
+            <div class="avatar-cell stack"><span class="avatar cc-xl face" style="--face: var(--alert); --av-color: var(--alert)"></span><span class="t-mono snap">6u</span></div>
+            <div class="avatar-cell stack"><span class="avatar cc-xxl face" style="--face: var(--accent); --av-color: var(--accent)"></span><span class="t-mono snap">8u</span></div>
           </div>
           <div class="avatar-ladder">
-            <div class="avatar-cell stack"><span class="avatar cc-lg cc-group face" style="--av-hue: 185"></span><span class="t-mono snap">group 4u</span></div>
+            <div class="avatar-cell stack"><span class="avatar cc-lg cc-group face" style="--face: var(--kind-group)"></span><span class="t-mono snap">group 4u</span></div>
             <div class="avatar-cell stack"><span class="avatar cc-md cc-group"><span class="avatar-initials">CC</span></span><span class="t-mono snap">group 3u</span></div>
             <div class="avatar-cell stack">
               <span class="avatar-stack" style="--av-size: var(--sp-2)">
-                <span class="avatar cc-sm face" style="--av-hue: 30"></span>
-                <span class="avatar cc-sm face" style="--av-hue: 300; --av-color: #c66fd0"></span>
-                <span class="avatar cc-sm" style="--av-color: #5cc08a"><span class="avatar-initials">T</span></span>
-                <span class="avatar cc-sm face" style="--av-hue: 220; --av-color: #6f9be8"></span>
+                <span class="avatar cc-sm face" style="--face: var(--kind-person)"></span>
+                <span class="avatar cc-sm face" style="--face: var(--kind-event); --av-color: var(--kind-event)"></span>
+                <span class="avatar cc-sm" style="--av-color: var(--ok)"><span class="avatar-initials">T</span></span>
+                <span class="avatar cc-sm face" style="--face: var(--accent); --av-color: var(--accent)"></span>
                 <span class="avatar-more">+8</span>
               </span>
               <span class="t-mono snap">stack</span>
@@ -1382,7 +1383,7 @@
         <div class="context-col stack">
           <p class="t-label">Default</p>
           <article class="card member-card stack">
-            <div class="member-head"><span class="avatar cc-md face" style="--av-hue: 30"></span><div class="stack"><p class="t-sm">Amara Okafor</p><p class="t-xs faint">Sample member · Lagos</p></div></div>
+            <div class="member-head"><span class="avatar cc-md face" style="--face: var(--kind-person)"></span><div class="stack"><p class="t-sm">Amara Okafor</p><p class="t-xs faint">Sample member · Lagos</p></div></div>
             <div class="cluster"><span class="tag cc-group"><span class="tag-label">Regenerative finance</span></span><span class="tag cc-event"><span class="tag-label">Hosts events</span></span></div>
             <div class="cluster"><button class="button cc-primary" type="button"><span class="button-label">Message</span></button><button class="button" type="button"><span class="button-label">View profile</span></button></div>
           </article>
@@ -1390,7 +1391,7 @@
         <div class="context-col stack cc-dense">
           <p class="t-label">Inside .cc-dense</p>
           <article class="card member-card stack">
-            <div class="member-head"><span class="avatar cc-md face" style="--av-hue: 30"></span><div class="stack"><p class="t-sm">Amara Okafor</p><p class="t-xs faint">Sample member · Lagos</p></div></div>
+            <div class="member-head"><span class="avatar cc-md face" style="--face: var(--kind-person)"></span><div class="stack"><p class="t-sm">Amara Okafor</p><p class="t-xs faint">Sample member · Lagos</p></div></div>
             <div class="cluster"><span class="tag cc-group"><span class="tag-label">Regenerative finance</span></span><span class="tag cc-event"><span class="tag-label">Hosts events</span></span></div>
             <div class="cluster"><button class="button cc-primary" type="button"><span class="button-label">Message</span></button><button class="button" type="button"><span class="button-label">View profile</span></button></div>
           </article>
@@ -1450,7 +1451,7 @@
         <div class="check"><svg class="icon" viewBox="0 0 18 18"><path d="M4 9.5 7.5 13 14 5.5"></path></svg><p class="t-body"><b>Edges land on lines.</b> A test checks every headline's baseline, every text block's top and every box's edges against the cells, in Chrome and in WebKit; a pixel test checks card edges against their grid lines' device pixels.</p></div>
         <div class="check"><svg class="icon" viewBox="0 0 18 18"><path d="M4 9.5 7.5 13 14 5.5"></path></svg><p class="t-body"><b>Every class is registered.</b> A class the stylesheet doesn't define, or the style guide doesn't show, fails. That stops a new avatar before it starts.</p></div>
         <div class="check"><svg class="icon" viewBox="0 0 18 18"><path d="M4 9.5 7.5 13 14 5.5"></path></svg><p class="t-body"><b>Products turn knobs.</b> A product layer may only set variables on the root. Variants and contexts set the primitive's own variables.</p></div>
-        <div class="check"><svg class="icon" viewBox="0 0 18 18"><path d="M4 9.5 7.5 13 14 5.5"></path></svg><p class="t-body"><b>Inline styles set variables only.</b> <code class="t-mono">style="--av-hue: 30"</code> passes; <code class="t-mono">style="padding: 13px"</code> fails.</p></div>
+        <div class="check"><svg class="icon" viewBox="0 0 18 18"><path d="M4 9.5 7.5 13 14 5.5"></path></svg><p class="t-body"><b>Inline styles set variables only.</b> <code class="t-mono">style="--face: var(--kind-person)"</code> passes; <code class="t-mono">style="padding: 13px"</code> fails.</p></div>
       </div>
     </div>
   </section>
@@ -1491,6 +1492,6 @@
 <script src="specimen.js?v=0.10.10"></script>
 <script src="hero.js?v=0.10.5"></script>
 <script src="palette.js?v=0.10.7"></script>
-<script src="tuner.js?v=0.10.11"></script>
+<script src="tuner.js?v=0.10.12"></script>
 </body>
 </html>

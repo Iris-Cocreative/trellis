@@ -77,7 +77,7 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D63](D63.md) | A board pads its cards a cell | 2026-11-12 | accepted |
 | [D64](D64.md) | Hanging rows keep their space below | 2026-11-12 | accepted |
 | [D65](D65.md) | Your own message, and runs | 2026-11-12 | accepted |
-| [D66](D66.md) | A scroller inside a card's corners | 2026-11-12 | accepted |
+| [D66](D66.md) | A scroller inside a card's corners | 2026-11-12 | superseded |
 | [D67](D67.md) | A cap-centered label that wraps hangs | 2026-11-12 | accepted |
 | [D68](D68.md) | Withdraw R12, overhangs are given back | 2026-11-12 | accepted |
 | [D69](D69.md) | R16 says what core does | 2026-11-12 | accepted |
@@ -106,3 +106,4 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D92](D92.md) | A cluster at a surface's end keeps its spare space above it | 2026-11-16 | accepted |
 | [D93](D93.md) | Type from seven values | 2026-11-16 | accepted |
 | [D94](D94.md) | Root two is the default wide ratio, and H1 is 72 | 2026-11-16 | accepted |
+| [D95](D95.md) | What scrolls in a card is cut at the card's line | 2026-11-16 | accepted |

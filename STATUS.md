@@ -50,7 +50,7 @@ Everything here lands before the first app pins a version.
 | Modal dismiss on a drag | done | `8d9b88e` | `settle.js` closes a modal only on a true backdrop click; `tests/layout.js` checks the drag and `data-trellis-stay`, both engines, wide and touch. |
 | Every control has every state | done | `55f8915` | One state layer; hover and press measured on primary and ghost buttons, rows and tabs in both engines and both themes. |
 | A switch primitive | done | `dff93ee` | `.switch` in core, the specimen's bar and a demo; both engines. |
-| Design feedback on the specimen | done | `44a92c9`, `670a7db` | The second round, 2026-11-16, every note built: Measure in 0.4s, one level of dots, straight marks (D85), the cell as counts (D86), a frame's reserve (D87), three levels by ground alone (D88), the hero redrawn, the ratio playground, a palette from one color. A third round the same day: the graph is back in the playground and its three lines are handles (the two spaces, and the width of the live box); the two columns of samples are set by the ratio alone, off the cells; a dense card's last row keeps its spare space above it (D92). Waiting on the owner's eye. |
+| Design feedback on the specimen | done | `44a92c9`, `670a7db` | The second round, 2026-11-16, every note built: Measure in 0.4s, one level of dots, straight marks (D85), the cell as counts (D86), a frame's reserve (D87), three levels by ground alone (D88), the hero redrawn, the ratio playground, a palette from one color. A third round the same day: the graph is back in the playground and its three lines are handles (the two spaces, and the width of the live box); the two columns of samples are set by the ratio alone, off the cells; a dense card's last row keeps its spare space above it (D92). A fourth round the same day, built: rods drawn so no edge doubles at 125%, the ratio graph colored by kind of role, stand-ins for photographs and faces drawn from the palette, and a card's scroller cut at the card's line (D95). The owner chose root two with 1.26 narrow, and no core context for type by the ratio alone, for now. |
 
 ## Before the second app
 
@@ -69,7 +69,7 @@ Everything here lands before the first app pins a version.
 | Compact density as knobs | done | `18d19fb` | `--density-option-h`, `--density-option-fs`, `--density-options-pad`, `--density-seg-h`, `--density-seg-pad` in core and the template, each defaulting to what was there; `contract.js` ok (70 knobs); `tests/layout.js` sets them on the root and measures a segmented control (two cells) and a menu row (two cells, smaller type), both engines. |
 | A switch in a menu row | done | `f46e5ab` | `.switch:empty` takes no gap and sits at the row's end; a row's `aria-checked` lights it; the row is not washed; no hit area of its own in a row. `tests/layout.js`, both engines, wide and touch. |
 | Smaller gaps from the first app | idea | | The tooltip's side padding, a button's side padding, an option's ground as a variable, a row that must not wrap: each waits for a second app to ask. Not built, by design. |
-| Type by the ratio alone | idea | | The playground's samples are set off the cells in the specimen's own CSS. Whether core should offer that as a context, for a type scale or a long document, is open. |
+| Type by the ratio alone | decided | | Not in core for now: the playground keeps it in the specimen's own CSS, until a long document asks for it. |
 | Density at scale | idea | | |
 | Theme name mapping | idea | | |
 | Person colors | decided | | No change for now. |

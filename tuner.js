@@ -205,7 +205,7 @@
     G.base = svg('line', { 'class': 'play-axis' }, graph);
     ROLES.forEach(function (r) {
       G.curves[r] = svg('polyline', { 'class': 'play-curve cc-' + kind(r) }, graph);
-      G.names[r] = svg('text', { 'class': 'play-name' }, graph);
+      G.names[r] = svg('text', { 'class': 'play-name cc-' + kind(r) }, graph);
       G.names[r].textContent = r;
     });
     Object.keys(HANDLES).forEach(function (n) {

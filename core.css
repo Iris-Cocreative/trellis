@@ -1371,17 +1371,25 @@
   .card .card > .card:first-child { margin-block-start: calc(var(--card-nest-out2) * -1); }
   .card .card > .card:last-child { margin-block-end: calc(var(--card-nest-out2) * -1); }
   /* A scroller in a card. It spans the card's sides, so its scrollbar runs on
-     the card's edge, and stays inside the card's block padding, so the edge it
-     runs on is straight: the corners are above and below it. Where a product
-     sets the corner larger than the padding, it steps in by the rest, in whole
-     cells. Its own sides pad --card-scroll-pad, the card's by default, so what
-     scrolls lines up with the rest of the card. */
+     the card's edge. At the card's start or end it reaches the card's edge
+     there too, and takes the card's corners, so what scrolls is cut at the
+     card's line and nowhere inside it (D95); its content keeps the card's
+     padding, so at rest nothing moves. Between other parts of the card it
+     stays inside them. Its own sides pad --card-scroll-pad, the card's by
+     default, so what scrolls lines up with the rest of the card. */
   .card-scroll {
     --card-scroll-pad: var(--card-pad-inline);
     margin-inline: calc(var(--card-pad-inline) * -1);
-    margin-block: round(up, max(0px, calc(var(--card-radius) - var(--card-pad-block))), var(--u));
     padding-inline: var(--card-scroll-pad);
     overflow-y: auto; overscroll-behavior: contain;
+  }
+  .card-scroll:first-child {
+    margin-block-start: calc(var(--card-pad-block) * -1); padding-block-start: var(--card-pad-block);
+    border-start-start-radius: var(--card-radius); border-start-end-radius: var(--card-radius);
+  }
+  .card-scroll:last-child {
+    margin-block-end: calc(var(--card-pad-block) * -1); padding-block-end: var(--card-pad-block);
+    border-end-start-radius: var(--card-radius); border-end-end-radius: var(--card-radius);
   }
   .board-lane > .card { --card-pad: var(--board-card-pad); }
 
