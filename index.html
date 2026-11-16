@@ -6,7 +6,7 @@
 <title>Trellis</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 18 18%27%3E%3Crect x=%27.5%27 y=%27.5%27 width=%2717%27 height=%2717%27 rx=%274.5%27 fill=%27%23101111%27 stroke=%27%236aa5f5%27/%3E%3Cline x1=%27.5%27 y1=%2712.5%27 x2=%2717.5%27 y2=%2712.5%27 stroke=%27%236aa5f5%27/%3E%3Ccircle cx=%276%27 cy=%276%27 r=%272%27 fill=%27%23f4f4f2%27/%3E%3C/svg%3E">
 <meta name="description" content="Trellis: a CSS framework from a cell and a ratio, in context.">
-<link rel="stylesheet" href="core.css?v=0.10.6">
+<link rel="stylesheet" href="core.css?v=0.10.7">
 <link rel="stylesheet" id="product-layer">
 <script>
   // Before first paint, so nothing flashes: the saved view settings, and one
@@ -38,7 +38,7 @@
     if (s.fit === 'on' || s.fit === 'off') d.setAttribute('data-unit-fit', s.fit);
   })();
 </script>
-<link rel="stylesheet" href="specimen.css?v=0.10.9">
+<link rel="stylesheet" href="specimen.css?v=0.10.10">
 </head>
 <body>
 
@@ -304,7 +304,7 @@
     <header class="section-head stack">
       <p class="t-eyebrow">The ratio</p>
       <h2 class="t-h4">Type grows with its space</h2>
-      <p class="t-sm muted">One ratio measures type. Headings step down from H1 by it. The text sizes step out from body by half a step, its square root. Every size has two ends, one in a narrow space and one in a wide one, and runs in a straight line between them.</p>
+      <p class="t-sm muted">One ratio measures type. Headings step down from H1 by it, and none comes out smaller than body text: one the ratio would put under it takes body's size. The text sizes step out from body by half a step, its square root. Every size has two ends, one in a narrow space and one in a wide one, and runs in a straight line between them.</p>
       <p class="t-sm muted">A narrow space shrinks the step and keeps every role's place: H1 sits as many steps above body there as in a wide space, so the hierarchy compresses without losing its shape.</p>
       <p class="t-sm muted">Seven values set all of it: three sizes, two ratios and two spaces. Drag them, or start from a named ratio. Everything else is worked out, and shown beside its sum.</p>
     </header>
@@ -417,7 +417,7 @@
           <p class="t-xs muted">Three things a size reads that are not knobs: the width of its container (<code>100cqi</code>), the reader's text size (<code>1rem</code>) and the cell (<code>--u</code>), which a headline's line rounds to and every other block rounds up to. Five sizes sit outside the ratio and neither model works them out: the control labels, <code>--fs-control-xs</code> to <code>--fs-control-lg</code>, fixed at 11, 12, 13, 14 and 16. The rest of type is its look: four families (<code>--font-sans</code>, <code>--font-serif</code>, <code>--font-mono</code>, <code>--font-heading</code>), six weights (<code>--fw-body</code>, <code>--fw-heading</code>, <code>--fw-label</code>, <code>--fw-label-text</code>, <code>--fw-strong</code>, <code>--fw-serif</code>), two trackings (<code>--heading-tracking</code>, <code>--label-tracking</code>) and <code>--label-case</code>.</p>
           <div class="stack cmp-part">
             <h3 class="t-h6">Every size, in both</h3>
-            <p class="t-sm muted">Each role at its two ends, in points. Here r is the ratio and s the text step: its own knob in core, the root of r in the playground. Line is the line height as a multiple of the size, and After the space after a heading as a share of it; both are core's.</p>
+            <p class="t-sm muted">Each role at its two ends, in points. Here r is the ratio and s the text step: its own knob in core, the root of r in the playground. A heading the ratio would put under body text is held at body's size, in both. Line is the line height as a multiple of the size, and After the space after a heading as a share of it; both are core's.</p>
           </div>
           <div class="cmp-table cc-roles" role="table" aria-label="Every role's size at both ends, in core and in the playground" data-cmp-roles>
             <div class="cmp-row cc-head cc-over" role="row"><span role="columnheader"></span><span class="cmp-from" role="columnheader"></span><span class="t-label cap-center faint cmp-num cmp-span" role="columnheader" aria-colspan="2">Core</span><span class="t-label cap-center faint cmp-num cmp-span" role="columnheader" aria-colspan="2">Playground</span><span class="cmp-extra" role="columnheader"></span><span class="cmp-extra" role="columnheader"></span></div>
@@ -1530,12 +1530,12 @@
 
 <script src="settle.js?v=0.10.0"></script>
 <script src="presets.js?v=0.10.0"></script>
-<script src="math.js?v=0.10.4"></script>
+<script src="math.js?v=0.10.5"></script>
 <script src="experiments/solids.js?v=0.10.0"></script>
 <script src="experiments/vines.js?v=0.10.0"></script>
-<script src="specimen.js?v=0.10.7"></script>
+<script src="specimen.js?v=0.10.8"></script>
 <script src="hero.js?v=0.10.5"></script>
 <script src="palette.js?v=0.10.5"></script>
-<script src="tuner.js?v=0.10.8"></script>
+<script src="tuner.js?v=0.10.9"></script>
 </body>
 </html>

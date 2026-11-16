@@ -132,10 +132,16 @@
 
   // ---- The ratio ------------------------------------------------------------
   // A role's two ends: its size in the narrow space and in the wide one.
-  function typeEnds(role, seed) {
+  // A heading is never smaller than body text: each of its ends is floored at
+  // body's. typeSteps gives the ends before the floor, for showing the working.
+  function typeSteps(role, seed) {
     var t = (seed || SEED).type, r = ROLES[role], anchor = t[r[0]], n = r[1];
     var key = r[2] || RATIO[r[0]], ratio = key ? t[key] : [1, 1];
     return [anchor[0] * Math.pow(ratio[0], n), anchor[1] * Math.pow(ratio[1], n)];
+  }
+  function typeEnds(role, seed) {
+    var e = typeSteps(role, seed), body = (seed || SEED).type.body;
+    return isHeading(role) ? [Math.max(e[0], body[0]), Math.max(e[1], body[1])] : e;
   }
 
   // A role's size in a space of a given width: a straight line between its two
@@ -282,7 +288,7 @@
   return {
     SEED: SEED, ROLES: ROLES,
     cellScale: cellScale, cellTarget: cellTarget, wholeCell: wholeCell, gutterCells: gutterCells, fit: fit, wideFrame: wideFrame,
-    typeEnds: typeEnds, typeSize: typeSize, lineRatio: lineRatio, lineHeight: lineHeight,
+    typeSteps: typeSteps, typeEnds: typeEnds, typeSize: typeSize, lineRatio: lineRatio, lineHeight: lineHeight,
     standPad: standPad, hang: hang, settleCluster: settleCluster, spaceAfter: spaceAfter, spaceAfterInStack: spaceAfterInStack,
     stands: stands, isHeading: isHeading, seedFromTokens: seedFromTokens,
     parseColor: parseColor, hex: hex, contrast: contrast, hue: hue, ink: ink, palette: palette

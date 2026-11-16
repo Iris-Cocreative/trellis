@@ -67,6 +67,7 @@ Everything here lands before the first app pins a version.
 | Theme name mapping | idea | | |
 | Person colors | decided | | No change for now. |
 | Headings never under body text | decided | | Yes: floor every heading at the body size, and H1 may be larger. At root two H5 and H6 fall under body text; at the golden ratio H4 does too. The work is its own item. |
+| Apply the heading floor | done | COMMIT | D89: each end of a heading is `max()` of its own step and body's, in `core.css` and `math.js` (`typeEnds()`, `typeSteps()`). At the defaults h6 is 16 to 18. `tests/math.js` reads every heading from the browser and fails one under body's. |
 | The ratio model | planning | | The playground sets type from seven values; core sets twelve, and has seven more for lines and space. The two are set side by side on the specimen, under the playground: every knob, which the playground sets and which it works out, and every role's size in each. At core's defaults five of the twelve differ. Core is unchanged, and waits on the owner's choice: core may stay richer than the playground. |
 | A default ratio of root two | idea | | Waits on the floor and on the comparison above. |
 | Color from one seed | decided | | Yes: core derives the kinds, the statuses and the neutral from the accent, each still settable, as the specimen's study does. The work is its own item. |

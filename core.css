@@ -517,13 +517,17 @@
        capitals) and its block rounds up to whole cells, so whatever follows
        starts on a line.
      The cell stays the only line on the page. Type answers to it where it
-     is large enough to be seen doing so. */
-  .t-h1, :where(.prose h1) { --t-min: var(--h1-min); --t-max: var(--h1-max); --t-lh: var(--lh-h1); --t-mb: var(--mb-h1); }
-  .t-h2, :where(.prose h2) { --t-min: calc(var(--h1-min) / var(--rh-min)); --t-max: calc(var(--h1-max) / var(--rh-max)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step)); --t-mb: calc(var(--mb-h1) + var(--mb-h-step)); }
-  .t-h3, :where(.prose h3) { --t-min: calc(var(--h1-min) / pow(var(--rh-min), 2)); --t-max: calc(var(--h1-max) / pow(var(--rh-max), 2)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step) * 2); --t-mb: calc(var(--mb-h1) + var(--mb-h-step) * 2); }
-  .t-h4, :where(.prose h4) { --t-min: calc(var(--h1-min) / pow(var(--rh-min), 3)); --t-max: calc(var(--h1-max) / pow(var(--rh-max), 3)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step) * 3); --t-mb: calc(var(--mb-h1) + var(--mb-h-step) * 3); }
-  .t-h5, :where(.prose h5) { --t-min: calc(var(--h1-min) / pow(var(--rh-min), 4)); --t-max: calc(var(--h1-max) / pow(var(--rh-max), 4)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step) * 4); --t-mb: calc(var(--mb-h1) + var(--mb-h-step) * 4); }
-  .t-h6, :where(.prose h6) { --t-min: calc(var(--h1-min) / pow(var(--rh-min), 5)); --t-max: calc(var(--h1-max) / pow(var(--rh-max), 5)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step) * 5); --t-mb: calc(var(--mb-h1) + var(--mb-h-step) * 5); }
+     is large enough to be seen doing so.
+     A heading is never smaller than body text (D89): each of its two ends is
+     floored at body's. A wide ratio runs out of room under H1 before it runs
+     out of headings; the ones it would put under body take body's size, and
+     keep the heading's family, weight, line and space. */
+  .t-h1, :where(.prose h1) { --t-min: max(var(--body-min), var(--h1-min)); --t-max: max(var(--body-max), var(--h1-max)); --t-lh: var(--lh-h1); --t-mb: var(--mb-h1); }
+  .t-h2, :where(.prose h2) { --t-min: max(var(--body-min), var(--h1-min) / var(--rh-min)); --t-max: max(var(--body-max), var(--h1-max) / var(--rh-max)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step)); --t-mb: calc(var(--mb-h1) + var(--mb-h-step)); }
+  .t-h3, :where(.prose h3) { --t-min: max(var(--body-min), var(--h1-min) / pow(var(--rh-min), 2)); --t-max: max(var(--body-max), var(--h1-max) / pow(var(--rh-max), 2)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step) * 2); --t-mb: calc(var(--mb-h1) + var(--mb-h-step) * 2); }
+  .t-h4, :where(.prose h4) { --t-min: max(var(--body-min), var(--h1-min) / pow(var(--rh-min), 3)); --t-max: max(var(--body-max), var(--h1-max) / pow(var(--rh-max), 3)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step) * 3); --t-mb: calc(var(--mb-h1) + var(--mb-h-step) * 3); }
+  .t-h5, :where(.prose h5) { --t-min: max(var(--body-min), var(--h1-min) / pow(var(--rh-min), 4)); --t-max: max(var(--body-max), var(--h1-max) / pow(var(--rh-max), 4)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step) * 4); --t-mb: calc(var(--mb-h1) + var(--mb-h-step) * 4); }
+  .t-h6, :where(.prose h6) { --t-min: max(var(--body-min), var(--h1-min) / pow(var(--rh-min), 5)); --t-max: max(var(--body-max), var(--h1-max) / pow(var(--rh-max), 5)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step) * 5); --t-mb: calc(var(--mb-h1) + var(--mb-h-step) * 5); }
   .t-xl { --t-min: calc(var(--body-min) * pow(var(--rp-min), 2)); --t-max: calc(var(--body-max) * pow(var(--rp-max), 2)); --t-lh: calc(var(--lh-body) - var(--lh-p-step) * 2); }
   .t-lg, :where(.prose blockquote), :where(.prose) blockquote :is(p, li) { --t-min: calc(var(--body-min) * var(--rp-min)); --t-max: calc(var(--body-max) * var(--rp-max)); --t-lh: calc(var(--lh-body) - var(--lh-p-step)); }
   .t-body, :where(.prose :is(p, li, dt, dd, summary), .prose div:not([class], :has(> :is(p, div, ul, ol, dl, h1, h2, h3, h4, h5, h6, blockquote, pre, table, figure, hr, details, img, video, iframe)))) { --t-min: var(--body-min); --t-max: var(--body-max); --t-lh: var(--lh-body); }

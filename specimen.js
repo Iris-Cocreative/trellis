@@ -685,10 +685,11 @@
       var role = (s.className.match(/t-(h\d|xl|lg|body|sm|xs|label|eyebrow)/) || [])[1];
       var R = ROLES[role]; if (!R || !out) return;
       var n = R[3], base = R[1], rk = R[2], p = Math.abs(n), op = n < 0 ? ' ÷ ' : ' × ';
-      var pts = M.typeEnds(role, seed);
+      // A heading the ratio would put under body text is held at body's size (D89).
+      var pts = M.typeEnds(role, seed), steps = M.typeSteps(role, seed);
       var ends = ['min', 'max'].map(function (e, i) {
-        var v = K(base + '-' + e), r = rk ? K(rk + '-' + e) : 1;
-        return { v: pts[i] / 16, expr: n ? f(v) + op + f(r) + SUP[p] + ' = ' : '' };
+        var v = K(base + '-' + e), r = rk ? K(rk + '-' + e) : 1, held = pts[i] > steps[i] + 1e-9;
+        return { v: pts[i] / 16, expr: n ? f(v) + op + f(r) + SUP[p] + ' = ' + (held ? f(steps[i] / 16) + ', held at body\'s ' : '') : '' };
       });
       var cw = containerWidth(s), slope = (ends[1].v - ends[0].v) / (cmax - cmin);
       var raw = ends[0].v + slope * (cw / rem - cmin);

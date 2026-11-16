@@ -131,19 +131,19 @@
       Array.prototype.forEach.call(lines, function (line) { sizes[line.dataset.role] = parseFloat(getComputedStyle(line.lastElementChild).fontSize) / k; });
       Array.prototype.forEach.call(lines, function (line) {
         var r = line.dataset.role, v = sizes[r];
-        var sunk = M.isHeading(r) && v < sizes.body - .05, tiny = v < SMALL;
+        var sunk = M.isHeading(r) && v < sizes.body + .05, tiny = v < SMALL;   // held at body's size (D89)
         if (sunk) under.push(r);
         if (tiny) small.push(r);
         say(line.querySelector('[data-size]'), num(v, 1));
         line.querySelector('.bar').style.setProperty('--w', (v * k).toFixed(2) + 'px');
-        if (tiny) line.dataset.flag = 'small'; else if (sunk) line.dataset.flag = 'under'; else delete line.dataset.flag;
+        if (tiny) line.dataset.flag = 'small'; else if (sunk) line.dataset.flag = 'held'; else delete line.dataset.flag;
       });
       var fit = 6 - under.length;
       var at = end === 'wide' ? 'At ' + num(state.rw) + ' H1 is ' + num(place(state), 2) + ' steps above body: '
         : 'At ' + num(state.rn) + ' the steps are smaller and the places are the same: ';
-      var a = !under.length ? at + 'all six headings stay above body text.'
-        : at + (fit === 1 ? 'only h1 stays' : fit ? COUNT[fit] + ' headings stay' : 'no heading stays') + ' above body text, and ' +
-          words(under) + (under.length > 1 ? ' come' : ' comes') + ' out smaller.';
+      var a = !under.length ? at + 'all six headings are larger than body text.'
+        : at + (fit === 1 ? 'only h1 is' : fit ? COUNT[fit] + ' headings are' : 'no heading is') + ' larger than body text, and ' +
+          words(under) + (under.length > 1 ? ' are' : ' is') + ' held at its size.';
       var b = small.length ? 'Under 11px: ' + words(small) + '.' : 'Nothing is under 11px.';
       say(one('[data-play-note="' + end + '"]'), a + ' ' + b);
     });
@@ -224,12 +224,12 @@
       table.appendChild(row); roleRows[r] = row;
     });
   })();
-  // Which headings a model puts under body text, and where: "h6 at both ends".
+  // Which headings a model holds at body's size (D89), and where: "h6 at both ends".
   function sunk(ends) {
     var list = [];
     ROLES.forEach(function (r) {
       if (!M.isHeading(r)) return;
-      var n = ends[r][0] < ends.body[0] - .05, w = ends[r][1] < ends.body[1] - .05;
+      var n = ends[r][0] < ends.body[0] + .05, w = ends[r][1] < ends.body[1] + .05;
       if (n || w) list.push(r + (n && w ? ' at both ends' : n ? ' in a narrow space' : ' in a wide space'));
     });
     return list;
@@ -260,15 +260,15 @@
         say(c, a); say(p, b);
         if (a !== b) p.dataset.differs = ''; else delete p.dataset.differs;
         [[c, 0], [p, 1]].forEach(function (x) {
-          if (heading && ends[x[1]][r][end] < ends[x[1]].body[end] - .05) x[0].dataset.flag = 'under'; else delete x[0].dataset.flag;
+          if (heading && ends[x[1]][r][end] < ends[x[1]].body[end] + .05) x[0].dataset.flag = 'held'; else delete x[0].dataset.flag;
         });
       });
       say(row.querySelector('[data-line]'), num(M.lineRatio(r, seeds[0]), 2));
       say(row.querySelector('[data-after]'), heading ? num(page['mb-h1'] + page['mb-h-step'] * -M.ROLES[r][1], 2) : '');
     });
     var a = sunk(ends[0]), b = sunk(ends[1]);
-    say(one('[data-cmp-roles-note]'), !a.length && !b.length ? 'No heading is smaller than body text in either.'
-      : 'Smaller than body text, and shown fainter: in core, ' + (a.length ? words(a) : 'no heading') + '; in the playground, ' + (b.length ? words(b) : 'no heading') + '.');
+    say(one('[data-cmp-roles-note]'), !a.length && !b.length ? 'Every heading is larger than body text in both.'
+      : 'Held at body\'s size, and shown fainter: in core, ' + (a.length ? words(a) : 'no heading') + '; in the playground, ' + (b.length ? words(b) : 'no heading') + '.');
   }
 
   // ---- Write the knobs, and say what was worked out -------------------------

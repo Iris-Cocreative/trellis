@@ -75,7 +75,7 @@ Grown from these: lines are planes · edges land on lines · headlines stand on 
 
 Fluid, fractal type from the [Type Scale Generator](https://lab.iriscocreative.com/tools/type-scale-generator.html).
 - Two anchors, H1 and body, each with a size for a narrow space (20rem) and a wide one (90rem). Every role is a straight line between its two ends, clamped.
-- Headings step down from H1 by one ratio; paragraphs step out from body by another; **both ratios open with the space**. The default is 1.2 → 1.333; the examples run from 1.125 → 1.25 (Quarry) to 1.333 → 1.5 (Almanac).
+- Headings step down from H1 by one ratio; paragraphs step out from body by another; **both ratios open with the space**. **A heading is never smaller than body text:** each of its ends is floored at body's, so one a wide ratio would put under body takes body's size, in the heading's family and weight (D89). The default is 1.2 → 1.333; the examples run from 1.125 → 1.25 (Quarry) to 1.333 → 1.5 (Almanac).
 - Sizes respond to their **container** (`100cqi`), so a role inside a card scales to the card: the same structure at every scale of context.
 - A heading carries its own space after it, proportional to its size (H1 0.33em, +0.11em a step), rounded up to whole cells. **In a stack it is the larger of that space and the gap, never the sum.**
 - Known wrinkle: in every product, xs is larger in a narrow space than a wide one (the paragraph ratio opens faster than body grows), so CSS holds xs at its narrow size. The math view says so. Either accept a fixed xs or retune the paragraph ratio.
@@ -141,7 +141,7 @@ The same rules without CSS, for any platform. `math.js` is these formulas as fun
 
 **The gutter parity rule.** The field between the gutters must be whole modules of 4 cells. With an even count, that holds when the gutter has the same parity as half the count: `gutter = 2 + (count ÷ 2) mod 2`. So 40 cells take a gutter of 2 (field 36, 9 modules) and 42 take 3 (field 36). Beside a notch, the gutter is the fewest cells that clear the safe area, plus one if its parity is wrong.
 
-**The ratio.** Two anchors, H1 and body, each with a size in a narrow space (320) and a wide one (1440). A heading n steps below H1 has ends `H1 ÷ ratioⁿ`, using the narrow ratio for the narrow end and the wide ratio for the wide end; paragraph roles step out from body the same way. `size = clamp(narrow end, narrow end + (wide end − narrow end) × (space − 320) ÷ 1120, wide end)`, where the space is the container the text sits in, not the window.
+**The ratio.** Two anchors, H1 and body, each with a size in a narrow space (320) and a wide one (1440). A heading n steps below H1 has ends `H1 ÷ ratioⁿ`, using the narrow ratio for the narrow end and the wide ratio for the wide end; paragraph roles step out from body the same way. A heading's ends are never under body's: `end = max(H1 ÷ ratioⁿ, body)`, at each end. `size = clamp(narrow end, narrow end + (wide end − narrow end) × (space − 320) ÷ 1120, wide end)`, where the space is the container the text sits in, not the window.
 
 **Standing** (h1 to h3). `line height = size × line ratio, rounded to the nearest whole cells`. The box is trimmed to the capitals and the baseline and padded on top by `cap height rounded up to whole cells − cap height`, so the last baseline sits on a cell line and every line above it does too.
 

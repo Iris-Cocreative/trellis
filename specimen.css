@@ -607,10 +607,10 @@
      is drawn in the gap under its line and takes no room: a line of small type
      is one cell tall, and its name must not make it taller. */
   .play-meta .bar { position: absolute; inset: calc(100% + var(--sp-q)) auto auto 0; block-size: var(--sp-q); max-inline-size: 100%; }
-  /* Two flags, both quiet. A heading that has sunk under body text recedes;
-     a size under 11px takes the caution ink. The note under the box says which. */
-  .play-line[data-flag="under"] .play-meta b { color: var(--text-tertiary); }
-  .play-line[data-flag="under"] .bar { background: var(--border-strong); }
+  /* Two flags, both quiet. A heading held at body's size recedes; a size
+     under 11px takes the caution ink. The note under the box says which. */
+  .play-line[data-flag="held"] .play-meta b { color: var(--text-tertiary); }
+  .play-line[data-flag="held"] .bar { background: var(--border-strong); }
   .play-line[data-flag="small"] .play-meta, .play-line[data-flag="small"] .play-meta b { color: var(--warn); }
   .play-line[data-flag="small"] .bar { background: var(--warn); }
   .type-ref { --stack-gap: var(--sp-1); }
@@ -648,7 +648,7 @@
   /* Where the two models part: the playground's value is set in the strong weight. */
   .cmp-row[data-differs] > [data-cmp-play], .cmp-row > [data-differs] { font-weight: 600; }
   .cmp-row[data-differs] > [data-cmp-how] { color: var(--text-secondary); }
-  .cmp-row > .t-mono[data-flag="under"] { color: var(--text-faint); }
+  .cmp-row > .t-mono[data-flag="held"] { color: var(--text-tertiary); }
   .cmp-sides { row-gap: var(--sp-2); --split-a: 1; --split-b: 1; }
   /* In a narrow column a knob takes two lines: its name and the two values,
      then its variable and how the playground comes by it. The roles keep

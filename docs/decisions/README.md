@@ -100,3 +100,4 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D86](D86.md) | Space is counted in cells, not doubled | 2026-11-16 | accepted |
 | [D87](D87.md) | A frame keeps a reserve: it gives up its far margin first | 2026-11-16 | accepted |
 | [D88](D88.md) | A surface on a surface is drawn by its ground alone | 2026-11-16 | accepted |
+| [D89](D89.md) | A heading is never smaller than body text | 2026-11-16 | accepted |

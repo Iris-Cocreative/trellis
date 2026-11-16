@@ -67,9 +67,14 @@ const CASES = [
         headingRatio: [K('rh-min'), K('rh-max')], paragraphRatio: [K('rp-min'), K('rp-max')], lineH1: K('lh-h1'), lineHeadingStep: K('lh-h-step'), lineBody: K('lh-body'),
         lineParagraphStep: K('lh-p-step'), lineLabel: K('lh-label'), afterH1: K('mb-h1'), afterHeadingStep: K('mb-h-step') } };
       const space = el => { let c = el.parentElement; while (c && getComputedStyle(c).containerType === 'normal') c = c.parentElement; const s = getComputedStyle(c); return c.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight); };
+      // A heading is never smaller than body text (D89), read from the browser alone.
+      const floored = (where, sizes) => Object.keys(sizes).filter(M.isHeading).forEach(role =>
+        expect(sizes[role] >= sizes.body - .06, `floor: ${role} is ${sizes[role]}px ${where}, under body's ${sizes.body}px`));
+      const onPage = {};
       document.querySelectorAll('.type-row .type-sample').forEach(el => {
         const role = (el.className.match(/t-(h\d|xl|lg|body|sm|xs|label|eyebrow)/) || [])[1], s = getComputedStyle(el);
         const size = M.typeSize(role, space(el), { textScale: rem / 16 }, seed), actual = parseFloat(s.fontSize);
+        onPage[role] = actual;
         expect(near(size, actual, .06), `ratio: ${role} is ${actual}px, math says ${size.toFixed(3)}`);
         // A heading's own space after it, rounded up to whole cells. The specimen
         // zeroes its samples' margins, so a hidden copy in the same container,
@@ -94,6 +99,7 @@ const CASES = [
           expect(near(M.hang(h, u), h, .05), `hanging: ${role}'s block is ${h}px, not whole cells`);
         }
       });
+      floored('on the page', onPage);
       // The playground (tuner.js). Its sample boxes carry the knobs it works out,
       // and the roles in them are the real classes: the wide box holds every
       // role at its wide end, the narrow box, as wide as the narrow space, at
@@ -109,11 +115,14 @@ const CASES = [
           headingRatio: [B('rh-min'), B('rh-max')], paragraphRatio: [B('rp-min'), B('rp-max')] }) };
         expect(near(B('rp-min'), Math.sqrt(B('rh-min')), .001) && near(B('rp-max'), Math.sqrt(B('rh-max')), .001),
           `playground: the half step is ${B('rp-min')} and ${B('rp-max')}, not the roots of ${B('rh-min')} and ${B('rh-max')}`);
+        const inBox = {};
         lines.forEach(el => {
           const role = (el.className.match(/t-(h\d|xl|lg|body|sm|xs|label|eyebrow)/) || [])[1], e = M.typeEnds(role, own);
           const want = (end === 'wide' ? Math.max(e[0], e[1]) : e[0]) * rem / 16, actual = parseFloat(getComputedStyle(el).fontSize);
+          inBox[role] = actual;
           expect(near(want, actual, .06), `playground: ${role} at its ${end} end is ${actual}px, math says ${want.toFixed(3)}`);
         });
+        floored(`in the playground's ${end} box`, inBox);
       });
       return { fails: out, n, u, fitted };
     });
