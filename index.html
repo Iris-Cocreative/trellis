@@ -38,7 +38,7 @@
     if (s.fit === 'on' || s.fit === 'off') d.setAttribute('data-unit-fit', s.fit);
   })();
 </script>
-<link rel="stylesheet" href="specimen.css?v=0.10.6">
+<link rel="stylesheet" href="specimen.css?v=0.10.7">
 </head>
 <body>
 
@@ -109,7 +109,6 @@
   <a class="toc-link" href="#elements"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Point, line, plane</span></a>
   <a class="toc-link" href="#unit"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">The cell</span></a>
   <a class="toc-link" href="#ratio"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">The ratio</span></a>
-  <a class="toc-link" href="#tune"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Tune it</span></a>
   <a class="toc-link" href="#type-cell"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Type on the cell</span></a>
   <a class="toc-link" href="#color"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Color</span></a>
   <a class="toc-link" href="#layout"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Layout</span></a>
@@ -297,14 +296,89 @@
   </section>
 
   <!-- ============================================================ RATIO -->
+  <!-- The playground (tuner.js) sets seven values and works the rest out. It
+       writes the real knobs onto its three sample boxes, so what they show is
+       the real type roles, sized by the browser. The type list under it is the
+       page's own knobs, at the page's own width. -->
   <section class="section cc-split" id="ratio">
     <header class="section-head stack">
       <p class="t-eyebrow">The ratio</p>
       <h2 class="t-h4">Type grows with its space</h2>
-      <p class="t-sm muted">From the <a href="https://lab.iriscocreative.com/tools/type-scale-generator.html">Type Scale Generator</a>: two anchors, H1 and body, each with a size for a narrow space and one for a wide space. Headings step down from H1 by one ratio, paragraphs step out from body by another, and both ratios grow with the space. A narrow space compresses the hierarchy; a wide one opens it. The live sizes are measured at this width.</p>
-      <div class="cluster"><button class="button cc-sm" type="button" data-toggle="math"><span class="button-label">Show the math</span></button></div>
+      <p class="t-sm muted">One ratio measures type. Headings step down from H1 by it. The text sizes step out from body by half a step, its square root. Every size has two ends, one in a narrow space and one in a wide one, and runs in a straight line between them.</p>
+      <p class="t-sm muted">A narrow space shrinks the step and keeps every role's place: H1 sits as many steps above body there as in a wide space, so the hierarchy compresses without losing its shape.</p>
+      <p class="t-sm muted">Seven values set all of it: three sizes, two ratios and two spaces. Drag them, or start from a named ratio. Everything else is worked out, and shown beside its sum.</p>
     </header>
     <div class="section-body stack">
+      <div class="play stack" data-play>
+        <div class="cluster" role="group" aria-label="Named ratios">
+          <button class="button cc-sm" type="button" aria-pressed="false" data-play-preset="1.2" data-play-narrow="1.125"><span class="button-label">Minor third 1.2</span></button>
+          <button class="button cc-sm" type="button" aria-pressed="false" data-play-preset="1.25" data-play-narrow="1.16"><span class="button-label">Major third 1.25</span></button>
+          <button class="button cc-sm" type="button" aria-pressed="false" data-play-preset="1.333" data-play-narrow="1.2"><span class="button-label">Perfect fourth 1.333</span></button>
+          <button class="button cc-sm" type="button" aria-pressed="false" data-play-preset="1.414" data-play-narrow="1.26"><span class="button-label">Root two 1.414</span></button>
+          <button class="button cc-sm" type="button" aria-pressed="false" data-play-preset="1.5" data-play-narrow="1.31"><span class="button-label">Perfect fifth 1.5</span></button>
+          <button class="button cc-sm" type="button" aria-pressed="false" data-play-preset="1.618" data-play-narrow="1.38"><span class="button-label">Golden 1.618</span></button>
+        </div>
+        <div class="split play-ends">
+          <div class="stack play-end" role="group" aria-labelledby="play-wide">
+            <p class="t-label" id="play-wide">In a wide space, <span data-play-out="swh">1440px</span></p>
+            <div class="play-knobs">
+              <div class="play-knob"><label class="t-label cap-center muted" for="play-h1">H1</label><input class="range" id="play-h1" type="range" min="32" max="96" step="1" value="64" data-play-in="h1"><output class="t-mono snap cap-center play-value" for="play-h1" data-play-out="h1">64px</output></div>
+              <div class="play-knob"><label class="t-label cap-center muted" for="play-rw">Ratio</label><input class="range" id="play-rw" type="range" min="1.05" max="1.75" step="0.001" value="1.333" data-play-in="rw"><output class="t-mono snap cap-center play-value" for="play-rw" data-play-out="rw">1.333</output></div>
+              <div class="play-knob"><label class="t-label cap-center muted" for="play-body">Body</label><input class="range" id="play-body" type="range" min="14" max="24" step="1" value="18" data-play-in="body"><output class="t-mono snap cap-center play-value" for="play-body" data-play-out="body">18px</output></div>
+              <div class="play-knob"><span class="t-label cap-center muted">Half step</span><span class="t-mono snap cap-center play-sum" data-play-sum="pw">√1.333</span><span class="t-mono snap cap-center play-value" data-play-out="pw">1.155</span></div>
+              <div class="play-knob"><label class="t-label cap-center muted" for="play-label">Label</label><input class="range" id="play-label" type="range" min="9" max="16" step="1" value="12" data-play-in="label"><output class="t-mono snap cap-center play-value" for="play-label" data-play-out="label">12px</output></div>
+            </div>
+            <div class="play-box cc-wide" data-play-box="wide"><div class="stack play-lines" data-play-lines></div></div>
+            <p class="t-xs muted" data-play-note="wide"></p>
+          </div>
+          <div class="stack play-end" role="group" aria-labelledby="play-narrow">
+            <p class="t-label" id="play-narrow">In a narrow space, <span data-play-out="snh">320px</span></p>
+            <div class="play-knobs">
+              <div class="play-knob"><span class="t-label cap-center muted">H1</span><span class="t-mono snap cap-center play-sum" data-play-sum="h1n">16.4 × 1.2^4.41</span><span class="t-mono snap cap-center play-value" data-play-out="h1n">36.7px</span></div>
+              <div class="play-knob"><label class="t-label cap-center muted" for="play-rn">Ratio</label><input class="range" id="play-rn" type="range" min="1.05" max="1.75" step="0.001" value="1.2" data-play-in="rn"><output class="t-mono snap cap-center play-value" for="play-rn" data-play-out="rn">1.2</output></div>
+              <div class="play-knob"><span class="t-label cap-center muted">Body</span><span class="t-mono snap cap-center play-sum" data-play-sum="bodyn">18 ÷ √1.2</span><span class="t-mono snap cap-center play-value" data-play-out="bodyn">16.4px</span></div>
+              <div class="play-knob"><span class="t-label cap-center muted">Half step</span><span class="t-mono snap cap-center play-sum" data-play-sum="pn">√1.2</span><span class="t-mono snap cap-center play-value" data-play-out="pn">1.095</span></div>
+              <div class="play-knob"><span class="t-label cap-center muted">Label</span><span class="t-mono snap cap-center play-sum">as in a wide space</span><span class="t-mono snap cap-center play-value" data-play-out="labeln">12px</span></div>
+            </div>
+            <div class="play-box cc-narrow" data-play-box="narrow"><div class="stack play-lines" data-play-lines></div></div>
+            <p class="t-xs muted" data-play-note="narrow"></p>
+          </div>
+        </div>
+        <div class="stack play-between" role="group" aria-labelledby="play-between">
+          <p class="t-label" id="play-between">Between them</p>
+          <div class="play-knobs">
+            <div class="play-knob"><label class="t-label cap-center muted" for="play-sn">Narrow space</label><input class="range" id="play-sn" type="range" min="200" max="2000" step="8" value="320" data-play-in="sn"><output class="t-mono snap cap-center play-value" for="play-sn" data-play-out="sn">320px</output></div>
+            <div class="play-knob"><label class="t-label cap-center muted" for="play-sw">Wide space</label><input class="range" id="play-sw" type="range" min="200" max="2000" step="8" value="1440" data-play-in="sw"><output class="t-mono snap cap-center play-value" for="play-sw" data-play-out="sw">1440px</output></div>
+            <div class="play-knob"><label class="t-label cap-center muted" for="play-space">This box</label><input class="range cc-zone" id="play-space" type="range" min="200" max="2000" step="1" value="744" data-play-space><output class="t-mono snap cap-center play-value" for="play-space" data-play-out="space">744px</output></div>
+          </div>
+          <p class="t-xs muted" data-play-where></p>
+          <div class="play-stage" data-play-stage>
+            <div class="play-box cc-live" data-play-box="live">
+              <div class="stack play-page">
+                <p class="t-eyebrow">Seed library</p>
+                <p class="t-h1">Garden Stewards Circle</p>
+                <p class="t-lg">A living map of the people and groups tending the same ground.</p>
+                <p class="t-h3">Upcoming gatherings</p>
+                <p class="t-body">Circles are small groups organized around a shared purpose. Each one has a wall for conversation, a library of resources and a room for live calls.</p>
+                <article class="card stack"><p class="t-h5">Work day at the trial bed</p><p class="t-sm muted">Every other Monday, from nine.</p><div class="cluster"><button class="button cc-primary" type="button"><span class="button-label">Join</span></button><button class="button" type="button"><span class="button-label">Later</span></button></div></article>
+                <p class="t-label">Seeking · Offering · 12 members</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cluster"><button class="switch" type="button" role="switch" aria-checked="false" data-play-whole><span class="switch-label">Apply to the whole page</span></button><button class="button cc-sm" type="button" data-play-reset><span class="button-label">Reset</span></button></div>
+        <div class="stack play-export">
+          <h3 class="t-h6">The product layer</h3>
+          <pre class="code cc-wrap settle" data-play-export tabindex="0"></pre>
+          <div class="cluster"><button class="button cc-sm cc-primary" type="button" data-play-save><span class="button-label">Save product.css</span></button><button class="button cc-sm" type="button" data-play-copy><span class="button-label">Copy</span></button></div>
+          <p class="t-xs faint">One <code>:root[data-product]</code> rule of knobs in <code>@layer trellis.product</code>, the shape <code>tests/contract.js</code> checks. The half step is written as <code>--rp-min</code> and <code>--rp-max</code>, the knobs core reads. The two spaces are <code>--c-min</code> and <code>--c-max</code> in core, which a product layer cannot set yet, so they are exported as a comment.</p>
+        </div>
+      </div>
+      <div class="stack type-ref">
+        <h3 class="t-h6">Every role, on this page</h3>
+        <p class="t-sm muted">The page's own knobs, measured at this width: r is the step between headings, s the step between text sizes. Turn on "Apply to the whole page" above and this list follows. The fluid sizing is from the <a href="https://lab.iriscocreative.com/tools/type-scale-generator.html">Type Scale Generator</a>.</p>
+        <div class="cluster"><button class="button cc-sm" type="button" data-toggle="math"><span class="button-label">Show the math</span></button></div>
+      </div>
       <div class="type-list stack">
         <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>h1</b> anchor</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-h1 type-sample">Trellis</p><div class="type-math settle" data-math-out></div></div>
         <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>h2</b> h1 ÷ r</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-h2 type-sample">Community seed library</p><div class="type-math settle" data-math-out></div></div>
@@ -312,12 +386,12 @@
         <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>h4</b> h1 ÷ r³</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-h4 type-sample">Upcoming gatherings</p><div class="type-math settle" data-math-out></div></div>
         <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>h5</b> h1 ÷ r⁴</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-h5 type-sample">Resources and gallery</p><div class="type-math settle" data-math-out></div></div>
         <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>h6</b> h1 ÷ r⁵</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-h6 type-sample">Members of this circle</p><div class="type-math settle" data-math-out></div></div>
-        <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>xl</b> body × p²</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-xl type-sample">A living map of the people and groups tending the same ground.</p><div class="type-math settle" data-math-out></div></div>
-        <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>lg</b> body × p</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-lg type-sample">Join a circle to meet the people working on what you care about.</p><div class="type-math settle" data-math-out></div></div>
+        <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>xl</b> body × s²</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-xl type-sample">A living map of the people and groups tending the same ground.</p><div class="type-math settle" data-math-out></div></div>
+        <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>lg</b> body × s</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-lg type-sample">Join a circle to meet the people working on what you care about.</p><div class="type-math settle" data-math-out></div></div>
         <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>body</b> anchor</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-body type-sample">Circles are small groups organized around a shared purpose. Each one has a wall for conversation, a library of resources and a room for live calls.</p><div class="type-math settle" data-math-out></div></div>
-        <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>sm</b> body ÷ p</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-sm type-sample">Posted in the Seed Library by a member of the Thursday circle.</p><div class="type-math settle" data-math-out></div></div>
-        <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>xs</b> body ÷ p²</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-xs type-sample">Last active 2 hours ago</p><div class="type-math settle" data-math-out></div></div>
-        <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>eyebrow</b> label × p</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-eyebrow type-sample">Seed library · Autumn swap</p><div class="type-math settle" data-math-out></div></div>
+        <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>sm</b> body ÷ s</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-sm type-sample">Posted in the Seed Library by a member of the Thursday circle.</p><div class="type-math settle" data-math-out></div></div>
+        <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>xs</b> body ÷ s²</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-xs type-sample">Last active 2 hours ago</p><div class="type-math settle" data-math-out></div></div>
+        <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>eyebrow</b> label × s</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-eyebrow type-sample">Seed library · Autumn swap</p><div class="type-math settle" data-math-out></div></div>
         <div class="type-row"><div class="type-meta cap-align stack"><span class="t-mono snap"><b>label</b> anchor</span><span class="t-mono snap" data-readout></span><span class="bar type-bar" aria-hidden="true"></span></div><p class="t-label type-sample">Seeking · Offering · 12 members</p><div class="type-math settle" data-math-out></div></div>
       </div>
       <div class="split">
@@ -338,38 +412,6 @@
   </section>
 
   <!-- ============================================================ BASELINE -->
-  <!-- ============================================================ TUNE -->
-  <section class="section cc-split" id="tune">
-    <header class="section-head stack">
-      <p class="t-eyebrow">Tune it</p>
-      <h2 class="t-h4">Turn the knobs, take the layer</h2>
-      <p class="t-sm muted">A product is a few knobs. Choose a proportion and it writes the four type ratios; choose a density; open the fine tuning for every type knob. The graph draws each role's size against its container's width, with the clamps where they hold, and the box below is the real classes, sized by the browser and checked against <code>math.js</code>. Drag its corner. When it feels right, take it away as a product layer.</p>
-    </header>
-    <div class="section-body stack">
-      <div class="cols tune-controls">
-        <div class="field"><label class="field-label t-label" for="tune-proportion">Proportion</label><select class="input" id="tune-proportion" data-tune-proportion><option value="custom">As the page is</option><option value="minor-third">Minor third, 1.2</option><option value="major-third">Major third, 1.25</option><option value="fourth">Perfect fourth, 1.333</option><option value="tritone">Root two, 1.414</option><option value="fifth">Perfect fifth, 1.5</option><option value="golden">Golden, 1.618</option></select><p class="field-hint t-xs" data-tune-series>Headings step by it in a wide space; the other ratios follow from it.</p></div>
-        <div class="field"><label class="field-label t-label" for="tune-density">Density</label><select class="input" id="tune-density" data-tune-density><option value="roomy">Roomy: two-cell cards, large controls</option><option value="dense">Dense: one-cell cards, medium controls</option></select><p class="field-hint t-xs">Card padding and control height, the two density knobs.</p></div>
-      </div>
-      <details class="tune-fine">
-        <summary class="t-sm">Fine tuning: every type knob, in rem and ratios</summary>
-        <div class="cols tune-knobs"><div class="field"><label class="field-label t-label" for="tune-h1-min">H1, narrow</label><input class="input cc-sm" id="tune-h1-min" type="number" step="0.001" min="0.1" data-knob="h1-min"></div><div class="field"><label class="field-label t-label" for="tune-h1-max">H1, wide</label><input class="input cc-sm" id="tune-h1-max" type="number" step="0.001" min="0.1" data-knob="h1-max"></div><div class="field"><label class="field-label t-label" for="tune-body-min">Body, narrow</label><input class="input cc-sm" id="tune-body-min" type="number" step="0.001" min="0.1" data-knob="body-min"></div><div class="field"><label class="field-label t-label" for="tune-body-max">Body, wide</label><input class="input cc-sm" id="tune-body-max" type="number" step="0.001" min="0.1" data-knob="body-max"></div><div class="field"><label class="field-label t-label" for="tune-rh-min">Heading ratio, narrow</label><input class="input cc-sm" id="tune-rh-min" type="number" step="0.001" min="0.1" data-knob="rh-min"></div><div class="field"><label class="field-label t-label" for="tune-rh-max">Heading ratio, wide</label><input class="input cc-sm" id="tune-rh-max" type="number" step="0.001" min="0.1" data-knob="rh-max"></div><div class="field"><label class="field-label t-label" for="tune-rp-min">Paragraph ratio, narrow</label><input class="input cc-sm" id="tune-rp-min" type="number" step="0.001" min="0.1" data-knob="rp-min"></div><div class="field"><label class="field-label t-label" for="tune-rp-max">Paragraph ratio, wide</label><input class="input cc-sm" id="tune-rp-max" type="number" step="0.001" min="0.1" data-knob="rp-max"></div><div class="field"><label class="field-label t-label" for="tune-label-min">Label, narrow</label><input class="input cc-sm" id="tune-label-min" type="number" step="0.001" min="0.1" data-knob="label-min"></div><div class="field"><label class="field-label t-label" for="tune-label-max">Label, wide</label><input class="input cc-sm" id="tune-label-max" type="number" step="0.001" min="0.1" data-knob="label-max"></div></div>
-      </details>
-      <div class="plate tune-plate"><svg class="tune-graph" data-tune-graph role="img" aria-label="Each type role's size against its container's width, from 240 to 1600 pixels: flat where a clamp holds, rising between the narrow and the wide space."></svg></div>
-      <div class="tune-box" data-tune-box>
-        <div class="tune-list stack" data-tune-list></div>
-        <article class="card stack tune-sample"><p class="t-h5">Garden Stewards Circle</p><p class="t-sm muted">Every other Monday, at the trial bed.</p><div class="cluster"><button class="button cc-primary" type="button"><span class="button-label">Join</span></button><button class="button" type="button"><span class="button-label">Later</span></button></div></article>
-      </div>
-      <p class="t-xs faint" data-tune-width></p>
-      <div class="cluster"><button class="switch" type="button" role="switch" aria-checked="false" data-tune-whole><span class="switch-label">Apply to the whole page</span></button><button class="button cc-sm" type="button" data-tune-reset><span class="button-label">Reset</span></button></div>
-      <div class="stack tune-export">
-        <h3 class="t-h6">The product layer</h3>
-        <pre class="code cc-wrap settle" data-tune-export></pre>
-        <div class="cluster"><button class="button cc-sm cc-primary" type="button" data-tune-save><span class="button-label">Save product.css</span></button><button class="button cc-sm" type="button" data-tune-copy><span class="button-label">Copy</span></button></div>
-        <p class="t-xs faint">One <code>:root[data-product]</code> rule of knobs in <code>@layer trellis.product</code>, the shape <code>tests/contract.js</code> checks. The cell itself is the reader's (the Unit control above); a proportion's cell counts are shown, not applied, until counts become tokens.</p>
-      </div>
-    </div>
-  </section>
-
   <section class="section cc-split" id="type-cell">
     <header class="section-head stack">
       <p class="t-eyebrow">Type on the cell</p>
@@ -1439,9 +1481,9 @@
 <script src="math.js?v=0.10.4"></script>
 <script src="experiments/solids.js?v=0.10.0"></script>
 <script src="experiments/vines.js?v=0.10.0"></script>
-<script src="specimen.js?v=0.10.4"></script>
+<script src="specimen.js?v=0.10.7"></script>
 <script src="hero.js?v=0.10.5"></script>
 <script src="palette.js?v=0.10.5"></script>
-<script src="tuner.js?v=0.10.0"></script>
+<script src="tuner.js?v=0.10.7"></script>
 </body>
 </html>

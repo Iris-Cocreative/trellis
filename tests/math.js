@@ -6,6 +6,9 @@
 //                 frame and gutter on a wide screen
 //   the ratio     every type role's size, from the live knobs and its container
 //   standing      a headline's line height, and its own space after it
+//   the playground  the ratio playground's sample boxes carry knobs of their
+//                 own: every role in them at its wide end and at its narrow
+//                 end, and the half step as the root of the ratio
 // It runs each layer it is given, since a product turns the ratio's knobs.
 // Usage: node math.js <url> [webkit]
 // Needs Playwright (PLAYWRIGHT=module path). Exits 1 if anything disagrees.
@@ -90,6 +93,27 @@ const CASES = [
           const h = el.getBoundingClientRect().height;
           expect(near(M.hang(h, u), h, .05), `hanging: ${role}'s block is ${h}px, not whole cells`);
         }
+      });
+      // The playground (tuner.js). Its sample boxes carry the knobs it works out,
+      // and the roles in them are the real classes: the wide box holds every
+      // role at its wide end, the narrow box, as wide as the narrow space, at
+      // its narrow end. Where a role's narrow end is the larger, CSS holds it there.
+      ['wide', 'narrow'].forEach(end => {
+        const box = document.querySelector('[data-play-box="' + end + '"]');
+        const lines = box ? box.querySelectorAll('.play-line > p') : [];
+        expect(lines.length === 13, `playground: the ${end} box has ${lines.length} roles, not 13`);
+        if (!box) return;
+        const bs = getComputedStyle(box), B = k => parseFloat(bs.getPropertyValue('--' + k));
+        const ends = k => [B(k + '-min') * 16, B(k + '-max') * 16];
+        const own = { cell: M.SEED.cell, frame: M.SEED.frame, type: Object.assign({}, seed.type, { h1: ends('h1'), body: ends('body'), label: ends('label'),
+          headingRatio: [B('rh-min'), B('rh-max')], paragraphRatio: [B('rp-min'), B('rp-max')] }) };
+        expect(near(B('rp-min'), Math.sqrt(B('rh-min')), .001) && near(B('rp-max'), Math.sqrt(B('rh-max')), .001),
+          `playground: the half step is ${B('rp-min')} and ${B('rp-max')}, not the roots of ${B('rh-min')} and ${B('rh-max')}`);
+        lines.forEach(el => {
+          const role = (el.className.match(/t-(h\d|xl|lg|body|sm|xs|label|eyebrow)/) || [])[1], e = M.typeEnds(role, own);
+          const want = (end === 'wide' ? Math.max(e[0], e[1]) : e[0]) * rem / 16, actual = parseFloat(getComputedStyle(el).fontSize);
+          expect(near(want, actual, .06), `playground: ${role} at its ${end} end is ${actual}px, math says ${want.toFixed(3)}`);
+        });
       });
       return { fails: out, n, u, fitted };
     });
