@@ -13,6 +13,7 @@
     --grid-a-1: .035;
     --grid-a-2: .08;
     --grid-a-4: .14;
+    --grid-a-dot: .16;
     --m-pad: color-mix(in oklab, #2fb874 18%, transparent);
     --m-gap: color-mix(in oklab, #d062d6 20%, transparent);
     --m-own: color-mix(in oklab, #e0a030 26%, transparent);

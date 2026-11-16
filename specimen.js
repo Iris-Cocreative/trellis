@@ -441,11 +441,15 @@
     return { t: v + 'px', off: true };
   }
 
+  // measure() builds its boxes in a fragment and adds them once at the end. Added
+  // one at a time, each box dirtied the layout and the next element's rectangle
+  // forced it again: thousands of layouts of the whole page for one switch.
+  var sink = layer;
   function box(cls, x, y, w, h) {
     var d = document.createElement('div');
     d.className = cls;
     d.style.cssText = 'left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;height:' + h + 'px';
-    layer.appendChild(d);
+    sink.appendChild(d);
     return d;
   }
   function label(text, x, y, cls) {
@@ -453,7 +457,7 @@
     d.className = 'm-label' + (cls ? ' ' + cls : '');
     d.textContent = text;
     d.style.left = x + 'px'; d.style.top = y + 'px';
-    layer.appendChild(d);
+    sink.appendChild(d);
   }
 
   // A font's cap height and x-height, as shares of its size, read the way core
@@ -469,7 +473,7 @@
       s.textContent = 'x';
       s.style.cssText = 'position:absolute;visibility:hidden;display:block;line-height:1;text-box:trim-both ' + e + ' alphabetic;' +
         'font-style:' + cs.fontStyle + ';font-weight:' + cs.fontWeight + ';font-size:' + cs.fontSize + ';font-family:' + cs.fontFamily;
-      layer.appendChild(s);
+      layer.appendChild(s);                          // rare: once per face and size, then cached
       var h = s.getBoundingClientRect().height;
       s.remove();
       return h / fs;
@@ -483,6 +487,7 @@
     var u = unitPx();
     var pr = page.getBoundingClientRect();
     var all = page.querySelectorAll('*');
+    sink = document.createDocumentFragment();
     for (var n = 0; n < all.length; n++) {
       var e = all[n];
       if (e.matches(SKIP) || e.closest('.grid-layer, .measure-layer, [popover]')) continue;
@@ -565,6 +570,8 @@
         }
       }
     }
+    layer.appendChild(sink);
+    sink = layer;
   }
 
   // Inspector: hover any element while Measure is on
@@ -857,7 +864,6 @@
     var a = function (k) { return Math.min(1, (parseFloat(cs.getPropertyValue(k)) || 0) * dpr); };
     var text = ink('--text'), group = ink('--kind-group');
     var tiers = [[text, a('--grid-a-1')], [group, a('--grid-a-2')], [group, a('--grid-a-4')]];
-    var rank = function (i) { i = ((i % 4) + 4) % 4; return i === 0 ? 2 : i === 2 ? 1 : 0; };
     var tier = function (i) { i = ((i % 4) + 4) % 4; return i === 0 ? tiers[2] : i === 2 ? tiers[1] : tiers[0]; };
     var x0 = pr.left + parseFloat(getComputedStyle(page).paddingLeft);
     var top = Math.max(0, pr.top), bottom = Math.min(ch, pr.bottom);
@@ -865,16 +871,15 @@
     var T = Math.round(top * dpr), B = Math.round(bottom * dpr);
     var k, x, j, y;
     if (state.grid === 'dots') {
-      // A dot at every crossing, sized by the stronger of its two lines: a
-      // device pixel square, two at every second line, three at every fourth.
-      var k0 = Math.ceil(-x0 / u), j0 = Math.ceil((top - pr.top) / u);
-      for (j = j0; (y = pr.top + j * u) <= bottom; j++) {
+      // One quiet level: a dot at every second crossing, two cells apart each
+      // way, counted from the field's left edge and the top of the page. Each
+      // is one CSS pixel square, in whole device pixels.
+      var u2 = u * 2, d = Math.max(1, Math.round(dpr));
+      var k0 = Math.ceil(-x0 / u2), j0 = Math.ceil((top - pr.top) / u2);
+      ctx.fillStyle = text; ctx.globalAlpha = Math.min(1, parseFloat(cs.getPropertyValue('--grid-a-dot')) || 0);
+      for (j = j0; (y = pr.top + j * u2) <= bottom; j++) {
         var Y = Math.round(y * dpr);
-        for (k = k0; (x = x0 + k * u) <= cw; k++) {
-          var s = Math.max(rank(k), rank(j)), d = s + 1, tv2 = tiers[s];
-          ctx.fillStyle = tv2[0]; ctx.globalAlpha = Math.min(1, tv2[1] * 2.5);
-          ctx.fillRect(Math.round(x * dpr) - (d >> 1), Y - (d >> 1), d, d);
-        }
+        for (k = k0; (x = x0 + k * u2) <= cw; k++) ctx.fillRect(Math.round(x * dpr) - (d >> 1), Y - (d >> 1), d, d);
       }
       ctx.globalAlpha = 1;
       return;
@@ -907,6 +912,7 @@
     anatomy();
     organic();
     measure();
+    if (typeof holdIntro === 'function') holdIntro();
   }
   function schedule() {
     if (queued) return;
@@ -1038,6 +1044,14 @@
       }
     }
     ctx.globalAlpha = 1;
+    // With Measure on it holds its last frame; nothing moves after the fade, so
+    // stop drawing. refresh() asks for one more frame when the page changes.
+    if (t > 4.5) { introRaf = 0; return; }
+    introRaf = requestAnimationFrame(drawIntro);
+  }
+  function holdIntro() {
+    if (introRaf) return;
+    introStart = performance.now() - 6000;
     introRaf = requestAnimationFrame(drawIntro);
   }
   function playIntro() {

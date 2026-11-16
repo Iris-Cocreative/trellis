@@ -4,6 +4,14 @@ Semver, staying 0.x until two apps ship on the same version. A 0.x minor may bre
 
 ## Unreleased
 
+**Changed**
+- **A mark is a straight line (D85):** a current `.shell-link` or `.outline-link` squares the two corners its accent edge touches, so the mark no longer curls into a rounded corner. In a top bar the mark is under the link and the bottom corners are square.
+- **The specimen:** the dot grid is one quiet level, a dot every second cell. The qualities are headed "What is Trellis?".
+
+**Fixed**
+- **The `hidden` attribute hides.** A class that sets `display` (`.stack`, `.prose`, `.card`, a `.list`) beat the browser's own rule, so `hidden` on one did nothing. Core's reset now holds it. In the specimen, Show the Markdown left the post on the page beside its source.
+- **The specimen's Measure took about 24 seconds to turn on** at 1440 wide: it added each of its 5,280 boxes to the page as it went, and every one forced a layout of the whole page. It builds them aside and adds them once: 0.4 seconds. The frame's own drawing stops once it has faded, where it redrew every frame while Measure was on.
+
 **Added**
 - **Measures a compact app needs (D84):** three sets of variables, each defaulting to what was fixed, so nothing moves. `--seg-pad`, the ring around a segmented control's tabs: with `--tab-h` it sets the control's height (1½ cells and ¼ make two cells, where the default is three). On an options card, `--option-h` and `--option-fs`, an item's height and type, and `--options-w` and `--options-max-h`, the card's width and its cap. `--float-ink`, a float's ink, beside `--surface`: a tooltip sets the pair to the page's ink and the page, and a product that wants its tooltip on another ground sets both. Asked for by Agent Weaver's Sessions panel, where a 36px segmented control sat beside 24px controls and a menu's 14px type beside 12px rows. `tests/layout.js` checks each default and each variable.
 
