@@ -62,10 +62,15 @@ const CASES = [
         expect(Number.isInteger(w.modules), `whole: the field is ${w.modules} modules, not whole`);
       }
       // The ratio, from the live knobs: a product layer turns them.
-      const pair = k => [K(k + '-min') * 16, K(k + '-max') * 16];
-      const seed = { cell: M.SEED.cell, frame: M.SEED.frame, type: { spaceNarrow: K('c-min') * 16, spaceWide: K('c-max') * 16, h1: pair('h1'), body: pair('body'), label: pair('label'),
-        headingRatio: [K('rh-min'), K('rh-max')], paragraphRatio: [K('rp-min'), K('rp-max')], lineH1: K('lh-h1'), lineHeadingStep: K('lh-h-step'), lineBody: K('lh-body'),
-        lineParagraphStep: K('lh-p-step'), lineLabel: K('lh-label'), afterH1: K('mb-h1'), afterHeadingStep: K('mb-h-step') } };
+      // The seven values are numbers. The five that follow are numbers only where
+      // a product set them; left to core they are expressions (NaN here), and
+      // math.js works them out. So every size below also checks that core.css's
+      // sqrt(), pow() and log() make what typeFrom() makes (D93).
+      const pt = k => K(k) * 16;
+      const seed = { cell: M.SEED.cell, frame: M.SEED.frame, type: Object.assign(M.typeFrom(
+        { h1: pt('h1-max'), body: pt('body-max'), label: pt('label-max'), ratio: [K('rh-min'), K('rh-max')], spaceNarrow: pt('c-min'), spaceWide: pt('c-max') },
+        { h1: pt('h1-min'), body: pt('body-min'), label: pt('label-min'), step: [K('rp-min'), K('rp-max')] }), { lineH1: K('lh-h1'), lineHeadingStep: K('lh-h-step'), lineBody: K('lh-body'),
+        lineParagraphStep: K('lh-p-step'), lineLabel: K('lh-label'), afterH1: K('mb-h1'), afterHeadingStep: K('mb-h-step') }) };
       const space = el => { let c = el.parentElement; while (c && getComputedStyle(c).containerType === 'normal') c = c.parentElement; const s = getComputedStyle(c); return c.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight); };
       // A heading is never smaller than body text (D89), read from the browser alone.
       const floored = (where, sizes) => Object.keys(sizes).filter(M.isHeading).forEach(role =>

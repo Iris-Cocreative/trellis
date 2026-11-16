@@ -74,11 +74,11 @@ Grown from these: lines are planes · edges land on lines · headlines stand on 
 ### The ratio
 
 Fluid, fractal type from the [Type Scale Generator](https://lab.iriscocreative.com/tools/type-scale-generator.html).
-- Two anchors, H1 and body, each with a size for a narrow space (20rem) and a wide one (90rem). Every role is a straight line between its two ends, clamped.
-- Headings step down from H1 by one ratio; paragraphs step out from body by another; **both ratios open with the space**. **A heading is never smaller than body text:** each of its ends is floored at body's, so one a wide ratio would put under body takes body's size, in the heading's family and weight (D89). The default is 1.2 → 1.333; the examples run from 1.125 → 1.25 (Quarry) to 1.333 → 1.5 (Almanac).
+- **Seven values set it** (D93): H1, body and the label in a wide space (`--h1-max`, `--body-max`, `--label-max`), the ratio in a wide space and in a narrow one (`--rh-max`, `--rh-min`), and the two spaces (`--c-min`, 20rem; `--c-max`, 90rem). Five follow, and a product may set any of them: the text step is the square root of the ratio (`--rp-min`, `--rp-max`), body in a narrow space is body less a narrow text step (`--body-min`), H1 in a narrow space sits as many steps above body as in a wide one (`--h1-min`), and the label is one size (`--label-min`). Every role is a straight line between its two ends, clamped.
+- Headings step down from H1 by the ratio; the text sizes step out from body by half a step; **the ratio opens with the space**. **A heading is never smaller than body text:** each of its ends is floored at body's, so one a wide ratio would put under body takes body's size, in the heading's family and weight (D89). The default is 1.26 → 1.414, root two, with H1 at 72 in a wide space (D94); the examples run from 1.125 → 1.25 (Quarry) to 1.333 → 1.5 (Almanac), and set all twelve numbers themselves.
 - Sizes respond to their **container** (`100cqi`), so a role inside a card scales to the card: the same structure at every scale of context.
 - A heading carries its own space after it, proportional to its size (H1 0.33em, +0.11em a step), rounded up to whole cells. **In a stack it is the larger of that space and the gap, never the sum.**
-- Known wrinkle: in every product, xs is larger in a narrow space than a wide one (the paragraph ratio opens faster than body grows), so CSS holds xs at its narrow size. The math view says so. Either accept a fixed xs or retune the paragraph ratio.
+- Known wrinkle: in a product that sets its own text step, xs can be larger in a narrow space than a wide one (the step opens faster than body grows), so CSS holds xs at its narrow size. At core's defaults xs is the same at both ends. The math view says so. Either accept a fixed xs or retune the paragraph ratio.
 
 ### Type on the cell
 
@@ -142,7 +142,7 @@ The same rules without CSS, for any platform. `math.js` is these formulas as fun
 
 **The gutter parity rule.** The field between the gutters must be whole modules of 4 cells. With an even count, that holds when the gutter has the same parity as half the count: `gutter = 2 + (count ÷ 2) mod 2`. So 40 cells take a gutter of 2 (field 36, 9 modules) and 42 take 3 (field 36). Beside a notch, the gutter is the fewest cells that clear the safe area, plus one if its parity is wrong.
 
-**The ratio.** Two anchors, H1 and body, each with a size in a narrow space (320) and a wide one (1440). A heading n steps below H1 has ends `H1 ÷ ratioⁿ`, using the narrow ratio for the narrow end and the wide ratio for the wide end; paragraph roles step out from body the same way. A heading's ends are never under body's: `end = max(H1 ÷ ratioⁿ, body)`, at each end. `size = clamp(narrow end, narrow end + (wide end − narrow end) × (space − 320) ÷ 1120, wide end)`, where the space is the container the text sits in, not the window.
+**The ratio.** Two anchors, H1 and body, each with a size in a narrow space (320) and a wide one (1440). Of those four sizes a product sets the two wide ones and the ratio at each end; `body narrow = body ÷ √(narrow ratio)` and `H1 narrow = body narrow × narrow ratioᵖ`, where `p = log(H1 ÷ body) ÷ log(wide ratio)` is how many steps H1 sits above body. The text step is `√ratio` at each end. A heading n steps below H1 has ends `H1 ÷ ratioⁿ`, using the narrow ratio for the narrow end and the wide ratio for the wide end; paragraph roles step out from body the same way. A heading's ends are never under body's: `end = max(H1 ÷ ratioⁿ, body)`, at each end. `size = clamp(narrow end, narrow end + (wide end − narrow end) × (space − 320) ÷ 1120, wide end)`, where the space is the container the text sits in, not the window.
 
 **Standing** (h1 to h3). `line height = size × line ratio, rounded to the nearest whole cells`. The box is trimmed to the capitals and the baseline and padded on top by `cap height rounded up to whole cells − cap height`, so the last baseline sits on a cell line and every line above it does too.
 
@@ -307,7 +307,7 @@ Two invented layers in `examples/` show the range, and keep the mechanism tested
 |---|---|---|---|
 | Character | plain | a dense working tool | slow and editorial |
 | Type | system sans | Helvetica, heavier headings | a serif for headlines over a humanist sans |
-| Ratio | 1.2 → 1.333 | 1.125 → 1.25 | 1.333 → 1.5 |
+| Ratio | 1.26 → 1.414 | 1.125 → 1.25 | 1.333 → 1.5 |
 | Shapes | soft cards, pills | ¼u corners everywhere, uppercase tags | round cards, pill tags |
 | Density | comfortable | one notch denser | comfortable, card sides tighter than top and bottom, a narrower measure |
 

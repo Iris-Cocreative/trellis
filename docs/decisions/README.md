@@ -104,3 +104,5 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D90](D90.md) | Color from one seed: the accent, and nine that follow | 2026-11-16 | accepted |
 | [D91](D91.md) | A slider is a range input, and the runtime says where its thumb is | 2026-11-16 | accepted |
 | [D92](D92.md) | A cluster at a surface's end keeps its spare space above it | 2026-11-16 | accepted |
+| [D93](D93.md) | Type from seven values | 2026-11-16 | accepted |
+| [D94](D94.md) | Root two is the default wide ratio, and H1 is 72 | 2026-11-16 | accepted |

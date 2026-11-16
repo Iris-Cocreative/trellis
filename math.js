@@ -23,10 +23,11 @@
   var SEED = {
     cell: { targetNarrow: 10, targetWide: 12, screenNarrow: 500, screenWide: 1000, textScaleMax: 1.5 },
     frame: { max: 100, module: 4 },
+    // Type from seven values (D93): H1, body and the label in a wide space, the
+    // ratio at each end [narrow, wide], and the two spaces. `type` is what
+    // follows from them (typeFrom, below), with the lines and the space after.
+    seven: { h1: 72, body: 18, label: 12, ratio: [1.26, 1.414], spaceNarrow: 320, spaceWide: 1440 },
     type: {
-      spaceNarrow: 320, spaceWide: 1440,
-      h1: [36, 64], body: [16, 18], label: [11, 12],
-      headingRatio: [1.2, 1.333], paragraphRatio: [1.125, 1.2],
       lineH1: 1.05, lineHeadingStep: 0.05, lineBody: 1.45, lineParagraphStep: 0.03, lineLabel: 1.2,
       afterH1: 0.33, afterHeadingStep: 0.11
     },
@@ -51,6 +52,29 @@
       }
     }
   };
+
+  // ---- Type from seven values ----------------------------------------------
+  // The five that follow, as core.css derives them:
+  //   the text step   the square root of the ratio, at each end
+  //   body, narrow    body less a narrow text step
+  //   H1, narrow      as many steps above body as in a wide space
+  //   label, narrow   the label: it is one size
+  // `set` holds any of them a product set itself (h1, body, label: the narrow
+  // size; step: [narrow, wide]); anything else in it is ignored. Returns the
+  // two ends of each anchor and of each ratio, as the functions below read them.
+  function typeFrom(seven, set) {
+    set = set || {};
+    var ok = function (v, d) { return typeof v === 'number' && isFinite(v) ? v : d; };
+    var rn = seven.ratio[0], rw = seven.ratio[1], st = set.step || [];
+    var body = ok(set.body, seven.body / Math.sqrt(rn));
+    var place = Math.log(seven.h1 / seven.body) / Math.log(rw);
+    return {
+      spaceNarrow: seven.spaceNarrow, spaceWide: seven.spaceWide,
+      h1: [ok(set.h1, body * Math.pow(rn, place)), seven.h1], body: [body, seven.body], label: [ok(set.label, seven.label), seven.label],
+      headingRatio: [rn, rw], paragraphRatio: [ok(st[0], Math.sqrt(rn)), ok(st[1], Math.sqrt(rw))]
+    };
+  }
+  SEED.type = Object.assign(typeFrom(SEED.seven), SEED.type);
 
   // Steps from an anchor. Headings step down from H1; paragraphs step out from
   // body. The eyebrow is the label one paragraph step up: [anchor, step, ratio].
@@ -330,23 +354,21 @@
     var derive = { below: v(d, 'clear-below'), above: v(d, 'clear-above'), kind: v(d, 'kind-chroma'), turn: turn, topic: v(d, 'topic-step'),
       status: v(d, 'status-chroma'), statusMin: v(d, 'status-chroma-min'), statusMax: v(d, 'status-chroma-max'), statuses: statuses,
       tint: v(d, 'neutral-chroma'), limit: Object.keys(d.limit).filter(function (k) { return k[0] !== '$'; }).map(function (k) { return [+k, d.limit[k].$value]; }).sort(function (a, b) { return a[0] - b[0]; }) };
+    var seven = { h1: v(t, 'h1-wide'), body: v(t, 'body-wide'), label: v(t, 'label-wide'), ratio: [v(t, 'heading-ratio-narrow'), v(t, 'heading-ratio-wide')],
+      spaceNarrow: v(t, 'space-narrow'), spaceWide: v(t, 'space-wide') };
     return {
       color: { seeds: seeds, lift: v(col, 'lift'), flip: v(col, 'ink-flip'), neutrals: neutrals, derive: derive },
       cell: { targetNarrow: v(c, 'target-narrow'), targetWide: v(c, 'target-wide'), screenNarrow: v(c, 'screen-narrow'), screenWide: v(c, 'screen-wide'), textScaleMax: v(c, 'text-scale-max') },
       frame: { max: v(tokens.frame, 'max'), module: SEED.frame.module },
-      type: Object.assign({}, SEED.type, {
-        spaceNarrow: v(t, 'space-narrow'), spaceWide: v(t, 'space-wide'),
-        h1: [v(t, 'h1-narrow'), v(t, 'h1-wide')], body: [v(t, 'body-narrow'), v(t, 'body-wide')], label: [v(t, 'label-narrow'), v(t, 'label-wide')],
-        headingRatio: [v(t, 'heading-ratio-narrow'), v(t, 'heading-ratio-wide')],
-        paragraphRatio: [v(t, 'paragraph-ratio-narrow'), v(t, 'paragraph-ratio-wide')]
-      })
+      seven: seven,
+      type: Object.assign({}, SEED.type, typeFrom(seven))
     };
   }
 
   return {
     SEED: SEED, ROLES: ROLES,
     cellScale: cellScale, cellTarget: cellTarget, wholeCell: wholeCell, gutterCells: gutterCells, fit: fit, wideFrame: wideFrame,
-    typeSteps: typeSteps, typeEnds: typeEnds, typeSize: typeSize, lineRatio: lineRatio, lineHeight: lineHeight,
+    typeFrom: typeFrom, typeSteps: typeSteps, typeEnds: typeEnds, typeSize: typeSize, lineRatio: lineRatio, lineHeight: lineHeight,
     standPad: standPad, hang: hang, settleCluster: settleCluster, spaceAfter: spaceAfter, spaceAfterInStack: spaceAfterInStack,
     stands: stands, isHeading: isHeading, seedFromTokens: seedFromTokens,
     parseColor: parseColor, hex: hex, contrast: contrast, hue: hue, ink: ink, palette: palette,

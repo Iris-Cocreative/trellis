@@ -28,17 +28,19 @@
     --label-tracking: .08em;                             /* .t-label's and .t-eyebrow's letter spacing */
     --label-case: uppercase;                             /* .t-label's and .t-eyebrow's case */
 
-    /* ---- The ratio: both anchors, in rem, at a narrow and a wide space --- */
-    --h1-min: 2.25;                                      /* H1 in a narrow space */
-    --h1-max: 4;                                         /* H1 in a wide space */
-    --rh-min: 1.2;                                       /* each heading's step down, narrow */
-    --rh-max: 1.333;                                     /* each heading's step down, wide */
-    --body-min: 1;                                       /* body in a narrow space */
+    /* ---- The ratio: seven values, in rem. The five under them follow ------ */
+    --c-min: 20;                                         /* the narrow space: 320pt */
+    --c-max: 90;                                         /* the wide space: 1440pt */
+    --h1-max: 4.5;                                       /* H1 in a wide space */
     --body-max: 1.125;                                   /* body in a wide space */
-    --rp-min: 1.125;                                     /* each paragraph role's step, narrow */
-    --rp-max: 1.2;                                       /* each paragraph role's step, wide */
-    --label-min: .6875;                                  /* .t-label in a narrow space; .t-eyebrow is a paragraph step up */
-    --label-max: .75;                                    /* .t-label in a wide space */
+    --label-max: .75;                                    /* .t-label; .t-eyebrow is a text step up */
+    --rh-min: 1.26;                                      /* the ratio in a narrow space: each heading's step down */
+    --rh-max: 1.414;                                     /* the ratio in a wide space */
+    --rp-min: sqrt(var(--rh-min));                       /* the text step, narrow. Follows the ratio; set a number to choose your own */
+    --rp-max: sqrt(var(--rh-max));                       /* the text step, wide. Follows the ratio, as above */
+    --body-min: calc(var(--body-max) / sqrt(var(--rh-min)));   /* body in a narrow space. Follows body and the ratio */
+    --h1-min: calc(var(--body-min) * pow(var(--rh-min), log(var(--h1-max) / var(--body-max), var(--rh-max))));   /* H1 in a narrow space. As many steps above body as in a wide one */
+    --label-min: var(--label-max);                       /* .t-label in a narrow space. The label is one size */
     --lh-h1: 1.05;                                       /* H1's line height, before rounding to cells */
     --lh-h-step: .05;                                    /* how much each smaller heading opens */
     --lh-body: 1.45;                                     /* body's line height */

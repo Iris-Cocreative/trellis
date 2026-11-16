@@ -170,19 +170,21 @@
     --ease-out: cubic-bezier(0, 0, .2, 1);
     --ease-spring: cubic-bezier(.32, .72, 0, 1);
 
-    /* The ratio's neutral defaults, in rem, unitless. Products set these */
+    /* The ratio: seven values, in rem, unitless. Products set these */
     --c-min: 20;   /* 320pt, the narrow space */
     --c-max: 90;   /* 1440pt, the wide space */
-    --h1-min: 2.25;
-    --h1-max: 4;
-    --body-min: 1;
-    --body-max: 1.125;
-    --label-min: .6875;
-    --label-max: .75;
-    --rh-min: 1.2;
-    --rh-max: 1.333;
-    --rp-min: 1.125;
-    --rp-max: 1.2;
+    --h1-max: 4.5;   /* H1 in a wide space */
+    --body-max: 1.125;   /* body in a wide space */
+    --label-max: .75;   /* the label */
+    --rh-min: 1.26;   /* the ratio in a narrow space */
+    --rh-max: 1.414;   /* the ratio in a wide space */
+
+    /* And five that follow from them. A product may set any of these in its place */
+    --rp-min: sqrt(var(--rh-min));   /* the text step, narrow: half a heading step */
+    --rp-max: sqrt(var(--rh-max));   /* the text step, wide */
+    --body-min: calc(var(--body-max) / sqrt(var(--rh-min)));   /* body in a narrow space: body less a narrow text step */
+    --h1-min: calc(var(--body-min) * pow(var(--rh-min), log(var(--h1-max) / var(--body-max), var(--rh-max))));   /* H1 in a narrow space: as many steps above body as in a wide one */
+    --label-min: var(--label-max);   /* the label is one size */
   }
 }
 @layer trellis.theme {

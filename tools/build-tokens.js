@@ -83,18 +83,24 @@ function build(tokens) {
   }
   for (const k of keys(tokens.motion.easing)) line(`ease-${k}`, `cubic-bezier(${val(tokens.motion.easing, k).map(x => n(x).replace(/^0\./, '.')).join(', ')})`);
 
-  head('The ratio\'s neutral defaults, in rem, unitless. Products set these');
-  const t = tokens.type;
+  // Type from seven values (D93), in rem, unitless: the two spaces, H1, body
+  // and the label in a wide space, and the ratio at each end. Five more follow
+  // from them, as math.js's typeFrom() has it, and a product may set any.
+  head('The ratio: seven values, in rem, unitless. Products set these');
+  const t = tokens.type, unit = v => n(v / REM).replace(/^0\./, '.');
   line('c-min', n(val(t, 'space-narrow') / REM), `${val(t, 'space-narrow')}pt, the narrow space`);
   line('c-max', n(val(t, 'space-wide') / REM), `${val(t, 'space-wide')}pt, the wide space`);
-  for (const [name, key] of [['h1', 'h1'], ['body', 'body'], ['label', 'label']]) {
-    line(`${name}-min`, n(val(t, key + '-narrow') / REM).replace(/^0\./, '.'));
-    line(`${name}-max`, n(val(t, key + '-wide') / REM).replace(/^0\./, '.'));
-  }
-  line('rh-min', n(val(t, 'heading-ratio-narrow')));
-  line('rh-max', n(val(t, 'heading-ratio-wide')));
-  line('rp-min', n(val(t, 'paragraph-ratio-narrow')));
-  line('rp-max', n(val(t, 'paragraph-ratio-wide')));
+  line('h1-max', unit(val(t, 'h1-wide')), 'H1 in a wide space');
+  line('body-max', unit(val(t, 'body-wide')), 'body in a wide space');
+  line('label-max', unit(val(t, 'label-wide')), 'the label');
+  line('rh-min', n(val(t, 'heading-ratio-narrow')), 'the ratio in a narrow space');
+  line('rh-max', n(val(t, 'heading-ratio-wide')), 'the ratio in a wide space');
+  head('And five that follow from them. A product may set any of these in its place');
+  line('rp-min', 'sqrt(var(--rh-min))', 'the text step, narrow: half a heading step');
+  line('rp-max', 'sqrt(var(--rh-max))', 'the text step, wide');
+  line('body-min', 'calc(var(--body-max) / sqrt(var(--rh-min)))', 'body in a narrow space: body less a narrow text step');
+  line('h1-min', 'calc(var(--body-min) * pow(var(--rh-min), log(var(--h1-max) / var(--body-max), var(--rh-max))))', 'H1 in a narrow space: as many steps above body as in a wide one');
+  line('label-min', 'var(--label-max)', 'the label is one size');
 
   out.push('  }', '}', '@layer trellis.theme {', '  :root {');
   // The palette is relational: seeds are knobs, roles are derived from them with

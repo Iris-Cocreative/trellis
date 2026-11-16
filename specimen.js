@@ -650,14 +650,16 @@
   // checked against what the browser actually set. math.js works in points; a
   // knob is in rem, so it is 16 points at the default text size.
   var M = window.TrellisMath;
+  // The seven values are numbers on :root. The five that follow are numbers
+  // only where a product set them: left to core they are expressions, which
+  // read as NaN here, and math.js works them out as core.css does.
   function liveSeed(K) {
-    var pair = function (k) { return [K(k + '-min') * 16, K(k + '-max') * 16]; };
-    return { cell: M.SEED.cell, frame: M.SEED.frame, type: {
-      spaceNarrow: K('c-min') * 16, spaceWide: K('c-max') * 16,
-      h1: pair('h1'), body: pair('body'), label: pair('label'),
-      headingRatio: [K('rh-min'), K('rh-max')], paragraphRatio: [K('rp-min'), K('rp-max')],
+    var pt = function (k) { return K(k) * 16; };
+    var type = M.typeFrom({ h1: pt('h1-max'), body: pt('body-max'), label: pt('label-max'), ratio: [K('rh-min'), K('rh-max')], spaceNarrow: pt('c-min'), spaceWide: pt('c-max') },
+      { h1: pt('h1-min'), body: pt('body-min'), label: pt('label-min'), step: [K('rp-min'), K('rp-max')] });
+    return { cell: M.SEED.cell, frame: M.SEED.frame, type: Object.assign(type, {
       lineH1: K('lh-h1'), lineHeadingStep: K('lh-h-step'), lineBody: K('lh-body'), lineParagraphStep: K('lh-p-step'), lineLabel: K('lh-label'),
-      afterH1: K('mb-h1'), afterHeadingStep: K('mb-h-step') } };
+      afterH1: K('mb-h1'), afterHeadingStep: K('mb-h-step') }) };
   }
   var ROLES = {
     h1: ['anchor', 'h1', '', 0], h2: ['h1 ÷ r', 'h1', 'rh', -1], h3: ['h1 ÷ r²', 'h1', 'rh', -2],
@@ -688,7 +690,7 @@
       // A heading the ratio would put under body text is held at body's size (D89).
       var pts = M.typeEnds(role, seed), steps = M.typeSteps(role, seed);
       var ends = ['min', 'max'].map(function (e, i) {
-        var v = K(base + '-' + e), r = rk ? K(rk + '-' + e) : 1, held = pts[i] > steps[i] + 1e-9;
+        var v = seed.type[base][i] / 16, r = rk ? seed.type[rk === 'rh' ? 'headingRatio' : 'paragraphRatio'][i] : 1, held = pts[i] > steps[i] + 1e-9;
         return { v: pts[i] / 16, expr: n ? f(v) + op + f(r) + SUP[p] + ' = ' + (held ? f(steps[i] / 16) + ', held at body\'s ' : '') : '' };
       });
       var cw = containerWidth(s), slope = (ends[1].v - ends[0].v) / (cmax - cmin);
