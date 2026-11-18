@@ -95,13 +95,12 @@ function build(tokens) {
   line('label-max', unit(val(t, 'label-wide')), 'the label');
   line('rh-min', n(val(t, 'heading-ratio-narrow')), 'the ratio in a narrow space');
   line('rh-max', n(val(t, 'heading-ratio-wide')), 'the ratio in a wide space');
-  head('And five that follow from them. A product may set any of these in its place');
-  line('rp-min', 'sqrt(var(--rh-min))', 'the text step, narrow: half a heading step');
-  line('rp-max', 'sqrt(var(--rh-max))', 'the text step, wide');
-  line('body-min', 'calc(var(--body-max) / sqrt(var(--rh-min)))', 'body in a narrow space: body less a narrow text step');
-  line('h1-min', 'calc(var(--body-min) * pow(var(--rh-min), log(var(--h1-max) / var(--body-max), var(--rh-max))))', 'H1 in a narrow space: as many steps above body as in a wide one');
-  line('label-min', 'var(--label-max)', 'the label is one size');
-
+  // Five more follow (D93), and a product may set any of them: --rp-min,
+  // --rp-max, --body-min, --h1-min and --label-min. They have no default here.
+  // Each text element works out the value it uses, --type-* (the text roles in
+  // core.css), so what a layer set carries in, what it left follows its own
+  // seven, and a scope or any box may set them (D96).
+  head('And five that follow from the seven, with no default: --rp-min, --rp-max, --body-min, --h1-min, --label-min. A product may set any; each text element works out its --type-* from them');
   out.push('  }', '}', '@layer trellis.theme {', '  :root {');
   // The palette is relational: seeds are knobs, roles are derived from them with
   // relative colors. light-dark() reads color-scheme, so one declaration carries
@@ -110,15 +109,19 @@ function build(tokens) {
   const oklch = v => `oklch(${v.components.map((x, i) => (i === 2 ? n(x) : short(x))).join(' ')})`;
   const HUES = { accent: 'accent', person: 'kind-person', group: 'kind-group', event: 'kind-event', course: 'kind-course', topic: 'kind-topic', ok: 'ok', warn: 'warn', alert: 'alert' };
   const d = col.derive, dv = k => d[k].$value, KINDS = keys(d['kind-turn']), STATUSES = keys(d['status-hue']);
-  const FOLLOW = ['neutral', ...KINDS, 'topic', ...STATUSES];
-  out.push('    /* Seeds: one color each, in its light-theme form. A product sets the accent. The other seeds',
-    '       follow from it, and a product may set any of them in its place. Never a role. */');
+  out.push('    /* Seeds: one color each, in its light-theme form. A product sets the accent. The others follow',
+    '       from it, and a product may set any of them in its place (--seed-neutral, --seed-person, …,',
+    '       and --seed-ground and --seed-ink, the neutral for grounds and for text). They have no default:',
+    '       one a layer set carries into its scopes; one it left follows each scope\'s accent. Never a role. */');
   for (const k of keys(col.seed)) line(`seed-${k}`, oklch(col.seed[k].$value));
-  for (const k of FOLLOW) if (!col.seed[k]) line(`seed-${k}`, `var(--derived-${k})`);
   line('color-lift', short(col.lift.$value), 'how much lighter a hue is in the dark theme');
   line('ink-flip', short(col['ink-flip'].$value), 'ink on a fill: white below this lightness, dark above it');
   line('gradient-space', col.gradient.space.$value, 'the space gradients interpolate in');
   line('gradient-turn', n(col.gradient.turn.$value), 'degrees the accent gradient turns its hue');
+  out.push('  }', '', '  /* Everything that follows from the seeds, on the root and again on every scope (D96), so a',
+    '     scope that sets a seed recolors everything inside it. */', '  :root, [data-product] {');
+  // A seed as it is used: the one a layer set, or the one that follows.
+  const F = k => (col.seed[k] ? `var(--seed-${k})` : `var(--seed-${k}, var(--derived-${k}))`);
   // The seeds that follow from the accent (D90), as math.js's derived() has them.
   // clear(x): a lightness kept clear of the ink flip. S is 0 where the ink is
   // white and 1 where it is dark, the step the ink itself is written with.
@@ -161,12 +164,13 @@ function build(tokens) {
   for (const k of STATUSES)
     line(`derived-${k}`, `oklch(from var(--derived-base) l min(clamp(${short(dv('status-chroma-min'))}, c * ${short(dv('status-chroma'))}, ${short(dv('status-chroma-max'))}), l * ${num(limitAt(d['status-hue'][k].$value))}) ${n(d['status-hue'][k].$value)})`);
 
-  head('Neutral roles: the neutral seed\'s hue and chroma at a lightness for each theme');
-  const at = (seed, l) => `oklch(from var(--seed-${seed}) ${short(l)} c h)`;
-  for (const k of keys(col.neutral)) line(k, `light-dark(${at('neutral', col.neutral[k].light.$value)}, ${at('neutral', col.neutral[k].dark.$value)})`);
+  head('Neutral roles: a seed\'s hue and chroma at a lightness for each theme. Grounds and edges take the ground seed, text the ink seed; both are the neutral unless set');
+  const GROUND = `var(--seed-ground, ${F('neutral')})`, INK = `var(--seed-ink, ${F('neutral')})`;
+  const at = (sd, l) => `oklch(from ${sd} ${short(l)} c h)`;
+  for (const k of keys(col.neutral)) { const sd = k.startsWith('text') ? INK : GROUND; line(k, `light-dark(${at(sd, col.neutral[k].light.$value)}, ${at(sd, col.neutral[k].dark.$value)})`); }
   head('Hues: the seed in the light theme, lifted in the dark. Kinds: what sort of thing this is; shape and color both follow kind');
   for (const k of Object.keys(HUES)) {
-    line(HUES[k], `light-dark(var(--seed-${k}), oklch(from var(--seed-${k}) calc(l + var(--color-lift)) c h))`);
+    line(HUES[k], `light-dark(${F(k)}, oklch(from ${F(k)} calc(l + var(--color-lift)) c h))`);
     if (k === 'accent') {
       line('accent-ink', 'oklch(from var(--accent) clamp(.16, (var(--ink-flip) - l) * 1000, 1) calc(clamp(0, (l - var(--ink-flip)) * 1000, 1) * c * .3) h)', 'white on a dark accent, a dark ink of its hue on a light one');
       line('focus', 'var(--accent)');

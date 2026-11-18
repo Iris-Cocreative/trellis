@@ -179,32 +179,25 @@
     --rh-min: 1.26;   /* the ratio in a narrow space */
     --rh-max: 1.414;   /* the ratio in a wide space */
 
-    /* And five that follow from them. A product may set any of these in its place */
-    --rp-min: sqrt(var(--rh-min));   /* the text step, narrow: half a heading step */
-    --rp-max: sqrt(var(--rh-max));   /* the text step, wide */
-    --body-min: calc(var(--body-max) / sqrt(var(--rh-min)));   /* body in a narrow space: body less a narrow text step */
-    --h1-min: calc(var(--body-min) * pow(var(--rh-min), log(var(--h1-max) / var(--body-max), var(--rh-max))));   /* H1 in a narrow space: as many steps above body as in a wide one */
-    --label-min: var(--label-max);   /* the label is one size */
+    /* And five that follow from the seven, with no default: --rp-min, --rp-max, --body-min, --h1-min, --label-min. A product may set any; each text element works out its --type-* from them */
   }
 }
 @layer trellis.theme {
   :root {
-    /* Seeds: one color each, in its light-theme form. A product sets the accent. The other seeds
-       follow from it, and a product may set any of them in its place. Never a role. */
+    /* Seeds: one color each, in its light-theme form. A product sets the accent. The others follow
+       from it, and a product may set any of them in its place (--seed-neutral, --seed-person, …,
+       and --seed-ground and --seed-ink, the neutral for grounds and for text). They have no default:
+       one a layer set carries into its scopes; one it left follows each scope's accent. Never a role. */
     --seed-accent: oklch(.553 .166 258.4);
-    --seed-neutral: var(--derived-neutral);
-    --seed-person: var(--derived-person);
-    --seed-group: var(--derived-group);
-    --seed-event: var(--derived-event);
-    --seed-course: var(--derived-course);
-    --seed-topic: var(--derived-topic);
-    --seed-ok: var(--derived-ok);
-    --seed-warn: var(--derived-warn);
-    --seed-alert: var(--derived-alert);
     --color-lift: .17;   /* how much lighter a hue is in the dark theme */
     --ink-flip: .58;   /* ink on a fill: white below this lightness, dark above it */
     --gradient-space: oklch;   /* the space gradients interpolate in */
     --gradient-turn: 40;   /* degrees the accent gradient turns its hue */
+  }
+
+  /* Everything that follows from the seeds, on the root and again on every scope (D96), so a
+     scope that sets a seed recolors everything inside it. */
+  :root, [data-product] {
 
     /* The seeds that follow from the accent. Each takes its lightness, kept clear of the ink flip so
        its ink reads; a kind is the accent turned around the hue wheel, with no more chroma than sRGB
@@ -220,33 +213,33 @@
     --derived-warn: oklch(from var(--derived-base) l min(clamp(.1, c * .9, .17), l * .2133333) 70);
     --derived-alert: oklch(from var(--derived-base) l min(clamp(.1, c * .9, .17), l * .387) 30);
 
-    /* Neutral roles: the neutral seed's hue and chroma at a lightness for each theme */
-    --bg: light-dark(oklch(from var(--seed-neutral) .973 c h), oklch(from var(--seed-neutral) .176 c h));
-    --bg-raised: light-dark(oklch(from var(--seed-neutral) 1 c h), oklch(from var(--seed-neutral) .213 c h));
-    --bg-raised-2: light-dark(oklch(from var(--seed-neutral) .975 c h), oklch(from var(--seed-neutral) .245 c h));
-    --bg-raised-3: light-dark(oklch(from var(--seed-neutral) .95 c h), oklch(from var(--seed-neutral) .277 c h));
-    --bg-sunken: light-dark(oklch(from var(--seed-neutral) .943 c h), oklch(from var(--seed-neutral) .148 c h));
-    --bg-hover: light-dark(oklch(from var(--seed-neutral) .936 c h), oklch(from var(--seed-neutral) .264 c h));
-    --text: light-dark(oklch(from var(--seed-neutral) .213 c h), oklch(from var(--seed-neutral) .967 c h));
-    --text-secondary: light-dark(oklch(from var(--seed-neutral) .397 c h), oklch(from var(--seed-neutral) .823 c h));
-    --text-tertiary: light-dark(oklch(from var(--seed-neutral) .52 c h), oklch(from var(--seed-neutral) .655 c h));
-    --text-faint: light-dark(oklch(from var(--seed-neutral) .695 c h), oklch(from var(--seed-neutral) .495 c h));
-    --border: light-dark(oklch(from var(--seed-neutral) .879 c h), oklch(from var(--seed-neutral) .308 c h));
-    --border-subtle: light-dark(oklch(from var(--seed-neutral) .921 c h), oklch(from var(--seed-neutral) .259 c h));
-    --border-strong: light-dark(oklch(from var(--seed-neutral) .741 c h), oklch(from var(--seed-neutral) .419 c h));
+    /* Neutral roles: a seed's hue and chroma at a lightness for each theme. Grounds and edges take the ground seed, text the ink seed; both are the neutral unless set */
+    --bg: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .973 c h), oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .176 c h));
+    --bg-raised: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) 1 c h), oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .213 c h));
+    --bg-raised-2: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .975 c h), oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .245 c h));
+    --bg-raised-3: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .95 c h), oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .277 c h));
+    --bg-sunken: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .943 c h), oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .148 c h));
+    --bg-hover: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .936 c h), oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .264 c h));
+    --text: light-dark(oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .213 c h), oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .967 c h));
+    --text-secondary: light-dark(oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .397 c h), oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .823 c h));
+    --text-tertiary: light-dark(oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .52 c h), oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .655 c h));
+    --text-faint: light-dark(oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .695 c h), oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .495 c h));
+    --border: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .879 c h), oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .308 c h));
+    --border-subtle: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .921 c h), oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .259 c h));
+    --border-strong: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .741 c h), oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .419 c h));
 
     /* Hues: the seed in the light theme, lifted in the dark. Kinds: what sort of thing this is; shape and color both follow kind */
     --accent: light-dark(var(--seed-accent), oklch(from var(--seed-accent) calc(l + var(--color-lift)) c h));
     --accent-ink: oklch(from var(--accent) clamp(.16, (var(--ink-flip) - l) * 1000, 1) calc(clamp(0, (l - var(--ink-flip)) * 1000, 1) * c * .3) h);   /* white on a dark accent, a dark ink of its hue on a light one */
     --focus: var(--accent);
-    --kind-person: light-dark(var(--seed-person), oklch(from var(--seed-person) calc(l + var(--color-lift)) c h));
-    --kind-group: light-dark(var(--seed-group), oklch(from var(--seed-group) calc(l + var(--color-lift)) c h));
-    --kind-event: light-dark(var(--seed-event), oklch(from var(--seed-event) calc(l + var(--color-lift)) c h));
-    --kind-course: light-dark(var(--seed-course), oklch(from var(--seed-course) calc(l + var(--color-lift)) c h));
-    --kind-topic: light-dark(var(--seed-topic), oklch(from var(--seed-topic) calc(l + var(--color-lift)) c h));
-    --ok: light-dark(var(--seed-ok), oklch(from var(--seed-ok) calc(l + var(--color-lift)) c h));
-    --warn: light-dark(var(--seed-warn), oklch(from var(--seed-warn) calc(l + var(--color-lift)) c h));
-    --alert: light-dark(var(--seed-alert), oklch(from var(--seed-alert) calc(l + var(--color-lift)) c h));
+    --kind-person: light-dark(var(--seed-person, var(--derived-person)), oklch(from var(--seed-person, var(--derived-person)) calc(l + var(--color-lift)) c h));
+    --kind-group: light-dark(var(--seed-group, var(--derived-group)), oklch(from var(--seed-group, var(--derived-group)) calc(l + var(--color-lift)) c h));
+    --kind-event: light-dark(var(--seed-event, var(--derived-event)), oklch(from var(--seed-event, var(--derived-event)) calc(l + var(--color-lift)) c h));
+    --kind-course: light-dark(var(--seed-course, var(--derived-course)), oklch(from var(--seed-course, var(--derived-course)) calc(l + var(--color-lift)) c h));
+    --kind-topic: light-dark(var(--seed-topic, var(--derived-topic)), oklch(from var(--seed-topic, var(--derived-topic)) calc(l + var(--color-lift)) c h));
+    --ok: light-dark(var(--seed-ok, var(--derived-ok)), oklch(from var(--seed-ok, var(--derived-ok)) calc(l + var(--color-lift)) c h));
+    --warn: light-dark(var(--seed-warn, var(--derived-warn)), oklch(from var(--seed-warn, var(--derived-warn)) calc(l + var(--color-lift)) c h));
+    --alert: light-dark(var(--seed-alert, var(--derived-alert)), oklch(from var(--seed-alert, var(--derived-alert)) calc(l + var(--color-lift)) c h));
 
     /* Gradients: an interpolation space and stops. Add a direction or a shape: linear-gradient(to right var(--gradient-accent)) */
     --gradient-accent: in var(--gradient-space), var(--accent), oklch(from var(--accent) l c calc(h + var(--gradient-turn)));
@@ -341,7 +334,6 @@
     --font-sans: ui-sans-serif, system-ui, sans-serif;
     --font-serif: Georgia, serif;
     --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-    --font-heading: var(--font-sans);
     --fw-body: 400; --fw-heading: 500; --fw-label: 500; --fw-label-text: 400; --fw-strong: 600;   /* --fw-label: a control's; --fw-label-text: the label and eyebrow roles' */
     --label-tracking: .08em;
     --label-case: uppercase;
@@ -360,11 +352,10 @@
     --shape-input: var(--r-h);   /* an input holds a sentence: pills suit buttons, not this */
     --shape-float: var(--r-1);
     --density-card-pad: var(--sp-2);
-    /* Two knobs, equal unless a product splits them. Trimmed text makes equal
-       padding optically equal, so equal is the default; a product may tighten
-       the sides and keep the vertical rhythm. */
-    --density-card-pad-inline: var(--density-card-pad);
-    --density-card-pad-block: var(--density-card-pad);
+    /* --density-card-pad-inline and --density-card-pad-block: its sides and its
+       top and bottom, unset so they follow it (on every scope too, D96).
+       Trimmed text makes equal padding optically equal, so equal is the
+       default; a product may tighten the sides and keep the vertical rhythm. */
     --density-control-h: var(--size-control-lg);
     --density-control-fs: var(--fs-control);
     /* A compact product sets these once, and every menu and segmented control
@@ -476,6 +467,19 @@
   :root { color-scheme: light dark; }
   :root[data-theme="light"] { color-scheme: light; }
   :root[data-theme="dark"]  { color-scheme: dark; }
+  /* A scope (D96): data-product on any element below the root. Its roles are worked out again
+     from its seeds (the theme layer), so it sets its own ink, type and the ground everything in
+     it reads. A scope with data-theme is a mood: night on a day page, or the reverse; it brings
+     its ground with it, since its ink would not read on the page's. */
+  [data-product]:not(:root) {
+    --surface: var(--bg);
+    --scrollbar-thumb: color-mix(in oklab, var(--text) 22%, transparent);
+    --scrollbar-thumb-hover: color-mix(in oklab, var(--text) 40%, transparent);
+    color: var(--text);
+    font-family: var(--font-sans);
+  }
+  [data-product][data-theme="light"]:not(:root) { color-scheme: light; background: var(--surface); }
+  [data-product][data-theme="dark"]:not(:root)  { color-scheme: dark; background: var(--surface); }
 
   :root {
 
@@ -548,23 +552,30 @@
      floored at body's. A wide ratio runs out of room under H1 before it runs
      out of headings; the ones it would put under body take body's size, and
      keep the heading's family, weight, line and space. */
-  .t-h1, :where(.prose h1) { --t-min: max(var(--body-min), var(--h1-min)); --t-max: max(var(--body-max), var(--h1-max)); --t-lh: var(--lh-h1); --t-mb: var(--mb-h1); }
-  .t-h2, :where(.prose h2) { --t-min: max(var(--body-min), var(--h1-min) / var(--rh-min)); --t-max: max(var(--body-max), var(--h1-max) / var(--rh-max)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step)); --t-mb: calc(var(--mb-h1) + var(--mb-h-step)); }
-  .t-h3, :where(.prose h3) { --t-min: max(var(--body-min), var(--h1-min) / pow(var(--rh-min), 2)); --t-max: max(var(--body-max), var(--h1-max) / pow(var(--rh-max), 2)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step) * 2); --t-mb: calc(var(--mb-h1) + var(--mb-h-step) * 2); }
-  .t-h4, :where(.prose h4) { --t-min: max(var(--body-min), var(--h1-min) / pow(var(--rh-min), 3)); --t-max: max(var(--body-max), var(--h1-max) / pow(var(--rh-max), 3)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step) * 3); --t-mb: calc(var(--mb-h1) + var(--mb-h-step) * 3); }
-  .t-h5, :where(.prose h5) { --t-min: max(var(--body-min), var(--h1-min) / pow(var(--rh-min), 4)); --t-max: max(var(--body-max), var(--h1-max) / pow(var(--rh-max), 4)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step) * 4); --t-mb: calc(var(--mb-h1) + var(--mb-h-step) * 4); }
-  .t-h6, :where(.prose h6) { --t-min: max(var(--body-min), var(--h1-min) / pow(var(--rh-min), 5)); --t-max: max(var(--body-max), var(--h1-max) / pow(var(--rh-max), 5)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step) * 5); --t-mb: calc(var(--mb-h1) + var(--mb-h-step) * 5); }
-  .t-xl { --t-min: calc(var(--body-min) * pow(var(--rp-min), 2)); --t-max: calc(var(--body-max) * pow(var(--rp-max), 2)); --t-lh: calc(var(--lh-body) - var(--lh-p-step) * 2); }
-  .t-lg, :where(.prose blockquote), :where(.prose) blockquote :is(p, li) { --t-min: calc(var(--body-min) * var(--rp-min)); --t-max: calc(var(--body-max) * var(--rp-max)); --t-lh: calc(var(--lh-body) - var(--lh-p-step)); }
-  .t-body, :where(.prose :is(p, li, dt, dd, summary), .prose div:not([class], :has(> :is(p, div, ul, ol, dl, h1, h2, h3, h4, h5, h6, blockquote, pre, table, figure, hr, details, img, video, iframe)))) { --t-min: var(--body-min); --t-max: var(--body-max); --t-lh: var(--lh-body); }
-  .t-sm, :where(.prose :is(figcaption, caption, td)), :where(.prose) blockquote > :is(footer, cite) { --t-min: calc(var(--body-min) / var(--rp-min)); --t-max: calc(var(--body-max) / var(--rp-max)); --t-lh: calc(var(--lh-body) + var(--lh-p-step)); }
-  .t-xs { --t-min: calc(var(--body-min) / pow(var(--rp-min), 2)); --t-max: calc(var(--body-max) / pow(var(--rp-max), 2)); --t-lh: calc(var(--lh-body) + var(--lh-p-step) * 2); }
-  .t-label, :where(.prose th) { --t-min: var(--label-min); --t-max: var(--label-max); --t-lh: var(--lh-label); }
+  .t-h1, :where(.prose h1) { --t-min: max(var(--type-body-min), var(--type-h1-min)); --t-max: max(var(--body-max), var(--h1-max)); --t-lh: var(--lh-h1); --t-mb: var(--mb-h1); }
+  .t-h2, :where(.prose h2) { --t-min: max(var(--type-body-min), var(--type-h1-min) / var(--rh-min)); --t-max: max(var(--body-max), var(--h1-max) / var(--rh-max)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step)); --t-mb: calc(var(--mb-h1) + var(--mb-h-step)); }
+  .t-h3, :where(.prose h3) { --t-min: max(var(--type-body-min), var(--type-h1-min) / pow(var(--rh-min), 2)); --t-max: max(var(--body-max), var(--h1-max) / pow(var(--rh-max), 2)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step) * 2); --t-mb: calc(var(--mb-h1) + var(--mb-h-step) * 2); }
+  .t-h4, :where(.prose h4) { --t-min: max(var(--type-body-min), var(--type-h1-min) / pow(var(--rh-min), 3)); --t-max: max(var(--body-max), var(--h1-max) / pow(var(--rh-max), 3)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step) * 3); --t-mb: calc(var(--mb-h1) + var(--mb-h-step) * 3); }
+  .t-h5, :where(.prose h5) { --t-min: max(var(--type-body-min), var(--type-h1-min) / pow(var(--rh-min), 4)); --t-max: max(var(--body-max), var(--h1-max) / pow(var(--rh-max), 4)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step) * 4); --t-mb: calc(var(--mb-h1) + var(--mb-h-step) * 4); }
+  .t-h6, :where(.prose h6) { --t-min: max(var(--type-body-min), var(--type-h1-min) / pow(var(--rh-min), 5)); --t-max: max(var(--body-max), var(--h1-max) / pow(var(--rh-max), 5)); --t-lh: calc(var(--lh-h1) + var(--lh-h-step) * 5); --t-mb: calc(var(--mb-h1) + var(--mb-h-step) * 5); }
+  .t-xl { --t-min: calc(var(--type-body-min) * pow(var(--type-rp-min), 2)); --t-max: calc(var(--body-max) * pow(var(--type-rp-max), 2)); --t-lh: calc(var(--lh-body) - var(--lh-p-step) * 2); }
+  .t-lg, :where(.prose blockquote), :where(.prose) blockquote :is(p, li) { --t-min: calc(var(--type-body-min) * var(--type-rp-min)); --t-max: calc(var(--body-max) * var(--type-rp-max)); --t-lh: calc(var(--lh-body) - var(--lh-p-step)); }
+  .t-body, :where(.prose :is(p, li, dt, dd, summary), .prose div:not([class], :has(> :is(p, div, ul, ol, dl, h1, h2, h3, h4, h5, h6, blockquote, pre, table, figure, hr, details, img, video, iframe)))) { --t-min: var(--type-body-min); --t-max: var(--body-max); --t-lh: var(--lh-body); }
+  .t-sm, :where(.prose :is(figcaption, caption, td)), :where(.prose) blockquote > :is(footer, cite) { --t-min: calc(var(--type-body-min) / var(--type-rp-min)); --t-max: calc(var(--body-max) / var(--type-rp-max)); --t-lh: calc(var(--lh-body) + var(--lh-p-step)); }
+  .t-xs { --t-min: calc(var(--type-body-min) / pow(var(--type-rp-min), 2)); --t-max: calc(var(--body-max) / pow(var(--type-rp-max), 2)); --t-lh: calc(var(--lh-body) + var(--lh-p-step) * 2); }
+  .t-label, :where(.prose th) { --t-min: var(--type-label-min); --t-max: var(--label-max); --t-lh: var(--lh-label); }
   /* The eyebrow: the label one paragraph step up, for what opens a section. */
-  .t-eyebrow { --t-min: calc(var(--label-min) * var(--rp-min)); --t-max: calc(var(--label-max) * var(--rp-max)); --t-lh: var(--lh-label); }
+  .t-eyebrow { --t-min: calc(var(--type-label-min) * var(--type-rp-min)); --t-max: calc(var(--label-max) * var(--type-rp-max)); --t-lh: var(--lh-label); }
 
   :where(.t-h1, .t-h2, .t-h3, .t-h4, .t-h5, .t-h6, .t-xl, .t-lg, .t-body, .t-sm, .t-xs, .t-label, .t-eyebrow,
          .prose :is(h1, h2, h3, h4, h5, h6, th, td), .prose :is(p, li, dt, dd, summary, blockquote, figcaption, caption), .prose blockquote > :is(footer, cite), .prose div:not([class], :has(> :is(p, div, ul, ol, dl, h1, h2, h3, h4, h5, h6, blockquote, pre, table, figure, hr, details, img, video, iframe)))) {
+    /* The five that follow from the seven (D93), worked out here, where the text is: a value a
+       layer set carries in, and one it left follows the seven this element sees (D96). */
+    --type-rp-min: var(--rp-min, sqrt(var(--rh-min)));
+    --type-rp-max: var(--rp-max, sqrt(var(--rh-max)));
+    --type-body-min: var(--body-min, calc(var(--body-max) / sqrt(var(--rh-min))));
+    --type-h1-min: var(--h1-min, calc(var(--type-body-min) * pow(var(--rh-min), log(var(--h1-max) / var(--body-max), var(--rh-max)))));
+    --type-label-min: var(--label-min, var(--label-max));
     --t-slope: calc((var(--t-max) - var(--t-min)) / (var(--c-max) - var(--c-min)));
     --t-fs: clamp(
       calc(var(--t-min) * 1rem),
@@ -575,7 +586,7 @@
     line-height: var(--t-line);
   }
   :where(.t-h1, .t-h2, .t-h3, .prose :is(h1, h2, h3)) { --t-line: round(nearest, calc(1em * var(--t-lh)), var(--u)); }
-  :where(.t-h1, .t-h2, .t-h3, .t-h4, .t-h5, .t-h6, .prose :is(h1, h2, h3, h4, h5, h6)) { font-family: var(--font-heading); font-weight: var(--fw-heading); text-wrap: balance; letter-spacing: var(--heading-tracking, -.01em); }
+  :where(.t-h1, .t-h2, .t-h3, .t-h4, .t-h5, .t-h6, .prose :is(h1, h2, h3, h4, h5, h6)) { font-family: var(--font-heading, var(--font-sans)); font-weight: var(--fw-heading); text-wrap: balance; letter-spacing: var(--heading-tracking, -.01em); }
   /* A heading carries its own space after it, proportional to its size and
      rounded up to whole cells. In a stack it is the larger of that space and the
      stack's gap, never the sum. */
@@ -1011,7 +1022,7 @@
     padding-block-end: 0 !important;
     float: none !important;
   }
-  .prose :where(h1, h2, h3, h4, h5, h6)[style]:not([style^="--"]) { font-family: var(--font-heading) !important; }
+  .prose :where(h1, h2, h3, h4, h5, h6)[style]:not([style^="--"]) { font-family: var(--font-heading, var(--font-sans)) !important; }
   .prose :where(p, li, div:not([class]))[style]:not([style^="--"]) { font-family: var(--font-sans) !important; }
   .prose :where(th, td)[style]:not([style^="--"]) {
     font-size: var(--t-fs) !important; color: inherit !important; background: none !important;
@@ -1301,8 +1312,8 @@
        shorthand a variant or context sets for both; it starts empty on every
        card, so a nested card doesn't inherit its parent's. */
     --card-pad: initial;
-    --card-pad-inline: var(--card-pad, var(--density-card-pad-inline));
-    --card-pad-block: var(--card-pad, var(--density-card-pad-block));
+    --card-pad-inline: var(--card-pad, var(--density-card-pad-inline, var(--density-card-pad)));
+    --card-pad-block: var(--card-pad, var(--density-card-pad-block, var(--density-card-pad)));
     --card-radius: var(--shape-card);
     --card-border: var(--border-subtle);
     --surface: var(--bg-raised);
@@ -1340,8 +1351,8 @@
      line as the text of the surface it is in. */
   :is(.card, .list.cc-group, .modal-inner, .float) .card {
     --card-border: transparent;
-    --card-pad-inline: var(--card-pad, min(var(--density-card-pad-inline), var(--sp-1)));
-    --card-pad-block: var(--card-pad, min(var(--density-card-pad-block), var(--sp-1)));
+    --card-pad-inline: var(--card-pad, min(var(--density-card-pad-inline, var(--density-card-pad)), var(--sp-1)));
+    --card-pad-block: var(--card-pad, min(var(--density-card-pad-block, var(--density-card-pad)), var(--sp-1)));
   }
   /* A nested card steps out only into padding its parent can spare, so at
      least a cell stays between the two edges: a card in a two-cell card steps

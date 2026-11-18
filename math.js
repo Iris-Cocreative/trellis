@@ -34,7 +34,8 @@
     // The palette: one seed, the accent, in its light-theme form as OKLCH
     // [lightness, chroma, hue]. The other nine seeds follow from it (derive),
     // and every role is a seed at a lightness. Add a seed here (neutral, person,
-    // group, event, course, topic, ok, warn, alert) to set it yourself.
+    // group, event, course, topic, ok, warn, alert; ground and ink, the neutral
+    // for grounds and for text) to set it yourself.
     color: {
       seeds: { accent: [0.553, 0.166, 258.4] },
       lift: 0.17, flip: 0.58,
@@ -321,18 +322,31 @@
     for (k in d.statuses) out[k] = [l, Math.min(clamp(d.statusMin, a[1] * d.status, d.statusMax), chromaLimit(l, d.statuses[k], seed)), d.statuses[k]];
     return out;
   }
-  // All ten seeds: the accent, and each of the others as it was set, or as it follows.
+  // All the seeds: the accent, and each of the others as it was set, or as it
+  // follows. Ground (grounds and edges) and ink (text) are the neutral unless set.
   function seeds(seed) {
     var set = (seed || SEED).color.seeds, out = derived(seed), k;
     for (k in set) out[k] = parseColor(set[k]);
+    if (!out.ground) out.ground = out.neutral;
+    if (!out.ink) out.ink = out.neutral;
     return out;
+  }
+
+  // A scope (D96): a product nested in a product. What the outer layers set
+  // carries in, what the scope sets is its own, and what neither set follows
+  // again from the scope's accent. Pass the seeds each layer set, outermost
+  // first; the result is the seed to give palette().
+  function scope(seed) {
+    var base = JSON.parse(JSON.stringify(seed || SEED)), sets = Array.prototype.slice.call(arguments, 1), k, i;
+    for (i = 0; i < sets.length; i++) for (k in sets[i]) base.color.seeds[k] = parseColor(sets[i][k]);
+    return base;
   }
 
   // Every role in one theme, as OKLCH triples.
   function palette(theme, seed) {
-    var col = (seed || SEED).color, s = seeds(seed), out = {}, n = s.neutral, k;
+    var col = (seed || SEED).color, s = seeds(seed), out = {}, n, k;
     var dark = theme === 'dark' ? 1 : 0;
-    for (k in col.neutrals) out[k] = [col.neutrals[k][dark], n[1], n[2]];
+    for (k in col.neutrals) { n = k.indexOf('text') === 0 ? s.ink : s.ground; out[k] = [col.neutrals[k][dark], n[1], n[2]]; }
     out.accent = hue(s.accent, theme, seed);
     out['accent-ink'] = ink(out.accent, seed);
     out.focus = out.accent;
@@ -372,6 +386,6 @@
     standPad: standPad, hang: hang, settleCluster: settleCluster, spaceAfter: spaceAfter, spaceAfterInStack: spaceAfterInStack,
     stands: stands, isHeading: isHeading, seedFromTokens: seedFromTokens,
     parseColor: parseColor, hex: hex, contrast: contrast, hue: hue, ink: ink, palette: palette,
-    clear: clear, chromaLimit: chromaLimit, follow: follow, derived: derived, seeds: seeds
+    clear: clear, chromaLimit: chromaLimit, follow: follow, derived: derived, seeds: seeds, scope: scope
   };
 });

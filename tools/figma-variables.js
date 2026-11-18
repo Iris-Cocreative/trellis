@@ -103,7 +103,7 @@ function productSeed(k) {
   const color = JSON.parse(JSON.stringify(seed.color));
   for (const [name, value] of k) {
     const m = name.match(/^--seed-([a-z]+)$/);
-    if (m && !/^var\(--derived-[a-z]+\)$/.test(value)) color.seeds[m[1]] = M.parseColor(value);
+    if (m && !/^var\(--[a-z-]+\)$/.test(value)) color.seeds[m[1]] = M.parseColor(value);
   }
   if (K('color-lift') !== undefined) color.lift = K('color-lift');
   if (K('ink-flip') !== undefined) color.flip = K('ink-flip');

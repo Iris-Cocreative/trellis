@@ -3,6 +3,8 @@
    The ecosystem sets what everyone shares; each community is a scope that
    sets only what makes it itself. Seeds from Interbeing's own colors, in
    OKLCH (app/globals.css, 2026-11-17).
+   Since D96 core does this itself; this file is just a product layer, and
+   tests/contract.js checks it: node tests/contract.js experiments/scopes/interbeing.css
    ========================================================================== */
 @layer trellis.product {
   /* The ecosystem: linen paper, forest ink, a forest accent; Halant over Geist; a calm ratio. */

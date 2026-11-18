@@ -107,3 +107,4 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D93](D93.md) | Type from seven values | 2026-11-16 | accepted |
 | [D94](D94.md) | Root two is the default wide ratio, and H1 is 72 | 2026-11-16 | accepted |
 | [D95](D95.md) | What scrolls in a card is cut at the card's line | 2026-11-16 | accepted |
+| [D96](D96.md) | Scopes: a product nested in a product | 2026-11-17 | accepted |

@@ -7,9 +7,18 @@
    is a request for a new knob in core, not a rule here.
 
    Every value below is core's default. tests/contract.js checks that, and that
-   every knob a product sets is listed here.
+   every knob a product sets is listed here. A knob whose line says "Follows"
+   has no value until you give it one: leave it out and it follows, on the
+   root and on every scope; set it and your choice carries into every scope.
 
    Load it after core.css, and put data-product="yours" on <html>.
+
+   Scopes (D96): a product nested in a product. The same file may hold
+   [data-product="part"] rules after the :root one, each setting knobs for an
+   element with data-product="part" (a community, a section, a mood). What the
+   root set carries in; what the scope sets is its own; every role follows
+   again from the scope's seeds. Add data-theme to the element to make it
+   night on a day page, or the reverse.
    ========================================================================== */
 @layer trellis.product {
   :root[data-product="yours"] {
@@ -17,7 +26,7 @@
     /* ---- Type: the families and weights ---------------------------------- */
     --font-sans: ui-sans-serif, system-ui, sans-serif;   /* body text and controls */
     --font-serif: Georgia, serif;                        /* .t-serif */
-    --font-heading: var(--font-sans);                    /* h1 to h6 */
+    --font-heading: var(--font-sans);                    /* h1 to h6. Follows the sans */
     --fw-body: 400;                                      /* running text */
     --fw-heading: 500;                                   /* h1 to h6 */
     --fw-label: 500;                                     /* controls: buttons, tags, tabs */
@@ -51,6 +60,8 @@
        theme lifts it. tests/contract.js checks the contrast that results. -- */
     --seed-accent: oklch(.553 .166 258.4);               /* the primary action and the focus ring; every seed below follows from it */
     --seed-neutral: var(--derived-neutral);              /* surfaces, ink and edges: its hue and chroma. Follows the accent; set a color to choose your own */
+    --seed-ground: var(--seed-neutral);                  /* grounds and edges alone, when paper and ink differ in hue. Follows the neutral */
+    --seed-ink: var(--seed-neutral);                     /* text alone. Follows the neutral */
     --seed-person: var(--derived-person);                /* a person: rings and tags. Follows the accent; set a color to choose your own */
     --seed-group: var(--derived-group);                  /* a group. Follows the accent, as above */
     --seed-event: var(--derived-event);                  /* an event. Follows the accent, as above */
@@ -70,8 +81,8 @@
     --shape-input: var(--r-h);                           /* inputs, selects, textareas */
     --shape-float: var(--r-1);                           /* popovers and options cards */
     --density-card-pad: var(--sp-2);                     /* a card's padding, both ways */
-    --density-card-pad-inline: var(--density-card-pad);  /* its sides, if they differ */
-    --density-card-pad-block: var(--density-card-pad);   /* its top and bottom, if they differ */
+    --density-card-pad-inline: var(--density-card-pad);  /* its sides, if they differ. Follows the padding */
+    --density-card-pad-block: var(--density-card-pad);   /* its top and bottom, if they differ. Follows the padding */
     --density-control-h: var(--size-control-lg);         /* a default button or input's height */
     --density-control-fs: var(--fs-control);             /* a default button or input's type */
     --density-option-h: var(--size-control-md);          /* a menu row's height: an options card's items */

@@ -53,10 +53,13 @@ const decl = s => [...s.matchAll(/(--[a-z][a-z0-9-]*)\s*:\s*([^;]+);/g)].map(m =
 for (const f of PRODUCTS) {
   const css = stripComments(read(f));
   const rules = css.match(/[^{}]+\{/g).map(r => r.trim().replace(/\s*\{$/, ''));
-  check(rules.length === 2 && /^@layer trellis\.product$/.test(rules[0]) && /^:root\[data-product="[a-z-]+"\]$/.test(rules[1]),
-    `${f} must be one :root[data-product] rule in @layer trellis.product; found: ${rules.join(' | ')}`);
-  const body = css.slice(css.indexOf('{', css.indexOf(':root')) + 1);
-  const notVar = stripComments(body).replace(/--[a-z][a-z0-9-]*\s*:[^;]+;/g, '').replace(/[\s}]/g, '');
+  // One product: a :root[data-product] rule, and any scopes it brings (D96), each
+  // a [data-product] rule, all in @layer trellis.product. Or a file of scopes alone.
+  check(rules.length >= 2 && /^@layer trellis\.product$/.test(rules[0]) && rules.slice(1).every(r => /^(:root)?\[data-product="[a-z-]+"\]$/.test(r))
+    && rules.slice(2).every(r => !r.startsWith(':root')),
+    `${f} must be a :root[data-product] rule and [data-product] scopes in @layer trellis.product; found: ${rules.join(' | ')}`);
+  const body = css.slice(css.indexOf('{', css.indexOf('@layer')) + 1);
+  const notVar = stripComments(body).replace(/(?::root)?\[data-product="[a-z-]+"\]\s*\{/g, '').replace(/--[a-z][a-z0-9-]*\s*:[^;]+;/g, '').replace(/[\s}]/g, '');
   check(!notVar, `${f} sets something other than a variable: ${notVar.slice(0, 60)}`);
   for (const [k] of decl(body)) setBy.set(k, f);
 }
@@ -167,30 +170,41 @@ const FLOORS = [['text', 'bg', 4.5], ['text', 'bg-raised', 4.5], ['text', 'bg-su
   ['text', 'bg-raised-2', 4.5], ['text-secondary', 'bg-raised-2', 4.5], ['text-tertiary', 'bg-raised-2', 4.5],
   ['text', 'bg-raised-3', 4.5], ['text-secondary', 'bg-raised-3', 4.5], ['text-tertiary', 'bg-raised-3', 4.5],
   ['accent-ink', 'accent', 4.5], ['accent', 'bg', 3], ['accent', 'bg-raised', 3]];
-for (const f of [null, ...PRODUCTS]) {
-  const seed = JSON.parse(JSON.stringify(M.SEED));
-  if (f) {
-    const css = stripComments(read(f));
+// A file with scopes is checked once per scope too: the root's seeds, then the
+// scope's over them, as M.scope() and core.css both have it (D96).
+const layersToCheck = [[null, 'core', M.SEED]];
+for (const f of PRODUCTS) {
+  const css = stripComments(read(f)), base = JSON.parse(JSON.stringify(M.SEED));
+  const blocks = [...css.matchAll(/((?::root)?\[data-product="([a-z-]+)"\])\s*\{([^}]*)\}/g)];
+  const seedsOf = body => {
+    const out = {};
     // A seed a layer sets is that color; one it leaves, or leaves as the
-    // template has it (var(--derived-…)), follows from its accent.
-    for (const [, k, v] of css.matchAll(/--seed-([a-z]+)\s*:\s*([^;]+);/g)) {
-      if (/^var\(--derived-[a-z]+\)$/.test(v.trim())) continue;
-      try { seed.color.seeds[k] = M.parseColor(v); } catch (e) { fails.push(`${f}: --seed-${k}: ${e.message}`); }
+    // template has it (var(--…)), follows from its accent.
+    for (const [, k, v] of body.matchAll(/--seed-([a-z]+)\s*:\s*([^;]+);/g)) {
+      if (/^var\(--[a-z-]+\)$/.test(v.trim())) continue;
+      try { out[k] = M.parseColor(v); } catch (e) { fails.push(`${f}: --seed-${k}: ${e.message}`); }
     }
-    const lift = css.match(/--color-lift\s*:\s*([\d.]+)/), flip = css.match(/--ink-flip\s*:\s*([\d.]+)/);
-    if (lift) seed.color.lift = +lift[1];
-    if (flip) seed.color.flip = +flip[1];
-  }
+    return out;
+  };
+  const rootBlock = blocks.find(b => b[1].startsWith(':root'));
+  const lift = (rootBlock ? rootBlock[3] : '').match(/--color-lift\s*:\s*([\d.]+)/), flip = (rootBlock ? rootBlock[3] : '').match(/--ink-flip\s*:\s*([\d.]+)/);
+  if (lift) base.color.lift = +lift[1];
+  if (flip) base.color.flip = +flip[1];
+  const rootSeeds = rootBlock ? seedsOf(rootBlock[3]) : {};
+  if (rootBlock) layersToCheck.push([f, f, M.scope(base, rootSeeds)]);
+  for (const b of blocks.filter(x => x !== rootBlock)) layersToCheck.push([f, `${f} [data-product="${b[2]}"]`, M.scope(base, rootSeeds, seedsOf(b[3]))]);
+}
+for (const [, f, seed] of layersToCheck) {
   for (const theme of ['light', 'dark']) {
     const p = M.palette(theme, seed);
     for (const [ink, ground, floor] of FLOORS) {
       const r = M.contrast(p[ink], p[ground]);
-      check(r >= floor, `contrast: ${f || 'core'} ${theme}: --${ink} on --${ground} is ${r.toFixed(2)}:1, under ${floor}`);
+      check(r >= floor, `contrast: ${f} ${theme}: --${ink} on --${ground} is ${r.toFixed(2)}:1, under ${floor}`);
     }
     // A solid tag or a badge on a kind or status: ink computed from the fill.
     for (const k of ['kind-person', 'kind-group', 'kind-event', 'kind-course', 'kind-topic', 'ok', 'warn', 'alert']) {
       const r = M.contrast(M.ink(p[k], seed), p[k]);
-      check(r >= 4.5, `contrast: ${f || 'core'} ${theme}: ink on a solid --${k} is ${r.toFixed(2)}:1, under 4.5`);
+      check(r >= 4.5, `contrast: ${f} ${theme}: ink on a solid --${k} is ${r.toFixed(2)}:1, under 4.5`);
     }
   }
 }
@@ -217,9 +231,12 @@ for (const f of [null, ...PRODUCTS]) {
   check(n > 10000, `one seed: only ${n} derived seeds were checked`);
   check(low[0] >= 4.5, `one seed: ink on the ${low[1]} seed derived from oklch(${low.slice(3).map(x => +x.toFixed(2)).join(' ')}) is ${low[0].toFixed(2)}:1 in ${low[2]}, under 4.5`);
   check(!out, out ? `one seed: the ${out[0]} seed derived from oklch(${out.slice(1, 4).map(x => +x.toFixed(2)).join(' ')}) is outside sRGB: oklch(${out[4].map(x => +x.toFixed(3)).join(' ')})` : '');
-  // core.css states the same rule: every seed but the accent defaults to its derived token.
+  // core.css states the same rule: every seed but the accent is read as itself if set, and as its
+  // derived token if not, and has no default, so one a layer leaves follows on every scope (D96).
   for (const k of ['neutral', 'person', 'group', 'event', 'course', 'topic', 'ok', 'warn', 'alert'])
-    check(coreDefaults.get(`--seed-${k}`) === `var(--derived-${k})` && coreDefaults.has(`--derived-${k}`), `core.css: --seed-${k} should default to var(--derived-${k})`);
+    check(!coreDefaults.has(`--seed-${k}`) && coreDefaults.has(`--derived-${k}`) && core.includes(`var(--seed-${k}, var(--derived-${k}))`),
+      `core.css: --seed-${k} should have no default and be read as var(--seed-${k}, var(--derived-${k}))`);
+  check(/:root, \[data-product\] \{[^}]*--accent:/.test(core), 'core.css: the roles must be worked out on :root and on every [data-product] scope');
 }
 for (const [k, name] of [['lineH1', '--lh-h1'], ['lineHeadingStep', '--lh-h-step'], ['lineBody', '--lh-body'], ['lineParagraphStep', '--lh-p-step'], ['lineLabel', '--lh-label'], ['afterH1', '--mb-h1'], ['afterHeadingStep', '--mb-h-step']])
   check(parseFloat(coreDefaults.get(name)) === M.SEED.type[k], `math.js's ${k} is ${M.SEED.type[k]}; core's ${name} is ${coreDefaults.get(name)}`);

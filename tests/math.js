@@ -140,7 +140,7 @@ const CASES = [
           if (accent) { seed.color.seeds.accent = accent; root.style.setProperty('--seed-accent', `oklch(${accent.join(' ')})`); }
           const want = M.derived(seed);
           for (const k of Object.keys(want)) {
-            probe.style.color = `var(--seed-${k})`;
+            probe.style.color = k === 'accent' ? 'var(--seed-accent)' : `var(--seed-${k}, var(--derived-${k}))`;
             const css = getComputedStyle(probe).color, m = /^oklch\(([\d.]+) ([\d.]+) ([\d.-]+)\)$/.exec(css);
             const turn = m ? Math.abs((((+m[3] - want[k][2]) % 360) + 540) % 360 - 180) : 999;
             expect(m && near(+m[1], want[k][0], .002) && near(+m[2], want[k][1], .002) && turn < .2,
@@ -149,6 +149,49 @@ const CASES = [
           root.style.removeProperty('--seed-accent');
         }
         probe.remove();
+
+        // Scopes (D96). A product nested in a product: what the root set carries
+        // in, what the scope set is its own, and every role follows again from the
+        // scope's seeds, as math.js's scope() has it. Checked in both themes, on a
+        // scope that is a mood (data-theme), and for type: a ratio the scope sets
+        // moves its text step; a text step the root chose carries in.
+        const ROLES = ['bg', 'bg-raised', 'text', 'text-secondary', 'border', 'accent', 'accent-ink', 'kind-person', 'kind-topic', 'ok', 'alert'];
+        const scopeEl = document.createElement('div'), inner = document.createElement('i');
+        scopeEl.setAttribute('data-product', 'test-scope');
+        scopeEl.appendChild(inner); document.body.appendChild(scopeEl);
+        const triple = css => { const m = /^oklch\(([\d.]+) ([\d.]+) ([\d.-]+|none)\)$/.exec(css); return m ? [+m[1], +m[2], m[3] === 'none' ? 0 : +m[3]] : null; };
+        const same = (a, b) => a && near(a[0], b[0], .004) && near(a[1], b[1], .004) && (b[1] < .012 || Math.abs((((a[2] - b[2]) % 360) + 540) % 360 - 180) < .5);
+        const CASES2 = [
+          ['a scope that sets its accent', {}, { accent: [0.5, 0.12, 30] }],
+          ['the root\'s neutral carries into a scope that sets its accent', { neutral: [0.55, 0.03, 90] }, { accent: [0.45, 0.1, 150] }],
+          ['a scope with its own ground and ink', {}, { accent: [0.5, 0.1, 250], ground: [0.55, 0.02, 80], ink: [0.55, 0.05, 140] }],
+          ['the root\'s ground carries; the scope\'s ink is its own', { ground: [0.55, 0.012, 77] }, { accent: [0.63, 0.11, 82], ink: [0.55, 0.013, 82] }]
+        ];
+        for (const [what, rootSet, scopeSet] of CASES2) {
+          for (const [k, v] of Object.entries(rootSet)) root.style.setProperty(`--seed-${k}`, `oklch(${v.join(' ')})`);
+          for (const [k, v] of Object.entries(scopeSet)) scopeEl.style.setProperty(`--seed-${k}`, `oklch(${v.join(' ')})`);
+          for (const theme of ['light', 'dark']) {
+            scopeEl.setAttribute('data-theme', theme);
+            const p = M.palette(theme, M.scope(M.SEED, rootSet, scopeSet));
+            for (const role of ROLES) {
+              inner.style.color = `var(--${role})`;
+              const got = triple(getComputedStyle(inner).color);
+              expect(same(got, p[role]), `scope: ${what}, ${theme}: --${role} is ${getComputedStyle(inner).color}, math says ${p[role].map(x => +x.toFixed(4)).join(' ')}`);
+            }
+          }
+          for (const k of Object.keys(rootSet)) root.style.removeProperty(`--seed-${k}`);
+          for (const k of Object.keys(scopeSet)) scopeEl.style.removeProperty(`--seed-${k}`);
+        }
+        scopeEl.removeAttribute('data-theme');
+        inner.style.color = '';
+        inner.style.display = 'block'; inner.className = 't-body';   // a text element works out its own --type-*
+        const step = () => { inner.style.width = 'calc(var(--type-rp-min) * 1000px)'; return inner.getBoundingClientRect().width / 1000; };
+        scopeEl.style.setProperty('--rh-min', '1.5');
+        expect(near(step(), Math.sqrt(1.5), .002), `scope: a scope's own ratio gives a text step of ${step()}, math says ${Math.sqrt(1.5).toFixed(4)}`);
+        root.style.setProperty('--rp-min', '1.1');
+        expect(near(step(), 1.1, .002), `scope: the root's chosen text step should carry into a scope that sets only its ratio; it is ${step()}`);
+        root.style.removeProperty('--rp-min'); scopeEl.style.removeProperty('--rh-min');
+        scopeEl.remove();
       }
       return { fails: out, n, u, fitted };
     });
