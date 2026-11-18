@@ -38,7 +38,7 @@
     // for grounds and for text; night, the ground at night) to set it yourself.
     color: {
       seeds: { accent: [0.553, 0.166, 258.4] },
-      lift: 0.17, flip: 0.58, nightLift: 0,
+      lift: 0.17, flip: 0.58, nightLift: 0, dayDepth: 0,
       // Neutral roles: the neutral seed's hue and chroma at a lightness for each theme.
       neutrals: {
         bg: [0.973, 0.176], 'bg-raised': [1, 0.213], 'bg-raised-2': [0.975, 0.245], 'bg-raised-3': [0.95, 0.277], 'bg-sunken': [0.943, 0.148], 'bg-hover': [0.936, 0.264],
@@ -330,6 +330,7 @@
     if (!out.ground) out.ground = out.neutral;
     if (!out.ink) out.ink = out.neutral;
     if (!out.night) out.night = out.ground;
+    if (!out['ink-night']) out['ink-night'] = out.ink;
     return out;
   }
 
@@ -350,10 +351,11 @@
     for (k in col.neutrals) {
       // Text takes the ink; a ground or an edge the ground by day, and at night the night seed, lifted.
       // At night ink climbs toward white as the night lifts, three times as fast (D97).
-      if (k.indexOf('text') === 0) { n = s.ink; l = col.neutrals[k][dark]; out[k] = [dark ? l + (1 - l) * Math.min(1, (col.nightLift || 0) * 3) : l, n[1], n[2]]; }
-      else { n = dark ? s.night : s.ground; out[k] = [col.neutrals[k][dark] + (dark ? (col.nightLift || 0) : 0), n[1], n[2]]; }
+      // By day grounds darken by dayDepth and ink with them, three times as fast (D98).
+      if (k.indexOf('text') === 0) { n = dark ? s['ink-night'] : s.ink; l = col.neutrals[k][dark]; out[k] = [dark ? l + (1 - l) * Math.min(1, (col.nightLift || 0) * 3) : l * (1 - Math.min(1, (col.dayDepth || 0) * 3)), n[1], n[2]]; }
+      else { n = dark ? s.night : s.ground; out[k] = [col.neutrals[k][dark] + (dark ? (col.nightLift || 0) : -(col.dayDepth || 0)), n[1], n[2]]; }
     }
-    out.accent = hue(s.accent, theme, seed);
+    out.accent = dark && s['accent-night'] ? s['accent-night'] : hue(s.accent, theme, seed);   // the accent's own night, if set (D98)
     out['accent-ink'] = ink(out.accent, seed);
     out.focus = out.accent;
     ['person', 'group', 'event', 'course', 'topic'].forEach(function (k) { out['kind-' + k] = hue(s[k], theme, seed); });
@@ -377,7 +379,7 @@
     var seven = { h1: v(t, 'h1-wide'), body: v(t, 'body-wide'), label: v(t, 'label-wide'), ratio: [v(t, 'heading-ratio-narrow'), v(t, 'heading-ratio-wide')],
       spaceNarrow: v(t, 'space-narrow'), spaceWide: v(t, 'space-wide') };
     return {
-      color: { seeds: seeds, lift: v(col, 'lift'), flip: v(col, 'ink-flip'), nightLift: v(col, 'night-lift'), neutrals: neutrals, derive: derive },
+      color: { seeds: seeds, lift: v(col, 'lift'), flip: v(col, 'ink-flip'), nightLift: v(col, 'night-lift'), dayDepth: v(col, 'day-depth'), neutrals: neutrals, derive: derive },
       cell: { targetNarrow: v(c, 'target-narrow'), targetWide: v(c, 'target-wide'), screenNarrow: v(c, 'screen-narrow'), screenWide: v(c, 'screen-wide'), textScaleMax: v(c, 'text-scale-max') },
       frame: { max: v(tokens.frame, 'max'), module: SEED.frame.module },
       seven: seven,

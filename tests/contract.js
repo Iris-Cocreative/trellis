@@ -180,7 +180,7 @@ for (const f of PRODUCTS) {
     const out = {};
     // A seed a layer sets is that color; one it leaves, or leaves as the
     // template has it (var(--…)), follows from its accent.
-    for (const [, k, v] of body.matchAll(/--seed-([a-z]+)\s*:\s*([^;]+);/g)) {
+    for (const [, k, v] of body.matchAll(/--seed-([a-z-]+)\s*:\s*([^;]+);/g)) {
       if (/^var\(--[a-z-]+\)$/.test(v.trim())) continue;
       try { out[k] = M.parseColor(v); } catch (e) { fails.push(`${f}: --seed-${k}: ${e.message}`); }
     }
@@ -191,12 +191,15 @@ for (const f of PRODUCTS) {
   if (lift) base.color.lift = +lift[1];
   if (flip) base.color.flip = +flip[1];
   const nightOf = body => { const m = body.match(/--night-lift\s*:\s*([\d.]+)/); return m ? +m[1] : undefined; };
+  const dayOf = body => { const m = body.match(/--day-depth\s*:\s*([\d.]+)/); return m ? +m[1] : undefined; };
   if (rootBlock && nightOf(rootBlock[3]) !== undefined) base.color.nightLift = nightOf(rootBlock[3]);
+  if (rootBlock && dayOf(rootBlock[3]) !== undefined) base.color.dayDepth = dayOf(rootBlock[3]);
   const rootSeeds = rootBlock ? seedsOf(rootBlock[3]) : {};
   if (rootBlock) layersToCheck.push([f, f, M.scope(base, rootSeeds)]);
   for (const b of blocks.filter(x => x !== rootBlock)) {
     const sc = M.scope(base, rootSeeds, seedsOf(b[3]));
     if (nightOf(b[3]) !== undefined) sc.color.nightLift = nightOf(b[3]);
+    if (dayOf(b[3]) !== undefined) sc.color.dayDepth = dayOf(b[3]);
     layersToCheck.push([f, `${f} [data-product="${b[2]}"]`, sc]);
   }
 }

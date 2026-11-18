@@ -126,6 +126,7 @@ function build(tokens) {
   for (const k of keys(col.seed)) line(`seed-${k}`, oklch(col.seed[k].$value));
   line('color-lift', short(col.lift.$value), 'how much lighter a hue is in the dark theme');
   line('ink-flip', short(col['ink-flip'].$value), 'ink on a fill: white below this lightness, dark above it');
+  line('day-depth', short(col['day-depth'].$value), 'how much darker every ground and edge is by day: 0 is white paper, higher is linen');
   line('night-lift', short(col['night-lift'].$value), 'how much lighter every ground and edge is at night: 0 is night, higher is dusk');
   line('gradient-space', col.gradient.space.$value, 'the space gradients interpolate in');
   line('gradient-turn', n(col.gradient.turn.$value), 'degrees the accent gradient turns its hue');
@@ -165,6 +166,7 @@ function build(tokens) {
     '       its ink reads; a kind is the accent turned around the hue wheel, with no more chroma than sRGB',
     '       holds at its hue; a status keeps its own hue; the neutral is a trace of the accent\'s hue. */');
   line('derived-base', `oklch(from var(--seed-accent) ${clear('l')} c h)`, 'the accent, its lightness kept clear of the flip');
+  line('derived-accent-night', 'oklch(from var(--seed-accent) calc(l + var(--color-lift)) c h)', 'the accent at night, unless a product gives it a night of its own (D98)');
   line('derived-neutral', `oklch(from var(--seed-accent) .55 ${short(dv('neutral-chroma'))} h)`);
   for (const k of KINDS) {
     const turn = n(d['kind-turn'][k].$value);
@@ -176,17 +178,23 @@ function build(tokens) {
     line(`derived-${k}`, `oklch(from var(--derived-base) l min(clamp(${short(dv('status-chroma-min'))}, c * ${short(dv('status-chroma'))}, ${short(dv('status-chroma-max'))}), l * ${num(limitAt(d['status-hue'][k].$value))}) ${n(d['status-hue'][k].$value)})`);
 
   head('Neutral roles: a seed\'s hue and chroma at a lightness for each theme. Grounds and edges take the ground seed (the night seed at night, lifted by --night-lift), text the ink seed; all follow the neutral unless set');
-  const GROUND = `var(--seed-ground, ${F('neutral')})`, INK = `var(--seed-ink, ${F('neutral')})`, NIGHT = `var(--seed-night, ${GROUND})`;
+  const GROUND = `var(--seed-ground, ${F('neutral')})`, INK = `var(--seed-ink, ${F('neutral')})`, NIGHT = `var(--seed-night, ${GROUND})`, INK_NIGHT = `var(--seed-ink-night, ${INK})`;
   const at = (sd, l) => `oklch(from ${sd} ${short(l)} c h)`;
   // At night a ground or an edge takes the night seed (the ground unless set) and the night lift.
   for (const k of keys(col.neutral)) {
     const text = k.startsWith('text'), day = text ? INK : GROUND, l = col.neutral[k].dark.$value;
     // Ink climbs toward white as the night lifts, three times as fast, so a dusk keeps its floors.
-    line(k, `light-dark(${at(day, col.neutral[k].light.$value)}, ${text ? `oklch(from ${INK} calc(${short(l)} + ${short(1 - l)} * min(1, var(--night-lift) * 3)) c h)` : `oklch(from ${NIGHT} calc(${short(l)} + var(--night-lift)) c h)`})`);
+    // By day a ground or an edge is darkened by --day-depth, and ink darkens with it, three times as fast.
+    const d = col.neutral[k].light.$value;
+    const dayPart = text ? `oklch(from ${INK} calc(${short(d)} * (1 - min(1, var(--day-depth) * 3))) c h)` : `oklch(from ${GROUND} calc(${short(d)} - var(--day-depth)) c h)`;
+    line(k, `light-dark(${dayPart}, ${text ? `oklch(from ${INK_NIGHT} calc(${short(l)} + ${short(1 - l)} * min(1, var(--night-lift) * 3)) c h)` : `oklch(from ${NIGHT} calc(${short(l)} + var(--night-lift)) c h)`})`);
   }
   head('Hues: the seed in the light theme, lifted in the dark. Kinds: what sort of thing this is; shape and color both follow kind');
   for (const k of Object.keys(HUES)) {
-    line(HUES[k], `light-dark(${F(k)}, oklch(from ${F(k)} calc(l + var(--color-lift)) c h))`);
+    // The accent may have a night of its own (--seed-accent-night); every other hue is lifted.
+    line(HUES[k], k === 'accent'
+      ? `light-dark(${F(k)}, var(--seed-accent-night, var(--derived-accent-night)))`
+      : `light-dark(${F(k)}, oklch(from ${F(k)} calc(l + var(--color-lift)) c h))`);
     if (k === 'accent') {
       line('accent-ink', 'oklch(from var(--accent) clamp(.16, (var(--ink-flip) - l) * 1000, 1) calc(clamp(0, (l - var(--ink-flip)) * 1000, 1) * c * .3) h)', 'white on a dark accent, a dark ink of its hue on a light one');
       line('focus', 'var(--accent)');

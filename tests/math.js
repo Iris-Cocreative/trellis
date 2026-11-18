@@ -184,22 +184,25 @@ const CASES = [
         }
         // Night: a ground of another hue after dark, and a dusk lifted from night.
         {
-          const set = { accent: [0.5, 0.1, 250], ground: [0.55, 0.011, 77], night: [0.55, 0.048, 132] };
+          // and (D98) a paper darker than white by day, and an accent with a night of its own
+          const set = { accent: [0.5, 0.1, 250], ground: [0.55, 0.011, 77], night: [0.55, 0.048, 132], 'accent-night': [0.896, 0.068, 133.3], ink: [0.55, 0.06, 134.5], 'ink-night': [0.55, 0.012, 80] };
           for (const [k, v] of Object.entries(set)) scopeEl.style.setProperty(`--seed-${k}`, `oklch(${v.join(' ')})`);
-          for (const lift of [0, 0.15]) {
+          for (const [lift, depth] of [[0, 0], [0.15, 0.019]]) {
             scopeEl.style.setProperty('--night-lift', String(lift));
+            scopeEl.style.setProperty('--day-depth', String(depth));
             for (const theme of ['light', 'dark']) {
               scopeEl.setAttribute('data-theme', theme);
-              const seed = M.scope(M.SEED, {}, set); seed.color.nightLift = lift;
+              const seed = M.scope(M.SEED, {}, set); seed.color.nightLift = lift; seed.color.dayDepth = depth;
               const p = M.palette(theme, seed);
-              for (const role of ['bg', 'bg-raised-3', 'border', 'text', 'text-secondary']) {
+              for (const role of ['bg', 'bg-raised-3', 'border', 'text', 'text-secondary', 'accent', 'accent-ink']) {
                 inner.style.color = `var(--${role})`;
-                expect(same(triple(getComputedStyle(inner).color), p[role]), `scope: night seed, lift ${lift}, ${theme}: --${role} is ${getComputedStyle(inner).color}, math says ${p[role].map(x => +x.toFixed(4)).join(' ')}`);
+                expect(same(triple(getComputedStyle(inner).color), p[role]), `scope: night ${lift}, day ${depth}, ${theme}: --${role} is ${getComputedStyle(inner).color}, math says ${p[role].map(x => +x.toFixed(4)).join(' ')}`);
               }
             }
           }
           for (const k of Object.keys(set)) scopeEl.style.removeProperty(`--seed-${k}`);
           scopeEl.style.removeProperty('--night-lift');
+          scopeEl.style.removeProperty('--day-depth');
         }
         scopeEl.removeAttribute('data-theme');
         inner.style.color = '';

@@ -200,6 +200,7 @@
     --seed-accent: oklch(.553 .166 258.4);
     --color-lift: .17;   /* how much lighter a hue is in the dark theme */
     --ink-flip: .58;   /* ink on a fill: white below this lightness, dark above it */
+    --day-depth: 0;   /* how much darker every ground and edge is by day: 0 is white paper, higher is linen */
     --night-lift: 0;   /* how much lighter every ground and edge is at night: 0 is night, higher is dusk */
     --gradient-space: oklch;   /* the space gradients interpolate in */
     --gradient-turn: 40;   /* degrees the accent gradient turns its hue */
@@ -213,6 +214,7 @@
        its ink reads; a kind is the accent turned around the hue wheel, with no more chroma than sRGB
        holds at its hue; a status keeps its own hue; the neutral is a trace of the accent's hue. */
     --derived-base: oklch(from var(--seed-accent) calc((1 - clamp(0, (l - var(--ink-flip)) * 1000, 1)) * clamp(.61 - var(--color-lift), l, .54) + clamp(0, (l - var(--ink-flip)) * 1000, 1) * max(l, .61)) c h);   /* the accent, its lightness kept clear of the flip */
+    --derived-accent-night: oklch(from var(--seed-accent) calc(l + var(--color-lift)) c h);   /* the accent at night, unless a product gives it a night of its own (D98) */
     --derived-neutral: oklch(from var(--seed-accent) .55 .004 h);
     --derived-person: oklch(from var(--derived-base) l min(c * .85, l * (.2764 - .0014 * clamp(0, h, 6) - .0047333 * clamp(0, h - 6, 15) - .0012667 * clamp(0, h - 21, 30) - .0001667 * clamp(0, h - 51, 30) + .0048333 * clamp(0, h - 81, 30) + .0066667 * clamp(0, h - 111, 15) - .0004 * clamp(0, h - 216, 30) - .0075333 * clamp(0, h - 246, 15) - .0032667 * clamp(0, h - 261, 15) - .0011667 * clamp(0, h - 276, 30) + .0013 * clamp(0, h - 306, 30) + .004 * clamp(0, h - 336, 15) - .0014 * clamp(0, h - 351, 9))) calc(h + 144));
     --derived-group: oklch(from var(--derived-base) l min(c * .85, l * (.399 - .0004 * clamp(0, h - 72, 30) - .0075333 * clamp(0, h - 102, 15) - .0032667 * clamp(0, h - 117, 15) - .0011667 * clamp(0, h - 132, 30) + .0013 * clamp(0, h - 162, 30) + .004 * clamp(0, h - 192, 15) - .0014 * clamp(0, h - 207, 15) - .0047333 * clamp(0, h - 222, 15) - .0012667 * clamp(0, h - 237, 30) - .0001667 * clamp(0, h - 267, 30) + .0048333 * clamp(0, h - 297, 30) + .0066667 * clamp(0, h - 327, 15))) calc(h + 288));
@@ -224,22 +226,22 @@
     --derived-alert: oklch(from var(--derived-base) l min(clamp(.1, c * .9, .17), l * .387) 30);
 
     /* Neutral roles: a seed's hue and chroma at a lightness for each theme. Grounds and edges take the ground seed (the night seed at night, lifted by --night-lift), text the ink seed; all follow the neutral unless set */
-    --bg: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .973 c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.176 + var(--night-lift)) c h));
-    --bg-raised: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) 1 c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.213 + var(--night-lift)) c h));
-    --bg-raised-2: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .975 c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.245 + var(--night-lift)) c h));
-    --bg-raised-3: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .95 c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.277 + var(--night-lift)) c h));
-    --bg-sunken: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .943 c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.148 + var(--night-lift)) c h));
-    --bg-hover: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .936 c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.264 + var(--night-lift)) c h));
-    --text: light-dark(oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .213 c h), oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) calc(.967 + .033 * min(1, var(--night-lift) * 3)) c h));
-    --text-secondary: light-dark(oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .397 c h), oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) calc(.823 + .177 * min(1, var(--night-lift) * 3)) c h));
-    --text-tertiary: light-dark(oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .52 c h), oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) calc(.655 + .345 * min(1, var(--night-lift) * 3)) c h));
-    --text-faint: light-dark(oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .695 c h), oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) calc(.495 + .505 * min(1, var(--night-lift) * 3)) c h));
-    --border: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .879 c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.308 + var(--night-lift)) c h));
-    --border-subtle: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .921 c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.259 + var(--night-lift)) c h));
-    --border-strong: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .741 c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.419 + var(--night-lift)) c h));
+    --bg: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) calc(.973 - var(--day-depth)) c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.176 + var(--night-lift)) c h));
+    --bg-raised: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) calc(1 - var(--day-depth)) c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.213 + var(--night-lift)) c h));
+    --bg-raised-2: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) calc(.975 - var(--day-depth)) c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.245 + var(--night-lift)) c h));
+    --bg-raised-3: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) calc(.95 - var(--day-depth)) c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.277 + var(--night-lift)) c h));
+    --bg-sunken: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) calc(.943 - var(--day-depth)) c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.148 + var(--night-lift)) c h));
+    --bg-hover: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) calc(.936 - var(--day-depth)) c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.264 + var(--night-lift)) c h));
+    --text: light-dark(oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) calc(.213 * (1 - min(1, var(--day-depth) * 3))) c h), oklch(from var(--seed-ink-night, var(--seed-ink, var(--seed-neutral, var(--derived-neutral)))) calc(.967 + .033 * min(1, var(--night-lift) * 3)) c h));
+    --text-secondary: light-dark(oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) calc(.397 * (1 - min(1, var(--day-depth) * 3))) c h), oklch(from var(--seed-ink-night, var(--seed-ink, var(--seed-neutral, var(--derived-neutral)))) calc(.823 + .177 * min(1, var(--night-lift) * 3)) c h));
+    --text-tertiary: light-dark(oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) calc(.52 * (1 - min(1, var(--day-depth) * 3))) c h), oklch(from var(--seed-ink-night, var(--seed-ink, var(--seed-neutral, var(--derived-neutral)))) calc(.655 + .345 * min(1, var(--night-lift) * 3)) c h));
+    --text-faint: light-dark(oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) calc(.695 * (1 - min(1, var(--day-depth) * 3))) c h), oklch(from var(--seed-ink-night, var(--seed-ink, var(--seed-neutral, var(--derived-neutral)))) calc(.495 + .505 * min(1, var(--night-lift) * 3)) c h));
+    --border: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) calc(.879 - var(--day-depth)) c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.308 + var(--night-lift)) c h));
+    --border-subtle: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) calc(.921 - var(--day-depth)) c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.259 + var(--night-lift)) c h));
+    --border-strong: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) calc(.741 - var(--day-depth)) c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.419 + var(--night-lift)) c h));
 
     /* Hues: the seed in the light theme, lifted in the dark. Kinds: what sort of thing this is; shape and color both follow kind */
-    --accent: light-dark(var(--seed-accent), oklch(from var(--seed-accent) calc(l + var(--color-lift)) c h));
+    --accent: light-dark(var(--seed-accent), var(--seed-accent-night, var(--derived-accent-night)));
     --accent-ink: oklch(from var(--accent) clamp(.16, (var(--ink-flip) - l) * 1000, 1) calc(clamp(0, (l - var(--ink-flip)) * 1000, 1) * c * .3) h);   /* white on a dark accent, a dark ink of its hue on a light one */
     --focus: var(--accent);
     --kind-person: light-dark(var(--seed-person, var(--derived-person)), oklch(from var(--seed-person, var(--derived-person)) calc(l + var(--color-lift)) c h));

@@ -109,3 +109,4 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D95](D95.md) | What scrolls in a card is cut at the card's line | 2026-11-16 | accepted |
 | [D96](D96.md) | Scopes: a product nested in a product | 2026-11-17 | accepted |
 | [D97](D97.md) | Night has its own ground, and may be a dusk | 2026-11-17 | accepted |
+| [D98](D98.md) | A paper that is not white, and an accent with a night of its own | 2026-11-17 | accepted |
