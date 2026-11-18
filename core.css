@@ -178,19 +178,29 @@
     --label-max: .75;   /* the label */
     --rh-min: 1.26;   /* the ratio in a narrow space */
     --rh-max: 1.414;   /* the ratio in a wide space */
+  }
 
-    /* And five that follow from the seven, with no default: --rp-min, --rp-max, --body-min, --h1-min, --label-min. A product may set any; each text element works out its --type-* from them */
+  /* And five that follow from the seven, with no default: --rp-min, --rp-max, --body-min, --h1-min,
+     --label-min. A product may set any; core reads --type-*, worked out here and on every scope. */
+  :root, [data-product] {
+    --type-rp-min: var(--rp-min, sqrt(var(--rh-min)));   /* the text step, narrow: half a heading step */
+    --type-rp-max: var(--rp-max, sqrt(var(--rh-max)));   /* the text step, wide */
+    --type-body-min: var(--body-min, calc(var(--body-max) / sqrt(var(--rh-min))));   /* body in a narrow space: body less a narrow text step */
+    --type-h1-min: var(--h1-min, calc(var(--type-body-min) * pow(var(--rh-min), log(var(--h1-max) / var(--body-max), var(--rh-max)))));   /* H1 in a narrow space: as many steps above body as in a wide one */
+    --type-label-min: var(--label-min, var(--label-max));   /* the label is one size */
   }
 }
 @layer trellis.theme {
   :root {
     /* Seeds: one color each, in its light-theme form. A product sets the accent. The others follow
        from it, and a product may set any of them in its place (--seed-neutral, --seed-person, …,
-       and --seed-ground and --seed-ink, the neutral for grounds and for text). They have no default:
+       --seed-ground and --seed-ink, the neutral for grounds and for text, and --seed-night, the ground at
+       night). They have no default:
        one a layer set carries into its scopes; one it left follows each scope's accent. Never a role. */
     --seed-accent: oklch(.553 .166 258.4);
     --color-lift: .17;   /* how much lighter a hue is in the dark theme */
     --ink-flip: .58;   /* ink on a fill: white below this lightness, dark above it */
+    --night-lift: 0;   /* how much lighter every ground and edge is at night: 0 is night, higher is dusk */
     --gradient-space: oklch;   /* the space gradients interpolate in */
     --gradient-turn: 40;   /* degrees the accent gradient turns its hue */
   }
@@ -213,20 +223,20 @@
     --derived-warn: oklch(from var(--derived-base) l min(clamp(.1, c * .9, .17), l * .2133333) 70);
     --derived-alert: oklch(from var(--derived-base) l min(clamp(.1, c * .9, .17), l * .387) 30);
 
-    /* Neutral roles: a seed's hue and chroma at a lightness for each theme. Grounds and edges take the ground seed, text the ink seed; both are the neutral unless set */
-    --bg: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .973 c h), oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .176 c h));
-    --bg-raised: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) 1 c h), oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .213 c h));
-    --bg-raised-2: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .975 c h), oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .245 c h));
-    --bg-raised-3: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .95 c h), oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .277 c h));
-    --bg-sunken: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .943 c h), oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .148 c h));
-    --bg-hover: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .936 c h), oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .264 c h));
-    --text: light-dark(oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .213 c h), oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .967 c h));
-    --text-secondary: light-dark(oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .397 c h), oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .823 c h));
-    --text-tertiary: light-dark(oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .52 c h), oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .655 c h));
-    --text-faint: light-dark(oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .695 c h), oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .495 c h));
-    --border: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .879 c h), oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .308 c h));
-    --border-subtle: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .921 c h), oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .259 c h));
-    --border-strong: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .741 c h), oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .419 c h));
+    /* Neutral roles: a seed's hue and chroma at a lightness for each theme. Grounds and edges take the ground seed (the night seed at night, lifted by --night-lift), text the ink seed; all follow the neutral unless set */
+    --bg: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .973 c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.176 + var(--night-lift)) c h));
+    --bg-raised: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) 1 c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.213 + var(--night-lift)) c h));
+    --bg-raised-2: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .975 c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.245 + var(--night-lift)) c h));
+    --bg-raised-3: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .95 c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.277 + var(--night-lift)) c h));
+    --bg-sunken: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .943 c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.148 + var(--night-lift)) c h));
+    --bg-hover: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .936 c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.264 + var(--night-lift)) c h));
+    --text: light-dark(oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .213 c h), oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) calc(.967 + .033 * min(1, var(--night-lift) * 3)) c h));
+    --text-secondary: light-dark(oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .397 c h), oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) calc(.823 + .177 * min(1, var(--night-lift) * 3)) c h));
+    --text-tertiary: light-dark(oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .52 c h), oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) calc(.655 + .345 * min(1, var(--night-lift) * 3)) c h));
+    --text-faint: light-dark(oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) .695 c h), oklch(from var(--seed-ink, var(--seed-neutral, var(--derived-neutral))) calc(.495 + .505 * min(1, var(--night-lift) * 3)) c h));
+    --border: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .879 c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.308 + var(--night-lift)) c h));
+    --border-subtle: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .921 c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.259 + var(--night-lift)) c h));
+    --border-strong: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) .741 c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.419 + var(--night-lift)) c h));
 
     /* Hues: the seed in the light theme, lifted in the dark. Kinds: what sort of thing this is; shape and color both follow kind */
     --accent: light-dark(var(--seed-accent), oklch(from var(--seed-accent) calc(l + var(--color-lift)) c h));
@@ -569,13 +579,6 @@
 
   :where(.t-h1, .t-h2, .t-h3, .t-h4, .t-h5, .t-h6, .t-xl, .t-lg, .t-body, .t-sm, .t-xs, .t-label, .t-eyebrow,
          .prose :is(h1, h2, h3, h4, h5, h6, th, td), .prose :is(p, li, dt, dd, summary, blockquote, figcaption, caption), .prose blockquote > :is(footer, cite), .prose div:not([class], :has(> :is(p, div, ul, ol, dl, h1, h2, h3, h4, h5, h6, blockquote, pre, table, figure, hr, details, img, video, iframe)))) {
-    /* The five that follow from the seven (D93), worked out here, where the text is: a value a
-       layer set carries in, and one it left follows the seven this element sees (D96). */
-    --type-rp-min: var(--rp-min, sqrt(var(--rh-min)));
-    --type-rp-max: var(--rp-max, sqrt(var(--rh-max)));
-    --type-body-min: var(--body-min, calc(var(--body-max) / sqrt(var(--rh-min))));
-    --type-h1-min: var(--h1-min, calc(var(--type-body-min) * pow(var(--rh-min), log(var(--h1-max) / var(--body-max), var(--rh-max)))));
-    --type-label-min: var(--label-min, var(--label-max));
     --t-slope: calc((var(--t-max) - var(--t-min)) / (var(--c-max) - var(--c-min)));
     --t-fs: clamp(
       calc(var(--t-min) * 1rem),

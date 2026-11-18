@@ -182,9 +182,28 @@ const CASES = [
           for (const k of Object.keys(rootSet)) root.style.removeProperty(`--seed-${k}`);
           for (const k of Object.keys(scopeSet)) scopeEl.style.removeProperty(`--seed-${k}`);
         }
+        // Night: a ground of another hue after dark, and a dusk lifted from night.
+        {
+          const set = { accent: [0.5, 0.1, 250], ground: [0.55, 0.011, 77], night: [0.55, 0.048, 132] };
+          for (const [k, v] of Object.entries(set)) scopeEl.style.setProperty(`--seed-${k}`, `oklch(${v.join(' ')})`);
+          for (const lift of [0, 0.15]) {
+            scopeEl.style.setProperty('--night-lift', String(lift));
+            for (const theme of ['light', 'dark']) {
+              scopeEl.setAttribute('data-theme', theme);
+              const seed = M.scope(M.SEED, {}, set); seed.color.nightLift = lift;
+              const p = M.palette(theme, seed);
+              for (const role of ['bg', 'bg-raised-3', 'border', 'text', 'text-secondary']) {
+                inner.style.color = `var(--${role})`;
+                expect(same(triple(getComputedStyle(inner).color), p[role]), `scope: night seed, lift ${lift}, ${theme}: --${role} is ${getComputedStyle(inner).color}, math says ${p[role].map(x => +x.toFixed(4)).join(' ')}`);
+              }
+            }
+          }
+          for (const k of Object.keys(set)) scopeEl.style.removeProperty(`--seed-${k}`);
+          scopeEl.style.removeProperty('--night-lift');
+        }
         scopeEl.removeAttribute('data-theme');
         inner.style.color = '';
-        inner.style.display = 'block'; inner.className = 't-body';   // a text element works out its own --type-*
+        inner.style.display = 'block'; inner.className = 't-body';
         const step = () => { inner.style.width = 'calc(var(--type-rp-min) * 1000px)'; return inner.getBoundingClientRect().width / 1000; };
         scopeEl.style.setProperty('--rh-min', '1.5');
         expect(near(step(), Math.sqrt(1.5), .002), `scope: a scope's own ratio gives a text step of ${step()}, math says ${Math.sqrt(1.5).toFixed(4)}`);

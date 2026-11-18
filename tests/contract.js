@@ -190,9 +190,15 @@ for (const f of PRODUCTS) {
   const lift = (rootBlock ? rootBlock[3] : '').match(/--color-lift\s*:\s*([\d.]+)/), flip = (rootBlock ? rootBlock[3] : '').match(/--ink-flip\s*:\s*([\d.]+)/);
   if (lift) base.color.lift = +lift[1];
   if (flip) base.color.flip = +flip[1];
+  const nightOf = body => { const m = body.match(/--night-lift\s*:\s*([\d.]+)/); return m ? +m[1] : undefined; };
+  if (rootBlock && nightOf(rootBlock[3]) !== undefined) base.color.nightLift = nightOf(rootBlock[3]);
   const rootSeeds = rootBlock ? seedsOf(rootBlock[3]) : {};
   if (rootBlock) layersToCheck.push([f, f, M.scope(base, rootSeeds)]);
-  for (const b of blocks.filter(x => x !== rootBlock)) layersToCheck.push([f, `${f} [data-product="${b[2]}"]`, M.scope(base, rootSeeds, seedsOf(b[3]))]);
+  for (const b of blocks.filter(x => x !== rootBlock)) {
+    const sc = M.scope(base, rootSeeds, seedsOf(b[3]));
+    if (nightOf(b[3]) !== undefined) sc.color.nightLift = nightOf(b[3]);
+    layersToCheck.push([f, `${f} [data-product="${b[2]}"]`, sc]);
+  }
 }
 for (const [, f, seed] of layersToCheck) {
   for (const theme of ['light', 'dark']) {

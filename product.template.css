@@ -62,6 +62,7 @@
     --seed-neutral: var(--derived-neutral);              /* surfaces, ink and edges: its hue and chroma. Follows the accent; set a color to choose your own */
     --seed-ground: var(--seed-neutral);                  /* grounds and edges alone, when paper and ink differ in hue. Follows the neutral */
     --seed-ink: var(--seed-neutral);                     /* text alone. Follows the neutral */
+    --seed-night: var(--seed-ground);                    /* the grounds and edges at night: linen by day, forest by night. Follows the ground */
     --seed-person: var(--derived-person);                /* a person: rings and tags. Follows the accent; set a color to choose your own */
     --seed-group: var(--derived-group);                  /* a group. Follows the accent, as above */
     --seed-event: var(--derived-event);                  /* an event. Follows the accent, as above */
@@ -71,6 +72,7 @@
     --seed-warn: var(--derived-warn);                    /* caution: its own hue, the accent's strength */
     --seed-alert: var(--derived-alert);                  /* errors and counts: its own hue, the accent's strength */
     --color-lift: .17;                                   /* how much lighter every hue is in the dark theme */
+    --night-lift: 0;                                     /* how much lighter every ground and edge is at night: 0 is night, .15 a dusk */
     --ink-flip: .58;                                     /* ink on the accent is white below this lightness, dark above */
     --gradient-space: oklch;                             /* the space gradients interpolate in */
     --gradient-turn: 40;                                 /* degrees the accent gradient turns its hue */

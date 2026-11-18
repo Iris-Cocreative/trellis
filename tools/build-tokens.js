@@ -95,12 +95,21 @@ function build(tokens) {
   line('label-max', unit(val(t, 'label-wide')), 'the label');
   line('rh-min', n(val(t, 'heading-ratio-narrow')), 'the ratio in a narrow space');
   line('rh-max', n(val(t, 'heading-ratio-wide')), 'the ratio in a wide space');
+  out.push('  }');
   // Five more follow (D93), and a product may set any of them: --rp-min,
-  // --rp-max, --body-min, --h1-min and --label-min. They have no default here.
-  // Each text element works out the value it uses, --type-* (the text roles in
-  // core.css), so what a layer set carries in, what it left follows its own
-  // seven, and a scope or any box may set them (D96).
-  head('And five that follow from the seven, with no default: --rp-min, --rp-max, --body-min, --h1-min, --label-min. A product may set any; each text element works out its --type-* from them');
+  // --rp-max, --body-min, --h1-min and --label-min. They have no default: the
+  // value in use, --type-*, is worked out on the root and again on every scope
+  // (D96), so what a layer set carries in and what it left follows the scope's
+  // own seven. Not on every text element: that cost WebKit a fifth of its
+  // first settle (tests/perf.js), and a box that sets the seven is a scope.
+  out.push('', '  /* And five that follow from the seven, with no default: --rp-min, --rp-max, --body-min, --h1-min,',
+    '     --label-min. A product may set any; core reads --type-*, worked out here and on every scope. */',
+    '  :root, [data-product] {');
+  line('type-rp-min', 'var(--rp-min, sqrt(var(--rh-min)))', 'the text step, narrow: half a heading step');
+  line('type-rp-max', 'var(--rp-max, sqrt(var(--rh-max)))', 'the text step, wide');
+  line('type-body-min', 'var(--body-min, calc(var(--body-max) / sqrt(var(--rh-min))))', 'body in a narrow space: body less a narrow text step');
+  line('type-h1-min', 'var(--h1-min, calc(var(--type-body-min) * pow(var(--rh-min), log(var(--h1-max) / var(--body-max), var(--rh-max)))))', 'H1 in a narrow space: as many steps above body as in a wide one');
+  line('type-label-min', 'var(--label-min, var(--label-max))', 'the label is one size');
   out.push('  }', '}', '@layer trellis.theme {', '  :root {');
   // The palette is relational: seeds are knobs, roles are derived from them with
   // relative colors. light-dark() reads color-scheme, so one declaration carries
@@ -111,11 +120,13 @@ function build(tokens) {
   const d = col.derive, dv = k => d[k].$value, KINDS = keys(d['kind-turn']), STATUSES = keys(d['status-hue']);
   out.push('    /* Seeds: one color each, in its light-theme form. A product sets the accent. The others follow',
     '       from it, and a product may set any of them in its place (--seed-neutral, --seed-person, …,',
-    '       and --seed-ground and --seed-ink, the neutral for grounds and for text). They have no default:',
+    '       --seed-ground and --seed-ink, the neutral for grounds and for text, and --seed-night, the ground at',
+    '       night). They have no default:',
     '       one a layer set carries into its scopes; one it left follows each scope\'s accent. Never a role. */');
   for (const k of keys(col.seed)) line(`seed-${k}`, oklch(col.seed[k].$value));
   line('color-lift', short(col.lift.$value), 'how much lighter a hue is in the dark theme');
   line('ink-flip', short(col['ink-flip'].$value), 'ink on a fill: white below this lightness, dark above it');
+  line('night-lift', short(col['night-lift'].$value), 'how much lighter every ground and edge is at night: 0 is night, higher is dusk');
   line('gradient-space', col.gradient.space.$value, 'the space gradients interpolate in');
   line('gradient-turn', n(col.gradient.turn.$value), 'degrees the accent gradient turns its hue');
   out.push('  }', '', '  /* Everything that follows from the seeds, on the root and again on every scope (D96), so a',
@@ -164,10 +175,15 @@ function build(tokens) {
   for (const k of STATUSES)
     line(`derived-${k}`, `oklch(from var(--derived-base) l min(clamp(${short(dv('status-chroma-min'))}, c * ${short(dv('status-chroma'))}, ${short(dv('status-chroma-max'))}), l * ${num(limitAt(d['status-hue'][k].$value))}) ${n(d['status-hue'][k].$value)})`);
 
-  head('Neutral roles: a seed\'s hue and chroma at a lightness for each theme. Grounds and edges take the ground seed, text the ink seed; both are the neutral unless set');
-  const GROUND = `var(--seed-ground, ${F('neutral')})`, INK = `var(--seed-ink, ${F('neutral')})`;
+  head('Neutral roles: a seed\'s hue and chroma at a lightness for each theme. Grounds and edges take the ground seed (the night seed at night, lifted by --night-lift), text the ink seed; all follow the neutral unless set');
+  const GROUND = `var(--seed-ground, ${F('neutral')})`, INK = `var(--seed-ink, ${F('neutral')})`, NIGHT = `var(--seed-night, ${GROUND})`;
   const at = (sd, l) => `oklch(from ${sd} ${short(l)} c h)`;
-  for (const k of keys(col.neutral)) { const sd = k.startsWith('text') ? INK : GROUND; line(k, `light-dark(${at(sd, col.neutral[k].light.$value)}, ${at(sd, col.neutral[k].dark.$value)})`); }
+  // At night a ground or an edge takes the night seed (the ground unless set) and the night lift.
+  for (const k of keys(col.neutral)) {
+    const text = k.startsWith('text'), day = text ? INK : GROUND, l = col.neutral[k].dark.$value;
+    // Ink climbs toward white as the night lifts, three times as fast, so a dusk keeps its floors.
+    line(k, `light-dark(${at(day, col.neutral[k].light.$value)}, ${text ? `oklch(from ${INK} calc(${short(l)} + ${short(1 - l)} * min(1, var(--night-lift) * 3)) c h)` : `oklch(from ${NIGHT} calc(${short(l)} + var(--night-lift)) c h)`})`);
+  }
   head('Hues: the seed in the light theme, lifted in the dark. Kinds: what sort of thing this is; shape and color both follow kind');
   for (const k of Object.keys(HUES)) {
     line(HUES[k], `light-dark(${F(k)}, oklch(from ${F(k)} calc(l + var(--color-lift)) c h))`);
