@@ -134,21 +134,43 @@
     var list = (scope || document).querySelectorAll('input.range');
     for (var i = 0; i < list.length; i++) rangeAt(list[i]);
   }
-  document.addEventListener('input', function (e) { if (e.target.matches && e.target.matches('input.range')) rangeAt(e.target); }, true);
+  // ---- Composers: a box that grows with its text --------------------------------
+  // field-sizing: content grows a .composer-input in CSS. Where a browser lacks
+  // it, its height is written here as --composer-h, when it arrives and as it
+  // changes; a script that sets .value calls Trellis.composer(el).
+  var GROWS = !!window.CSS && !CSS.supports('field-sizing', 'content');
+  function grow(el) {
+    if (!GROWS) return;
+    el.style.setProperty('--composer-h', 'auto');
+    el.style.setProperty('--composer-h', el.scrollHeight + 'px');
+  }
+  function composers(scope) {
+    if (!GROWS) return;
+    var list = (scope || document).querySelectorAll('textarea.composer-input');
+    for (var i = 0; i < list.length; i++) grow(list[i]);
+  }
+  document.addEventListener('input', function (e) {
+    if (!e.target.matches) return;
+    if (e.target.matches('input.range')) rangeAt(e.target);
+    else if (e.target.matches('textarea.composer-input')) grow(e.target);
+  }, true);
   if ('MutationObserver' in window) new MutationObserver(function (records) {
     records.forEach(function (r) {
       for (var i = 0; i < r.addedNodes.length; i++) {
         var n = r.addedNodes[i];
         if (n.nodeType !== 1) continue;
-        if (n.matches('input.range')) rangeAt(n); else if (n.firstElementChild) ranges(n);
+        if (n.matches('input.range')) rangeAt(n);
+        else if (n.matches('textarea.composer-input')) grow(n);
+        else if (n.firstElementChild) { ranges(n); composers(n); }
       }
     });
   }).observe(document, { subtree: true, childList: true });
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { ranges(); }); else ranges();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { ranges(); composers(); }); else { ranges(); composers(); }
 
   // presets.js may have made the object first: add to it, don't replace it.
   var api = window.Trellis || {};
   api.range = function (el) { if (el) rangeAt(el); else ranges(); };
+  api.composer = function (el) { if (el) grow(el); else composers(); };
   api.fit = fit; api.cell = cell; api.all = function () {}; api.observe = function () {}; api.settled = function () { return Promise.resolve(); };
   window.Trellis = api;
 
@@ -161,7 +183,7 @@
   var PDIV = '.prose div:not([class], :has(> :is(' + BLOCKTAGS + ')))';
   var TEXT = '.t-h4, .t-h5, .t-h6, .t-xl, .t-lg, .t-body, .t-sm, .t-xs, .t-label, .t-eyebrow, .snap, .snap-x, ' +
     '.prose :is(h4, h5, h6, p, li, dt, dd, summary, blockquote, figcaption, caption), .prose blockquote > :is(footer, cite), ' + PDIV;
-  var BLOCK = '.cluster, .settle, .field, .prose :is(pre, table, figure, details, dl, video, audio), ' +
+  var BLOCK = '.cluster, .settle, .field, .pair, .chat-item-meta, .chat-quote, .chat-link, .chat-reactions, .prose :is(pre, table, figure, details, dl, video, audio), ' +
     '.prose > :not(h1, h2, h3, h4, h5, h6, p, ul, ol, hr, blockquote, iframe, div:not([class]))';
   // Blocks that nest: what follows text or an image in them lands on a line.
   var INNER = '.prose :is(li, blockquote, figure, details)';

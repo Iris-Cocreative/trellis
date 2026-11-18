@@ -59,7 +59,7 @@ const target = require('./target');
     const top = document.getElementById('top'), pr = top.getBoundingClientRect();
     const u = Trellis.cell();
     const TEXT = /\bt-(h\d|xl|lg|body|sm|xs|label|eyebrow)\b/, STANDS = /\bt-h[123]\b/;
-    const BOX = /\b(card|plate|tag|button|avatar|section|stack|cluster|cols|grid|float|row|list|board|shell|cover|field|input|tabs|chat-item|member-tile)\b/;
+    const BOX = /\b(card|plate|tag|button|avatar|section|stack|cluster|cols|grid|float|row|list|board|shell|cover|field|input|tabs|chat-item|chat-thread|member-tile|pair|composer)\b/;
     // [data-by-ratio]: a type scale set by the ratio alone, off the cells on purpose (the specimen's playground).
     const SKIP = '.measure-layer,svg,[popover],.nav,.float,.avatar,.code-panel,.shell-nav,[data-by-ratio]';
     const off = (v) => { const m = ((v % u) + u) % u; return m > .5 && m < u - .5; };
@@ -97,6 +97,10 @@ const target = require('./target');
       if (e.closest(SKIP) || e.matches('.tag-label,.button-label,.tag-dot,.tag-remove,.cap-center:not([data-trellis-wrap])')) continue;
       // Inside a cluster things keep the cluster's own half-cell rhythm; the cluster itself is checked.
       if (e.parentElement && e.parentElement.closest('.cluster')) continue;
+      // So do a pair, a message's meta (a name and a time on one baseline) and the parts a message carries (a quote, a file, a link, reactions): the block is checked.
+      if (e.parentElement && e.parentElement.closest('.pair,.chat-quote,.chat-link,.chat-file,.chat-reactions,.composer,.chat-item-meta')) continue;
+      // A continuing message's hover time sits on its text's baseline; its actions float over the run gap.
+      if (e.closest('.chat-item-time,.chat-item-actions')) continue;
       // A dense row is one thing: its edges are on lines, its contents keep a half-cell rhythm.
       if (e.parentElement && e.parentElement.closest('.list.cc-dense .list-item,.cc-dense .list .list-item')) continue;
       // A scroller's contents move as it scrolls; the scroller itself is checked.

@@ -346,6 +346,7 @@
     --font-sans: ui-sans-serif, system-ui, sans-serif;
     --font-serif: Georgia, serif;
     --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    --font-emoji: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Twemoji Mozilla", sans-serif;   /* color emoji first, so a reaction draws in color at its size */
     --fw-body: 400; --fw-heading: 500; --fw-label: 500; --fw-label-text: 400; --fw-strong: 600;   /* --fw-label: a control's; --fw-label-text: the label and eyebrow roles' */
     --label-tracking: .08em;
     --label-case: uppercase;
@@ -648,7 +649,7 @@
     /* A cluster (a wrapping row of tags, chips, avatars) settles like text:
        inside, it keeps its own half-cell rhythm, as letters do in a word;
        its block rounds up to whole cells. */
-    .settle, .field, :where(.prose :is(pre, table, figure, details, dl, video, audio), .prose > :not(h1, h2, h3, h4, h5, h6, p, ul, ol, hr, blockquote, iframe, div:not([class]))) { height: calc-size(fit-content, round(up, size, var(--u))); }
+    .settle, .field, .pair, .chat-item-meta, .chat-quote, .chat-link, .chat-reactions, :where(.prose :is(pre, table, figure, details, dl, video, audio), .prose > :not(h1, h2, h3, h4, h5, h6, p, ul, ol, hr, blockquote, iframe, div:not([class]))) { height: calc-size(fit-content, round(up, size, var(--u))); }
     /* A cluster rounds to the nearest whole cell, halves down (at least one
        cell): a row of 1½-cell tags takes one cell and lets the rest sit in
        the gap after it. So its content can overflow into that gap by up to half
@@ -748,6 +749,14 @@
   /* COMPOSITIONS */
   .stack   { display: flex; flex-direction: column; gap: var(--stack-gap, var(--sp-1)); }
   .cluster { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cluster-gap, var(--sp-h)); }
+  /* Pair: two lines that belong together, a name over its context, a title over
+     its source. Text is trimmed to its letters, so two lines a stack holds a
+     cell apart read as two things and a zero gap makes them collide. Inside, a
+     pair keeps a half-cell rhythm, as letters do in a word; its block rounds up
+     to whole cells, like .settle, so what follows it is on a line. In a cluster
+     it takes the row's spare room, so a header's trailing buttons sit at its end. */
+  .pair { display: flex; flex-direction: column; gap: var(--sp-h); min-width: 0; }
+  .cluster > .pair { flex: 1 1 0; }
   /* Columns: a count, each track rounded down to whole cells, so every
      column's left edge lands on a line. The last right edge is free. */
   .cols {
@@ -1069,17 +1078,27 @@
     pointer-events: none;
   }
   :where(a, button).list-item { width: 100%; text-align: start; cursor: pointer; }
-  :where(a, button).list-item, .list-item:has(> .list-link) { background: color-mix(in oklab, var(--text) calc(var(--state-on) + var(--state-act)), transparent); }
-  @media (hover: hover) { .list-item:has(> .list-link:hover) { --state-act: var(--state-hover); } }
-  .list-item:has(> .list-link:active) { --state-act: var(--state-press); }
-  .list-item:has(> .list-link:is([aria-current]:not([aria-current="false"]), [aria-selected="true"])) { --state-on: var(--state-selected); }
+  :where(a, button).list-item, .list-item:has(.list-link) { background: color-mix(in oklab, var(--text) calc(var(--state-on) + var(--state-act)), transparent); }
+  @media (hover: hover) { .list-item:has(.list-link:hover) { --state-act: var(--state-hover); } }
+  .list-item:has(.list-link:active) { --state-act: var(--state-press); }
+  .list-item:has(.list-link:is([aria-current]:not([aria-current="false"]), [aria-selected="true"])) { --state-on: var(--state-selected); }
   /* Selected keeps a mark of its own, so it never looks merely hovered. */
-  .list-item:is([aria-current]:not([aria-current="false"]), [aria-selected="true"]), .list-item:has(> .list-link:is([aria-current]:not([aria-current="false"]), [aria-selected="true"])) { box-shadow: inset calc(var(--line) * 2) 0 0 var(--accent); }
+  .list-item:is([aria-current]:not([aria-current="false"]), [aria-selected="true"]) { --state-on: var(--state-selected); background: color-mix(in oklab, var(--text) calc(var(--state-on) + var(--state-act)), transparent); }
+  .list-item:is([aria-current]:not([aria-current="false"]), [aria-selected="true"]), .list-item:has(.list-link:is([aria-current]:not([aria-current="false"]), [aria-selected="true"])) { box-shadow: inset calc(var(--line) * 2) 0 0 var(--accent); }
   /* A row that links rings the whole row, not the words in it. */
   .list-link:focus-visible { outline: none; }
-  .list-item:has(> .list-link:focus-visible) { outline: calc(var(--line) * 2) solid var(--focus); outline-offset: calc(var(--line) * -2); }
+  .list-item:has(.list-link:focus-visible) { outline: calc(var(--line) * 2) solid var(--focus); outline-offset: calc(var(--line) * -2); }
   .list-body { --stack-gap: var(--sp-1); flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--stack-gap); }
   .list-end { flex: none; display: flex; align-items: flex-start; gap: var(--sp-h); }
+  /* A row's two lines, when it has them: its title and the line under it (a
+     name and a preview). Unread (.cc-unread) weighs the title and inks the
+     line under it; a .dot.cc-accent in .list-end says so without color alone
+     when it carries a label. */
+  .list-title { color: var(--text); }
+  .list-sub { color: var(--text-secondary); }
+  .list-item.cc-unread .list-title { font-weight: var(--fw-strong); }
+  .list-item.cc-unread .list-sub { color: var(--text); }
+  .list-end:has(> .pair) { text-align: end; }
   /* A whole row that links somewhere, from a link inside it. */
   .list-link { color: inherit; text-decoration: none; }
   .list-link::before { content: ""; position: absolute; inset: 0; }
@@ -1696,6 +1715,13 @@
   .avatar.cc-xxl { --av-n: 8; --av-gap: var(--sp-q); --av-ring: var(--sp-q); }
   .avatar.cc-hero { --av-n: 12; --av-gap: var(--sp-q); --av-ring: var(--sp-q); }
   .avatar.cc-group { --av-radius: calc(var(--av-size) / 4); --av-color: var(--kind-group); }
+  /* Shape is kind: a circle is a person, a rounded square a group, and a
+     rounded square in the accent a space (a project with people of its own: a
+     collaboration, a workspace). In dense rows (an inbox, a thread) the ring is
+     noise: .cc-plain draws neither the gap nor the ring. After the sizes, so it
+     wins over the larger ones' ring. */
+  .avatar.cc-space { --av-radius: calc(var(--av-size) / 4); --av-color: var(--accent); }
+  .avatar.cc-plain { --av-gap: 0px; --av-ring: 0px; }
   .avatar-dot {
     position: absolute;
     width: var(--sp-h); height: var(--sp-h);
@@ -2092,6 +2118,75 @@
     background-repeat: no-repeat;
     cursor: pointer;
   }
+  /* Composer: one box for writing a message. Leading controls (attach), the
+     text, trailing controls (emoji), then the send button, all inside one edge
+     on the raised ground. The text grows a line at a time up to --composer-max,
+     then scrolls; where field-sizing is missing settle.js writes its height
+     (--composer-h). The box is the field: it takes the focus ring, not the
+     textarea. Send wakes with text, in CSS alone: quiet while the placeholder
+     shows, the accent once there are words, so the textarea needs a placeholder.
+     A one-line box is three cells: a 2½-cell control and a quarter cell round
+     it; each line more is two cells. Its name may be an aria-label or a
+     visually hidden label: the placeholder names the recipient, so a visible
+     label is optional here. Markup: .field > .composer > .button.icon-button… +
+     textarea.composer-input + .button.icon-button… + .button.icon-button.composer-send,
+     then an optional p.field-hint, which starts where the text does. */
+  .composer {
+    --composer-radius: var(--shape-input);
+    --composer-pad: var(--sp-q);
+    --composer-control: var(--size-control-md);
+    --composer-line: var(--sp-2);
+    --composer-max: calc(var(--composer-control) + var(--composer-line) * 4);   /* a control and four lines more: keep it a control plus whole lines */
+    --composer-fs: var(--fs-control-lg);
+    --composer-edge: var(--border);
+    --composer-send-rest: var(--bg-hover);
+    --composer-send-ready: var(--accent);
+    --composer-send-ink: var(--accent-ink);
+    display: flex; align-items: flex-end; gap: var(--composer-pad);
+    min-width: 0;
+    /* Top and bottom: half of what the control is short of whole cells, from
+       the cell itself (--sp-q is snapped to device pixels), so the box is
+       whole cells at any cell. */
+    --composer-pad-block: calc((round(up, calc(var(--composer-control) + var(--composer-pad)), var(--u)) - var(--composer-control)) / 2);
+    padding: var(--composer-pad-block) var(--composer-pad);
+    border-radius: var(--composer-radius);
+    background: var(--bg-raised);
+    box-shadow: inset 0 0 0 var(--line) var(--composer-edge);   /* an edge drawn, not laid out: a border snaps to device pixels */
+    cursor: text;
+    transition: box-shadow var(--dur-out) var(--ease-in);
+  }
+  @media (hover: hover) { .composer:hover { --composer-edge: var(--border-strong); } }
+  .composer:has(> .composer-input:focus-visible) { outline: calc(var(--line) * 2) solid var(--focus); outline-offset: var(--line); }
+  .composer > .button {
+    --btn-h: var(--composer-control); --btn-fs: var(--fs-control-md);
+    --btn-radius: max(var(--r-q), calc(var(--composer-radius) - var(--composer-pad)));
+    flex: none; cursor: pointer;
+  }
+  .composer-input {
+    flex: 1 1 0; min-width: 0;
+    min-height: var(--composer-control);
+    max-height: var(--composer-max);
+    margin: 0;
+    padding: calc((var(--composer-control) - var(--composer-line)) / 2) var(--sp-q);
+    border: 0; border-radius: 0;
+    background: none;
+    color: var(--text);
+    font: inherit; font-size: var(--composer-fs);
+    line-height: var(--composer-line);
+    resize: none; overflow-y: auto;
+    field-sizing: content;
+  }
+  .composer-input:focus-visible { outline: none; }
+  .composer-input::placeholder { color: var(--text-tertiary); opacity: 1; }
+  @supports not (field-sizing: content) { .composer-input { height: var(--composer-h, auto); } }
+  .composer-send { --btn-bg: var(--composer-send-rest); --btn-ink: var(--text-tertiary); --btn-border: transparent; }
+  .composer:has(> .composer-input:not(:placeholder-shown)) > .composer-send { --btn-bg: var(--composer-send-ready); --btn-ink: var(--composer-send-ink); }
+  /* Its hint starts at the text: past the leading control, when there is one.
+     It names keys, and a touch keyboard has none of them: there it is gone. */
+  .field:has(> .composer) { --field-inset: calc(var(--sp-q) * 2); }
+  .field:has(> .composer > .button:first-child) { --field-inset: calc(var(--sp-q) * 3 + var(--size-control-md)); }
+  .field:has(> .composer) > .field-hint { overflow-x: clip; white-space: nowrap; text-overflow: ellipsis; }
+  @media (pointer: coarse) { .field:has(> .composer) > .field-hint { display: none; } }
   /* Touch. A replaced element has no ::before to grow, so the box itself reaches
      the target, in whole cells. And iOS zooms the page when a focused input's
      type is under 16px. */
@@ -2156,20 +2251,25 @@
   /* Chat item: an avatar and a body, for messages, walls and system lines. The
      bubble hangs its text from a cell, and its corner on the speaker's side,
      at the bottom, is tightened (--chat-tail): the tail. Your own message
-     (.cc-own) is a solid bubble in the accent and its ink, at the end of the
-     row, with no avatar and its meta after the bubble. A message that
-     continues the one before it from the same speaker (.cc-cont) shares its
-     avatar and its meta: the avatar keeps its place, unseen, the meta shows
-     once (above the first of others' runs, under the last of yours), and the
-     run is a cell apart. .cc-own, .cc-cont, .cc-wall and .cc-system only
-     change variables. Markup: .chat-item > .avatar + .chat-item-body >
-     .chat-item-meta + .chat-item-bubble. */
+     (.cc-own) is a solid bubble at the end of the row (the accent and its ink,
+     or the product's --chat-own-bg and --chat-own-ink), with no avatar and its
+     meta after the bubble. A message that continues the one before it from the
+     same speaker (.cc-cont) shares its avatar and its meta: the avatar keeps its
+     place, unseen, the meta shows once (above the first of others' runs, under
+     the last of yours), and the run is --chat-run-gap apart, a cell. .cc-own,
+     .cc-cont, .cc-wall, .cc-system and .cc-removed only change variables.
+     Markup: .chat-item > .avatar + .chat-item-body > .chat-item-meta +
+     .chat-item-bubble; in a flat thread a continuing message may hold a
+     .chat-item-time before its body, and any message a .chat-item-actions. */
   .chat-item {
     --chat-dir: row;
     --chat-align: flex-start;
+    --chat-items: flex-start;
     --chat-bg: var(--bg-raised);
     --chat-ink: currentColor;
-    --chat-edge: var(--border-subtle);
+    --chat-edge: var(--chat-bubble-edge, var(--border-subtle));
+    --chat-edge-style: solid;
+    --chat-style: normal;
     --chat-pad: var(--sp-1);
     --chat-radius: var(--shape-card);
     --chat-tail: var(--r-q);
@@ -2178,15 +2278,37 @@
     --chat-measure: calc(var(--u) * 40);
     --chat-avatar: inline-grid;
     --chat-avatar-seen: visible;
+    --chat-avatar-n: 2;
     --chat-meta: flex;
     --chat-meta-order: 0;
-    display: flex; flex-direction: var(--chat-dir); align-items: flex-start;
+    --chat-name-ink: inherit;
+    --chat-name-weight: inherit;
+    --chat-time: none;
+    --chat-time-seen: hidden;
+    --chat-actions: flex;
+    --chat-actions-seen: hidden;
+    --chat-run-gap: var(--sp-1);
+    --chat-row: 0%;
+    --chat-outset: calc(var(--outset) * var(--u));
+    position: relative; isolation: isolate;
+    display: flex; flex-direction: var(--chat-dir); align-items: var(--chat-items);
     gap: var(--sp-1);
     min-width: 0;
   }
-  .chat-item > .avatar { display: var(--chat-avatar); visibility: var(--chat-avatar-seen); }
+  /* The row's fill on hover: drawn, not laid out, half the run gap above and
+     below and stepped out like a list row, so the rows of a run meet. */
+  .chat-item::before {
+    content: ""; position: absolute; z-index: -1;
+    inset-block: calc(var(--chat-run-gap) / -2);
+    inset-inline: calc(var(--chat-outset) * -1);
+    border-radius: var(--r-h);
+    background: color-mix(in oklab, var(--text) var(--chat-row), transparent);
+    pointer-events: none;
+  }
+  .chat-item > .avatar { display: var(--chat-avatar); visibility: var(--chat-avatar-seen); align-self: flex-start; }
   .chat-item-body { display: flex; flex-direction: column; align-items: var(--chat-align); gap: var(--sp-1); min-width: 0; flex: 0 1 var(--chat-measure); }
   .chat-item-meta { display: var(--chat-meta); order: var(--chat-meta-order); flex-wrap: wrap; align-items: baseline; gap: 0 var(--sp-h); color: var(--text-tertiary); }   /* wraps when the reader's text is large */
+  .chat-item-name { color: var(--chat-name-ink); font-weight: var(--chat-name-weight); }
   .chat-item-bubble {
     position: relative;
     max-width: 100%;
@@ -2196,23 +2318,191 @@
     border-end-end-radius: var(--chat-tail-end);
     background: var(--chat-bg);
     color: var(--chat-ink);
-    outline: var(--line) solid var(--chat-edge);
+    font-style: var(--chat-style);
+    outline: var(--line) var(--chat-edge-style) var(--chat-edge);
     outline-offset: calc(var(--line) * -1);
   }
+  /* A continuing message's own time, in the avatar's column, shown on hover and
+     focus: as wide as the column and clipped to it, on the text's baseline. */
+  .chat-item-time {
+    display: var(--chat-time); visibility: var(--chat-time-seen);
+    flex: none;
+    width: calc(var(--u) * var(--chat-avatar-n));
+    height: 0; min-height: 0;   /* on the text's baseline, it never makes the row taller */
+    overflow-x: clip; white-space: nowrap; text-align: center;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+  /* React, reply, more: on the row's top edge at its end, over the run gap,
+     when the row is hovered or holds focus. Markup: .chat-item-actions >
+     .button.icon-button.cc-ghost.cc-sm… */
+  .chat-item-actions {
+    position: absolute; z-index: var(--z-raised);
+    inset-block-start: calc(var(--sp-1h) * -1); inset-inline-end: 0;
+    display: var(--chat-actions); visibility: var(--chat-actions-seen);
+    gap: var(--sp-q);
+    padding: var(--sp-q);
+    border-radius: var(--r-1);
+    background: var(--surface);
+    box-shadow: 0 0 0 var(--line) var(--border-subtle);
+  }
+  @media (hover: hover) { .chat-item:hover { --chat-actions-seen: visible; } }
+  .chat-item:focus-within { --chat-actions-seen: visible; }
   .chat-item.cc-own {
     --chat-dir: row-reverse; --chat-align: flex-end;
-    --chat-bg: var(--accent); --chat-ink: var(--accent-ink); --chat-edge: transparent;
+    --chat-bg: var(--chat-own-bg, var(--accent)); --chat-ink: var(--chat-own-ink, var(--accent-ink)); --chat-edge: transparent;
     --chat-tail-start: var(--chat-radius); --chat-tail-end: var(--chat-tail);
     --chat-avatar: none; --chat-meta-order: 1;
   }
-  /* A run from one speaker: a cell apart, whatever the stack's gap, never less. */
-  .chat-item.cc-cont { --chat-avatar-seen: hidden; --chat-meta: none; margin-block-start: min(0px, calc(var(--sp-1) - var(--stack-gap, var(--sp-1)))); }
-  .chat-item.cc-own.cc-cont { --chat-meta: flex; }
-  .chat-item.cc-own:has(+ .chat-item.cc-own.cc-cont) { --chat-meta: none; }
+  /* A run from one speaker: --chat-run-gap apart, whatever the stack's gap, never less. */
+  .chat-item.cc-cont { --chat-avatar-seen: hidden; --chat-meta: none; margin-block-start: min(0px, calc(var(--chat-run-gap) - var(--stack-gap, var(--sp-1)))); }
+  .chat-item.cc-own.cc-cont:not(.cc-flat, .chat-thread.cc-flat > *) { --chat-meta: flex; }
+  .chat-item.cc-own:not(.cc-flat, .chat-thread.cc-flat > *):has(+ .chat-item.cc-own.cc-cont) { --chat-meta: none; }
   .chat-item.cc-wall { --chat-bg: transparent; --chat-edge: transparent; --chat-pad: 0px; --chat-measure: 100%; }
   .chat-item.cc-system { --chat-bg: transparent; --chat-edge: transparent; --chat-pad: 0px; --chat-measure: 100%; color: var(--text-tertiary); }
   .chat-item.cc-system .chat-item-body { align-items: center; }
   .cc-dense .chat-item { --chat-pad: var(--sp-h); --chat-radius: var(--r-1); }
+
+  /* Chat thread: the column a conversation sits in. Messages, dividers and the
+     typing line, a stack apart (two cells: a run is closer, --chat-run-gap).
+     Nothing in it shrinks, so a scroller never clips its first divider.
+     --chat-inset is where a message's text starts, past the avatar's column:
+     the typing line starts there. Markup: .chat-thread > .chat-divider,
+     .chat-item…, .chat-typing. */
+  .chat-thread {
+    --stack-gap: var(--sp-2);
+    --chat-inset: calc(var(--u) * 2 + var(--sp-1));
+    display: flex; flex-direction: column; gap: var(--stack-gap);
+    min-width: 0;
+  }
+  .chat-thread > * { flex-shrink: 0; }
+  /* Flat rows (.chat-thread.cc-flat, or .cc-flat on an item): everyone at the
+     start, no bubble, the text at full measure. Your own message changes only
+     its name. A group's head shows a three-cell avatar, the name in the strong
+     weight and the time on one baseline; the rest of the run keeps the
+     avatar's column for its own time, which shows on hover. The row is filled
+     on hover, stepped out like a list row, so actions have a place. */
+  .chat-thread.cc-flat { --chat-inset: calc(var(--u) * 3 + var(--sp-1)); }
+  :is(.chat-thread.cc-flat > .chat-item, .chat-item.cc-flat) {
+    --chat-dir: row; --chat-align: stretch; --chat-items: baseline;
+    --chat-bg: transparent; --chat-ink: currentColor; --chat-edge: transparent;
+    --chat-pad: 0px; --chat-measure: 100%;
+    --chat-avatar: inline-grid; --chat-meta-order: 0;
+    --chat-avatar-n: 3;
+    --chat-name-ink: var(--text); --chat-name-weight: var(--fw-strong);
+  }
+  :is(.chat-thread.cc-flat > .chat-item, .chat-item.cc-flat) > .avatar { --av-n: var(--chat-avatar-n); --av-gap: 0px; --av-ring: 0px; }
+  :is(.chat-thread.cc-flat > .chat-item, .chat-item.cc-flat).cc-cont:has(> .chat-item-time) { --chat-avatar: none; --chat-time: block; }
+  @media (hover: hover) { :is(.chat-thread.cc-flat > .chat-item, .chat-item.cc-flat):hover { --chat-row: var(--state-hover); --chat-time-seen: visible; } }
+  :is(.chat-thread.cc-flat > .chat-item, .chat-item.cc-flat):focus-within { --chat-row: var(--state-hover); --chat-time-seen: visible; }
+  .chat-item.cc-system:is(.cc-flat, .chat-thread.cc-flat > *) { --chat-row: 0%; }
+  /* Removed: its words in the faint ink and italic, no actions. A bubble keeps
+     its place as a dashed edge. */
+  .chat-item.cc-removed { --chat-actions: none; }
+  .chat-item.cc-removed .chat-item-bubble { --chat-ink: var(--text-tertiary); --chat-style: italic; }
+  .chat-item.cc-removed:not(.cc-flat, .chat-thread.cc-flat > *) .chat-item-bubble { --chat-bg: transparent; --chat-edge: var(--border); --chat-edge-style: dashed; }
+  /* "(edited)" after a message's words: a mark in running text, smaller and faint. */
+  .chat-edited { color: var(--text-tertiary); font-size: var(--fs-control-xs); line-height: 0; white-space: nowrap; }
+
+  /* A day, and the unread line (.cc-new): a rule each side of the words, on
+     their capitals' middle. Markup: div.chat-divider > span.t-xs. */
+  .chat-divider {
+    --chat-divider-rule: var(--border-subtle);
+    display: flex; align-items: center; gap: var(--sp-1);
+    color: var(--text-tertiary);
+  }
+  .chat-divider::before, .chat-divider::after { content: ""; flex: 1 1 0; height: var(--line); background: var(--chat-divider-rule); }
+  .chat-divider.cc-new { --chat-divider-rule: color-mix(in oklab, var(--accent) 50%, transparent); color: var(--accent); }
+  /* Someone is typing: three dots and the words, from the text's column. The
+     dots wait, still, where motion is reduced. Markup: .chat-typing >
+     span.chat-typing-dots > i×3, then span.t-xs. */
+  .chat-typing { display: flex; align-items: center; gap: var(--sp-h); padding-inline-start: var(--chat-inset, 0px); color: var(--text-tertiary); }
+  .chat-typing-dots { display: inline-flex; gap: var(--sp-q); flex: none; }
+  .chat-typing-dots > * { width: var(--sp-q); height: var(--sp-q); border-radius: 50%; background: currentColor; opacity: .3; animation: trellis-typing var(--dur-skeleton) var(--ease-out) infinite; }
+  .chat-typing-dots > :nth-child(2) { animation-delay: var(--dur-in); }
+  .chat-typing-dots > :nth-child(3) { animation-delay: calc(var(--dur-in) * 2); }
+  @keyframes trellis-typing { 0%, 80%, 100% { opacity: .3; } 40% { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .chat-typing-dots > * { animation: none; opacity: .6; } }
+
+  /* What a message can carry. Each is drawn the same in a bubble and a flat
+     row. Inside, a half-cell rhythm; each block rounds up to whole cells. */
+  /* The message this one replies to: who wrote it, and two lines of it, after
+     a two-line rule. Clickable: a link or a button to the original. Markup:
+     a.chat-quote > span.chat-quote-author.t-xs + span.chat-quote-text.t-xs. */
+  .chat-quote {
+    --chat-quote-rule: var(--border-strong);
+    display: flex; flex-direction: column; gap: var(--sp-h);
+    max-width: 100%;
+    padding-inline-start: calc(var(--sp-1) - var(--line) * 2);
+    border-inline-start: calc(var(--line) * 2) solid var(--chat-quote-rule);
+    color: var(--text-secondary); text-decoration: none; text-align: start;
+  }
+  :is(a, button).chat-quote { cursor: pointer; }
+  @media (hover: hover) { :is(a, button).chat-quote:hover { --chat-quote-rule: var(--text-tertiary); color: var(--text); } }
+  .chat-quote-author { color: var(--text); font-weight: var(--fw-label); }
+  /* Two lines, and the third hidden. The box is held open by its letters'
+     reach (padding given back as margin), so the clip never cuts a descender. */
+  .chat-quote-text { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; padding-block: .3em; margin-block: -.3em; }
+  /* A file: a mark tinted by its kind (--chat-file-tint), its name, its size
+     and type. Four cells tall; the same shape as an attachment chip. Markup:
+     a.chat-file > span.chat-file-mark > svg.icon, then .pair > .t-sm.u-truncate
+     + .t-xs. */
+  .chat-file {
+    --chat-file-tint: var(--accent);
+    display: flex; align-items: center; gap: var(--sp-1);
+    width: fit-content; max-width: min(100%, calc(var(--u) * 26));
+    padding: var(--sp-h) var(--sp-1h) var(--sp-h) var(--sp-h);
+    border-radius: var(--r-1);
+    background: var(--bg-raised);
+    box-shadow: inset 0 0 0 var(--line) var(--border-subtle);
+    color: inherit; text-decoration: none;
+  }
+  .chat-file > .pair { flex: 1 1 auto; }
+  .chat-file .pair > :last-child { color: var(--text-tertiary); }
+  .chat-file-mark {
+    display: inline-grid; place-items: center; flex: none;
+    width: var(--size-control-lg); height: var(--size-control-lg);
+    border-radius: var(--r-h);
+    background: color-mix(in oklab, var(--chat-file-tint) 18%, transparent);
+    color: var(--chat-file-tint);
+  }
+  /* A link's preview: its site, its title, an optional image, after a rule in
+     the accent. Markup: a.chat-link > span.chat-link-site.t-xs +
+     span.chat-link-title.t-sm + img.chat-link-media. */
+  .chat-link {
+    --chat-link-rule: var(--accent);
+    display: flex; flex-direction: column; gap: var(--sp-h);
+    max-width: min(100%, calc(var(--u) * 32));
+    padding-inline-start: calc(var(--sp-1) - var(--line) * 2);
+    border-inline-start: calc(var(--line) * 2) solid var(--chat-link-rule);
+    color: inherit; text-decoration: none;
+  }
+  .chat-link-site { color: var(--text-tertiary); }
+  @media (hover: hover) { a.chat-link:hover .chat-link-title { text-decoration: underline; text-underline-offset: .2em; } }
+  .chat-link-media { display: block; width: 100%; height: calc(var(--u) * 16); margin-block-start: var(--sp-h); object-fit: cover; border-radius: var(--r-1); background: var(--bg-sunken); }
+  /* Reactions: chips under the message, an emoji and a count. Yours
+     (.cc-mine, or aria-pressed="true" on a toggle) in an accent tint and edge.
+     The emoji is drawn in a color emoji face at the large control size, so it
+     reads at the size of the count beside it. Markup: .chat-reactions >
+     button.chat-reaction > span.chat-reaction-emoji + span. */
+  .chat-reactions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-h) var(--sp-q); }
+  .chat-reaction {
+    --reaction-bg: var(--surface);
+    --reaction-edge: var(--border-subtle);
+    --reaction-ink: var(--text-secondary);
+    display: inline-flex; align-items: center; gap: var(--sp-q);
+    height: var(--size-control-sm);
+    padding-inline: calc(var(--sp-h) - var(--line));
+    border: var(--line) solid var(--reaction-edge);
+    border-radius: var(--r-round);
+    background: color-mix(in oklab, var(--reaction-ink) var(--state-act), var(--reaction-bg));
+    color: var(--reaction-ink);
+    font-size: var(--fs-control-sm); font-weight: var(--fw-label); font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  button.chat-reaction { cursor: pointer; }
+  .chat-reaction:is(.cc-mine, [aria-pressed="true"]) { --reaction-bg: color-mix(in oklab, var(--accent) 16%, var(--surface)); --reaction-edge: color-mix(in oklab, var(--accent) 60%, transparent); --reaction-ink: var(--text); }
+  .chat-reaction-emoji { font-family: var(--font-emoji); font-size: var(--fs-control-lg); font-weight: 400; line-height: 1; }
 
   /* Member tile: a card with a person in it. A column by default; .cc-row puts
      the avatar beside the words. Markup: .card.member-tile > .avatar +
@@ -2251,6 +2541,7 @@
   .dot.cc-ok { --dot-color: var(--ok); }
   .dot.cc-warn { --dot-color: var(--warn); }
   .dot.cc-quiet { --dot-color: var(--text-faint); }
+  .dot.cc-accent { --dot-color: var(--accent); }
 
   /* Skeleton: a surface's real structure, shimmering, while its data is on its
      way. A text slot keeps its role, so its block settles to the same cells and
@@ -2448,9 +2739,9 @@
      A control of your own takes the same layer with .u-state: set
      --state-fill and --state-ink on it, and every state follows. */
   @media (hover: hover) {
-    :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .outline-link, .list-item:is(a, button), .options-card-item, .u-state, .switch, .prose summary):hover { --state-act: var(--state-hover); }
+    :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .outline-link, .list-item:is(a, button), .options-card-item, .u-state, .switch, .prose summary, button.chat-reaction):hover { --state-act: var(--state-hover); }
   }
-  :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .outline-link, .list-item:is(a, button), .options-card-item, .u-state, .switch, .prose summary):active { --state-act: var(--state-press); }
+  :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .outline-link, .list-item:is(a, button), .options-card-item, .u-state, .switch, .prose summary, button.chat-reaction):active { --state-act: var(--state-press); }
   :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .outline-link, .list-item:is(a, button), .options-card-item, .u-state):is([aria-pressed="true"], [aria-checked="true"], [aria-current]:not([aria-current="false"]), [aria-selected="true"]) { --state-on: var(--state-selected); }
   /* A row that holds a switch shows its state on the switch alone. */
   .options-card-item:has(> .switch):is([aria-pressed="true"], [aria-checked="true"], [aria-current]:not([aria-current="false"]), [aria-selected="true"]) { --state-on: 0%; }
@@ -2482,7 +2773,7 @@
      Without calc-size, settle.js gives clusters and .settle blocks the missing
      space as end margin: important, because their own padding is theirs. */
   @supports not (height: calc-size(fit-content, size)) {
-    .cluster, .settle, .field, :where(.prose :is(pre, table, figure, details, dl, video, audio), .prose > :not(h1, h2, h3, h4, h5, h6, p, ul, ol, hr, blockquote, iframe, div:not([class]))) { margin-block-end: var(--settle, 0px) !important; }
+    .cluster, .settle, .field, .pair, .chat-item-meta, .chat-quote, .chat-link, .chat-reactions, :where(.prose :is(pre, table, figure, details, dl, video, audio), .prose > :not(h1, h2, h3, h4, h5, h6, p, ul, ol, hr, blockquote, iframe, div:not([class]))) { margin-block-end: var(--settle, 0px) !important; }
     /* A cluster at a surface's end takes it above its row, inside its box (D92). */
     :is(.card, .modal-body, .member-tile) > .cluster:last-child { margin-block-end: 0 !important; padding-block-start: var(--settle, 0px) !important; }
   }
@@ -2502,7 +2793,7 @@
 @layer trellis.utilities {
   @media (forced-colors: active) {
     :is(.shell-link, .outline-link, .list-item, .tab, .options-card-item):is([aria-current]:not([aria-current="false"]), [aria-selected="true"]),
-    .list-item:has(> .list-link:is([aria-current]:not([aria-current="false"]), [aria-selected="true"])) {
+    .list-item:has(.list-link:is([aria-current]:not([aria-current="false"]), [aria-selected="true"])) {
       outline: calc(var(--line) * 2) solid Highlight; outline-offset: calc(var(--line) * -2);
     }
     .tab[aria-selected="true"]::after { forced-color-adjust: none; background: Highlight; }

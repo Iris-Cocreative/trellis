@@ -111,5 +111,10 @@
     --tag-r-ratio: .5;                                   /* a share of the height (.5 is a pill) */
     --tag-case: none;                                    /* a tag's case */
     --tag-tracking: 0;                                   /* a tag's letter spacing */
+
+    /* ---- Conversation ---------------------------------------------------- */
+    --chat-own-bg: var(--accent);                        /* your own bubble's fill: a tint such as color-mix(in oklab, var(--accent) 22%, var(--surface)) */
+    --chat-own-ink: var(--accent-ink);                   /* its words; set to var(--text) with a tint */
+    --chat-bubble-edge: var(--border-subtle);            /* a bubble's outline; transparent for a fill alone */
   }
 }

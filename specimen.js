@@ -185,6 +185,16 @@
     var s = e.target.closest('[data-demo-switch]');
     if (s && s.getAttribute('aria-disabled') !== 'true') s.setAttribute('aria-checked', String(s.getAttribute('aria-checked') !== 'true'));
   });
+  // Reactions toggle; the composer sends on Enter (Shift+Enter is a new line) and empties.
+  document.addEventListener('click', function (e) {
+    var r = e.target.closest('button.chat-reaction');
+    if (r) r.setAttribute('aria-pressed', String(r.getAttribute('aria-pressed') !== 'true'));
+  });
+  document.querySelectorAll('[data-demo-composer]').forEach(function (form) {
+    var input = form.querySelector('.composer-input');
+    form.addEventListener('submit', function (e) { e.preventDefault(); input.value = ''; if (window.Trellis && Trellis.composer) Trellis.composer(input); });
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); form.requestSubmit(); } });
+  });
   // Filter tags toggle
   var filters = document.getElementById('filter-tags');
   if (filters) filters.addEventListener('click', function (e) {
