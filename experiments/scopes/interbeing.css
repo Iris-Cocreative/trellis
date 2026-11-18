@@ -1,0 +1,45 @@
+/* ==========================================================================
+   Interbeing, as products in a product · for the scopes study
+   The ecosystem sets what everyone shares; each community is a scope that
+   sets only what makes it itself. Seeds from Interbeing's own colors, in
+   OKLCH (app/globals.css, 2026-11-17).
+   ========================================================================== */
+@layer trellis.product {
+  /* The ecosystem: linen paper, forest ink, a forest accent; Halant over Geist; a calm ratio. */
+  :root[data-product="interbeing"] {
+    --font-sans: "Geist", system-ui, sans-serif;
+    --font-heading: "Halant", Georgia, serif;
+    --fw-heading: 400;
+    --seed-accent: oklch(.333 .063 134.2);
+    --seed-ground: oklch(.55 .011 76.6);
+    --seed-ink: oklch(.55 .06 134.5);
+    --rh-min: 1.2; --rh-max: 1.333;
+    --shape-card: var(--r-2);
+  }
+
+  /* Practice House: warm paper, blue-graphite ink, the dusk blue from the Vienna rooftop skies; Cormorant headings. */
+  [data-product="practice-house"] {
+    --seed-accent: oklch(.491 .061 256.5);
+    --seed-ground: oklch(.55 .006 84.6);
+    --seed-ink: oklch(.55 .024 258.4);
+    --font-heading: "Cormorant Garamond", Garamond, Georgia, serif;
+    --heading-tracking: .02em;
+    --shape-card: var(--r-q);
+  }
+
+  /* Interbeing Monastery: evolve's night teal and bone, evening gold. Night by nature (data-theme="dark" on the scope). */
+  [data-product="monastery"] {
+    --seed-accent: oklch(.634 .112 82.1);
+    --seed-ground: oklch(.55 .028 231.5);
+    --seed-ink: oklch(.55 .013 82.4);
+    --font-heading: "Alegreya Sans", system-ui, sans-serif;
+    --rh-max: 1.414;
+  }
+
+  /* The Chapel: shared by every community, moonlit; it carries the ecosystem's type and only changes its light. */
+  [data-product="chapel"] {
+    --seed-accent: oklch(.62 .035 120);
+    --seed-ground: oklch(.55 .017 152.4);
+    --seed-ink: oklch(.55 .02 120);
+  }
+}

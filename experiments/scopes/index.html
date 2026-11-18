@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en" data-product="interbeing">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trellis Scopes Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500&family=Cormorant+Garamond:wght@400;500&family=Geist:wght@400;500;600&family=Halant:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../core.css">
+<link rel="stylesheet" href="scopes.css">
+<link rel="stylesheet" href="interbeing.css">
+<style>
+  /* The study's own parts, by the five rules */
+  .study-arch { --card-pad: var(--sp-3); border-start-start-radius: calc(var(--u) * 16); border-start-end-radius: calc(var(--u) * 16); min-height: calc(var(--u) * 36); display: flex; flex-direction: column; justify-content: end; }
+  .study-chapel { --card-pad: var(--sp-4); text-align: center; }
+  .study-moon { inline-size: calc(var(--u) * 12); block-size: calc(var(--u) * 12); border-radius: var(--r-round); margin-inline: auto; background: radial-gradient(circle, var(--accent), color-mix(in oklch, var(--accent) 0%, transparent) 70%); }
+  .study-center { justify-content: center; }
+  .study-code { font-family: ui-monospace, monospace; font-size: var(--fs-control-sm); white-space: pre; overflow-x: auto; }
+</style>
+</head>
+<body>
+<main class="frame">
+  <div class="stack" style="--stack-gap: var(--sp-6)">
+
+    <header class="stack" style="--stack-gap: var(--sp-2)">
+      <div class="cluster" style="--cluster-gap: var(--sp-1)">
+        <span class="t-eyebrow u-text-secondary">A Trellis study · scopes</span>
+        <div class="tabs cc-seg" role="tablist" aria-label="Theme">
+          <button class="tab" role="tab" aria-selected="true" data-set-theme="">System</button>
+          <button class="tab" role="tab" aria-selected="false" data-set-theme="light">Light</button>
+          <button class="tab" role="tab" aria-selected="false" data-set-theme="dark">Dark</button>
+        </div>
+      </div>
+      <h1 class="t-h1">Interbeing Ecosystem</h1>
+      <p class="t-lg u-text-secondary">Different approaches, one common ground. Everything on this page is Trellis primitives. Each community below is a <b>scope</b>: <code>data-product</code> on an element, setting only what makes that community itself.</p>
+      <div class="cluster">
+        <button class="button cc-primary">Join the Ecosystem</button>
+        <button class="button cc-ghost">Schedule</button>
+        <span class="tag">Open to all</span>
+      </div>
+    </header>
+
+    <section class="cols" style="--cols: 2">
+      <article class="card study-arch" data-product="practice-house">
+        <div class="stack">
+          <span class="t-eyebrow u-text-secondary">Taiji &amp; Qigong</span>
+          <h2 class="t-h2">Practice House</h2>
+          <p class="t-body u-text-secondary">Daily guided practice from Vienna, live-streamed and free. Recordings and courses for the monthly donors.</p>
+          <div class="cluster">
+            <button class="button cc-primary">Step inside</button>
+            <span class="tag cc-outline">Registered practitioners</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card study-arch" data-product="monastery" data-theme="dark">
+        <div class="stack">
+          <span class="t-eyebrow u-text-secondary">from evolve</span>
+          <h2 class="t-h2">Interbeing Monastery</h2>
+          <p class="t-body u-text-secondary">Meditation in the shared Chapel, dialogue practice in the Sanctuary. Become a practitioner.</p>
+          <div class="cluster">
+            <button class="button cc-primary">Step inside</button>
+            <span class="tag cc-outline">Community members</span>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="stack">
+      <h2 class="t-h3">Coming up</h2>
+      <div class="cols" style="--cols: 3">
+        <div class="card" data-product="practice-house">
+          <div class="stack" style="--stack-gap: var(--sp-h)">
+            <span class="cluster"><span class="dot" style="--dot-color: var(--accent)"></span><span class="t-label">Tue · 08:30</span></span>
+            <h3 class="t-h4">Morning Taiji</h3>
+          </div>
+        </div>
+        <div class="card" data-product="monastery" data-theme="dark">
+          <div class="stack" style="--stack-gap: var(--sp-h)">
+            <span class="cluster"><span class="dot" style="--dot-color: var(--accent)"></span><span class="t-label">Tue · 19:00</span></span>
+            <h3 class="t-h4">Sitting together</h3>
+          </div>
+        </div>
+        <div class="card">
+          <div class="stack" style="--stack-gap: var(--sp-h)">
+            <span class="cluster"><span class="dot" style="--dot-color: var(--accent)"></span><span class="t-label">Sun · 10:00</span></span>
+            <h3 class="t-h4">Common Ground circle</h3>
+          </div>
+        </div>
+      </div>
+      <p class="t-sm u-text-secondary">Same markup three times. The ecosystem card carries the page; the other two are scopes, so the dot, the ground and the heading font follow by themselves.</p>
+    </section>
+
+    <section class="card study-chapel" data-product="chapel" data-theme="dark">
+      <div class="stack">
+        <div class="study-moon" aria-hidden="true"></div>
+        <h2 class="t-h2">Meditation Chapel</h2>
+        <p class="t-body u-text-secondary">Shared by every community. A mood, not a community: night on a day page, carrying the ecosystem's type.</p>
+        <div class="cluster study-center"><button class="button cc-primary">Sit</button><span class="tag">3 sitting together</span></div>
+      </div>
+    </section>
+
+    <section class="stack">
+      <h2 class="t-h3">What each scope sets</h2>
+      <div class="card"><div class="study-code">:root[data-product="interbeing"]  fonts, ratio, card shape, accent, ground, ink
+[data-product="practice-house"]  accent, ground, ink, heading font, tracking, card shape
+[data-product="monastery"]       accent, ground, ink, heading font, wide ratio  (+ data-theme="dark")
+[data-product="chapel"]          accent, ground, ink                            (+ data-theme="dark")
+
+Everything else (the cell, spacing, controls, rhythm) carries from the ecosystem.
+Every role (grounds, text, edges, the accent's ink, kinds, statuses) follows from the scope's own seeds.</div></div>
+    </section>
+
+  </div>
+</main>
+<script src="../../settle.js"></script>
+<script>
+  for (const b of document.querySelectorAll('[data-set-theme]')) b.addEventListener('click', () => {
+    const t = b.dataset.setTheme;
+    if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme;
+    for (const o of document.querySelectorAll('[data-set-theme]')) o.setAttribute('aria-selected', String(o === b));
+  });
+</script>
+</body>
+</html>
