@@ -36,6 +36,8 @@
     --heading-tracking: -.01em;                          /* h1 to h6's letter spacing */
     --label-tracking: .08em;                             /* .t-label's and .t-eyebrow's letter spacing */
     --label-case: uppercase;                             /* .t-label's and .t-eyebrow's case */
+    --eyebrow-tracking: var(--label-tracking);           /* .t-eyebrow's letter spacing. Follows the label's */
+    --eyebrow-case: var(--label-case);                   /* .t-eyebrow's case. Follows the label's */
 
     /* ---- The ratio: seven values, in rem. The five under them follow ------ */
     --c-min: 20;                                         /* the narrow space: 320pt */
@@ -111,6 +113,10 @@
     --tag-r-ratio: .5;                                   /* a share of the height (.5 is a pill) */
     --tag-case: none;                                    /* a tag's case */
     --tag-tracking: 0;                                   /* a tag's letter spacing */
+    --font-button: var(--font-sans);                     /* a button's family. Follows the sans */
+    --fw-button: var(--fw-label);                        /* a button's weight. Follows the control weight */
+    --button-case: none;                                 /* a button's case */
+    --button-tracking: 0;                                /* a button's letter spacing; its label stays centered */
 
     /* ---- Conversation ---------------------------------------------------- */
     --chat-own-bg: var(--accent);                        /* your own bubble's fill: a tint such as color-mix(in oklab, var(--accent) 22%, var(--surface)) */

@@ -45,6 +45,24 @@ if (!args.length) { console.error('usage: node tools/check.js <file or folder> .
 const KINDS = ['raw-lengths', 'raw-type', 'raw-colors', 'raw-radii', 'restyled', 'restyled-own', 'bare-modifiers', 'product-layer', 'inline-styles'];
 const strip = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
 const classesIn = (text) => new Set((text.match(/\.[a-zA-Z_][\w-]*/g) || []).map((c) => c.slice(1)));
+// A selector's parts, split only where the comma or the combinator is outside
+// any parentheses: :not(.a, .b) and :where(h1 p) stay whole.
+const splitTop = (sel, at) => {
+  const out = []; let depth = 0, cur = '';
+  for (const ch of sel) {
+    if (ch === '(') depth++; else if (ch === ')') depth--;
+    if (depth === 0 && at.test(ch)) { if (cur.trim()) out.push(cur); cur = ''; } else cur += ch;
+  }
+  if (cur.trim()) out.push(cur);
+  return out;
+};
+const listOf = (sel) => splitTop(sel, /,/);
+const compoundsOf = (part) => splitTop(part.trim(), /[\s>+~]/);
+// A compound without its pseudo-classes and pseudo-elements, however deeply they nest.
+const bareOf = (c) => { let out = '', depth = 0; for (let i = 0; i < c.length; i++) { const ch = c[i];
+  if (depth === 0 && ch === ':') { while (c[i + 1] === ':' || /[\w-]/.test(c[i + 1] || '')) i++; if (c[i + 1] === '(') { depth = 1; i++; } continue; }
+  if (depth > 0) { if (ch === '(') depth++; else if (ch === ')') depth--; continue; }
+  out += ch; } return out; };
 
 const core = strip(fs.readFileSync(corePath, 'utf8'));
 const coreClasses = classesIn(core.replace(/url\([^)]*\)|"[^"]*"|'[^']*'/g, ''));
@@ -53,8 +71,8 @@ const coreClasses = classesIn(core.replace(/url\([^)]*\)|"[^"]*"|'[^']*'/g, ''))
    every other cc-* needs a base. */
 const contextual = new Set();
 core.replace(/([^{}]*)\{/g, (_, sel) => {
-  for (const part of sel.split(',')) {
-    const compounds = part.trim().split(/[\s>+~]+/).map((c) => c.replace(/::?[\w-]+(\([^)]*\))?/g, ''));
+  for (const part of listOf(sel)) {
+    const compounds = compoundsOf(part).map(bareOf);
     for (const c of compounds) { const cls = [...classesIn(c)]; if (cls.length && cls.every((k) => k.startsWith('cc-'))) cls.forEach((k) => contextual.add(k)); }
   }
   return '';
@@ -71,7 +89,7 @@ const related = (a, b) => a === b || a.startsWith(b + '-') || b.startsWith(a + '
 declarations(core, (prop, value, stack) => {
   if (prop.startsWith('--')) return;
   const rule = stack[stack.length - 1] || '';
-  for (const part of rule.split(',')) {
+  for (const part of listOf(rule)) {
     const m = part.trim().match(/^\.([a-zA-Z][\w-]*)$/);
     if (m && isBase(m[1])) { if (!draws.has(m[1])) draws.set(m[1], new Set()); draws.get(m[1]).add(family(prop)); }
   }
@@ -163,8 +181,8 @@ function checkCss(file, text) {
     // whether the selector names the primitive or a class of the app's own
     // that sits on the primitive's element
     if (!prop.startsWith('--') && rule && !rule.startsWith('@')) {
-      for (const part of rule.split(',')) {
-        const subject = part.trim().split(/[\s>+~]+/).pop().replace(/::?[\w-]+(\([^)]*\))?/g, '');
+      for (const part of listOf(rule)) {
+        const subject = bareOf(compoundsOf(part).pop() || '');
         const cls = [...classesIn(subject)];
         if (cls.length && cls.every((c) => coreClasses.has(c))) { hit('restyled', file, line, `${part.trim()} { ${where} }`); break; }
         // its place is the app's, and so is hiding it; a pseudo-element is a box of the app's own

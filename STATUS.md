@@ -72,6 +72,9 @@ Everything here lands before the first app pins a version.
 | Night with its own ground | done | | D97: `--seed-night` and `--night-lift`; `tests/math.js` 1,244 checks in Chromium and WebKit. From Interbeing (Common Ground at night, the Practice House's dusk bar). |
 | A paper that is not white; a night accent | done | | D98: `--day-depth`, `--seed-accent-night`; `tests/math.js` 1,268 checks in Chromium and WebKit. From Interbeing. |
 | The conversation pieces | done | | D99: `.composer`, `.chat-thread.cc-flat`, the parts a message carries, `.avatar.cc-space`/`.cc-plain`, `.pair`, `.list-item.cc-unread`. From the Collab OS messaging brief. Contract ok (80 knobs); Chromium 16/16; WebKit 15/16, only the `perf.js` timing missed, 0 of 5,000 blocks off, and the last commit is as slow on this machine. |
+| A button's face | done | | D100: `--font-button`, `--fw-button`, `--button-case`, `--button-tracking`; a spaced label stays centered; `tests/layout.js` in both engines. From Interbeing (the Practice House buttons). |
+| A link may be the current one | done | | D101: `.tab` and `.tag` take `aria-current` as selected; `tests/layout.js` in both engines. From Interbeing's schedule. |
+| An eyebrow's own case | done | | D102: `--eyebrow-case`, `--eyebrow-tracking`, following the label's. From Interbeing. |
 | A product's own seeds | idea | | A product names a seed of its own (Interbeing's gold) and gets light and dark forms and a contrast check, as the kinds do. From the scopes study. |
 | Smaller gaps from the first app | idea | | The tooltip's side padding, a button's side padding, an option's ground as a variable, a row that must not wrap: each waits for a second app to ask. Not built, by design. |
 | Type by the ratio alone | decided | | Not in core for now: the playground keeps it in the specimen's own CSS, until a long document asks for it. |

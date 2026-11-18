@@ -450,6 +450,69 @@ const ready = require('./ready');
     host.remove();
     return fails;
   }));
+  // A button's face (D100): a scope sets its family, weight, case and letter
+  // spacing, and the spaced label stays centered (the spacing after its last
+  // letter is given back before its first, as an indent). Padding stays even, and
+  // a bare 0 is a spacing too.
+  fails.push(...await page.evaluate(async () => {
+    const fails = [], host = document.createElement('div');
+    host.style.cssText = 'position:absolute;top:0;left:0;--font-button:Georgia,serif;--fw-button:700;--button-case:uppercase;--button-tracking:.18em';
+    host.innerHTML = '<button class="button" type="button"><span class="button-label">Sign up</span></button><button class="button" type="button" style="--button-tracking:0"><span class="button-label">Plain</span></button>';
+    document.body.appendChild(host);
+    await Trellis.settled();
+    const [b, plain] = host.querySelectorAll('.button'), cs = getComputedStyle(b), fs = parseFloat(cs.fontSize);
+    if (cs.textTransform !== 'uppercase') fails.push('--button-case does not reach the button: ' + cs.textTransform);
+    if (!/Georgia/.test(cs.fontFamily)) fails.push('--font-button does not reach the button: ' + cs.fontFamily);
+    if (cs.fontWeight !== '700') fails.push('--fw-button does not reach the button: ' + cs.fontWeight);
+    if (Math.abs(parseFloat(cs.letterSpacing) - fs * .18) > .1) fails.push('--button-tracking does not reach the button: ' + cs.letterSpacing);
+    // The label's box holds the indent before its first letter and the spacing after its last.
+    const r = b.getBoundingClientRect(), l = b.querySelector('.button-label').getBoundingClientRect();
+    const glyphs = l.left + l.width / 2, box = r.left + r.width / 2;
+    if (Math.abs(glyphs - box) > .75) fails.push(`a spaced button label is off center by ${(glyphs - box).toFixed(2)}px`);
+    for (const x of [b, plain]) { const c = getComputedStyle(x); if (c.paddingInlineStart !== c.paddingInlineEnd || parseFloat(c.paddingInlineStart) < 1) fails.push(`a button's padding is ${c.paddingInlineStart} and ${c.paddingInlineEnd}`); }
+    if (parseFloat(getComputedStyle(plain).textIndent) !== 0) fails.push('a button with no letter spacing is indented');
+    host.remove();
+    return fails;
+  }));
+  // A heading in a row carries no space after it: between two buttons it
+  // centers on them.
+  fails.push(...await page.evaluate(async () => {
+    const fails = [], host = document.createElement('div');
+    host.innerHTML = '<div class="cluster"><button class="button icon-button" type="button" aria-label="a">←</button><h2 class="t-h4">November 2026</h2><button class="button icon-button" type="button" aria-label="b">→</button></div>';
+    document.body.appendChild(host);
+    await Trellis.settled();
+    const h = host.querySelector('h2'), b = host.querySelector('button'), mid = e => { const r = e.getBoundingClientRect(); return (r.top + r.bottom) / 2; };
+    if (parseFloat(getComputedStyle(h).marginBlockEnd) !== 0) fails.push('a heading in a row keeps its space after');
+    if (Math.abs(mid(h) - mid(b)) > 1) fails.push(`a heading in a row is ${(mid(b) - mid(h)).toFixed(1)}px off its buttons' center`);
+    host.remove();
+    return fails;
+  }));
+  // An eyebrow's own case (D102): it follows the label's unless set.
+  fails.push(...await page.evaluate(async () => {
+    const fails = [], host = document.createElement('div');
+    host.innerHTML = '<div style="--label-case:none;--eyebrow-case:uppercase;--eyebrow-tracking:.14em"><p class="t-label">a</p><p class="t-eyebrow">b</p></div><div style="--label-case:lowercase"><p class="t-eyebrow">c</p></div>';
+    document.body.appendChild(host);
+    const [l, e, f] = host.querySelectorAll('p'), cs = x => getComputedStyle(x);
+    if (cs(l).textTransform !== 'none' || cs(e).textTransform !== 'uppercase') fails.push(`--eyebrow-case: label ${cs(l).textTransform}, eyebrow ${cs(e).textTransform}`);
+    if (Math.abs(parseFloat(cs(e).letterSpacing) - parseFloat(cs(e).fontSize) * .14) > .1) fails.push('--eyebrow-tracking does not reach the eyebrow');
+    if (cs(f).textTransform !== 'lowercase') fails.push('an eyebrow with no case of its own does not follow the label\'s');
+    host.remove();
+    return fails;
+  }));
+  // A link may be the current one (D101): a tab or a tag that is a link, with
+  // aria-current, draws as selected; aria-current="false" does not.
+  fails.push(...await page.evaluate(async () => {
+    const fails = [], host = document.createElement('div');
+    host.innerHTML = '<nav class="tabs cc-seg"><a class="tab" href="#a" aria-current="page">Month</a><a class="tab" href="#b" aria-current="false">List</a></nav>' +
+      '<a class="tag" href="#c" aria-current="page">Mine</a><a class="tag" href="#d">Open</a>';
+    document.body.appendChild(host);
+    await Trellis.settled();
+    const [on, off] = host.querySelectorAll('.tab'), [t1, t2] = host.querySelectorAll('.tag');
+    if (getComputedStyle(on).backgroundColor === getComputedStyle(off).backgroundColor) fails.push('a current tab link draws like the others');
+    if (getComputedStyle(t1).backgroundColor === getComputedStyle(t2).backgroundColor) fails.push('a current tag link is not solid');
+    host.remove();
+    return fails;
+  }));
   // Floats as popovers: a closed one is gone, not laid out unseen where it
   // takes clicks; it opens and fades, and closes to nothing again.
   fails.push(...await page.evaluate(async () => {

@@ -389,6 +389,11 @@
     --tag-r-ratio: .5;           /* … a share of the height (.5 = pill) */
     --tag-case: none;
     --tag-tracking: 0;
+    /* A button's face (D100): its case and letter spacing. Its family and
+       weight, --font-button and --fw-button, are unset so they follow the sans
+       and the control weight (on every scope too, D96). */
+    --button-case: none;
+    --button-tracking: 0;
 
     /* The sheet's durations, renamed for the tray: aliases for one minor. */
     --dur-sheet-in: var(--dur-tray-in);
@@ -603,6 +608,9 @@
   :is(.stack, .member-tile-body, .modal-body, .cover-body, .list-body) > :where(.t-h1, .t-h2, .t-h3, .t-h4, .t-h5, .t-h6):not(:last-child) {
     margin-block-end: max(0px, calc(var(--t-own) - var(--stack-gap, var(--sp-1))));
   }
+  /* In a row the space after a heading has nothing to part: a title between two
+     buttons centers on them. */
+  :is(.cluster, .row) > :where(.t-h1, .t-h2, .t-h3, .t-h4, .t-h5, .t-h6) { margin-block-end: 0; }
   :where(.prose, .prose div:not([class])) > :where(.t-h1, .t-h2, .t-h3, .t-h4, .t-h5, .t-h6, h1, h2, h3, h4, h5, h6):not(:last-child) {
     --prose-after: max(0px, calc(var(--t-own) - var(--stack-gap, var(--sp-1))));
     margin-block-end: var(--prose-after);
@@ -614,6 +622,9 @@
   :is(.rail, .board, .tabs):focus-visible { outline-offset: calc(var(--line) * -2); }
   :where(.t-xl, .t-lg, .t-body, .t-sm, .t-xs, .prose :is(p, li, dt, dd, summary, blockquote, figcaption, caption), .prose blockquote > :is(footer, cite), .prose div:not([class], :has(> :is(p, div, ul, ol, dl, h1, h2, h3, h4, h5, h6, blockquote, pre, table, figure, hr, details, img, video, iframe)))) { text-wrap: pretty; }
   .t-label, .t-eyebrow, :where(.prose th) { font-weight: var(--fw-label-text); letter-spacing: var(--label-tracking); text-transform: var(--label-case); }
+  /* The eyebrow takes the label's case and spacing unless a product gives it its own (D102):
+     field labels in sentence case, a section's eyebrow in spaced capitals. */
+  .t-eyebrow { letter-spacing: var(--eyebrow-tracking, var(--label-tracking)); text-transform: var(--eyebrow-case, var(--label-case)); }
   /* Marks inside running text never stretch its line. */
   :where(.t-h1, .t-h2, .t-h3, .t-h4, .t-h5, .t-h6, .t-xl, .t-lg, .t-body, .t-sm, .t-xs, .t-label, .t-eyebrow, p, .prose :is(li, dt, dd, summary, blockquote, figcaption, caption, th, td, h1, h2, h3, h4, h5, h6, div)) :where(code, .t-mono, b, strong, em, i, a, sub, sup, kbd, mark, small, cite, abbr, q, s, del, ins, u, var, samp, dfn, time) { line-height: 0; }
   .t-serif { font-family: var(--font-serif); font-weight: var(--fw-serif, 400); }
@@ -1449,6 +1460,7 @@
     --btn-bg: transparent;
     --btn-ink: var(--text);
     --btn-border: var(--border-strong);
+    --btn-track: var(--btn-tracking, var(--button-tracking));
     /* Never shorter than its own type: past the cell's cap the label can
        outgrow the height, and then the button grows by whole cells. */
     --btn-draw: calc(var(--btn-h) + max(0px, round(up, calc(1em - var(--btn-h)), var(--u))));
@@ -1460,9 +1472,12 @@
     border-radius: var(--btn-radius);
     background: color-mix(in oklab, var(--btn-ink) calc(var(--state-on) + var(--state-act)), var(--btn-bg));
     color: var(--btn-ink); text-decoration: none;
+    font-family: var(--font-button, var(--font-sans));
     font-size: var(--btn-fs);
-    font-weight: var(--fw-label);
-    letter-spacing: var(--btn-tracking, 0);
+    font-weight: var(--fw-button, var(--fw-label));
+    letter-spacing: var(--btn-track);
+    text-indent: var(--btn-track);   /* letter spacing follows the last letter too: the label starts as far in, so it stays centered */
+    text-transform: var(--button-case);
     transition: background var(--dur-out) var(--ease-in), border-color var(--dur-out) var(--ease-in);
   }
   .button.cc-primary { --btn-bg: var(--accent); --btn-border: var(--accent); --btn-ink: var(--accent-ink); }
@@ -1640,14 +1655,14 @@
   .tag.cc-alert  { --tag-color: var(--alert); }
   /* emphasis */
   .tag.cc-outline { --tag-fill: 0%; }
-  .tag.cc-solid, .tag[aria-pressed="true"] {
+  .tag.cc-solid, .tag:is([aria-pressed="true"], [aria-current]:not([aria-current="false"])) {
     --tag-fill: 100%; --tag-edge: 100%;
     --tag-ink: light-dark(var(--white), color-mix(in oklab, var(--tag-color) 18%, var(--black)));
   }
   /* Ink on a solid fill is computed from the fill, as the accent's is: white
      below --ink-flip, a dark ink of the fill's hue above it (C4). */
   @supports (color: oklch(from red l c h)) {
-    .tag.cc-solid, .tag[aria-pressed="true"] { --tag-ink: oklch(from var(--tag-color) clamp(.16, (var(--ink-flip) - l) * 1000, 1) calc(clamp(0, (l - var(--ink-flip)) * 1000, 1) * c * .3) h); }
+    .tag.cc-solid, .tag:is([aria-pressed="true"], [aria-current]:not([aria-current="false"])) { --tag-ink: oklch(from var(--tag-color) clamp(.16, (var(--ink-flip) - l) * 1000, 1) calc(clamp(0, (l - var(--ink-flip)) * 1000, 1) * c * .3) h); }
     .badge:not(.cc-quiet, .cc-accent) { --badge-ink: oklch(from var(--badge-color) clamp(.16, (var(--ink-flip) - l) * 1000, 1) calc(clamp(0, (l - var(--ink-flip)) * 1000, 1) * c * .3) h); }
   }
   /* size */
@@ -1656,7 +1671,7 @@
   .tag.cc-lg { --tag-h: var(--size-control-md); --tag-fs: var(--tag-fs-lg); }
   /* parts */
   .tag-dot { width: var(--sp-h); height: var(--sp-h); border-radius: 50%; background: var(--tag-color); flex: none; }
-  .tag[aria-pressed="true"] .tag-dot { background: currentColor; }
+  .tag:is([aria-pressed="true"], [aria-current]:not([aria-current="false"])) .tag-dot { background: currentColor; }
   .tag-remove {
     display: grid; place-items: center; flex: none;
     width: calc(var(--tag-h) - var(--sp-h)); height: calc(var(--tag-h) - var(--sp-h));
@@ -2223,8 +2238,11 @@
   }
   .tab { background: color-mix(in oklab, var(--text) var(--state-act), var(--tab-bg, transparent)); }
   @media (hover: hover) { .tab:hover { color: var(--text); } }
-  .tab[aria-selected="true"] { --tab-bg: var(--tab-on-bg); color: var(--text); }
-  .tab[aria-selected="true"]::after {
+  /* A tab that is a link (a view, a filter, a page) is the current one by aria-current, and
+     carries no underline: its mark says it is a control (D101). */
+  a.tab, a.tag { text-decoration: none; }
+  .tab:is([aria-selected="true"], [aria-current]:not([aria-current="false"])) { --tab-bg: var(--tab-on-bg); color: var(--text); }
+  .tab:is([aria-selected="true"], [aria-current]:not([aria-current="false"]))::after {
     content: ""; position: absolute;
     inset-inline: 0; inset-block-end: 0;
     height: var(--tab-mark-h);
@@ -2796,7 +2814,7 @@
     .list-item:has(.list-link:is([aria-current]:not([aria-current="false"]), [aria-selected="true"])) {
       outline: calc(var(--line) * 2) solid Highlight; outline-offset: calc(var(--line) * -2);
     }
-    .tab[aria-selected="true"]::after { forced-color-adjust: none; background: Highlight; }
+    .tab:is([aria-selected="true"], [aria-current]:not([aria-current="false"]))::after { forced-color-adjust: none; background: Highlight; }
     .switch::after { forced-color-adjust: none; outline: var(--line) solid CanvasText; outline-offset: calc(var(--line) * -1); --switch-fill: Canvas; --switch-thumb: CanvasText; }
     :is(.switch:is([aria-checked="true"], :has(> input:checked)), .options-card-item[aria-checked="true"] > .switch)::after { --switch-fill: Highlight; --switch-thumb: HighlightText; outline-color: Highlight; }
     .switch:is(:disabled, [aria-disabled="true"], :has(> input:disabled))::after { --switch-thumb: GrayText; outline-color: GrayText; }

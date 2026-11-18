@@ -111,3 +111,6 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D97](D97.md) | Night has its own ground, and may be a dusk | 2026-11-17 | accepted |
 | [D98](D98.md) | A paper that is not white, and an accent with a night of its own | 2026-11-17 | accepted |
 | [D99](D99.md) | The conversation pieces: a composer, flat rows, and what a message carries | 2026-11-17 | accepted |
+| [D100](D100.md) | A button's face: its family, weight, case and spacing | 2026-11-18 | accepted |
+| [D101](D101.md) | A link may be the current one | 2026-11-18 | accepted |
+| [D102](D102.md) | An eyebrow's own case | 2026-11-18 | accepted |
