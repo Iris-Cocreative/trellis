@@ -187,6 +187,8 @@
   .demo-done { opacity: .55; }
   .demo-done .avatar { filter: grayscale(1); }
   .demo-tiles { --grid-min: calc(var(--u) * 28); }
+  .demo-list-mark .dot { --dot-size: calc(var(--u) * .75); }
+  .demo-list-center { --list-align: center; }
   .demo-skel-avatar { --skel-w: var(--sp-4); --skel-h: var(--sp-4); --skel-radius: 50%; }
   /* Ring dots: a mark beside its word, the sizes, and marks on a line. */
   .demo-rings { --stack-gap: var(--sp-2); }

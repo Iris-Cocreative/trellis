@@ -1,6 +1,8 @@
 // Trellis · layout behavior test
 // What a position check can't see: that each layout responds and behaves.
-//   list    a row is whole cells; its rule adds no height; it steps out a cell
+//   list    a row is whole cells; its rule adds no height; it steps out a cell;
+//           a .list-mark centers its mark on the first line's capitals, one
+//           line or several; --list-align: center centers a row's parts
 //   shell   its nav is a column in a wide box and a tab bar in a narrow one,
 //           with the same markup, in the same window
 //   cover   its media reaches both screen edges and adds no sideways scroll
@@ -59,6 +61,40 @@ const ready = require('./ready');
     expect(Math.abs(box(rows[0]).left - box(list.parentElement).left + u) < 1, 'a list does not step out one cell');
     expect(Math.abs(box(rows[0].firstElementChild).left - box(list.parentElement).left) < 1, "a row's content is not on the column's edge");
     expect(body && whole(box(body).top - box(rows[0]).top), "a row's body does not start on a line");
+    expect(getComputedStyle(rows[0]).alignItems === 'flex-start', `a list row's parts should hang from one line by default: align-items is ${getComputedStyle(rows[0]).alignItems}`);
+    // A mark on the first line (D104): centered on its capitals, however many
+    // lines the row runs to, at the row's start and in its end. The capital is
+    // measured from a cap-centered line of the same role, whose box is trimmed
+    // to it and not rounded.
+    {
+      const mid = e => (box(e).top + box(e).bottom) / 2;
+      const probe = document.createElement('div'); probe.className = 'row'; probe.innerHTML = '<span class="t-sm cap-center">X</span>';
+      $('#demo-list-mark').parentElement.appendChild(probe);
+      const cap = box(probe.firstElementChild).height; probe.remove();
+      const marked = [...document.querySelectorAll('#demo-list-mark > .list-item')];
+      expect(marked.length >= 2 && cap > 0, 'the specimen has no rows with a .list-mark to check');
+      expect(marked.some(r => box(r.querySelector('.list-body > p')).height > u * 1.5), 'no row with a .list-mark runs to a second line');
+      marked.forEach((r, i) => {
+        const line = box(r.querySelector('.list-body > p')).top + cap / 2;
+        expect(whole(box(r).height), `a row with a mark is ${box(r).height.toFixed(2)}px, not whole cells`);
+        expect(whole(box(r.querySelector('.list-body')).left - box(r).left), `row ${i}: the words after a .list-mark do not start on a line`);
+        expect(Math.abs(box(r.querySelector('.list-end')).right - box(r.querySelector('.list-end .list-mark > *')).right) < .1, `row ${i}: a mark in the row's end is not at its end`);
+        r.querySelectorAll('.list-mark').forEach(m => {
+          expect(Math.abs(box(m).height - cap) < .6, `a .list-mark is ${box(m).height.toFixed(2)}px tall, a capital of its line ${cap.toFixed(2)}px`);
+          expect(Math.abs(mid(m.firstElementChild) - line) < .6, `row ${i}: a ${m.firstElementChild.className} in a .list-mark sits ${(mid(m.firstElementChild) - line).toFixed(2)}px off the middle of its first line's capitals`);
+        });
+      });
+      // --list-align: center: a face, one line of words and a control share a middle.
+      const centered = [...document.querySelectorAll('#demo-list-center > .list-item')];
+      expect(centered.length > 0, 'the specimen has no centered rows to check');
+      centered.forEach((r, i) => {
+        const parts = [r.querySelector('.avatar'), r.querySelector('.cap-center'), r.querySelector('.button')], at = mid(parts[0]);
+        expect(whole(box(r).height), `a centered row is ${box(r).height.toFixed(2)}px, not whole cells`);
+        parts.forEach(p => expect(p && Math.abs(mid(p) - at) < .6, `centered row ${i}: ${p && p.className} sits ${p && (mid(p) - at).toFixed(2)}px off the face's middle`));
+        expect(Math.abs(mid(parts[0]) - mid(r)) < .6, `centered row ${i}: its face is not in the row's middle`);
+        expect(box(parts[1]).left - box(r.querySelector('.list-body')).left < .6, "a cap-centered line in a row's body does not start at the body's start");
+      });
+    }
 
     // Card padding: two knobs that default to equal, and a shorthand for contexts.
     {

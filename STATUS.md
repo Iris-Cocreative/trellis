@@ -76,6 +76,7 @@ Everything here lands before the first app pins a version.
 | A link may be the current one | done | | D101: `.tab` and `.tag` take `aria-current` as selected; `tests/layout.js` in both engines. From Interbeing's schedule. |
 | An eyebrow's own case | done | | D102: `--eyebrow-case`, `--eyebrow-tracking`, following the label's. From Interbeing. |
 | A ring dot | done | | D103: `.dot.cc-ring` with `--dot-ring` and `--dot-fill`; `contract.js` holds each status at 3:1 on the page and every raised level; `tests/layout.js` in both engines. From Agent Weaver (request 16) and the Collab OS owed-cards bench. |
+| A row's mark on its first line | done | | D104: `.list-mark` (a capital tall, its mark centered: on the first line however the row wraps; a column a cell wide at the row's start, `--list-mark-w`) and `--list-align` (`flex-start`, or `center` for a one-line row and its controls); `tests/layout.js` in both engines, wide and touch. From the Collab OS owed-cards bench. |
 | A product's own seeds | idea | | A product names a seed of its own (Interbeing's gold) and gets light and dark forms and a contrast check, as the kinds do. From the scopes study. |
 | Smaller gaps from the first app | idea | | The tooltip's side padding, a button's side padding, an option's ground as a variable, a row that must not wrap: each waits for a second app to ask. Not built, by design. |
 | Type by the ratio alone | decided | | Not in core for now: the playground keeps it in the specimen's own CSS, until a long document asks for it. |

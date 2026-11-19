@@ -103,6 +103,9 @@ const target = require('./target');
       if (e.closest('.chat-item-time,.chat-item-actions')) continue;
       // A dense row is one thing: its edges are on lines, its contents keep a half-cell rhythm.
       if (e.parentElement && e.parentElement.closest('.list.cc-dense .list-item,.cc-dense .list .list-item')) continue;
+      // A centered row (--list-align: center) is one thing too: its edges are on lines, its parts center on each other (D104).
+      const inRow = e.parentElement && e.parentElement.closest('.list-item');
+      if (inRow && getComputedStyle(inRow).alignItems === 'center') continue;
       // A scroller's contents move as it scrolls; the scroller itself is checked.
       if (e.parentElement && e.parentElement.closest('.demo-scroll,.scroll-pane,.board')) continue;
       // An annotation may align to the capitals it annotates (.cap-align) rather than a cell line.

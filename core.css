@@ -1060,11 +1060,20 @@
      settles), and its rule is a plane after its bottom coordinate, so rules
      never add height. Rows step out like cards (Outset): the hover surface steps out while
      the text stays on the column's edge. Markup: ul.list > li.list-item >
-     leading mark, .list-body, .list-end. */
+     leading mark, .list-body, .list-end.
+     Where a row's parts meet (D104). Text in a role is trimmed to its capitals,
+     so a row's parts hang from one line by default (--list-align: flex-start):
+     right for a face beside two lines. A mark the size of a line, a dot, an
+     icon, a small face, sits in a .list-mark, which centers it on the first
+     line's capitals however many lines the row runs to. A row that is one line
+     and its controls centers them all with --list-align: center, its words
+     cap-centered (rule 8). */
   .list {
     --list-pad-y: var(--sp-1);
     --list-gap: var(--sp-1);
     --list-rule: var(--border-subtle);
+    --list-align: flex-start;
+    --list-mark-w: var(--sp-1);
     --list-outset: calc(var(--outset) * var(--u));
     display: flex; flex-direction: column;
     margin: 0; padding: 0;
@@ -1074,7 +1083,7 @@
   }
   .list-item {
     position: relative;
-    display: flex; align-items: flex-start; gap: var(--list-gap);
+    display: flex; align-items: var(--list-align, flex-start); gap: var(--list-gap);
     padding-block: var(--list-pad-y);
     padding-inline: var(--list-outset);
     min-width: 0;
@@ -1100,7 +1109,22 @@
   .list-link:focus-visible { outline: none; }
   .list-item:has(.list-link:focus-visible) { outline: calc(var(--line) * 2) solid var(--focus); outline-offset: calc(var(--line) * -2); }
   .list-body { --stack-gap: var(--sp-1); flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--stack-gap); }
-  .list-end { flex: none; display: flex; align-items: flex-start; gap: var(--sp-h); }
+  .list-end { flex: none; display: flex; align-items: var(--list-align, flex-start); gap: var(--sp-h); }
+  /* A mark on the first line (.list-mark, at the row's start or in its end): a
+     box as tall as a capital, at the row's top, where the first line's capitals
+     are; what it holds is centered on them and may reach past it, into the row's
+     padding. It is a capital of its own type: give it the role of the line
+     beside it (span.list-mark.t-sm) and it is exactly that line's; with none it
+     takes the type around the row, within a pixel or two from .t-xs to .t-body.
+     A role would round it up to whole cells, as it does text; the mark keeps its
+     capital. At the row's start it is a column --list-mark-w wide, a cell, with
+     the mark at its start (rule 7), so the row's words start on a line whatever
+     the mark's size; in the row's end it is as wide as its mark. */
+  .list-mark { flex: none; display: flex; align-items: center; justify-content: flex-start; width: var(--list-mark-w, var(--sp-1)); height: 1cap; min-height: 0; }
+  .list-end > .list-mark { width: auto; justify-content: flex-end; }
+  /* One line of words in a centered row: its capitals center on the row's
+     controls (.cap-center), across the body's width, not in its middle. */
+  .list-body > .cap-center { align-self: stretch; }
   /* A row's two lines, when it has them: its title and the line under it (a
      name and a preview). Unread (.cc-unread) weighs the title and inks the
      line under it; a .dot.cc-accent in .list-end says so without color alone
@@ -1135,7 +1159,7 @@
   .list.cc-group > .list-item:first-child { border-start-start-radius: inherit; border-start-end-radius: inherit; }
   .list.cc-group > .list-item:last-child { border-end-start-radius: inherit; border-end-end-radius: inherit; }
   .list.cc-group > .list-item::after { content: none; }
-  .list.cc-group > .list-item > .list-body { align-self: stretch; }
+  .list.cc-group > .list-item > .list-body { align-self: stretch; justify-content: var(--list-align, flex-start); }
   .list.cc-group > .list-item:not(:last-child) > .list-body {
     border-image: linear-gradient(to top, var(--list-rule) var(--hair), transparent var(--hair)) fill 0 // 0 100vw calc(var(--list-pad-y) + var(--hair)) 0;
   }

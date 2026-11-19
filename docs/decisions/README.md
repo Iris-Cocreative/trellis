@@ -115,3 +115,4 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D101](D101.md) | A link may be the current one | 2026-11-18 | accepted |
 | [D102](D102.md) | An eyebrow's own case | 2026-11-18 | accepted |
 | [D103](D103.md) | A ring is a dot not yet filled | 2026-11-19 | accepted |
+| [D104](D104.md) | A row's mark sits on its first line | 2026-11-19 | accepted |

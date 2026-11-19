@@ -798,6 +798,21 @@
       </ul>
       <p class="t-xs faint">Rows step out a cell (Outset), so the hover surface steps out while the text stays on the column's edge. Each rule is a hairline after its row's bottom coordinate: it adds no height.</p>
 
+      <h3 class="t-h5">.list-mark</h3>
+      <ul class="list demo-list-mark" id="demo-list-mark">
+        <li class="list-item"><span class="list-mark t-sm"><span class="dot cc-ring cc-warn" role="img" aria-label="Planned"></span></span><div class="list-body"><p class="t-sm">Sort the bean seed by year, and set aside anything older than three seasons for the germination test, so nothing tired goes on the swap table in spring.</p></div><div class="list-end"><span class="list-mark t-sm"><span class="avatar cc-plain" style="--av-n: 1.5" aria-hidden="true">MV</span></span></div></li>
+        <li class="list-item"><span class="list-mark t-sm"><span class="dot cc-accent" role="img" aria-label="Underway"></span></span><div class="list-body"><p class="t-sm">Label the drying racks</p><p class="t-xs muted">One tag a tray: the variety, the bed and the day it came in.</p></div><div class="list-end"><span class="list-mark t-sm"><span class="avatar cc-plain" style="--av-n: 1.5" aria-hidden="true">AO</span></span></div></li>
+        <li class="list-item"><span class="list-mark t-sm"><span class="dot cc-ok" role="img" aria-label="Done"></span></span><div class="list-body"><p class="t-sm">Order the coin envelopes</p></div><div class="list-end"><span class="list-mark t-sm"><span class="avatar cc-plain" style="--av-n: 1.5" aria-hidden="true">JB</span></span></div></li>
+      </ul>
+      <p class="t-xs faint">Text is trimmed to its capitals, so a row's parts hang from one line: right for a face beside two lines, high or low for a mark the size of a line. A <code>.list-mark</code> is a box as tall as a capital, with its mark centered on it: a dot, an icon or a small face sits on the middle of the first line, however many lines the row runs to. Give it the role of the line beside it. At the row's start it is a column a cell wide (<code>--list-mark-w</code>), so the words start on a line.</p>
+
+      <h3 class="t-h5">--list-align</h3>
+      <ul class="list demo-list-center" id="demo-list-center">
+        <li class="list-item"><span class="avatar cc-sm cc-hue-a" aria-hidden="true">MV</span><div class="list-body"><p class="t-sm cap-center u-truncate">Marisol Vega</p></div><div class="list-end"><button class="button cc-sm" type="button"><span class="button-label">Invite</span></button></div></li>
+        <li class="list-item"><span class="avatar cc-sm" aria-hidden="true">AO</span><div class="list-body"><p class="t-sm cap-center u-truncate">Ada Okafor</p></div><div class="list-end"><button class="button cc-sm" type="button"><span class="button-label">Invite</span></button></div></li>
+      </ul>
+      <p class="t-xs faint">A row that is one line and its controls centers them on each other: <code>--list-align: center</code> on the list, and <code>.cap-center</code> on the words, so their capitals meet the middle of the face and the button.</p>
+
       <h3 class="t-h5">.shell</h3>
       <div class="shell demo-shell" id="demo-shell-wide">
         <div class="shell-grid">

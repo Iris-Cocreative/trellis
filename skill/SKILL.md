@@ -20,7 +20,7 @@ Find the need here first. If it is here, use it and write no CSS for it.
 | Columns | `.cols` (`--cols`), `.split` (`--split-a`, `--split-b`), `.grid` (`--grid-min`) |
 | A sideways scroller, lanes | `.rail`, `.board` (give each `tabindex="0"`, a role and a label) |
 | A panel, a box, a tile | `.card` (`--card-pad`); nested cards step their ground by themselves |
-| Rows: sessions, files, members, results | `.list` > `.list-item` > `.list-body`, `.list-end`; `.cc-group` for rows sharing one surface; `.cc-dense` for tight rows |
+| Rows: sessions, files, members, results | `.list` > `.list-item` > `.list-body`, `.list-end`; `.cc-group` for rows sharing one surface; `.cc-dense` for tight rows; a dot, an icon or a small face beside the first line goes in a `.list-mark` (`span.list-mark.t-sm` beside a `.t-sm` line); a row that is one line and its controls sets `--list-align: center` on the list, with `.cap-center` on its words. Never `align-items` on a row |
 | A button, an icon button | `.button`; `.button.icon-button` for an icon alone, never `.icon-button` by itself: `<button class="button icon-button cc-ghost cc-sm" aria-label="…">`; `.cc-primary`, `.cc-ghost`; `.cc-sm`, `.cc-md`, `.cc-lg` |
 | A text field, select, textarea, search box | `.input` inside `.field` with `.field-label`, `.field-hint`; `.cc-sm`, `.cc-lg` |
 | On or off | `.switch`; in a menu row, the row is `button.options-card-item[role=menuitemcheckbox][aria-checked]` and the switch an empty `<span class="switch" aria-hidden="true">` at its end, with no script to copy the state |
