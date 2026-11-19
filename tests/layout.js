@@ -33,6 +33,7 @@
 //           badges and avatar rings still draw
 //   ring    a ring dot keeps the dot's box, its line a quarter of the dot and
 //           two lines at most, clear inside unless it is given a fill
+//   stages  a stage's dot is its fill, its ring its ink, its tag tinted from it
 //   prose   a paragraph with two links, with chips, with faces or with a mark
 //           beside its images is text, and an atom in it leaves its lines where
 //           they were; images alone, linked or not, are still a gallery
@@ -562,6 +563,38 @@ const ready = require('./ready');
     const [on, off] = host.querySelectorAll('.tab'), [t1, t2] = host.querySelectorAll('.tag');
     if (getComputedStyle(on).backgroundColor === getComputedStyle(off).backgroundColor) fails.push('a current tab link draws like the others');
     if (getComputedStyle(t1).backgroundColor === getComputedStyle(t2).backgroundColor) fails.push('a current tag link is not solid');
+    host.remove();
+    return fails;
+  }));
+  // Stages (D107): seven of them, each a dot in its fill, a ring in its ink and
+  // a tag tinted from its fill; a product's own seed reaches all three.
+  fails.push(...await page.evaluate(() => {
+    const fails = [], host = document.createElement('div'), paint = document.createElement('i');
+    host.setAttribute('data-product', 'stage-test');
+    host.innerHTML = [1, 2, 3, 4, 5, 6, 7].map(n => `<span class="dot cc-stage-${n}"></span><span class="dot cc-ring cc-stage-${n}"></span><span class="tag cc-stage-${n}"><span class="tag-label">n</span></span><span class="tag cc-solid cc-stage-${n}"><span class="tag-label">n</span></span>`).join('');
+    host.appendChild(paint); document.body.appendChild(host);
+    const cs = e => getComputedStyle(e), role = v => { paint.style.color = `var(--${v})`; return cs(paint).color; };
+    // One color can be written two ways (oklch from a role, oklab from a mix): compare what each paints.
+    const ctx = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+    const px = c => { ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = c; ctx.fillRect(0, 0, 1, 1); return [...ctx.getImageData(0, 0, 1, 1).data]; };
+    const same = (a, b) => px(a).every((v, i) => Math.abs(v - px(b)[i]) <= 1);
+    const read = () => [1, 2, 3, 4, 5, 6, 7].map(n => { const [dot, ring, tag, solid] = [...host.children].slice((n - 1) * 4, n * 4); return { n, dot: cs(dot).backgroundColor, ring: cs(ring).borderTopColor, tag: cs(tag).backgroundColor, solid: cs(solid).backgroundColor, fill: role(`stage-${n}`), ink: role(`stage-${n}-ink`) }; });
+    let seen = read();
+    seen.forEach(s => {
+      if (!same(s.dot, s.fill)) fails.push(`stages: .dot.cc-stage-${s.n} is ${s.dot}, not the stage's fill ${s.fill}`);
+      if (!same(s.ring, s.ink)) fails.push(`stages: a ring's line at stage ${s.n} is ${s.ring}, not the stage's ink ${s.ink}`);
+      if (!same(s.solid, s.fill)) fails.push(`stages: a solid tag at stage ${s.n} is ${s.solid}, not the stage's fill ${s.fill}`);
+      if (same(s.tag, s.fill) || px(s.tag)[3] === 0 || px(s.tag)[3] === 255) fails.push(`stages: a tag at stage ${s.n} is ${s.tag}: it should be a tint of its fill`);
+    });
+    if (new Set(seen.map(s => px(s.fill).join())).size !== 7) fails.push('stages: two stages have the same fill by default');
+    // A pale seed of the product's own: the dot takes it as it is, and the ring's line is darker (or, at night, no darker) so it reads.
+    const was = seen[1];
+    host.style.setProperty('--seed-stage-2', 'oklch(.887 .182 95.3)');
+    const now = read()[1], sum = c => px(c).slice(0, 3).reduce((a, b) => a + b, 0), day = sum(role('bg')) > 382;
+    if (same(now.dot, was.dot)) fails.push('stages: --seed-stage-2 on a scope did not reach its dot');
+    if (!same(now.dot, now.fill)) fails.push("stages: a pale stage's dot is not its fill");
+    if (day && !(sum(now.ring) < sum(now.dot) - 60)) fails.push(`stages: by day a pale stage's ring (${now.ring}) should be its ink, well darker than its fill (${now.dot})`);
+    if (!day && !same(now.ring, now.ink)) fails.push("stages: at night a pale stage's ring is not its ink");
     host.remove();
     return fails;
   }));

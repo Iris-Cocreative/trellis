@@ -189,6 +189,10 @@
   .demo-tiles { --grid-min: calc(var(--u) * 28); }
   .demo-list-mark .dot { --dot-size: calc(var(--u) * .75); }
   .demo-list-center { --list-align: center; }
+  /* Stages: a card that is a scope and a mood, so both themes show at once. */
+  .demo-stages { --stack-gap: var(--sp-2); }
+  .demo-stages .dot { --dot-size: var(--sp-1); }
+  .demo-stage-ink { color: var(--ink); }
   /* A record named in a sentence: the specimen's own inline atom, on tokens. */
   .demo-chip {
     display: inline-flex; align-items: center; gap: var(--sp-q);

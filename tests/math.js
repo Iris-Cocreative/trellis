@@ -155,7 +155,7 @@ const CASES = [
         // scope's seeds, as math.js's scope() has it. Checked in both themes, on a
         // scope that is a mood (data-theme), and for type: a ratio the scope sets
         // moves its text step; a text step the root chose carries in.
-        const ROLES = ['bg', 'bg-raised', 'text', 'text-secondary', 'border', 'accent', 'accent-ink', 'kind-person', 'kind-topic', 'ok', 'alert'];
+        const ROLES = ['bg', 'bg-raised', 'text', 'text-secondary', 'border', 'accent', 'accent-ink', 'kind-person', 'kind-topic', 'ok', 'alert', 'stage-1', 'stage-1-ink', 'stage-4', 'stage-4-ink', 'stage-7', 'stage-7-ink'];
         const scopeEl = document.createElement('div'), inner = document.createElement('i');
         scopeEl.setAttribute('data-product', 'test-scope');
         scopeEl.appendChild(inner); document.body.appendChild(scopeEl);
@@ -165,7 +165,9 @@ const CASES = [
           ['a scope that sets its accent', {}, { accent: [0.5, 0.12, 30] }],
           ['the root\'s neutral carries into a scope that sets its accent', { neutral: [0.55, 0.03, 90] }, { accent: [0.45, 0.1, 150] }],
           ['a scope with its own ground and ink', {}, { accent: [0.5, 0.1, 250], ground: [0.55, 0.02, 80], ink: [0.55, 0.05, 140] }],
-          ['the root\'s ground carries; the scope\'s ink is its own', { ground: [0.55, 0.012, 77] }, { accent: [0.63, 0.11, 82], ink: [0.55, 0.013, 82] }]
+          ['the root\'s ground carries; the scope\'s ink is its own', { ground: [0.55, 0.012, 77] }, { accent: [0.63, 0.11, 82], ink: [0.55, 0.013, 82] }],
+          // Stages (D107): a pale seed and a deep one, each with its fill and its ink in both themes; one the root set carries in.
+          ['a scope with a pale stage and a deep one; the root\'s last stage carries in', { 'stage-7': [0.676, 0.015, 78] }, { 'stage-1': [0.887, 0.182, 95.3], 'stage-4': [0.45, 0.2, 264] }]
         ];
         for (const [what, rootSet, scopeSet] of CASES2) {
           for (const [k, v] of Object.entries(rootSet)) root.style.setProperty(`--seed-${k}`, `oklch(${v.join(' ')})`);

@@ -118,10 +118,11 @@ function build(tokens) {
   const oklch = v => `oklch(${v.components.map((x, i) => (i === 2 ? n(x) : short(x))).join(' ')})`;
   const HUES = { accent: 'accent', person: 'kind-person', group: 'kind-group', event: 'kind-event', course: 'kind-course', topic: 'kind-topic', ok: 'ok', warn: 'warn', alert: 'alert' };
   const d = col.derive, dv = k => d[k].$value, KINDS = keys(d['kind-turn']), STATUSES = keys(d['status-hue']);
+  const STAGES = names(d['stage-turn']).sort((a, b) => a - b);
   out.push('    /* Seeds: one color each, in its light-theme form. A product sets the accent. The others follow',
     '       from it, and a product may set any of them in its place (--seed-neutral, --seed-person, …,',
     '       --seed-ground and --seed-ink, the neutral for grounds and for text, and --seed-night, the ground at',
-    '       night). They have no default:',
+    '       night; --seed-stage-1 to -' + STAGES.length + ', the steps of a process). They have no default:',
     '       one a layer set carries into its scopes; one it left follows each scope\'s accent. Never a role. */');
   for (const k of keys(col.seed)) line(`seed-${k}`, oklch(col.seed[k].$value));
   line('color-lift', short(col.lift.$value), 'how much lighter a hue is in the dark theme');
@@ -164,7 +165,8 @@ function build(tokens) {
   };
   out.push('', '    /* The seeds that follow from the accent. Each takes its lightness, kept clear of the ink flip so',
     '       its ink reads; a kind is the accent turned around the hue wheel, with no more chroma than sRGB',
-    '       holds at its hue; a status keeps its own hue; the neutral is a trace of the accent\'s hue. */');
+    '       holds at its hue; a status keeps its own hue; the neutral is a trace of the accent\'s hue; a',
+    '       stage is the accent turned an eighth of the wheel further than the stage before it. */');
   line('derived-base', `oklch(from var(--seed-accent) ${clear('l')} c h)`, 'the accent, its lightness kept clear of the flip');
   line('derived-accent-night', 'oklch(from var(--seed-accent) calc(l + var(--color-lift)) c h)', 'the accent at night, unless a product gives it a night of its own (D98)');
   line('derived-neutral', `oklch(from var(--seed-accent) .55 ${short(dv('neutral-chroma'))} h)`);
@@ -176,6 +178,8 @@ function build(tokens) {
   line('derived-topic', `oklch(from var(--seed-accent) ${clear(`(${stepped})`)} calc(c * min(1, ${clear(`(${stepped})`)} / l)) h)`, 'the accent a step darker');
   for (const k of STATUSES)
     line(`derived-${k}`, `oklch(from var(--derived-base) l min(clamp(${short(dv('status-chroma-min'))}, c * ${short(dv('status-chroma'))}, ${short(dv('status-chroma-max'))}), l * ${num(limitAt(d['status-hue'][k].$value))}) ${n(d['status-hue'][k].$value)})`);
+  for (const k of STAGES)
+    line(`derived-stage-${k}`, `oklch(from var(--derived-base) l min(c * ${short(dv('stage-chroma'))}, l * ${limit(d['stage-turn'][k].$value)}) calc(h + ${n(d['stage-turn'][k].$value)}))`);
 
   head('Neutral roles: a seed\'s hue and chroma at a lightness for each theme. Grounds and edges take the ground seed (the night seed at night, lifted by --night-lift), text the ink seed; all follow the neutral unless set');
   const GROUND = `var(--seed-ground, ${F('neutral')})`, INK = `var(--seed-ink, ${F('neutral')})`, NIGHT = `var(--seed-night, ${GROUND})`, INK_NIGHT = `var(--seed-ink-night, ${INK})`;
@@ -199,6 +203,20 @@ function build(tokens) {
       line('accent-ink', 'oklch(from var(--accent) clamp(.16, (var(--ink-flip) - l) * 1000, 1) calc(clamp(0, (l - var(--ink-flip)) * 1000, 1) * c * .3) h)', 'white on a dark accent, a dark ink of its hue on a light one');
       line('focus', 'var(--accent)');
     }
+  }
+  // Stages (D107): a product may make a stage's seed pale, so each role is
+  // worked out from the seed's own lightness. Where the lightness moves, the
+  // chroma moves with it (math.js: shade), toward black in step with the
+  // lightness and toward white in step with what is left of it.
+  head('Stages: the steps of a process, in order. A fill (the seed, lifted in the dark no further than a derived seed is, so a pale one stays), an ink that reads as text in both themes, and a tint: the fill at a share');
+  const SG = col.stage, inkDay = short(SG['ink-light'].$value), inkNight = short(SG['ink-dark'].$value);
+  const up = to => `calc(c * min(1, (1 - ${to}) / max(1 - l, .001)))`;
+  const lifted = `max(l, min(l + var(--color-lift), ${short(dv('clear-above'))} + var(--color-lift)))`;
+  for (const k of STAGES) {
+    const sd = `var(--seed-stage-${k}, var(--derived-stage-${k}))`;
+    line(`stage-${k}`, `light-dark(${sd}, oklch(from ${sd} ${lifted} ${up(lifted)} h))`);
+    line(`stage-${k}-ink`, `light-dark(oklch(from ${sd} min(l, ${inkDay}) calc(c * min(1, ${inkDay} / max(l, .001))) h), oklch(from ${sd} max(l, ${inkNight}) ${up(`max(l, ${inkNight})`)} h))`);
+    line(`stage-${k}-tint`, `color-mix(in oklab, var(--stage-${k}) ${n(SG.tint.$value * 100)}%, transparent)`);
   }
   head('Gradients: an interpolation space and stops. Add a direction or a shape: linear-gradient(to right var(--gradient-accent))');
   line('gradient-accent', 'in var(--gradient-space), var(--accent), oklch(from var(--accent) l c calc(h + var(--gradient-turn)))');

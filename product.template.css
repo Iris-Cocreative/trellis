@@ -75,6 +75,13 @@
     --seed-ok: var(--derived-ok);                        /* success: its own hue, the accent's strength */
     --seed-warn: var(--derived-warn);                    /* caution: its own hue, the accent's strength */
     --seed-alert: var(--derived-alert);                  /* errors and counts: its own hue, the accent's strength */
+    --seed-stage-1: var(--derived-stage-1);              /* the first step of a process (an idea, a draft). Any color, a pale one too: its ink and its night are worked out. Follows the accent, turned an eighth of the wheel */
+    --seed-stage-2: var(--derived-stage-2);              /* the second step. Follows the accent, an eighth further, as do the rest */
+    --seed-stage-3: var(--derived-stage-3);              /* the third step */
+    --seed-stage-4: var(--derived-stage-4);              /* the fourth step */
+    --seed-stage-5: var(--derived-stage-5);              /* the fifth step */
+    --seed-stage-6: var(--derived-stage-6);              /* the sixth step */
+    --seed-stage-7: var(--derived-stage-7);              /* the seventh and last: what is closed or put away, if the process has that */
     --color-lift: .17;                                   /* how much lighter every hue is in the dark theme */
     --night-lift: 0;                                     /* how much lighter every ground and edge is at night: 0 is night, .15 a dusk */
     --day-depth: 0;                                      /* how much darker every ground and edge is by day: 0 is white paper, .02 linen */

@@ -172,7 +172,10 @@ const FLOORS = [['text', 'bg', 4.5], ['text', 'bg-raised', 4.5], ['text', 'bg-su
   ['accent-ink', 'accent', 4.5], ['accent', 'bg', 3], ['accent', 'bg-raised', 3],
   // A status drawn as a line: a ring dot (.dot.cc-ring, D103) is one or two lines of its
   // color on the page or a surface, so each status holds 3:1 there, as the accent does.
-  ...['ok', 'warn', 'alert'].flatMap(k => ['bg', 'bg-raised', 'bg-raised-2', 'bg-raised-3'].map(g => [k, g, 3]))];
+  ...['ok', 'warn', 'alert'].flatMap(k => ['bg', 'bg-raised', 'bg-raised-2', 'bg-raised-3'].map(g => [k, g, 3])),
+  // A stage's ink is for words and for a ring's line (D107): text, on the page and every raised
+  // level, whatever color the product gave the stage. Its fill has no floor: it may be pale.
+  ...[1, 2, 3, 4, 5, 6, 7].flatMap(n => ['bg', 'bg-raised', 'bg-raised-2', 'bg-raised-3'].map(g => [`stage-${n}-ink`, g, 4.5]))];
 // A file with scopes is checked once per scope too: the root's seeds, then the
 // scope's over them, as M.scope() and core.css both have it (D96).
 const layersToCheck = [[null, 'core', M.SEED]];
@@ -183,8 +186,8 @@ for (const f of PRODUCTS) {
     const out = {};
     // A seed a layer sets is that color; one it leaves, or leaves as the
     // template has it (var(--…)), follows from its accent.
-    for (const [, k, v] of body.matchAll(/--seed-([a-z-]+)\s*:\s*([^;]+);/g)) {
-      if (/^var\(--[a-z-]+\)$/.test(v.trim())) continue;
+    for (const [, k, v] of body.matchAll(/--seed-([a-z0-9-]+)\s*:\s*([^;]+);/g)) {
+      if (/^var\(--[a-z0-9-]+\)$/.test(v.trim())) continue;
       try { out[k] = M.parseColor(v); } catch (e) { fails.push(`${f}: --seed-${k}: ${e.message}`); }
     }
     return out;
@@ -245,10 +248,29 @@ for (const [, f, seed] of layersToCheck) {
   check(!out, out ? `one seed: the ${out[0]} seed derived from oklch(${out.slice(1, 4).map(x => +x.toFixed(2)).join(' ')}) is outside sRGB: oklch(${out[4].map(x => +x.toFixed(3)).join(' ')})` : '');
   // core.css states the same rule: every seed but the accent is read as itself if set, and as its
   // derived token if not, and has no default, so one a layer leaves follows on every scope (D96).
-  for (const k of ['neutral', 'person', 'group', 'event', 'course', 'topic', 'ok', 'warn', 'alert'])
+  for (const k of ['neutral', 'person', 'group', 'event', 'course', 'topic', 'ok', 'warn', 'alert', ...[1, 2, 3, 4, 5, 6, 7].map(n => 'stage-' + n)])
     check(!coreDefaults.has(`--seed-${k}`) && coreDefaults.has(`--derived-${k}`) && core.includes(`var(--seed-${k}, var(--derived-${k}))`),
       `core.css: --seed-${k} should have no default and be read as var(--seed-${k}, var(--derived-${k}))`);
   check(/:root, \[data-product\] \{[^}]*--accent:/.test(core), 'core.css: the roles must be worked out on :root and on every [data-product] scope');
+  // Stages (D107). Whatever color a product gives a stage, inside sRGB, pale or deep, its ink
+  // reads as text on core's page and every raised level in both themes, its fill and its
+  // ink stay inside sRGB (near enough: a twentieth of a channel), and a pale fill is not
+  // lifted to white at night.
+  let lowInk = [99], far = [0], sn = 0;
+  const over = c => Math.max(0, ...rgb(c).map(x => Math.max(-x, x - 1)));
+  for (let l = 0.25; l <= 0.961; l += 0.05) for (let c = 0; c <= 0.321; c += 0.04) for (let h = 0; h < 360; h += 10) {
+    if (!inside([l, c, h])) continue;
+    sn++;
+    for (const theme of ['light', 'dark']) {
+      const p = M.palette(theme, M.SEED), fill = M.stage([l, c, h], theme, M.SEED), ink = M.stageInk([l, c, h], theme, M.SEED);
+      for (const g of ['bg', 'bg-raised', 'bg-raised-2', 'bg-raised-3']) { const r = M.contrast(ink, p[g]); if (r < lowInk[0]) lowInk = [r, theme, g, l, c, h]; }
+      for (const x of [fill, ink]) if (over(x) > far[0]) far = [over(x), theme, l, c, h];
+      check(theme === 'light' || fill[0] <= Math.max(l, M.SEED.color.derive.above + M.SEED.color.lift) + 1e-9, `stages: a seed at lightness ${l.toFixed(2)} is lifted to ${fill[0].toFixed(2)} at night`);
+    }
+  }
+  check(sn > 1500, `stages: only ${sn} seeds were checked`);
+  check(lowInk[0] >= 4.5, `stages: the ink of a stage seeded oklch(${lowInk.slice(3).map(x => +x.toFixed(2)).join(' ')}) is ${lowInk[0].toFixed(2)}:1 on --${lowInk[2]} in ${lowInk[1]}, under 4.5`);
+  check(far[0] < 0.1, `stages: a stage seeded oklch(${far.slice(2).map(x => +x.toFixed(2)).join(' ')}) leaves sRGB by ${far[0].toFixed(3)} in ${far[1]}`);
 }
 for (const [k, name] of [['lineH1', '--lh-h1'], ['lineHeadingStep', '--lh-h-step'], ['lineBody', '--lh-body'], ['lineParagraphStep', '--lh-p-step'], ['lineLabel', '--lh-label'], ['afterH1', '--mb-h1'], ['afterHeadingStep', '--mb-h-step']])
   check(parseFloat(coreDefaults.get(name)) === M.SEED.type[k], `math.js's ${k} is ${M.SEED.type[k]}; core's ${name} is ${coreDefaults.get(name)}`);

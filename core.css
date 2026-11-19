@@ -195,7 +195,7 @@
     /* Seeds: one color each, in its light-theme form. A product sets the accent. The others follow
        from it, and a product may set any of them in its place (--seed-neutral, --seed-person, …,
        --seed-ground and --seed-ink, the neutral for grounds and for text, and --seed-night, the ground at
-       night). They have no default:
+       night; --seed-stage-1 to -7, the steps of a process). They have no default:
        one a layer set carries into its scopes; one it left follows each scope's accent. Never a role. */
     --seed-accent: oklch(.553 .166 258.4);
     --color-lift: .17;   /* how much lighter a hue is in the dark theme */
@@ -212,7 +212,8 @@
 
     /* The seeds that follow from the accent. Each takes its lightness, kept clear of the ink flip so
        its ink reads; a kind is the accent turned around the hue wheel, with no more chroma than sRGB
-       holds at its hue; a status keeps its own hue; the neutral is a trace of the accent's hue. */
+       holds at its hue; a status keeps its own hue; the neutral is a trace of the accent's hue; a
+       stage is the accent turned an eighth of the wheel further than the stage before it. */
     --derived-base: oklch(from var(--seed-accent) calc((1 - clamp(0, (l - var(--ink-flip)) * 1000, 1)) * clamp(.61 - var(--color-lift), l, .54) + clamp(0, (l - var(--ink-flip)) * 1000, 1) * max(l, .61)) c h);   /* the accent, its lightness kept clear of the flip */
     --derived-accent-night: oklch(from var(--seed-accent) calc(l + var(--color-lift)) c h);   /* the accent at night, unless a product gives it a night of its own (D98) */
     --derived-neutral: oklch(from var(--seed-accent) .55 .004 h);
@@ -224,6 +225,13 @@
     --derived-ok: oklch(from var(--derived-base) l min(clamp(.1, c * .9, .17), l * .2585333) 152);
     --derived-warn: oklch(from var(--derived-base) l min(clamp(.1, c * .9, .17), l * .2133333) 70);
     --derived-alert: oklch(from var(--derived-base) l min(clamp(.1, c * .9, .17), l * .387) 30);
+    --derived-stage-1: oklch(from var(--derived-base) l min(c * .85, l * (.274 - .0032667 * clamp(0, h, 15) - .0011667 * clamp(0, h - 15, 30) + .0013 * clamp(0, h - 45, 30) + .004 * clamp(0, h - 75, 15) - .0014 * clamp(0, h - 90, 15) - .0047333 * clamp(0, h - 105, 15) - .0012667 * clamp(0, h - 120, 30) - .0001667 * clamp(0, h - 150, 30) + .0048333 * clamp(0, h - 180, 30) + .0066667 * clamp(0, h - 210, 15) - .0004 * clamp(0, h - 315, 30) - .0075333 * clamp(0, h - 345, 15))) calc(h + 45));
+    --derived-stage-2: oklch(from var(--derived-base) l min(c * .85, l * (.19 + .0013 * clamp(0, h, 30) + .004 * clamp(0, h - 30, 15) - .0014 * clamp(0, h - 45, 15) - .0047333 * clamp(0, h - 60, 15) - .0012667 * clamp(0, h - 75, 30) - .0001667 * clamp(0, h - 105, 30) + .0048333 * clamp(0, h - 135, 30) + .0066667 * clamp(0, h - 165, 15) - .0004 * clamp(0, h - 270, 30) - .0075333 * clamp(0, h - 300, 15) - .0032667 * clamp(0, h - 315, 15) - .0011667 * clamp(0, h - 330, 30))) calc(h + 90));
+    --derived-stage-3: oklch(from var(--derived-base) l min(c * .85, l * (.289 - .0014 * clamp(0, h, 15) - .0047333 * clamp(0, h - 15, 15) - .0012667 * clamp(0, h - 30, 30) - .0001667 * clamp(0, h - 60, 30) + .0048333 * clamp(0, h - 90, 30) + .0066667 * clamp(0, h - 120, 15) - .0004 * clamp(0, h - 225, 30) - .0075333 * clamp(0, h - 255, 15) - .0032667 * clamp(0, h - 270, 15) - .0011667 * clamp(0, h - 285, 30) + .0013 * clamp(0, h - 315, 30) + .004 * clamp(0, h - 345, 15))) calc(h + 135));
+    --derived-stage-4: oklch(from var(--derived-base) l min(c * .85, l * (.178 - .0012667 * clamp(0, h, 15) - .0001667 * clamp(0, h - 15, 30) + .0048333 * clamp(0, h - 45, 30) + .0066667 * clamp(0, h - 75, 15) - .0004 * clamp(0, h - 180, 30) - .0075333 * clamp(0, h - 210, 15) - .0032667 * clamp(0, h - 225, 15) - .0011667 * clamp(0, h - 240, 30) + .0013 * clamp(0, h - 270, 30) + .004 * clamp(0, h - 300, 15) - .0014 * clamp(0, h - 315, 15) - .0047333 * clamp(0, h - 330, 15) - .0012667 * clamp(0, h - 345, 15))) calc(h + 180));
+    --derived-stage-5: oklch(from var(--derived-base) l min(c * .85, l * (.154 + .0048333 * clamp(0, h, 30) + .0066667 * clamp(0, h - 30, 15) - .0004 * clamp(0, h - 135, 30) - .0075333 * clamp(0, h - 165, 15) - .0032667 * clamp(0, h - 180, 15) - .0011667 * clamp(0, h - 195, 30) + .0013 * clamp(0, h - 225, 30) + .004 * clamp(0, h - 255, 15) - .0014 * clamp(0, h - 270, 15) - .0047333 * clamp(0, h - 285, 15) - .0012667 * clamp(0, h - 300, 30) - .0001667 * clamp(0, h - 330, 30))) calc(h + 225));
+    --derived-stage-6: oklch(from var(--derived-base) l min(c * .85, l * (.399 - .0004 * clamp(0, h - 90, 30) - .0075333 * clamp(0, h - 120, 15) - .0032667 * clamp(0, h - 135, 15) - .0011667 * clamp(0, h - 150, 30) + .0013 * clamp(0, h - 180, 30) + .004 * clamp(0, h - 210, 15) - .0014 * clamp(0, h - 225, 15) - .0047333 * clamp(0, h - 240, 15) - .0012667 * clamp(0, h - 255, 30) - .0001667 * clamp(0, h - 285, 30) + .0048333 * clamp(0, h - 315, 30) + .0066667 * clamp(0, h - 345, 15))) calc(h + 270));
+    --derived-stage-7: oklch(from var(--derived-base) l min(c * .85, l * (.399 - .0004 * clamp(0, h - 45, 30) - .0075333 * clamp(0, h - 75, 15) - .0032667 * clamp(0, h - 90, 15) - .0011667 * clamp(0, h - 105, 30) + .0013 * clamp(0, h - 135, 30) + .004 * clamp(0, h - 165, 15) - .0014 * clamp(0, h - 180, 15) - .0047333 * clamp(0, h - 195, 15) - .0012667 * clamp(0, h - 210, 30) - .0001667 * clamp(0, h - 240, 30) + .0048333 * clamp(0, h - 270, 30) + .0066667 * clamp(0, h - 300, 15))) calc(h + 315));
 
     /* Neutral roles: a seed's hue and chroma at a lightness for each theme. Grounds and edges take the ground seed (the night seed at night, lifted by --night-lift), text the ink seed; all follow the neutral unless set */
     --bg: light-dark(oklch(from var(--seed-ground, var(--seed-neutral, var(--derived-neutral))) calc(.973 - var(--day-depth)) c h), oklch(from var(--seed-night, var(--seed-ground, var(--seed-neutral, var(--derived-neutral)))) calc(.176 + var(--night-lift)) c h));
@@ -252,6 +260,29 @@
     --ok: light-dark(var(--seed-ok, var(--derived-ok)), oklch(from var(--seed-ok, var(--derived-ok)) calc(l + var(--color-lift)) c h));
     --warn: light-dark(var(--seed-warn, var(--derived-warn)), oklch(from var(--seed-warn, var(--derived-warn)) calc(l + var(--color-lift)) c h));
     --alert: light-dark(var(--seed-alert, var(--derived-alert)), oklch(from var(--seed-alert, var(--derived-alert)) calc(l + var(--color-lift)) c h));
+
+    /* Stages: the steps of a process, in order. A fill (the seed, lifted in the dark no further than a derived seed is, so a pale one stays), an ink that reads as text in both themes, and a tint: the fill at a share */
+    --stage-1: light-dark(var(--seed-stage-1, var(--derived-stage-1)), oklch(from var(--seed-stage-1, var(--derived-stage-1)) max(l, min(l + var(--color-lift), .61 + var(--color-lift))) calc(c * min(1, (1 - max(l, min(l + var(--color-lift), .61 + var(--color-lift)))) / max(1 - l, .001))) h));
+    --stage-1-ink: light-dark(oklch(from var(--seed-stage-1, var(--derived-stage-1)) min(l, .48) calc(c * min(1, .48 / max(l, .001))) h), oklch(from var(--seed-stage-1, var(--derived-stage-1)) max(l, .76) calc(c * min(1, (1 - max(l, .76)) / max(1 - l, .001))) h));
+    --stage-1-tint: color-mix(in oklab, var(--stage-1) 14%, transparent);
+    --stage-2: light-dark(var(--seed-stage-2, var(--derived-stage-2)), oklch(from var(--seed-stage-2, var(--derived-stage-2)) max(l, min(l + var(--color-lift), .61 + var(--color-lift))) calc(c * min(1, (1 - max(l, min(l + var(--color-lift), .61 + var(--color-lift)))) / max(1 - l, .001))) h));
+    --stage-2-ink: light-dark(oklch(from var(--seed-stage-2, var(--derived-stage-2)) min(l, .48) calc(c * min(1, .48 / max(l, .001))) h), oklch(from var(--seed-stage-2, var(--derived-stage-2)) max(l, .76) calc(c * min(1, (1 - max(l, .76)) / max(1 - l, .001))) h));
+    --stage-2-tint: color-mix(in oklab, var(--stage-2) 14%, transparent);
+    --stage-3: light-dark(var(--seed-stage-3, var(--derived-stage-3)), oklch(from var(--seed-stage-3, var(--derived-stage-3)) max(l, min(l + var(--color-lift), .61 + var(--color-lift))) calc(c * min(1, (1 - max(l, min(l + var(--color-lift), .61 + var(--color-lift)))) / max(1 - l, .001))) h));
+    --stage-3-ink: light-dark(oklch(from var(--seed-stage-3, var(--derived-stage-3)) min(l, .48) calc(c * min(1, .48 / max(l, .001))) h), oklch(from var(--seed-stage-3, var(--derived-stage-3)) max(l, .76) calc(c * min(1, (1 - max(l, .76)) / max(1 - l, .001))) h));
+    --stage-3-tint: color-mix(in oklab, var(--stage-3) 14%, transparent);
+    --stage-4: light-dark(var(--seed-stage-4, var(--derived-stage-4)), oklch(from var(--seed-stage-4, var(--derived-stage-4)) max(l, min(l + var(--color-lift), .61 + var(--color-lift))) calc(c * min(1, (1 - max(l, min(l + var(--color-lift), .61 + var(--color-lift)))) / max(1 - l, .001))) h));
+    --stage-4-ink: light-dark(oklch(from var(--seed-stage-4, var(--derived-stage-4)) min(l, .48) calc(c * min(1, .48 / max(l, .001))) h), oklch(from var(--seed-stage-4, var(--derived-stage-4)) max(l, .76) calc(c * min(1, (1 - max(l, .76)) / max(1 - l, .001))) h));
+    --stage-4-tint: color-mix(in oklab, var(--stage-4) 14%, transparent);
+    --stage-5: light-dark(var(--seed-stage-5, var(--derived-stage-5)), oklch(from var(--seed-stage-5, var(--derived-stage-5)) max(l, min(l + var(--color-lift), .61 + var(--color-lift))) calc(c * min(1, (1 - max(l, min(l + var(--color-lift), .61 + var(--color-lift)))) / max(1 - l, .001))) h));
+    --stage-5-ink: light-dark(oklch(from var(--seed-stage-5, var(--derived-stage-5)) min(l, .48) calc(c * min(1, .48 / max(l, .001))) h), oklch(from var(--seed-stage-5, var(--derived-stage-5)) max(l, .76) calc(c * min(1, (1 - max(l, .76)) / max(1 - l, .001))) h));
+    --stage-5-tint: color-mix(in oklab, var(--stage-5) 14%, transparent);
+    --stage-6: light-dark(var(--seed-stage-6, var(--derived-stage-6)), oklch(from var(--seed-stage-6, var(--derived-stage-6)) max(l, min(l + var(--color-lift), .61 + var(--color-lift))) calc(c * min(1, (1 - max(l, min(l + var(--color-lift), .61 + var(--color-lift)))) / max(1 - l, .001))) h));
+    --stage-6-ink: light-dark(oklch(from var(--seed-stage-6, var(--derived-stage-6)) min(l, .48) calc(c * min(1, .48 / max(l, .001))) h), oklch(from var(--seed-stage-6, var(--derived-stage-6)) max(l, .76) calc(c * min(1, (1 - max(l, .76)) / max(1 - l, .001))) h));
+    --stage-6-tint: color-mix(in oklab, var(--stage-6) 14%, transparent);
+    --stage-7: light-dark(var(--seed-stage-7, var(--derived-stage-7)), oklch(from var(--seed-stage-7, var(--derived-stage-7)) max(l, min(l + var(--color-lift), .61 + var(--color-lift))) calc(c * min(1, (1 - max(l, min(l + var(--color-lift), .61 + var(--color-lift)))) / max(1 - l, .001))) h));
+    --stage-7-ink: light-dark(oklch(from var(--seed-stage-7, var(--derived-stage-7)) min(l, .48) calc(c * min(1, .48 / max(l, .001))) h), oklch(from var(--seed-stage-7, var(--derived-stage-7)) max(l, .76) calc(c * min(1, (1 - max(l, .76)) / max(1 - l, .001))) h));
+    --stage-7-tint: color-mix(in oklab, var(--stage-7) 14%, transparent);
 
     /* Gradients: an interpolation space and stops. Add a direction or a shape: linear-gradient(to right var(--gradient-accent)) */
     --gradient-accent: in var(--gradient-space), var(--accent), oklch(from var(--accent) l c calc(h + var(--gradient-turn)));
@@ -284,6 +315,20 @@
       --ok: light-dark(#088543, #53ba75);
       --warn: light-dark(#986106, #cf944a);
       --alert: light-dark(#b54436, #f07968);
+      --stage-1: light-dark(#8056b1, #ad94cf);
+      --stage-1-ink: light-dark(#6d4997, #bba6d8);
+      --stage-2: light-dark(#a7477c, #cc8bab);
+      --stage-2-ink: light-dark(#8f3b69, #d59eb9);
+      --stage-3: light-dark(#b14933, #d38d7d);
+      --stage-3-ink: light-dark(#973d2a, #dca193);
+      --stage-4: light-dark(#916508, #b99d70);
+      --stage-4-ink: light-dark(#7b5606, #c5ad88);
+      --stage-5: light-dark(#607a06, #97aa70);
+      --stage-5-ink: light-dark(#516804, #a8b989);
+      --stage-6: light-dark(#138263, #78af9a);
+      --stage-6-ink: light-dark(#0f6e54, #90bdab);
+      --stage-7: light-dark(#227b8c, #7babb6);
+      --stage-7-ink: light-dark(#1c6877, #92b9c2);
       --gradient-accent: in oklab, var(--accent), var(--accent);
       --gradient-surface: in oklab, var(--bg-raised), var(--bg-sunken);
     }
@@ -1689,6 +1734,14 @@
   .tag.cc-ok     { --tag-color: var(--ok); }
   .tag.cc-warn   { --tag-color: var(--warn); }
   .tag.cc-alert  { --tag-color: var(--alert); }
+  /* A stage (D107): the tint, the edge and, solid, the fill and its ink all follow the one color. */
+  .tag.cc-stage-1 { --tag-color: var(--stage-1); }
+  .tag.cc-stage-2 { --tag-color: var(--stage-2); }
+  .tag.cc-stage-3 { --tag-color: var(--stage-3); }
+  .tag.cc-stage-4 { --tag-color: var(--stage-4); }
+  .tag.cc-stage-5 { --tag-color: var(--stage-5); }
+  .tag.cc-stage-6 { --tag-color: var(--stage-6); }
+  .tag.cc-stage-7 { --tag-color: var(--stage-7); }
   /* emphasis */
   .tag.cc-outline { --tag-fill: 0%; }
   .tag.cc-solid, .tag:is([aria-pressed="true"], [aria-current]:not([aria-current="false"])) {
@@ -2610,6 +2663,23 @@
     background: var(--dot-fill) padding-box;
   }
   .dot.cc-ring.cc-quiet { --dot-color: var(--text-tertiary); }
+  /* Stages (.cc-stage-1 to -7, D107): a step of a process, in its product's
+     color. A dot is the stage's fill, which may be pale. A ring is a line, so it
+     takes the stage's ink, which reads on every ground. */
+  .dot.cc-stage-1 { --dot-color: var(--stage-1); }
+  .dot.cc-stage-2 { --dot-color: var(--stage-2); }
+  .dot.cc-stage-3 { --dot-color: var(--stage-3); }
+  .dot.cc-stage-4 { --dot-color: var(--stage-4); }
+  .dot.cc-stage-5 { --dot-color: var(--stage-5); }
+  .dot.cc-stage-6 { --dot-color: var(--stage-6); }
+  .dot.cc-stage-7 { --dot-color: var(--stage-7); }
+  .dot.cc-ring.cc-stage-1 { --dot-color: var(--stage-1-ink); }
+  .dot.cc-ring.cc-stage-2 { --dot-color: var(--stage-2-ink); }
+  .dot.cc-ring.cc-stage-3 { --dot-color: var(--stage-3-ink); }
+  .dot.cc-ring.cc-stage-4 { --dot-color: var(--stage-4-ink); }
+  .dot.cc-ring.cc-stage-5 { --dot-color: var(--stage-5-ink); }
+  .dot.cc-ring.cc-stage-6 { --dot-color: var(--stage-6-ink); }
+  .dot.cc-ring.cc-stage-7 { --dot-color: var(--stage-7-ink); }
 
   /* Skeleton: a surface's real structure, shimmering, while its data is on its
      way. A text slot keeps its role, so its block settles to the same cells and

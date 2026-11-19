@@ -49,8 +49,13 @@
       derive: {
         below: 0.54, above: 0.61, kind: 0.85, turn: { person: 144, group: 288, event: 72, course: 216 }, topic: -0.045,
         status: 0.9, statusMin: 0.1, statusMax: 0.17, statuses: { ok: 152, warn: 70, alert: 30 },
+        stage: 0.85, stages: { 1: 45, 2: 90, 3: 135, 4: 180, 5: 225, 6: 270, 7: 315 },
         tint: 0.004, limit: [[0, 0.399], [30, 0.387], [45, 0.274], [60, 0.225], [90, 0.19], [120, 0.229], [135, 0.289], [150, 0.268], [165, 0.197], [195, 0.159], [225, 0.154], [255, 0.299], [270, 0.399], [360, 0.399]]
-      }
+      },
+      // Stages (D107): what follows from a stage's seed. Its ink is no lighter
+      // than ink[0] by day and no darker than ink[1] at night; its tint is its
+      // fill at this share.
+      stage: { ink: [0.48, 0.76], tint: 0.14 }
     }
   };
 
@@ -276,6 +281,28 @@
     var s = parseColor(seedColor), lift = (seed || SEED).color.lift;
     return theme === 'dark' ? [Math.min(s[0] + lift, 1), s[1], s[2]] : s;
   }
+  // A color at another lightness, its chroma moved with it: toward black in
+  // step with the lightness, toward white in step with what is left of it. A
+  // color inside sRGB stays inside, near enough, at any hue.
+  function shade(c, l) {
+    return [l, c[1] * (l < c[0] ? l / Math.max(c[0], 0.001) : Math.min(1, (1 - l) / Math.max(1 - c[0], 0.001))), c[2]];
+  }
+  // A stage (D107): a step of a process, in a color a product may make pale.
+  //   stage     its fill: the seed, and in the dark the seed lifted, but no
+  //             further than a derived seed is lifted, so a pale one stays put
+  //   stageInk  the same hue where it reads as text: no lighter than ink[0] by
+  //             day, no darker than ink[1] at night
+  // A seed made before there were stages has none of their numbers: core's stand in.
+  function stageOf(seed) { return (seed || SEED).color.stage || SEED.color.stage; }
+  function stagesOf(seed) { var d = (seed || SEED).color.derive; return d.stages ? d : SEED.color.derive; }
+  function stage(seedColor, theme, seed) {
+    var s = parseColor(seedColor), col = (seed || SEED).color;
+    return theme === 'dark' ? shade(s, Math.max(s[0], Math.min(s[0] + col.lift, col.derive.above + col.lift))) : s;
+  }
+  function stageInk(seedColor, theme, seed) {
+    var s = parseColor(seedColor), ends = stageOf(seed).ink;
+    return theme === 'dark' ? shade(s, Math.max(s[0], ends[1])) : shade(s, Math.min(s[0], ends[0]));
+  }
   // Ink on a fill: white below the flip, a dark ink of the fill's hue above it.
   function ink(fill, seed) {
     var f = parseColor(fill), flip = (seed || SEED).color.flip;
@@ -302,17 +329,19 @@
     while (i < k.length - 2 && k[i + 1][0] <= x) i++;
     return l * (k[i][1] + (k[i + 1][1] - k[i][1]) * (x - k[i][0]) / (k[i + 1][0] - k[i][0]));
   }
-  function follow(accent, turn, seed) {
+  function follow(accent, turn, seed, share) {
     var a = parseColor(accent), d = (seed || SEED).color.derive, l = clear(a[0], seed), h = mod(a[2] + turn, 360);
-    return [l, Math.min(a[1] * d.kind, chromaLimit(l, h, seed)), h];
+    return [l, Math.min(a[1] * (share === undefined ? d.kind : share), chromaLimit(l, h, seed)), h];
   }
-  // The nine seeds that follow from the accent.
+  // The seeds that follow from the accent.
   //   neutral  the accent's hue, a trace of chroma (its lightness is not used)
   //   kinds    person, group, event and course follow the accent, each turned
   //            its own way; topic is the accent a step darker, with the
   //            chroma that fits there
   //   statuses their own hues, the accent's lightness, a share of its chroma
   //            held between two ends and under what sRGB holds at that hue
+  //   stages   stage-1 to stage-7, the steps of a process in order: each the
+  //            accent turned an eighth of the wheel further than the last (D107)
   function derived(seed) {
     var col = (seed || SEED).color, d = col.derive, a = parseColor(col.seeds.accent), l = clear(a[0], seed), out = {}, k;
     out.neutral = [0.55, d.tint, a[2]];
@@ -320,6 +349,8 @@
     var tl = clear(a[0] + d.topic, seed);
     out.topic = [tl, a[1] * Math.min(1, tl / a[0]), a[2]];
     for (k in d.statuses) out[k] = [l, Math.min(clamp(d.statusMin, a[1] * d.status, d.statusMax), chromaLimit(l, d.statuses[k], seed)), d.statuses[k]];
+    var sg = stagesOf(seed);
+    for (k in sg.stages) out['stage-' + k] = follow(a, sg.stages[k], seed, sg.stage);
     return out;
   }
   // All the seeds: the accent, and each of the others as it was set, or as it
@@ -360,6 +391,7 @@
     out.focus = out.accent;
     ['person', 'group', 'event', 'course', 'topic'].forEach(function (k) { out['kind-' + k] = hue(s[k], theme, seed); });
     ['ok', 'warn', 'alert'].forEach(function (k) { out[k] = hue(s[k], theme, seed); });
+    Object.keys(stagesOf(seed).stages).forEach(function (k) { out['stage-' + k] = stage(s['stage-' + k], theme, seed); out['stage-' + k + '-ink'] = stageInk(s['stage-' + k], theme, seed); });
     return out;
   }
 
@@ -370,16 +402,19 @@
     var seeds = {}, neutrals = {};
     Object.keys(col.seed).forEach(function (k) { if (k[0] !== '$') seeds[k] = triple(col.seed[k].$value); });
     Object.keys(col.neutral).forEach(function (k) { if (k[0] !== '$') neutrals[k] = [col.neutral[k].light.$value, col.neutral[k].dark.$value]; });
-    var d = col.derive, turn = {}, statuses = {};
+    var d = col.derive, turn = {}, statuses = {}, stages = {};
     Object.keys(d['kind-turn']).forEach(function (k) { if (k[0] !== '$') turn[k] = d['kind-turn'][k].$value; });
     Object.keys(d['status-hue']).forEach(function (k) { if (k[0] !== '$') statuses[k] = d['status-hue'][k].$value; });
+    Object.keys(d['stage-turn']).forEach(function (k) { if (k[0] !== '$') stages[k] = d['stage-turn'][k].$value; });
     var derive = { below: v(d, 'clear-below'), above: v(d, 'clear-above'), kind: v(d, 'kind-chroma'), turn: turn, topic: v(d, 'topic-step'),
       status: v(d, 'status-chroma'), statusMin: v(d, 'status-chroma-min'), statusMax: v(d, 'status-chroma-max'), statuses: statuses,
+      stage: v(d, 'stage-chroma'), stages: stages,
       tint: v(d, 'neutral-chroma'), limit: Object.keys(d.limit).filter(function (k) { return k[0] !== '$'; }).map(function (k) { return [+k, d.limit[k].$value]; }).sort(function (a, b) { return a[0] - b[0]; }) };
     var seven = { h1: v(t, 'h1-wide'), body: v(t, 'body-wide'), label: v(t, 'label-wide'), ratio: [v(t, 'heading-ratio-narrow'), v(t, 'heading-ratio-wide')],
       spaceNarrow: v(t, 'space-narrow'), spaceWide: v(t, 'space-wide') };
     return {
-      color: { seeds: seeds, lift: v(col, 'lift'), flip: v(col, 'ink-flip'), nightLift: v(col, 'night-lift'), dayDepth: v(col, 'day-depth'), neutrals: neutrals, derive: derive },
+      color: { seeds: seeds, lift: v(col, 'lift'), flip: v(col, 'ink-flip'), nightLift: v(col, 'night-lift'), dayDepth: v(col, 'day-depth'), neutrals: neutrals, derive: derive,
+        stage: { ink: [v(col.stage, 'ink-light'), v(col.stage, 'ink-dark')], tint: v(col.stage, 'tint') } },
       cell: { targetNarrow: v(c, 'target-narrow'), targetWide: v(c, 'target-wide'), screenNarrow: v(c, 'screen-narrow'), screenWide: v(c, 'screen-wide'), textScaleMax: v(c, 'text-scale-max') },
       frame: { max: v(tokens.frame, 'max'), module: SEED.frame.module },
       seven: seven,
@@ -393,7 +428,7 @@
     typeFrom: typeFrom, typeSteps: typeSteps, typeEnds: typeEnds, typeSize: typeSize, lineRatio: lineRatio, lineHeight: lineHeight,
     standPad: standPad, hang: hang, settleCluster: settleCluster, spaceAfter: spaceAfter, spaceAfterInStack: spaceAfterInStack,
     stands: stands, isHeading: isHeading, seedFromTokens: seedFromTokens,
-    parseColor: parseColor, hex: hex, contrast: contrast, hue: hue, ink: ink, palette: palette,
+    parseColor: parseColor, hex: hex, contrast: contrast, hue: hue, ink: ink, shade: shade, stage: stage, stageInk: stageInk, palette: palette,
     clear: clear, chromaLimit: chromaLimit, follow: follow, derived: derived, seeds: seeds, scope: scope
   };
 });

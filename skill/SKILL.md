@@ -28,6 +28,7 @@ Find the need here first. If it is here, use it and write no CSS for it.
 | One of several (a filter, a view switch) | `.tabs.cc-seg` > `.tab[aria-selected]`; plain `.tabs` for tabs |
 | A label, a status, a chip | `.tag` (kinds `.cc-ok`, `.cc-warn`, `.cc-alert`…; `.cc-solid`, `.cc-outline`) |
 | A status light, a count | `.dot` (`--dot-color`, `--dot-size`; `.cc-ring` for a state not yet reached, drawn as a ring), `.badge` |
+| A step of a process (idea, planned, underway, done…) | `.dot.cc-stage-1` … `.cc-stage-7`, `.tag.cc-stage-n`; words in the stage's color take `--stage-n-ink`, a wash `--stage-n-tint`, a fill `--stage-n`. The product layer sets `--seed-stage-1` … `-7`, pale colors included; map your status names to the numbers in markup. Never keep a status color list of your own |
 | A menu, a popover, a tooltip | `.float.options-card` > `.options-card-item`; `.float.tooltip`. Always a popover: `popover="manual"` and `Trellis.float.open(float, anchor)` from `float.js` (it places, flips, follows and closes it), or `.cc-anchor` with a `popovertarget` button. Never `position` or `z-index` of your own |
 | A dialog, a drawer, a bottom sheet | `dialog.modal` > `.modal-inner` > `.modal-header`, `.modal-body`, `.modal-footer`; `.cc-tray` with a side. Open with `showModal()` |
 | A person or group | `.avatar`, `.member-tile` |
@@ -66,7 +67,7 @@ What a number becomes, with the cell at 12px:
 | Corners 3 · 6 · 12 · 18 · 24 · pill | `--r-q` · `--r-h` · `--r-1` · `--r-1h` · `--r-2` · `--r-round` |
 | Small type in a control | `--fs-control-xs` … `--fs-control-lg` |
 | Grays, edges, fills | `--text`, `--text-secondary`, `--text-tertiary`, `--text-faint`, `--border`, `--border-subtle`, `--bg`, `--bg-raised`, `--bg-sunken` |
-| Hues | `--accent`, `--ok`, `--warn`, `--alert`, `--kind-*` |
+| Hues | `--accent`, `--ok`, `--warn`, `--alert`, `--kind-*`, `--stage-1` … `--stage-7` (with `-ink` and `-tint`) |
 | Time, stacking | `--dur-in`, `--dur-out`, `--ease-out`; `--z-raised`, `--z-sticky`, `--z-overlay`, `--z-float`, `--z-toast` |
 
 A design that asks for 26px or 10.5px gets the nearest token (24px, `--fs-control-xs`). If the nearest token is truly wrong, that is a gap in Trellis: see below.
