@@ -38,7 +38,7 @@ jobs:
       # align.js across the matrix, pixel.js, layout.js, layers.js, math.js and perf.js.
       - name: Run the matrix
         env:
-          # A shared runner is slower than a laptop, so the timing budgets widen.
+          # A shared runner is slower than a PC, so the timing budgets widen.
           # Being on the lines doesn't: that check never scales.
           PERF_SCALE: '4'
           JOBS: '2'

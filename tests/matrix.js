@@ -62,23 +62,33 @@ if (engines !== 'webkit') {
 if (engines !== 'chromium') {
   (quick ? WEBKIT.slice(2, 4) : WEBKIT).forEach(a => jobs.push(['align.js', url, ...a]));
   (quick ? PIXEL.slice(0, 1) : PIXEL).forEach(s => jobs.push(['pixel.js', url, s, 'webkit']));
-  jobs.push(['layers.js', url, 'webkit'], ['layout.js', url, 'webkit', '1440x900'], ['layout.js', url, 'webkit', '393x852', 'touch'], ['math.js', url, 'webkit'], ['perf.js', url, 'webkit']);
+  jobs.push(['layers.js', url, 'webkit'], ['layout.js', url, 'webkit', '1440x900'], ['layout.js', url, 'webkit', '393x852', 'touch'], ['math.js', url, 'webkit']);
 }
+// perf.js times the runtime, so it runs last and alone: beside three other
+// browsers it measured the suite as much as the code.
+const solo = engines !== 'chromium' ? [['perf.js', url, 'webkit']] : [];
+const total = jobs.length + solo.length;
 
-let next = 0, failed = 0, done = 0;
+let next = 0, failed = 0, done = 0, running = 0;
 function run() {
-  if (next >= jobs.length) return;
-  const args = jobs[next++];
+  if (next >= jobs.length) {
+    if (running === 0 && solo.length) start(solo.shift());
+    return;
+  }
+  start(jobs[next++]);
+}
+function start(args) {
+  running++;
   let out = '';
   const p = spawn(process.execPath, args.map((a, i) => (i ? a : path.join(__dirname, a))), { env: process.env });
   p.stdout.on('data', d => { out += d; });
   p.stderr.on('data', d => { out += d; });
   p.on('close', code => {
-    done++;
+    done++; running--;
     if (code) failed++;
     process.stdout.write((code ? 'FAIL ' : 'ok   ') + out.trimEnd() + '\n');
-    if (done === jobs.length) {
-      console.log(`\n${jobs.length - failed}/${jobs.length} passed`);
+    if (done === total) {
+      console.log(`\n${total - failed}/${total} passed`);
       process.exit(failed ? 1 : 0);
     }
     run();

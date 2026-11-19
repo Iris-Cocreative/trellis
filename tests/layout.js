@@ -843,7 +843,7 @@ const ready = require('./ready');
       if (stray >= 0) fails.push(`clamp: ${m.role}: ink ${((last + 1 + stray) / D).toFixed(1)}px under the last baseline, past its descenders: the hidden line shows`);
     });
   }
-  await browser.close();
+  await Promise.race([browser.close(), new Promise(r => setTimeout(r, 5000))]); // WebKit on Windows can hang on close
   console.log(`${engine} ${size}${touch ? ' touch' : ''}: layout ${fails.length ? fails.length + ' FAILED' : 'ok'}`);
   fails.forEach(f => console.log('  ' + f));
   process.exit(fails.length ? 1 : 0);

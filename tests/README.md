@@ -70,22 +70,22 @@ LAYER=mine=http://127.0.0.1:9000/styles/product.css node tests/matrix.js http://
 | WebKit `align.js` | 1440×900 neutral dark · 1280×800 Quarry dark, Outset · 393×852 touch Quarry light · 393×852 touch neutral dark, dial 14 · 440×956 touch Almanac light, math · 375×812 touch neutral dark, Outset · 852×393 touch Almanac dark, math, Outset · 393×852 touch neutral dark, text 312% · 1280×800 Almanac dark, text 312% |
 | WebKit `pixel.js` | 393×852 · 440×956 |
 | Both | `layers.js` · `layout.js` at 1440×900 and 393×852 touch · `math.js` |
-| WebKit | `perf.js` |
+| WebKit | `perf.js`, last and alone |
 
 ## What a pass looked like
 
-**2026-11-11, v0.8,** on a Windows laptop: Chromium through Playwright 1.62, WebKit through Playwright 1.60. The same machine ran v0.7 the same day, before the rename and the move, and every count below matched it.
+**2026-11-11, v0.8,** on a Windows PC: Chromium through Playwright 1.62, WebKit through Playwright 1.60. The same machine ran v0.7 the same day, before the rename and the move, and every count below matched it.
 
 - `align.js`: 0 off in all 17 runs, with 267 or 303 text blocks, 263 or 275 boxes and 89 or 90 prose blocks each (90 or 91 from v0.9, which adds a heading to the sample post).
 - `pixel.js`: 0 of 60 card edges off at both sizes. (The specimen has more cards; those in a rail or a board are skipped, since a scroller clips them.)
 - `layout.js`, `layers.js`, `contract.js`: ok.
-- `perf.js`: 0 of 5,000 blocks off their lines. Its timing budgets failed at the laptop's scale that day, in v0.7 and v0.8 alike, with the machine under other load: see Performance.
+- `perf.js`: 0 of 5,000 blocks off their lines. Its timing budgets failed at the PC's scale that day, in v0.7 and v0.8 alike, with the machine under other load: see Performance.
 
-**2026-11-07, v0.7,** same laptop: `align.js` 0 off in all 17 runs, `pixel.js` 0 of 60, the rest ok, and `perf.js` inside its budgets.
+**2026-11-07, v0.7,** same PC: `align.js` 0 off in all 17 runs, `pixel.js` 0 of 60, the rest ok, and `perf.js` inside its budgets.
 
 ## Performance
 
-`perf.js`: a page of 2,000 list rows and 2,000 text blocks, with system fonts. Each number is the time until everything is on its line; in brackets, the longest single frame, which is what a reader feels. 5 runs on the same laptop, 2026-11-07, v0.7; a phone will be slower. On 2026-11-11 the same laptop, busy with other work, took 4,000 to 7,700ms for the first settle in WebKit and 1,040ms in Chromium (v0.7 and v0.8 alike, since the runtime did not change), which is over the laptop budget: these timings depend on what else the machine is doing. Blocks off their lines stayed 0 of 5,000. Later that day, with the laptop quiet, one WebKit run was back inside the budgets: first settle 1,219ms, one changed row 63ms, 1,000 rows 474ms.
+`perf.js`: a page of 2,000 list rows and 2,000 text blocks, with system fonts. Each number is the time until everything is on its line; in brackets, the longest single frame, which is what a reader feels. 5 runs on the same PC, 2026-11-07, v0.7; a phone will be slower. On 2026-11-11 the same PC, busy with other work, took 4,000 to 7,700ms for the first settle in WebKit and 1,040ms in Chromium (v0.7 and v0.8 alike, since the runtime did not change), which is over the PC budget: these timings depend on what else the machine is doing. Blocks off their lines stayed 0 of 5,000. Later that day, with the PC quiet, one WebKit run was back inside the budgets: first settle 1,219ms, one changed row 63ms, 1,000 rows 474ms.
 
 | | WebKit (`settle.js` rounds) | Chromium (CSS rounds) |
 |---|---|---|
@@ -95,6 +95,24 @@ LAYER=mine=http://127.0.0.1:9000/styles/product.css node tests/matrix.js http://
 | Blocks off their lines, after each of those | 0 of 5,000 | 0 of 5,000 |
 
 Budgets in `perf.js`, scaled ×4 in CI because a shared runner is slower: first settle 1,500ms, one changed row 150ms and one 50ms frame, 1,000 added rows 1,000ms. Timings are budgets; being on the lines is not, and never scales.
+
+### Measuring on a busy machine
+
+One run is a sample, not a reading. `perf.js` judges the median of `PERF_RUNS` runs (3 by default), each on a fresh page, and prints every run's first settle beside the median. `matrix.js` runs it last and alone: until 2026-11-19 it ran beside three other browser tests, so it partly timed the suite itself.
+
+The absolute budgets only mean something on a quiet machine. To ask whether a change made the runtime slower while other work is running, serve a reference build (the last release, from a worktree) on a second port and compare against it. The two run alternately in the same browser, so both feel the same load:
+
+```bash
+git worktree add --detach ../trellis-base v0.10.0
+(cd ../trellis-base && python -m http.server 8792 --bind 127.0.0.1) &
+PERF_RUNS=5 PERF_BASE=http://127.0.0.1:8792/ node tests/perf.js http://127.0.0.1:8794/ webkit
+```
+
+Then each median is judged against the base's: no more than `PERF_TOLERANCE` (0.15) slower, and a row change also gets a frame's grace. Being on the lines is still checked in every run.
+
+On 2026-11-19 the development PC (20 cores, about 57% busy with 32 Claude processes and about 130 browser processes) measured, alone, five WebKit first settles of 1,725 to 1,872ms. Alternated with 0.10.0 it measured 1,347 to 2,204ms (median 1,582ms) against 0.10.0's 1,343 to 1,536ms (median 1,499ms): within the tolerance, so the runtime added since 0.10.0 costs no more than the noise. Run to run, the same build moved by up to a quarter on that machine.
+
+A WebKit browser on Windows sometimes never answers `browser.close()` once a test has finished. Every test now gives it five seconds and then exits, so a finished test cannot sit with no output. Each run also has two minutes to settle, or `perf.js` fails and says which run stalled.
 
 ### What the numbers changed
 

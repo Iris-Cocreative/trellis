@@ -45,6 +45,6 @@ const CASES = [
     if (!ok) bad++;
     console.log(`${ok ? 'ok  ' : 'FAIL'} ${engine} ${c.name}: utility ${utility ? 'wins' : 'loses'} (margin ${r.margin}px) · role ${role ? 'wins' : 'loses'} (${r.size}px over ${r.body}px body)`);
   }
-  await browser.close();
+  await Promise.race([browser.close(), new Promise(r => setTimeout(r, 5000))]); // WebKit on Windows can hang on close
   process.exit(bad ? 1 : 0);
 })();

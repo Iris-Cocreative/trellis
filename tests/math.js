@@ -223,7 +223,7 @@ const CASES = [
     r.fails.forEach(f => fails.push(`${size} ${product}${touch ? ' touch' : ''} dial ${dial}: ${f}`));
     await page.close();
   }
-  await browser.close();
+  await Promise.race([browser.close(), new Promise(r => setTimeout(r, 5000))]); // WebKit on Windows can hang on close
   console.log(`${engine} math: ${checked} checks across ${CASES.length} screens and layers · ${fails.length ? fails.length + ' FAILED' : 'ok'}`);
   fails.forEach(f => console.log('  ' + f));
   process.exit(fails.length ? 1 : 0);

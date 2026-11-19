@@ -60,7 +60,7 @@ const ready = require('./ready');
     }
     if (process.env.VERBOSE || Object.values(res).some(v => v !== '0')) console.log(`  card ${i}`, JSON.stringify(res));
   }
-  await browser.close();
+  await Promise.race([browser.close(), new Promise(r => setTimeout(r, 5000))]); // WebKit on Windows can hang on close
   console.log(`${engine} ${size} dial ${dial}: ${checked} card edges checked, ${off} off its grid line`);
   process.exit(off ? 1 : 0);
 })();

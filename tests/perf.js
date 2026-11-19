@@ -7,20 +7,25 @@
 // Usage: node perf.js <url> [webkit|chromium] [rows] [blocks]
 // Budgets are in BUDGET below; tests/README.md records the numbers. Exits 1 over
 // budget, or if anything ends up off a line. Timings vary by machine, so CI runs
-// it with PERF_SCALE to widen the budgets.
+// it with PERF_SCALE to widen the budgets. The budgets judge the median of
+// PERF_RUNS runs (3 by default), each on a fresh page in the same browser.
+// PERF_BASE=<url> compares against another served Trellis instead: see below.
 const pw = require(process.env.PLAYWRIGHT || 'playwright');
 const SCALE = Number(process.env.PERF_SCALE || 1);
 const BUDGET = { first: 1500 * SCALE, change: 150 * SCALE, add: 1000 * SCALE, changeFrame: 50 * SCALE };
+const RUNS = Math.max(1, Number(process.env.PERF_RUNS || 3));
 
 (async () => {
   const [url, engine = 'webkit', rows = '2000', blocks = '2000'] = process.argv.slice(2);
   if (!url) { console.error('usage: node perf.js <url> [webkit|chromium] [rows] [blocks]'); process.exit(2); }
   const browser = engine === 'webkit' ? await pw.webkit.launch() : await pw.chromium.launch(process.env.CHROME ? { executablePath: process.env.CHROME } : {});
-  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   const errors = [];
+  // One measurement on a fresh page; the budgets judge the median of RUNS of them.
+  const once = async (at = url) => {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   page.on('pageerror', e => errors.push(String(e)));
-  await page.goto(new URL('tests/README.md', url).href);
-  const base = new URL('.', url).href;
+  await page.goto(new URL('tests/README.md', at).href);
+  const base = new URL('.', at).href;
   // Built in the page so the first settle is timed from a known moment, not from
   // page load, and the fonts are the system's, so no font swap muddies the numbers.
   await page.setContent(`<!doctype html><html data-theme="light"><head><link rel="stylesheet" href="${base}core.css"></head>
@@ -83,15 +88,76 @@ const BUDGET = { first: 1500 * SCALE, change: 150 * SCALE, add: 1000 * SCALE, ch
     const afterAdd = lines();
     return { first, change, add, afterFirst, afterChange, afterAdd, shrank, shrankData, tall, short, afterShrink, settles: !!CSS.supports('height', 'calc-size(fit-content, size)') };
   }, { rows: +rows, blocks: +blocks });
-  await browser.close();
+  await page.close();
+  return r;
+  };
+
+  // Timings follow what else the machine is doing, so one run is a sample, not a
+  // reading: take the median of RUNS (PERF_RUNS, 3 by default). Being on the lines
+  // is not a timing, and must hold in every run.
+  // PERF_BASE=<url of another served Trellis, such as the last release> runs it
+  // alternately with this one, in the same browser at the same moment, so both
+  // feel the same load; then the budgets are relative: no median more than
+  // PERF_TOLERANCE (0.15 by default) slower than the base's. That is the
+  // question a change asks on a busy machine: did this make it slower?
+  const BASE = process.env.PERF_BASE;
+  const TOL = Number(process.env.PERF_TOLERANCE || .15);
+  // A run that has not settled in two minutes has stalled (a loaded machine has
+  // done it): fail and say so, rather than sit with no output.
+  // Each run prints as it ends (on stderr, so the summary stays one line), so a
+  // stall shows where it happened.
+  const run = async at => {
+    const t = Date.now();
+    let timer;
+    const r = await Promise.race([once(at), new Promise((_, no) => { timer = setTimeout(() => no(new Error(`a run at ${at || url} did not settle in 120s`)), 120000); })]);
+    clearTimeout(timer);
+    console.error(`  run ${at || url}: first settle ${Math.round(r.first.total)}ms, ${Math.round((Date.now() - t) / 1000)}s in all`);
+    return r;
+  };
+  const all = [], ref = [];
+  try {
+    for (let i = 0; i < RUNS; i++) {
+      if (BASE && i % 2) ref.push(await run(BASE));
+      all.push(await run());
+      if (BASE && !(i % 2)) ref.push(await run(BASE));
+    }
+  } catch (e) {
+    // A stalled browser may not close either: give it five seconds, then go.
+    console.log(`${engine}: ${e.message}`);
+    await Promise.race([browser.close(), new Promise(r => setTimeout(r, 5000))]);
+    process.exit(1);
+  }
+  await Promise.race([browser.close(), new Promise(r => setTimeout(r, 5000))]); // WebKit on Windows can hang on close
+  const sum = runs => {
+    const median = pick => { const v = runs.map(pick).sort((a, b) => a - b); return v[Math.floor(v.length / 2)]; };
+    const mid = k => ({ total: median(x => x[k].total), longest: median(x => x[k].longest) });
+    const worst = k => ({ off: Math.max(...runs.map(x => x[k].off)), all: runs[0][k].all });
+    return { ...runs[0], first: mid('first'), change: mid('change'), add: mid('add'),
+      afterFirst: worst('afterFirst'), afterChange: worst('afterChange'), afterAdd: worst('afterAdd'), afterShrink: worst('afterShrink'),
+      shrank: runs.every(x => x.shrank), shrankData: runs.every(x => x.shrankData) };
+  };
+  const r = sum(all);
 
   const f = v => Math.round(v.total) + 'ms (longest frame ' + Math.round(v.longest) + 'ms)';
-  console.log(`${engine} ${rows} rows + ${blocks} blocks: first settle ${f(r.first)} · one row changed ${f(r.change)} · 1000 rows added ${f(r.add)} · off the lines ${r.afterFirst.off}, ${r.afterChange.off}, ${r.afterAdd.off} of ${r.afterAdd.all}${r.settles ? ' (rounds in CSS)' : ''}`);
+  const firsts = runs => runs.map(x => Math.round(x.first.total)).join(', ');
+  console.log(`${engine} ${rows} rows + ${blocks} blocks, median of ${RUNS} (first settles ${firsts(all)}ms): first settle ${f(r.first)} · one row changed ${f(r.change)} · 1000 rows added ${f(r.add)} · off the lines ${r.afterFirst.off}, ${r.afterChange.off}, ${r.afterAdd.off} of ${r.afterAdd.all}${r.settles ? ' (rounds in CSS)' : ''}`);
   const over = [];
-  if (r.first.total > BUDGET.first) over.push(`first settle over ${BUDGET.first}ms`);
-  if (r.change.total > BUDGET.change) over.push(`one changed row over ${BUDGET.change}ms`);
-  if (r.change.longest > BUDGET.changeFrame) over.push(`one changed row held a frame over ${BUDGET.changeFrame}ms`);
-  if (r.add.total > BUDGET.add) over.push(`1000 added rows over ${BUDGET.add}ms`);
+  if (BASE) {
+    const b = sum(ref);
+    const pct = (a, z) => Math.round((a / z - 1) * 100);
+    console.log(`  base ${BASE}, alternated (first settles ${firsts(ref)}ms): first settle ${f(b.first)} · one row changed ${f(b.change)} · 1000 rows added ${f(b.add)}`);
+    console.log(`  against the base: first settle ${pct(r.first.total, b.first.total)}%, one row changed ${pct(r.change.total, b.change.total)}%, 1000 rows added ${pct(r.add.total, b.add.total)}%`);
+    // A row change is tens of milliseconds, where a frame's jitter is a large share,
+    // so it is judged with a floor of a frame on top of the tolerance.
+    if (r.first.total > b.first.total * (1 + TOL)) over.push(`first settle more than ${TOL * 100}% slower than the base`);
+    if (r.change.total > b.change.total * (1 + TOL) + 17) over.push(`one changed row more than ${TOL * 100}% and a frame slower than the base`);
+    if (r.add.total > b.add.total * (1 + TOL)) over.push(`1000 added rows more than ${TOL * 100}% slower than the base`);
+  } else {
+    if (r.first.total > BUDGET.first) over.push(`first settle over ${BUDGET.first}ms`);
+    if (r.change.total > BUDGET.change) over.push(`one changed row over ${BUDGET.change}ms`);
+    if (r.change.longest > BUDGET.changeFrame) over.push(`one changed row held a frame over ${BUDGET.changeFrame}ms`);
+    if (r.add.total > BUDGET.add) over.push(`1000 added rows over ${BUDGET.add}ms`);
+  }
   if (r.afterFirst.off || r.afterChange.off || r.afterAdd.off || r.afterShrink.off) over.push('something ended up off a line');
   if (!r.shrank) over.push(`a block did not shrink with its text: ${r.tall}px to ${r.short}px`);
   if (!r.shrankData) over.push('a block did not shrink when its text node changed');
