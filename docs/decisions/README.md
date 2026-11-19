@@ -117,3 +117,4 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D103](D103.md) | A ring is a dot not yet filled | 2026-11-19 | accepted |
 | [D104](D104.md) | A row's mark sits on its first line | 2026-11-19 | accepted |
 | [D105](D105.md) | A clamp is clipped from the top | 2026-11-19 | accepted |
+| [D106](D106.md) | A prose gallery is images and nothing else | 2026-11-19 | accepted |

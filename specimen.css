@@ -189,6 +189,16 @@
   .demo-tiles { --grid-min: calc(var(--u) * 28); }
   .demo-list-mark .dot { --dot-size: calc(var(--u) * .75); }
   .demo-list-center { --list-align: center; }
+  /* A record named in a sentence: the specimen's own inline atom, on tokens. */
+  .demo-chip {
+    display: inline-flex; align-items: center; gap: var(--sp-q);
+    max-inline-size: 100%; min-height: var(--size-control-xs); padding-inline: var(--sp-h);
+    border-radius: var(--r-round);
+    background: color-mix(in oklab, var(--text) 8%, transparent);
+    color: var(--text); font-size: var(--fs-control-sm); line-height: 1; text-decoration: none;
+    vertical-align: middle;
+  }
+  .demo-chip > .dot { --dot-size: calc(var(--u) * .75); }
   .demo-skel-avatar { --skel-w: var(--sp-4); --skel-h: var(--sp-4); --skel-radius: 50%; }
   /* Ring dots: a mark beside its word, the sizes, and marks on a line. */
   .demo-rings { --stack-gap: var(--sp-2); }

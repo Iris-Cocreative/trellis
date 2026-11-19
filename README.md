@@ -200,7 +200,7 @@ Our apps carry rich content from editors and markdown, which arrives as bare tag
 | `pre` | a surface with one cell of padding, so it steps out like a card (rule 5) |
 | `table` | a lattice: every line in a cell is whole cells, so rows stand on the grid; a wide table scrolls inside itself |
 | `figure`, `img`, `video` | full width, corners from `--shape-card`; a caption hangs from the next line |
-| two or more images in a `figure` or a `p` | a gallery of whole-cell squares, cropped (3 across, 2 in a narrow container) |
+| two or more images in a `figure`, or alone in a `p` | a gallery of whole-cell squares, cropped (3 across, 2 in a narrow container). An image counts alone or inside a link. A paragraph is a gallery only when images are all it holds (images, links with no class, a break): two links in a sentence do not make one, and a tag, a chip, a face (`.avatar`), a link with a class or any mark in it makes it text, where what is inline stays inline (D106) |
 | `iframe` | full width at 16:9, its height rounded up to whole cells (`--embed-w`, `--embed-h`) |
 | `hr` | one line, on a coordinate, given back so what follows is on a line |
 | `details` | a block; its `summary` hangs, a full-row target with the shared states and a chevron in a two-cell margin, centered on its capitals, that turns when open; the contents take the same inset in `--details-ink` (secondary text) and settle when opened; consecutive details are rows, a hairline between them |
@@ -218,7 +218,7 @@ Our apps carry rich content from editors and markdown, which arrives as bare tag
 | A nested `div` from a paste | `display: contents`: its children join the column | It carries no meaning, and it would otherwise break the gap and every direct-child rule. A `div` with only text and marks is a paragraph, since that is what a browser's own editor makes of a line. A `div` with a class is left alone: it's a component. |
 | An element we don't know | A block that rounds up to whole cells | So whatever follows is on a line. |
 
-**The limit of CSS.** `<li>text<ul>…</ul></li>` puts text in an anonymous box, and a caption follows an image of any height; neither can be rounded in CSS. `settle.js` measures these and writes `--settle-start` on the block that follows, in every browser. Without the script the outer block still rounds to whole cells, so the page recovers at the next block: only the lines inside drift. One case stays unsettled even with it: bare text mixed with blocks inside a pasted `div`, which becomes an anonymous box in the column.
+**The limit of CSS.** `<li>text<ul>…</ul></li>` puts text in an anonymous box, and a caption follows an image of any height; neither can be rounded in CSS. `settle.js` measures these and writes `--settle-start` on the block that follows, in every browser. Without the script the outer block still rounds to whole cells, so the page recovers at the next block: only the lines inside drift. One case stays unsettled even with it: bare text mixed with blocks inside a pasted `div`, which becomes an anonymous box in the column. And CSS can't see bare words: a paragraph of nothing but words and two images is read as a gallery, and so is one with a text link and a single linked image. Put the images in a `figure`, or any mark around a word.
 
 ## Color
 

@@ -952,17 +952,29 @@
   }
   /* Gallery: two or more images side by side, in a figure or a paragraph (what
      markdown emits for images on one line). Tracks are whole cells and squares,
-     so nothing in it needs measuring. */
-  .prose :where(figure, p):where(:has(> :is(img, a) ~ :is(img, a))) {
+     so nothing in it needs measuring.
+     Two images, each alone or inside a link: a link counts only for the image
+     in it, so a sentence with two links in it stays a sentence. A paragraph
+     is a gallery only when images are all it holds: images, links with no
+     class, a break. A tag, a chip, a face (.avatar), a link with a class or
+     any mark in it makes it text, and what is inline in it stays inline (D106).
+     CSS can't see bare words, so a paragraph of nothing but words and two
+     images is still read as a gallery. */
+  .prose :where(figure):where(:has(> img ~ img), :has(> img):has(> a > img), :has(> a > img):has(> a ~ a > img)),
+  .prose :where(p):where(:not(:has(> :not(img:not(.avatar), a:not([class]), br)))):where(:has(> img ~ img), :has(> img):has(> a > img), :has(> a > img):has(> a ~ a > img)) {
     --cols: 3;
     --cols-gap: var(--sp-1);
     display: grid;
     gap: var(--cols-gap);
     grid-template-columns: repeat(var(--cols), round(down, calc((100% - (var(--cols) - 1) * var(--cols-gap)) / var(--cols)), var(--u)));
   }
-  @container (width < 36rem) { .prose :where(figure, p):where(:has(> :is(img, a) ~ :is(img, a))) { --cols: 2; } }
-  .prose :where(figure, p):where(:has(> :is(img, a) ~ :is(img, a))) > :where(img, a > img) { aspect-ratio: 1; object-fit: cover; }
-  .prose :where(figure):where(:has(> :is(img, a) ~ :is(img, a))) > figcaption { grid-column: 1 / -1; margin-block-start: 0; }
+  @container (width < 36rem) {
+    .prose :where(figure):where(:has(> img ~ img), :has(> img):has(> a > img), :has(> a > img):has(> a ~ a > img)),
+    .prose :where(p):where(:not(:has(> :not(img:not(.avatar), a:not([class]), br)))):where(:has(> img ~ img), :has(> img):has(> a > img), :has(> a > img):has(> a ~ a > img)) { --cols: 2; }
+  }
+  .prose :where(figure):where(:has(> img ~ img), :has(> img):has(> a > img), :has(> a > img):has(> a ~ a > img)) > :where(img, a > img),
+  .prose :where(p):where(:not(:has(> :not(img:not(.avatar), a:not([class]), br)))):where(:has(> img ~ img), :has(> img):has(> a > img), :has(> a > img):has(> a ~ a > img)) > :where(img, a > img) { aspect-ratio: 1; object-fit: cover; }
+  .prose :where(figure):where(:has(> img ~ img), :has(> img):has(> a > img), :has(> a > img):has(> a ~ a > img)) > figcaption { grid-column: 1 / -1; margin-block-start: 0; }
 
   /* Disclosure. The summary is a full-row target with the shared states, its
      ground half a cell around it. Its chevron sits in a two-cell margin, like a

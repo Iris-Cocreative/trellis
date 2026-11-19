@@ -78,6 +78,10 @@ const target = require('./target');
       const cs = getComputedStyle(e);
       if (cs.display === 'none' || cs.display === 'contents' || /^inline/.test(cs.display) || cs.display === 'table-column' || cs.display === 'table-column-group') continue;
       if (e.closest('details:not([open])') && e.tagName !== 'SUMMARY' && e.tagName !== 'DETAILS') continue;
+      // What an atom in a sentence holds is the atom's own: a tag's label, a chip's dot and face (D106).
+      let inAtom = false;
+      for (let a = e.parentElement; a && !a.matches('.prose'); a = a.parentElement) if (/^inline/.test(getComputedStyle(a).display)) { inAtom = true; break; }
+      if (inAtom) continue;
       const b = e.getBoundingClientRect();
       // A block that collapsed is a failure, not something to skip: this is how a rule can vanish.
       if ((b.width < 1 || b.height < 1) && e.matches(SOLID)) { out.offProse.push(when + pdesc(e) + ' collapsed ' + b.width + 'x' + b.height); continue; }

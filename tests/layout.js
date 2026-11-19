@@ -33,6 +33,9 @@
 //           badges and avatar rings still draw
 //   ring    a ring dot keeps the dot's box, its line a quarter of the dot and
 //           two lines at most, clear inside unless it is given a fill
+//   prose   a paragraph with two links, with chips, with faces or with a mark
+//           beside its images is text, and an atom in it leaves its lines where
+//           they were; images alone, linked or not, are still a gallery
 //   clamp   clamped text keeps the box of its lines, in whole cells; in the
 //           pixels, its last line's descenders are as deep as its first line's,
 //           and nothing of the hidden line shows under them
@@ -560,6 +563,44 @@ const ready = require('./ready');
     if (getComputedStyle(on).backgroundColor === getComputedStyle(off).backgroundColor) fails.push('a current tab link draws like the others');
     if (getComputedStyle(t1).backgroundColor === getComputedStyle(t2).backgroundColor) fails.push('a current tag link is not solid');
     host.remove();
+    return fails;
+  }));
+  // Prose (D106): a gallery is images and nothing else. A paragraph with two
+  // links in it was read as one, and its sentence laid out as a grid.
+  fails.push(...await page.evaluate(async () => {
+    const fails = [], u = Trellis.cell();
+    const IMG = "<img src=\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='60'/%3E\" alt=''>";
+    const cases = [
+      ['a paragraph with two links', '<p>See <a href="#a">the log</a> and <a href="#b">the swap</a> for more.</p>', 'block'],
+      ['a paragraph with two links that have a class', '<p>Ask <a class="x-chip" href="#a">Marisol</a> or <a class="x-chip" href="#b">Ada</a> first.</p>', 'block'],
+      ['a paragraph with two faces', '<p>With <img class="avatar" alt=""> and <img class="avatar" alt=""> on the rota.</p>', 'block'],
+      ['a paragraph with a mark and two images', '<p><em>Before</em> ' + IMG + ' and after ' + IMG + '</p>', 'block'],
+      ['a paragraph of two images', '<p>' + IMG + ' ' + IMG + '</p>', 'grid'],
+      ['a paragraph of two images with classes', '<p>' + IMG.replace('<img', '<img class="x-wide"') + ' ' + IMG.replace('<img', '<img class="x-wide"') + '</p>', 'grid'],
+      ['a paragraph of two linked images', '<p><a href="#a">' + IMG + '</a> <a href="#b">' + IMG + '</a></p>', 'grid'],
+      ['a paragraph of an image and a linked image', '<p>' + IMG + ' <a href="#b">' + IMG + '</a></p>', 'grid'],
+      ['a figure of two images', '<figure>' + IMG + IMG + '<figcaption>Two</figcaption></figure>', 'grid'],
+      ['a figure of two linked images', '<figure><a href="#a">' + IMG + '</a><a href="#b">' + IMG + '</a></figure>', 'grid'],
+      ['a figure of one image, two links in its caption', '<figure>' + IMG + '<figcaption>One, with <a href="#a">a link</a> and <a href="#b">another</a></figcaption></figure>', 'block'],
+    ];
+    const host = document.createElement('article'); host.className = 'prose'; host.innerHTML = cases.map(c => c[1]).join('');
+    document.querySelector('#prose-atoms').after(host);
+    await Trellis.settled();
+    cases.forEach((c, i) => { const d = getComputedStyle(host.children[i]).display; if (d !== c[2]) fails.push(`prose: ${c[0]} is display: ${d}, not ${c[2]}`); });
+    host.remove();
+    // The specimen's sentence of atoms: each atom inline, every line of words a line height from the last, the block whole cells.
+    const p = document.querySelector('#prose-atoms p');
+    if (!p) return fails.concat('prose: the specimen has no sentence of atoms to check');
+    const top = p.getBoundingClientRect().top, lh = parseFloat(getComputedStyle(p).lineHeight), tops = [];
+    [...p.childNodes].filter(n => n.nodeType === 3).forEach(n => { const r = document.createRange(); r.selectNodeContents(n); [...r.getClientRects()].forEach(b => { if (!tops.some(t => Math.abs(t - b.top) < 1)) tops.push(b.top); }); });
+    tops.sort((a, b) => a - b);
+    const atoms = [...p.querySelectorAll('.tag, .demo-chip')];
+    if (atoms.length < 3) fails.push('prose: the sentence of atoms has lost its atoms');
+    atoms.forEach(a => { if (getComputedStyle(a).display !== 'inline-flex') fails.push(`prose: an atom in a sentence is display: ${getComputedStyle(a).display}`); });
+    if (getComputedStyle(p).display !== 'block') fails.push(`prose: a sentence with atoms in it is display: ${getComputedStyle(p).display}`);
+    for (let i = 1; i < tops.length; i++) if (Math.abs(tops[i] - tops[i - 1] - lh) > .6) fails.push(`prose: line ${i + 1} of the sentence of atoms is ${(tops[i] - tops[i - 1]).toFixed(2)}px under the last, not a line height (${lh.toFixed(2)}px): an atom stretched its line`);
+    const h = p.getBoundingClientRect().height, m = ((h % u) + u) % u;
+    if (m > .5 && m < u - .5) fails.push(`prose: the sentence of atoms is ${h.toFixed(2)}px tall, not whole cells`);
     return fails;
   }));
   // A ring dot (D103): the dot's own box with a line inside it, a quarter of
