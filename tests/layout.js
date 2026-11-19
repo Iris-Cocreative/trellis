@@ -33,6 +33,9 @@
 //           badges and avatar rings still draw
 //   ring    a ring dot keeps the dot's box, its line a quarter of the dot and
 //           two lines at most, clear inside unless it is given a fill
+//   clamp   clamped text keeps the box of its lines, in whole cells; in the
+//           pixels, its last line's descenders are as deep as its first line's,
+//           and nothing of the hidden line shows under them
 // Usage: node layout.js <url> [webkit] [WxH] [touch]
 // Needs Playwright (PLAYWRIGHT=module path). Exits 1 if anything is off.
 const pw = require(process.env.PLAYWRIGHT || 'playwright');
@@ -702,6 +705,70 @@ const ready = require('./ready');
     if (await open()) fails.push('a backdrop click did not close the modal');
   }
   await page.evaluate(() => { const d = document.getElementById('demo-modal'); if (d.open) d.close(); });
+
+  // A clamp (D105). Layout: the box is its lines' own, the first capitals at its
+  // top and whole cells tall, so it sits where unclamped text would. Pixels:
+  // black words on white, read row by row. Every line has descenders and tall
+  // letters, so the last line's tails must reach as deep as the first line's
+  // (the clip keeps them), and the rows under them must be empty to a cell
+  // below (nothing of the next, hidden line shows).
+  {
+    const ROLES = ['t-sm', 't-body', 't-h5'], D = touch ? 3 : 1;
+    const marks = await page.evaluate(async (roles) => {
+      const u = Trellis.cell(), words = 'Lazy gypsy typing by a quay, judging hefty jugs of pygmy hog quality; '.repeat(8);
+      const host = document.createElement('div'); host.id = 'clamp-test'; host.className = 'stack';
+      host.style.cssText = 'position: absolute; inset-block-start: 0; inset-inline-start: 0; z-index: 2147483647; box-sizing: content-box; inline-size: calc(var(--u) * 22); padding: var(--sp-2); background: #fff; color: #000; --stack-gap: var(--sp-2);';
+      host.innerHTML = roles.map(r => `<p class="${r} u-clamp">${words}</p>`).join('') + '<p class="t-sm u-clamp" style="--lines: 3">' + words + '</p>';
+      // A capital of each role, from a cap-centered line: its box is trimmed to it and not rounded. Out of the stack, so it moves nothing.
+      const caps = document.createElement('div'); caps.className = 'row'; caps.style.cssText = 'position: absolute; inset-block-start: 0; inset-inline-start: 0; visibility: hidden;';
+      caps.innerHTML = roles.map(r => `<span class="${r} cap-center">X</span>`).join('');
+      host.appendChild(caps);
+      document.body.appendChild(host);
+      await Trellis.settled(); await new Promise(r => setTimeout(r, 100)); await Trellis.settled();
+      const hb = host.getBoundingClientRect(), out = [];
+      host.querySelectorAll('.u-clamp').forEach(el => {
+        const b = el.getBoundingClientRect(), cs = getComputedStyle(el), probe = caps.children[roles.indexOf(el.classList[0])];
+        out.push({ role: el.className, lines: +cs.getPropertyValue('--lines'), x: b.left - hb.left, y: b.top - hb.top, w: b.width, h: b.height, u,
+          lh: parseFloat(cs.lineHeight), fs: parseFloat(cs.fontSize), cap: probe.getBoundingClientRect().height });
+      });
+      return out;
+    }, ROLES);
+    const whole = (v, u) => { const m = ((v % u) + u) % u; return m < .5 || m > u - .5; };
+    for (const m of marks) {
+      const lines = (m.lines - 1) * m.lh + m.cap;
+      if (!whole(m.y, m.u)) fails.push(`clamp: ${m.role} starts ${m.y.toFixed(2)}px down its stack, off the lines`);
+      if (!whole(m.h, m.u) || m.h < lines - .5 || m.h >= lines + m.u) fails.push(`clamp: ${m.role} is ${m.h.toFixed(2)}px tall; its ${m.lines} lines are ${lines.toFixed(2)}px, so ${(Math.ceil(lines / m.u - 1e-3) * m.u).toFixed(0)}px in whole cells`);
+    }
+    const png = (await page.locator('#clamp-test').screenshot()).toString('base64');
+    const decoder = await browser.newPage();
+    const rows = await decoder.evaluate(async ([png, marks, D]) => {
+      const img = new Image(); img.src = 'data:image/png;base64,' + png; await img.decode();
+      const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+      const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0);
+      // The darkest pixel of each row of a clamp's column, as luminance.
+      return marks.map(m => {
+        const x0 = Math.max(0, Math.floor(m.x * D)), w = Math.min(img.width - x0, Math.ceil(m.w * D)), y0 = Math.floor(m.y * D), n = Math.min(img.height - y0, Math.ceil((m.h + m.u * 2) * D));
+        const d = g.getImageData(x0, y0, w, n).data, out = [];
+        for (let y = 0; y < n; y++) { let low = 255; for (let x = 0; x < w; x++) { const i = (y * w + x) * 4, l = .2126 * d[i] + .7152 * d[i + 1] + .0722 * d[i + 2]; if (l < low) low = l; } out.push(low); }
+        return out;
+      });
+    }, [png, marks, D]);
+    await decoder.close();
+    await page.evaluate(() => document.getElementById('clamp-test').remove());
+    marks.forEach((m, i) => {
+      const r = rows[i], INK = 170, CLEAR = 225;
+      // How many rows of ink hang under a baseline, before the first clear row.
+      const depth = line => { const from = Math.ceil(((line - 1) * m.lh + m.cap) * D + .5); let n = 0; while (from + n < r.length && r[from + n] < INK) n++; return [n, from]; };
+      const [first] = depth(1), [last, from] = depth(m.lines);
+      if (first < 1) { fails.push(`clamp: ${m.role}: no descender found under the first line; the test's words or its baseline are wrong`); return; }
+      // A line's deepest letter differs from the next line's by a row or two of soft edge: one CSS pixel is the tolerance.
+      if (process.env.VERBOSE) console.log(`  clamp ${m.role} ${m.lines} lines: ${first} rows under the first baseline, ${last} under the last (at ${D}x)`);
+      if (last < first - D) fails.push(`clamp: ${m.role}: the last line's descenders are cut: ${last} rows of ink under its baseline, ${first} under the first line's (at ${D}x)`);
+      if (last > first + D) fails.push(`clamp: ${m.role}: ${last} rows of ink under the last baseline, ${first} under the first line's: the hidden line shows through (at ${D}x)`);
+      const stray = r.slice(from + last + 1, from + last + 1 + Math.round(m.u * D)).findIndex(l => l < CLEAR);
+      if (stray >= 0) fails.push(`clamp: ${m.role}: ink ${((last + 1 + stray) / D).toFixed(1)}px under the last baseline, past its descenders: the hidden line shows`);
+    });
+  }
   await browser.close();
   console.log(`${engine} ${size}${touch ? ' touch' : ''}: layout ${fails.length ? fails.length + ' FAILED' : 'ok'}`);
   fails.forEach(f => console.log('  ' + f));

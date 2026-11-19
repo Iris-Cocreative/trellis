@@ -1220,6 +1220,13 @@
       </div>
       <article class="card member-tile cc-row"><span class="avatar cc-md" aria-hidden="true">JB</span><div class="member-tile-body"><p class="t-h6">Jonah Baptiste</p><p class="t-sm muted">.cc-row puts the avatar beside the words.</p></div></article>
 
+      <h3 class="t-h5">.u-clamp</h3>
+      <div class="grid demo-tiles" id="demo-clamp">
+        <article class="card stack"><p class="t-h5 u-clamp">Saving seed through a long, dry spring: the year the group kept every jar it was given and typed up why</p><p class="t-sm muted u-clamp" style="--lines: 3">Forty people brought seed to the swap, and most of it was beans. This is the log of what germinated, what stayed sleeping, and the varieties going to the trial bed by the gate, typed up by Marisol for anyone joining the group this year.</p><p class="t-xs faint">Clamped: two lines, then three</p></article>
+        <article class="card stack"><p class="t-h5">Saving seed through a long, dry spring</p><p class="t-sm muted">Forty people brought seed to the swap, and most of it was beans. This is the log of what germinated, and what stayed sleeping.</p><p class="t-xs faint">The same roles, not clamped</p></article>
+      </div>
+      <p class="t-xs faint">A clamp has to clip, and a trimmed text box ends at its last baseline, so a plain clamp cuts the tails off g, p and y. <code>.u-clamp</code> clips from the top instead: its lines (<code>--lines</code>, two unless set) and a descender's depth under the last baseline, no further than the hidden line's tall letters. Its box is the role's own, so what follows is on the same line with or without it.</p>
+
       <h3 class="t-h5">.dot.cc-ring</h3>
       <article class="card stack demo-rings" id="demo-rings">
         <div class="cluster u-gap-2" role="list" aria-label="A bed, from idea to harvest">

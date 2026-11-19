@@ -2813,6 +2813,44 @@
   /* Truncation clips sideways only: a trimmed text box ends at the baseline,
      so overflow: hidden would cut off every descender. */
   .u-truncate { overflow-x: clip; overflow-y: visible; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  /* A clamp (.u-clamp): --lines lines, two by default, and an ellipsis (D105). It
+     has to clip, and a trimmed box ends at its last baseline, so a plain clamp
+     cuts the tail off every g, p and y; and a role rounds its box up to whole
+     cells, which lets the top of the next, hidden line show under the last.
+     So the clip is measured from the top: the lines, and --clamp-reach under
+     the last baseline, a descender's depth, never as far as the tall letters of
+     the next line. It is drawn, not laid out: the box is the role's own, on the
+     same cells as text that is not clamped. On a type role; one line is
+     .u-truncate.
+     How near the next line comes depends on who trims. A browser that trims a
+     clamp's box moves the hidden lines up by what it trimmed, to about half a
+     line less a capital, plus a third of an em, under the baseline. A
+     browser that leaves the box untrimmed (Safari today) gets the plain clamp,
+     whole and a few pixels off its line, until settle.js measures the trim: it
+     marks the clamp (data-trellis-clamp), pulls the text up by --clamp-top and
+     holds the box at --clamp-h, whole cells for a role; there the next line
+     keeps its distance, a line less a capital. */
+  .u-clamp {
+    --lines: 2;
+    --clamp-reach: .24em;
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--lines);
+    overflow: hidden; min-width: 0;
+  }
+  @supports (text-box: trim-both cap alphabetic) {
+    .u-clamp { text-box: trim-both cap alphabetic; }
+    .u-clamp[data-trellis-clamp] {
+      overflow: visible;
+      clip-path: inset(-1em -1em calc(100% - (var(--t-stand, 0px) + (var(--lines) - 1) * 1lh + 1cap + max(0px, min(var(--clamp-reach), 1lh - 1cap - .05em)))) -1em);
+      height: var(--clamp-h, auto); min-height: 0;
+    }
+    .u-clamp[data-trellis-clamp]::before { content: ""; display: block; margin-block-start: calc(var(--clamp-top, 0px) * -1); }
+  }
+  @supports (text-box: trim-both cap alphabetic) and (height: calc-size(fit-content, size)) {
+    .u-clamp:not([data-trellis-clamp]) {
+      overflow: visible;
+      clip-path: inset(-1em -1em calc(100% - (var(--t-stand, 0px) + (var(--lines) - 1) * 1lh + 1cap + max(0px, min(var(--clamp-reach), .5lh - 1cap + .33em)))) -1em);
+    }
+  }
   .u-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .u-align-end { align-items: end; }
   /* The state layer for a control of your own (see States, in the primitives). */

@@ -18,6 +18,14 @@
    any text added later; mark an overlay that changes often with data-settle-skip
    so it isn't watched.
 
+   A CLAMP (.u-clamp) needs it where the browser leaves a clamp's box
+   untrimmed, Safari today: the text would start a few pixels under its line and
+   the box end under its last baseline. This measures what a block of the same
+   type trims, marks the clamp (data-trellis-clamp), and writes --clamp-top (how
+   far core pulls the text up) and --clamp-h (the height of the trimmed lines,
+   in whole cells for a role, which core makes the box's). Whether a browser
+   needs it is measured once, not read from its name.
+
    CAP-CENTERED TEXT needs it in every browser. A label beside a control
    centers its capitals on it (.cap-center), which only works on one line. This
    counts each one's lines and marks one that wraps with data-trellis-wrap; core
@@ -190,14 +198,62 @@
   var EMPTY = '.prose :is(h1, h2, h3, h4, h5, h6, p, blockquote, div:not([class]))';
   var MEDIA = 'img, video, iframe, audio, svg, canvas, hr, table, input, object, embed';
   var CAP = '.cap-center';   // centered on a control while it is one line; hangs once it wraps
+  var CLAMP = '.u-clamp', STANDS = '.t-h1, .t-h2, .t-h3, .prose :is(h1, h2, h3)';
   // What's settled: only what a browser needs. Chrome rounds in CSS, so there it's prose nesting and cap-centered text.
   var SEL = (ROUNDS ? TEXT + ', ' + BLOCK + ', ' + INNER : INNER) + ', ' + CAP;
+
+  // A clamp is a -webkit-box. Does this browser trim one, as it does a block?
+  // One probe, when the page starts: a clamped line in a box, trimmed, against
+  // its line height. Where it doesn't, clamps are settled here too.
+  var TRIMS = !!window.CSS && CSS.supports('text-box', 'trim-both cap alphabetic'), CLAMPS = false;
+  var bench = null;
+  function benchFor(html) {
+    if (!bench || !bench.isConnected) {
+      bench = document.createElement('div');
+      bench.setAttribute('aria-hidden', 'true');
+      bench.style.cssText = 'position: absolute; visibility: hidden; pointer-events: none; inset-block-start: 0; inset-inline-start: 0; inline-size: max-content;';
+      root.appendChild(bench);   // outside body, as the cell's probe is
+    }
+    bench.innerHTML = html;
+    return bench;
+  }
+  function clampsNeedSettling() {
+    if (!TRIMS) return false;   // nothing is trimmed here: a clamp is as far off its line as any text
+    var b = benchFor('<div style="font: 16px/2 sans-serif; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; text-box: trim-both cap alphabetic">X</div>');
+    var h = b.firstChild.getBoundingClientRect().height;
+    b.innerHTML = '';
+    return h > 24;   // untrimmed, the line is 32px; trimmed, a capital, about 12
+  }
+  // What a block of this type trims: above its first line's capitals and under
+  // its last baseline. Read from three one-line blocks of the same font and
+  // line: whole, trimmed at the start, trimmed at the end. Kept by font, since
+  // a list of clamped titles shares one.
+  var trimsBy = {}, trimsKept = 0;
+  function fontOf(cs) { return [cs.fontFamily, cs.fontSize, cs.fontWeight, cs.fontStyle, cs.fontStretch, cs.lineHeight].join('|'); }
+  function measureTrims(styles) {
+    var need = [], seen = {}, i, html = '';
+    for (i = 0; i < styles.length; i++) { var key = fontOf(styles[i]); if (!trimsBy[key] && !seen[key]) { seen[key] = 1; need.push([key, styles[i]]); } }
+    if (!need.length) return;
+    if (trimsKept + need.length > 200) { trimsBy = {}; trimsKept = 0; }
+    for (i = 0; i < need.length; i++) {
+      var cs = need[i][1], f = 'font-family: ' + cs.fontFamily.replace(/"/g, "'") + '; font-size: ' + cs.fontSize + '; font-weight: ' + cs.fontWeight + '; font-style: ' + cs.fontStyle +
+        '; font-stretch: ' + cs.fontStretch + '; line-height: ' + cs.lineHeight + '; text-box-edge: cap alphabetic; text-box-trim: ';
+      html += '<div style="' + f + 'none">X</div><div style="' + f + 'trim-start">X</div><div style="' + f + 'trim-end">X</div>';
+    }
+    var b = benchFor(html), kids = b.children;
+    for (i = 0; i < need.length; i++) {
+      var whole = kids[i * 3].getBoundingClientRect().height;
+      trimsBy[need[i][0]] = [Math.max(0, whole - kids[i * 3 + 1].getBoundingClientRect().height), Math.max(0, whole - kids[i * 3 + 2].getBoundingClientRect().height)];
+      trimsKept++;
+    }
+    b.innerHTML = '';
+  }
   var SKIP = '[data-settle-skip]';   // an overlay or a layer that moves often: not content, not ours
   var CLUSTER_END = ':is(.card, .modal-body, .member-tile) > .cluster:last-child';   // a cluster at a surface's end rounds up
 
   // What an element is gets worked out once, when it's first seen. These
   // selectors are not cheap, and a pass visits every block.
-  var IS_INNER = 1, IS_TEXT = 2, IS_BLOCK = 4, IS_CLUSTER = 8, IS_HOLDER = 16, IS_CAP = 32;
+  var IS_INNER = 1, IS_TEXT = 2, IS_BLOCK = 4, IS_CLUSTER = 8, IS_HOLDER = 16, IS_CAP = 32, IS_CLAMP = 64, IS_STAND = 128, IS_ROLE = 256;
   // Text with blocks inside it: a blockquote of paragraphs, a list item with a list.
   var HOLDS = ':scope > :is(p, ul, ol, dl, h1, h2, h3, h4, h5, h6, blockquote, pre, figure, table, details, footer, cite, div)';
   var kinds = new WeakMap();
@@ -205,6 +261,8 @@
     var k = kinds.get(el);
     if (k === undefined) {
       k = (el.matches(INNER) ? IS_INNER : 0) | (el.matches(CAP) ? IS_CAP : 0);
+      // A clamp is settled as a clamp, whatever its role: its box is counted without what it trims.
+      if (CLAMPS && el.matches(CLAMP)) { k |= IS_CLAMP | (el.matches(STANDS) ? IS_STAND : el.matches(TEXT) ? IS_ROLE : 0); kinds.set(el, k); return k; }
       if (ROUNDS) {
         if (el.matches(TEXT) || (k & IS_CAP)) { k |= IS_TEXT; if (el.querySelector(HOLDS)) k |= IS_HOLDER; }
         if (el.matches(BLOCK)) k |= IS_BLOCK;
@@ -268,6 +326,30 @@
     if (h > 0) writes.push([el, '--settle-n', Math.ceil(h / unit - 1e-3)]);
   }
 
+  // Clamps: mark each one and pull its text up to its line, then give its box
+  // the height of its trimmed lines. Three steps, each a batch: read every
+  // font, write every mark, read every height. A headline is whole cells
+  // already and takes the nearest count; other text rounds up; a clamp with no
+  // role keeps its own height, less what a block would trim.
+  function settleClamps(els, unit) {
+    var styles = [], i, t, writes = [];
+    for (i = 0; i < els.length; i++) styles.push(getComputedStyle(els[i]));
+    measureTrims(styles);
+    var trims = styles.map(function (cs) { return trimsBy[fontOf(cs)] || [0, 0]; });
+    for (i = 0; i < els.length; i++) {
+      if (!els[i].hasAttribute('data-trellis-clamp')) els[i].setAttribute('data-trellis-clamp', '');
+      if (els[i].style.getPropertyValue('--clamp-h')) els[i].style.removeProperty('--clamp-h');
+      t = trims[i][0].toFixed(4) + 'px';
+      if (els[i].style.getPropertyValue('--clamp-top') !== t) els[i].style.setProperty('--clamp-top', t);
+    }
+    for (i = 0; i < els.length; i++) {
+      if (styles[i].display === 'none') continue;
+      var h = els[i].getBoundingClientRect().height - trims[i][1], k = kindOf(els[i]);
+      if (h > 0) writes.push([els[i], '--clamp-h', (k & IS_STAND) ? Math.round(h / unit) * unit : (k & IS_ROLE) ? Math.ceil(h / unit - 1e-3) * unit : h]);
+    }
+    apply(writes);
+  }
+
   // A block keeps its own box and takes the margin it's short by. It must be read
   // after the text inside it has its count, or its height is about to change.
   function settleBlock(el, unit, writes) {
@@ -327,6 +409,12 @@
     for (i = 0; i < batch.length; i++) if (kindOf(batch[i]) & IS_CAP) caps.push([batch[i], lines(batch[i]) > 1]);
     for (i = 0; i < caps.length; i++) {
       if (caps[i][1] !== caps[i][0].hasAttribute('data-trellis-wrap')) caps[i][0].toggleAttribute('data-trellis-wrap', caps[i][1]);
+    }
+    // Clamps, where the browser leaves their box untrimmed.
+    if (CLAMPS) {
+      var clamps = [];
+      for (i = 0; i < batch.length; i++) if (kindOf(batch[i]) & IS_CLAMP) clamps.push(batch[i]);
+      if (clamps.length) settleClamps(clamps, unit);
     }
     // Text first: clear each count, read every natural height, write every count.
     var holders = [];
@@ -416,7 +504,8 @@
 
   // The unit can change without any block resizing (a fitted screen turning,
   // the dial): re-settle everything when it does.
-  function all() { document.querySelectorAll(SEL).forEach(enqueue); schedule(); }
+  // A font that arrived since has other metrics under the same name: what a block trims is measured again.
+  function all() { trimsBy = {}; trimsKept = 0; document.querySelectorAll(SEL).forEach(enqueue); schedule(); }
 
   // Resolves once everything queued is measured and nothing is left to write.
   function settled() {
@@ -425,6 +514,8 @@
 
   function start() {
     started = true;
+    CLAMPS = clampsNeedSettling();
+    if (CLAMPS) SEL += ', ' + CLAMP;
     schedule();   // so a settled() called before now still resolves, on an empty page too
     observe(document.body);
     // Added nodes wait for the frame, so a thousand added at once cost one pass.

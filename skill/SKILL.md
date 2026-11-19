@@ -34,7 +34,7 @@ Find the need here first. If it is here, use it and write no CSS for it.
 | Messages | `.chat-item` (`.cc-own`, `.cc-cont`, `.cc-system`) |
 | Rendered Markdown or editor content | `.prose` on the wrapper, bare tags inside |
 | Loading | `.skeleton` |
-| Text | `.t-h1`…`.t-h6`, `.t-xl`, `.t-lg`, `.t-body`, `.t-sm`, `.t-xs`, `.t-label`, `.t-eyebrow`; `.u-text-secondary`, `.u-truncate` |
+| Text | `.t-h1`…`.t-h6`, `.t-xl`, `.t-lg`, `.t-body`, `.t-sm`, `.t-xs`, `.t-label`, `.t-eyebrow`; `.u-text-secondary`; `.u-truncate` for one line, `.u-clamp` for several (`--lines`, two unless set). Never `-webkit-line-clamp` or `overflow: hidden` on text: it cuts the descenders |
 | Hover, press and selected on a control of your own | `.u-state` with `--state-fill` and `--state-ink` |
 
 A variant is a `cc-*` modifier, and a modifier needs its base beside it: `.icon-button` and `cc-*` alone draw nothing (`.cc-dense` and the scrollbar modifiers, which core uses as contexts, are the exceptions). A one-off adjustment sets the primitive's own variable, on the primitive, in a context: `.my-toolbar .button { --btn-h: var(--size-control-sm); }`. Name the primitive in the selector, or give its element a class of your own (`<span class="dot my-light">` with `.my-light { --dot-size: var(--sp-1); }`). Set on the ancestor alone (`.my-toolbar { --btn-h: … }`) it does nothing: a primitive declares its variables on its own element, and that beats what it inherits. Only the layout gaps (`--stack-gap`, `--cluster-gap`) are read from an ancestor.
