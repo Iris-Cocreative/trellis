@@ -29,6 +29,8 @@
 //           row, the row not washed
 //   forced  in forced colors, current and selected marks, the switch, dots,
 //           badges and avatar rings still draw
+//   ring    a ring dot keeps the dot's box, its line a quarter of the dot and
+//           two lines at most, clear inside unless it is given a fill
 // Usage: node layout.js <url> [webkit] [WxH] [touch]
 // Needs Playwright (PLAYWRIGHT=module path). Exits 1 if anything is off.
 const pw = require(process.env.PLAYWRIGHT || 'playwright');
@@ -418,7 +420,15 @@ const ready = require('./ready');
     [['.shell-link[aria-current]'], ['.outline-link[aria-current]'], ['.tabs.cc-seg .tab[aria-selected="true"]'], ['.switch', '::after'], ['.badge'], ['.avatar']].forEach(([s, p]) => { if (!lined(s, p)) fails.push(`forced colors: ${s}${p || ''} draws no outline`); });
     const mark = cs('.tabs:not(.cc-seg) .tab[aria-selected="true"]', '::after');
     if (!mark || mark.backgroundColor === canvas) fails.push('forced colors: a selected tab lost its line');
-    if (cs('.dot').backgroundColor === canvas) fails.push('forced colors: a dot vanished');
+    if (cs('.dot:not(.cc-ring)').backgroundColor === canvas) fails.push('forced colors: a dot vanished');
+    const ring = cs('.dot.cc-ring');
+    if (!ring) fails.push('forced colors: the specimen has no ring dot to check');
+    else {
+      // The system's own colors, read from a probe: an engine that only emulates the query keeps the page's ground.
+      const probe = document.createElement('i'); probe.style.cssText = 'background: Canvas; color: CanvasText'; document.body.appendChild(probe);
+      const sys = getComputedStyle(probe), sysCanvas = sys.backgroundColor, sysText = sys.color; probe.remove();
+      if (ring.backgroundColor !== sysCanvas || ring.borderTopColor !== sysText || !(parseFloat(ring.borderTopWidth) > 0)) fails.push(`forced colors: a ring dot is not a line of the system's text color around its canvas: ${ring.borderTopWidth} ${ring.borderTopColor} around ${ring.backgroundColor}`);
+    }
     const on = cs('.switch[aria-checked="true"]', '::after'), off = cs('.switch:not([aria-checked="true"])', '::after');
     if (on && off && on.backgroundColor === off.backgroundColor) fails.push('forced colors: a switch looks the same on and off');
     return fails;
@@ -510,6 +520,30 @@ const ready = require('./ready');
     const [on, off] = host.querySelectorAll('.tab'), [t1, t2] = host.querySelectorAll('.tag');
     if (getComputedStyle(on).backgroundColor === getComputedStyle(off).backgroundColor) fails.push('a current tab link draws like the others');
     if (getComputedStyle(t1).backgroundColor === getComputedStyle(t2).backgroundColor) fails.push('a current tag link is not solid');
+    host.remove();
+    return fails;
+  }));
+  // A ring dot (D103): the dot's own box with a line inside it, a quarter of
+  // the dot and never over two lines, clear inside; --dot-ring and --dot-fill
+  // set the line and the inside. A browser draws a border in whole device
+  // pixels, so a width may read up to a device pixel under what was asked.
+  fails.push(...await page.evaluate(() => {
+    const fails = [], host = document.createElement('div');
+    host.innerHTML = '<span class="dot"></span><span class="dot cc-ring"></span><span class="dot cc-ring" style="--dot-size: var(--sp-2)"></span>' +
+      '<span class="dot cc-ring cc-ok" style="--dot-size: var(--sp-2); --dot-ring: var(--line); --dot-fill: var(--surface)"></span><span class="dot cc-quiet"></span><span class="dot cc-ring cc-quiet"></span>';
+    document.body.appendChild(host);
+    const [dot, ring, big, set, quiet, quietRing] = [...host.children], cs = e => getComputedStyle(e), w = e => parseFloat(cs(e).borderTopWidth);
+    const probe = document.createElement('i'); probe.style.cssText = 'display: block; width: var(--line)'; host.appendChild(probe);
+    const line = probe.getBoundingClientRect().width, clear = c => /rgba\(0, 0, 0, 0\)|transparent/.test(c);
+    const size = e => e.getBoundingClientRect().width, px = 1 / devicePixelRatio;
+    if (Math.abs(size(ring) - size(dot)) > .01) fails.push(`a ring dot is ${size(ring)}px wide, a dot ${size(dot)}px`);
+    if (!(w(ring) >= line - .01) || w(ring) > size(ring) / 4 + .01) fails.push(`a half-cell ring's line is ${w(ring)}px: it should be a quarter of its ${size(ring)}px, and a line at least`);
+    if (w(big) > line * 2 + .01 || w(big) < line * 2 - px - .01) fails.push(`a two-cell ring's line is ${w(big)}px, not two lines`);
+    if (!clear(cs(ring).backgroundColor)) fails.push(`a ring dot is filled: ${cs(ring).backgroundColor}`);
+    if (cs(ring).borderTopColor !== cs(dot).backgroundColor) fails.push("a ring's line is not the dot's color");
+    if (Math.abs(w(set) - line) > px + .01) fails.push(`--dot-ring: var(--line) drew a ${w(set)}px ring`);
+    if (clear(cs(set).backgroundColor)) fails.push('--dot-fill did not fill a ring');
+    if (cs(quietRing).borderTopColor === cs(quiet).backgroundColor) fails.push('a quiet ring should take the next ink up from a quiet dot');
     host.remove();
     return fails;
   }));

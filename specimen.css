@@ -67,8 +67,8 @@
   .toggles { display: flex; align-items: center; gap: var(--sp-1); }
   .toggles .switch { font-size: var(--fs-control-sm); }
   .toggle { --btn-h: var(--size-control-md); --btn-fs: .75rem; --btn-border: var(--border-subtle); --btn-bg: transparent; gap: var(--sp-h); padding-inline: calc(var(--sp-1) - var(--line)); }
-  .toggle .dot { --dot-size: var(--sp-h); --dot-color: transparent; box-shadow: inset 0 0 0 var(--line) var(--text-tertiary); }
-  .toggle[data-on] .dot { --dot-color: var(--accent); box-shadow: none; }
+  .toggle .dot { --dot-size: var(--sp-h); --dot-color: var(--text-tertiary); --dot-ring: var(--line); }
+  .toggle[data-on] .dot { --dot-color: var(--accent); --dot-fill: var(--accent); }
   .toggle[data-on] { --btn-border: var(--border); }
 
   /* ---- On this page ------------------------------------------------------
@@ -188,6 +188,14 @@
   .demo-done .avatar { filter: grayscale(1); }
   .demo-tiles { --grid-min: calc(var(--u) * 28); }
   .demo-skel-avatar { --skel-w: var(--sp-4); --skel-h: var(--sp-4); --skel-radius: 50%; }
+  /* Ring dots: a mark beside its word, the sizes, and marks on a line. */
+  .demo-rings { --stack-gap: var(--sp-2); }
+  .demo-step { display: inline-flex; align-items: center; gap: var(--sp-h); }
+  .demo-step > .dot { --dot-size: calc(var(--u) * .75); }
+  .demo-rail { position: relative; display: flex; align-items: center; justify-content: space-between; height: var(--sp-1); max-width: calc(var(--u) * 28); }
+  .demo-rail::before { content: ""; position: absolute; inset-inline: 0; inset-block-start: calc(50% - var(--line)); height: calc(var(--line) * 2); background: var(--border-strong); }
+  .demo-rail > .dot { position: relative; --dot-size: var(--sp-1); }
+  .demo-rail > .dot.cc-ring { --dot-fill: var(--surface); }
 
   /* ---- Hero ------------------------------------------------------------ */
   /* Three cells under the label, five under the headline: a count from the

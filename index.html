@@ -93,7 +93,7 @@
       </div>
       <div class="toggles" role="group" aria-label="Overlays">
         <button class="switch" type="button" role="switch" aria-checked="false" data-toggle="outset"><span class="switch-label">Outset</span></button>
-        <button class="button toggle" type="button" data-toggle="grid"><span class="dot" aria-hidden="true"></span><span class="button-label">Grid</span></button>
+        <button class="button toggle" type="button" data-toggle="grid"><span class="dot cc-ring" aria-hidden="true"></span><span class="button-label">Grid</span></button>
         <button class="switch" type="button" role="switch" aria-checked="false" data-toggle="measure"><span class="switch-label">Measure</span></button>
         <button class="switch" type="button" role="switch" aria-checked="false" data-toggle="css"><span class="switch-label">CSS</span></button>
       </div>
@@ -1204,6 +1204,28 @@
         <article class="card member-tile"><span class="avatar cc-lg" aria-hidden="true">AO</span><div class="member-tile-body"><p class="t-h5">Ada Okafor</p><p class="t-sm muted">New this week.</p></div><div class="cluster"><span class="badge">3</span><span class="badge cc-quiet">12</span><span class="badge cc-accent">New</span><span class="dot" role="img" aria-label="Unread"></span><span class="dot cc-ok" role="img" aria-label="Online"></span><span class="dot cc-quiet" role="img" aria-label="Away"></span></div></article>
       </div>
       <article class="card member-tile cc-row"><span class="avatar cc-md" aria-hidden="true">JB</span><div class="member-tile-body"><p class="t-h6">Jonah Baptiste</p><p class="t-sm muted">.cc-row puts the avatar beside the words.</p></div></article>
+
+      <h3 class="t-h5">.dot.cc-ring</h3>
+      <article class="card stack demo-rings" id="demo-rings">
+        <div class="cluster u-gap-2" role="list" aria-label="A bed, from idea to harvest">
+          <span class="demo-step" role="listitem"><span class="dot cc-ring cc-quiet" aria-hidden="true"></span><span class="t-sm cap-center">Idea</span></span>
+          <span class="demo-step" role="listitem"><span class="dot cc-ring cc-warn" aria-hidden="true"></span><span class="t-sm cap-center">Planned</span></span>
+          <span class="demo-step" role="listitem"><span class="dot cc-ring cc-accent" aria-hidden="true"></span><span class="t-sm cap-center">Sown</span></span>
+          <span class="demo-step" role="listitem"><span class="dot cc-accent" aria-hidden="true"></span><span class="t-sm cap-center">Growing</span></span>
+          <span class="demo-step" role="listitem"><span class="dot cc-ok" aria-hidden="true"></span><span class="t-sm cap-center">Harvested</span></span>
+        </div>
+        <div class="cluster u-gap-2">
+          <span class="demo-step"><span class="dot cc-ring cc-accent" style="--dot-size: var(--sp-h)" aria-hidden="true"></span><span class="t-xs faint cap-center">½</span></span>
+          <span class="demo-step"><span class="dot cc-ring cc-accent" style="--dot-size: calc(var(--u) * .75)" aria-hidden="true"></span><span class="t-xs faint cap-center">¾</span></span>
+          <span class="demo-step"><span class="dot cc-ring cc-accent" style="--dot-size: var(--sp-1)" aria-hidden="true"></span><span class="t-xs faint cap-center">1</span></span>
+          <span class="demo-step"><span class="dot cc-ring cc-accent" style="--dot-size: var(--sp-1h)" aria-hidden="true"></span><span class="t-xs faint cap-center">1½</span></span>
+          <span class="demo-step"><span class="dot cc-ring cc-accent" style="--dot-size: var(--sp-2)" aria-hidden="true"></span><span class="t-xs faint cap-center">2 cells</span></span>
+        </div>
+        <div class="demo-rail" role="img" aria-label="Five steps on a line: two done, one underway, two to come">
+          <span class="dot cc-ok"></span><span class="dot cc-ok"></span><span class="dot cc-accent"></span><span class="dot cc-ring cc-quiet"></span><span class="dot cc-ring cc-quiet"></span>
+        </div>
+      </article>
+      <p class="t-xs faint">A ring is a dot not yet filled: a state before it is reached, beside the dots of the states after it. Its line is a quarter of the dot, one line at the least and two at the most (<code>--dot-ring</code>). Its inside is clear; on a line, <code>--dot-fill: var(--surface)</code> keeps the line out of it.</p>
 
       <h3 class="t-h5">.skeleton</h3>
       <article class="card member-tile" aria-busy="true"><span class="skeleton cc-block demo-skel-avatar"></span><div class="member-tile-body"><p class="t-h5 skeleton">A placeholder name</p><p class="t-sm skeleton">Placeholder copy the length of a real line, shimmering.</p></div></article>

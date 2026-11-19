@@ -169,7 +169,10 @@ const FLOORS = [['text', 'bg', 4.5], ['text', 'bg-raised', 4.5], ['text', 'bg-su
   ['text-tertiary', 'bg', 4.5], ['text-tertiary', 'bg-raised', 4.5],
   ['text', 'bg-raised-2', 4.5], ['text-secondary', 'bg-raised-2', 4.5], ['text-tertiary', 'bg-raised-2', 4.5],
   ['text', 'bg-raised-3', 4.5], ['text-secondary', 'bg-raised-3', 4.5], ['text-tertiary', 'bg-raised-3', 4.5],
-  ['accent-ink', 'accent', 4.5], ['accent', 'bg', 3], ['accent', 'bg-raised', 3]];
+  ['accent-ink', 'accent', 4.5], ['accent', 'bg', 3], ['accent', 'bg-raised', 3],
+  // A status drawn as a line: a ring dot (.dot.cc-ring, D103) is one or two lines of its
+  // color on the page or a surface, so each status holds 3:1 there, as the accent does.
+  ...['ok', 'warn', 'alert'].flatMap(k => ['bg', 'bg-raised', 'bg-raised-2', 'bg-raised-3'].map(g => [k, g, 3]))];
 // A file with scopes is checked once per scope too: the root's seeds, then the
 // scope's over them, as M.scope() and core.css both have it (D96).
 const layersToCheck = [[null, 'core', M.SEED]];

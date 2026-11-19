@@ -27,7 +27,7 @@ Find the need here first. If it is here, use it and write no CSS for it.
 | A value along a line (a slider) | `input.range`; `.cc-zone` to ink a stretch between two values |
 | One of several (a filter, a view switch) | `.tabs.cc-seg` > `.tab[aria-selected]`; plain `.tabs` for tabs |
 | A label, a status, a chip | `.tag` (kinds `.cc-ok`, `.cc-warn`, `.cc-alert`…; `.cc-solid`, `.cc-outline`) |
-| A status light, a count | `.dot` (`--dot-color`, `--dot-size`), `.badge` |
+| A status light, a count | `.dot` (`--dot-color`, `--dot-size`; `.cc-ring` for a state not yet reached, drawn as a ring), `.badge` |
 | A menu, a popover, a tooltip | `.float.options-card` > `.options-card-item`; `.float.tooltip`. Always a popover: `popover="manual"` and `Trellis.float.open(float, anchor)` from `float.js` (it places, flips, follows and closes it), or `.cc-anchor` with a `popovertarget` button. Never `position` or `z-index` of your own |
 | A dialog, a drawer, a bottom sheet | `dialog.modal` > `.modal-inner` > `.modal-header`, `.modal-body`, `.modal-footer`; `.cc-tray` with a side. Open with `showModal()` |
 | A person or group | `.avatar`, `.member-tile` |

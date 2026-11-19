@@ -2560,6 +2560,20 @@
   .dot.cc-warn { --dot-color: var(--warn); }
   .dot.cc-quiet { --dot-color: var(--text-faint); }
   .dot.cc-accent { --dot-color: var(--accent); }
+  /* A ring (.cc-ring): the same mark, not yet filled, for a state before it is
+     reached (an idea, a plan) beside the dots of the states after it (D103). Its
+     line is a quarter of the dot, never under one line or over two, so a
+     half-cell bead draws a finer ring than a one-cell mark; --dot-ring sets it.
+     Its inside is clear. On a line (a rail, a rule) --dot-fill: var(--surface)
+     keeps the line out of it. A border, so it adds no size and needs no shadow.
+     A line is thinner than a fill, so a quiet ring takes the next ink up. */
+  .dot.cc-ring {
+    --dot-ring: clamp(var(--line), calc(var(--dot-size) / 4), calc(var(--line) * 2));
+    --dot-fill: transparent;
+    border: var(--dot-ring) solid var(--dot-color);
+    background: var(--dot-fill) padding-box;
+  }
+  .dot.cc-ring.cc-quiet { --dot-color: var(--text-tertiary); }
 
   /* Skeleton: a surface's real structure, shimmering, while its data is on its
      way. A text slot keeps its role, so its block settles to the same cells and
@@ -2819,6 +2833,7 @@
     :is(.switch:is([aria-checked="true"], :has(> input:checked)), .options-card-item[aria-checked="true"] > .switch)::after { --switch-fill: Highlight; --switch-thumb: HighlightText; outline-color: Highlight; }
     .switch:is(:disabled, [aria-disabled="true"], :has(> input:disabled))::after { --switch-thumb: GrayText; outline-color: GrayText; }
     .dot { forced-color-adjust: none; background: CanvasText; }
+    .dot.cc-ring { border-color: CanvasText; background: Canvas; }
     .badge { outline: var(--line) solid CanvasText; outline-offset: calc(var(--line) * -1); }
     .avatar { outline: var(--av-ring) solid CanvasText; outline-offset: var(--av-gap); }
     /* A nested surface has no edge of its own (D88), and here its ground is gone too. */
