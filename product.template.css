@@ -108,6 +108,7 @@
     --state-press: 12%;                                  /* ... when pressed */
     --state-selected: 10%;                               /* ... when selected, pressed on, checked or current */
     --outset: 1;                                         /* cells a surface's edge steps out; 0 turns it off */
+    --frame-max-n: 100;                                  /* the widest a frame gets, in cells: 1200px at the widest cell */
     --prose-measure: calc(var(--u) * 56);                /* the widest a column of running text gets */
 
     /* ---- The tag archetype ----------------------------------------------- */

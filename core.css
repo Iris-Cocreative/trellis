@@ -840,6 +840,10 @@
     gap: var(--grid-gap, var(--sp-2));
     grid-template-columns: repeat(auto-fill, min(var(--grid-min, var(--sp-16)), 100%));
   }
+  /* Fill: the tracks share the remainder, so a row of cards reaches both of
+     the frame's edges. --grid-min is each track's floor; a short last row
+     stretches too (auto-fit). Its tracks are not whole cells. */
+  .grid.cc-fill { grid-template-columns: repeat(auto-fit, minmax(min(var(--grid-min, var(--sp-16)), 100%), 1fr)); }
   /* Cells: the lattice as a layout. Every track is one cell; a child is
      placed by --cell-x / --cell-y (1-based, or auto) and sized by --cell-w /
      --cell-h, in cells. For compositions that are drawn rather than flowed:
@@ -1406,7 +1410,9 @@
      clipped section): a card there silently loses its step-out. Give that
      ancestor --outset: 0, or a cell of inline padding. */
   :where(.stack, .section-body):not(:where(.cols, .split, .grid, .rail) > *) > .card { margin-inline: calc(var(--outset) * var(--u) * -1); }
-  :where(.cols, .grid, .split, .rail):has(> .card):not(:has(> :not(.card))) { margin-inline: calc(var(--outset) * var(--u) * -1); }
+  /* Never on a frame: a frame's margins are its centering, and a grid of
+     cards that is also the frame would lose it and run off the page. */
+  :where(.cols, .grid, .split, .rail):has(> .card):not(:has(> :not(.card))):not(.frame) { margin-inline: calc(var(--outset) * var(--u) * -1); }
 }
 
 /* --------------------------------------------------------------------------
@@ -1580,6 +1586,8 @@
       justify-content: center;
     }
   }
+  /* Block: a button as wide as its container (a form's submit). */
+  .button.cc-block { width: 100%; }
 
   /* Switch: on or off, now. A button with role="switch" and aria-checked, or a
      label around a visually hidden checkbox with role="switch" (for a form). The
@@ -1709,13 +1717,14 @@
     --tag-pad: clamp(var(--sp-h), round(down, var(--tag-radius), var(--sp-h)), var(--sp-1));
     --tag-fill: 14%;
     --tag-edge: 42%;
+    --tag-edge-style: solid;     /* dashed for what isn't here yet */
     --tag-ink: var(--text);
     --tag-gap: var(--sp-h);
     display: inline-flex; align-items: center; gap: var(--tag-gap);
     max-width: 100%;
     height: var(--tag-draw);
     padding-inline: calc(var(--tag-pad) - var(--line));
-    border: var(--line) solid color-mix(in oklab, var(--tag-color) var(--tag-edge), transparent);
+    border: var(--line) var(--tag-edge-style) color-mix(in oklab, var(--tag-color) var(--tag-edge), transparent);
     border-radius: var(--tag-radius);
     background: color-mix(in oklab, var(--tag-ink) var(--state-act), color-mix(in oklab, var(--tag-color) var(--tag-fill), transparent));
     color: var(--tag-ink);
@@ -2215,8 +2224,9 @@
   select.input {
     appearance: none; -webkit-appearance: none;
     --chevron: calc(var(--sp-q) + var(--line) * 2);
+    --chevron-color: currentColor;
     padding-inline-end: var(--sp-3);
-    background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-image: linear-gradient(45deg, transparent 50%, var(--chevron-color) 50%), linear-gradient(135deg, var(--chevron-color) 50%, transparent 50%);
     background-position: right calc(var(--sp-1) + var(--chevron)) center, right var(--sp-1) center;
     background-size: var(--chevron) var(--chevron);
     background-repeat: no-repeat;
