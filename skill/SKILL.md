@@ -1,6 +1,6 @@
 ---
 name: trellis
-description: Build, restyle or mock up any interface in a project that uses Trellis (it loads Trellis's core.css, has a vendor/trellis folder, a data-product attribute on <html>, or a CLAUDE.md that says it is a Trellis project). Use before writing or changing ANY CSS, markup, component or HTML mockup there, even when the request doesn't mention Trellis ("add a panel", "tweak the toolbar", "mock up a settings page"). Also for starting a new project on Trellis and for checking one against its rules.
+description: Build, restyle or mock up any interface in a project that uses Trellis (it loads Trellis's core.css, has a vendor/trellis folder, a data-product attribute on <html>, or a CLAUDE.md that says it is a Trellis project). Use before writing or changing ANY CSS, markup, component or HTML mockup there, even when the request doesn't mention Trellis ("add a panel", "tweak the toolbar", "mock up a settings page"). Also for starting a new project on Trellis, for moving an existing site or app onto Trellis (see ADOPT.md), and for checking one against its rules.
 ---
 
 # Building on Trellis
@@ -89,6 +89,10 @@ node <trellis>/tools/check.js <folder> --budget check.budget.json     # fails if
 ```
 
 It also counts a modifier without its base (`--show bare-modifiers`). If the project has a budget file, run the third form before you finish: your change must not raise any count, and lowering one is part of the job. After lowering, rewrite the budget with `--write`. `node <trellis>/tests/contract.js <product layer file>` checks a product layer.
+
+## Moving an existing site onto Trellis
+
+Read `ADOPT.md` beside this file. It covers taking stock, sorting each part by its job, putting the brand into knobs, scopes, switching in one step, and the ledger and budget.
 
 ## Starting a project on Trellis
 
