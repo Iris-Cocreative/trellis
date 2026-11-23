@@ -1261,6 +1261,32 @@
       </div>
       <article class="card member-tile cc-row"><span class="avatar cc-md" aria-hidden="true">JB</span><div class="member-tile-body"><p class="t-h6">Jonah Baptiste</p><p class="t-sm muted">.cc-row puts the avatar beside the words.</p></div></article>
 
+      <h3 class="t-h5">.card-link, .media</h3>
+      <div class="grid demo-tiles" id="demo-covers">
+        <article class="card stack" id="demo-cover-banner">
+          <div class="media cc-bleed" style="--media-h: 14"><img class="ph" style="--ph: var(--ok)" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='500'/%3E" alt="Gradient placeholder: the trial bed in June" loading="lazy" width="800" height="500"></div>
+          <p class="t-h5"><a class="card-link" href="#primitives">The trial bed in June</a></p>
+          <p class="t-sm muted">Eleven varieties up, two still sleeping. The whole card is the link; the button keeps its own click.</p>
+          <div class="cluster"><button class="button cc-ghost cc-sm" type="button" aria-pressed="false" id="demo-cover-save"><span class="button-label">Save</span></button><a class="tag cc-sm cc-ok" href="#tags"><span class="tag-label">Growing</span></a></div>
+        </article>
+        <article class="card" id="demo-cover-fill">
+          <div class="media cc-fill"><img class="ph" style="--ph: var(--kind-event); --ph-to: var(--warn)" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='500'/%3E" alt="Gradient placeholder: the swap table" loading="lazy" width="900" height="500"></div>
+          <div class="stack"><p class="t-eyebrow">Saturday</p><p class="t-h5"><a class="card-link" href="#primitives">Seed swap at the library</a></p></div>
+        </article>
+      </div>
+      <article class="card" id="demo-cover-line">
+        <div class="media cc-bleed-start"><img class="ph" style="--ph: var(--kind-group)" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='800'/%3E" alt="Gradient placeholder: a labeled jar" loading="lazy" width="600" height="800"></div>
+        <div class="stack"><p class="t-sm"><a class="card-link" href="#primitives">Glass Gem, saved 2025</a></p><p class="t-xs muted">A strip three cells wide, as tall as the card.</p></div>
+        <button class="button icon-button cc-ghost cc-sm" type="button" aria-label="More"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><circle cx="3" cy="7" r="1"></circle><circle cx="7" cy="7" r="1"></circle><circle cx="11" cy="7" r="1"></circle></svg></button>
+      </article>
+      <div class="cluster u-gap-2" id="demo-media-points">
+        <div class="media" id="demo-media-focus" style="--media-w: 8; --media-h: 10; --media-focus: 50% 25%"><img class="ph" style="--ph: var(--kind-person)" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='1200'/%3E" alt="Gradient placeholder: a portrait" loading="lazy" width="800" height="1200"></div>
+        <div class="media cc-round" style="--media-w: 4; --media-h: 4"><img class="ph" style="--ph: var(--accent)" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='640'/%3E" alt="Gradient placeholder: a face" loading="lazy" width="640" height="640"></div>
+        <div class="media" style="--media-w: 4; --media-h: 4"><img class="ph" style="--ph: var(--kind-group)" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='640'/%3E" alt="Gradient placeholder: a team's mark" loading="lazy" width="640" height="640"></div>
+        <div class="media" style="--media-w: 4; --media-h: 4" role="img" aria-label="An empty frame"></div>
+      </div>
+      <p class="t-xs faint">A card is one link without wrapping it in one: its title is an <code>a.card-link</code>, which covers the card, and the card's own buttons, tags and fields are raised above it, so a press on them is theirs. Hover, press and the focus ring are the card's. A <code>.media</code> frame is sized in cells (<code>--media-w</code>, <code>--media-h</code>), so nothing moves as its image loads; the image fills it by cover, at <code>--media-focus</code> (here, <code>50% 25%</code> keeps a face). In a card it bleeds to the edges and takes the card's corners: <code>.cc-bleed</code> for a banner, <code>.cc-bleed-start</code> for a strip, <code>.cc-fill</code> for the whole ground with a scrim.</p>
+
       <h3 class="t-h5">.u-clamp</h3>
       <div class="grid demo-tiles" id="demo-clamp">
         <article class="card stack"><p class="t-h5 u-clamp">Saving seed through a long, dry spring: the year the group kept every jar it was given and typed up why</p><p class="t-sm muted u-clamp" style="--lines: 3">Forty people brought seed to the swap, and most of it was beans. This is the log of what germinated, what stayed sleeping, and the varieties going to the trial bed by the gate, typed up by Marisol for anyone joining the group this year.</p><p class="t-xs faint">Clamped: two lines, then three</p></article>

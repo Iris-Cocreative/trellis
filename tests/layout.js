@@ -40,6 +40,11 @@
 //   clamp   clamped text keeps the box of its lines, in whole cells; in the
 //           pixels, its last line's descenders are as deep as its first line's,
 //           and nothing of the hidden line shows under them
+//   covers  a card's link covers the card, its button and tag take their own
+//           clicks, a row's link the same, and the focus ring is the card's;
+//           an image fills its frame at the focal point, the frame in cells,
+//           and a banner, a strip and a full bleed meet the card's edges and
+//           take its corners
 // Usage: node layout.js <url> [webkit] [WxH] [touch]
 // Needs Playwright (PLAYWRIGHT=module path). Exits 1 if anything is off.
 const pw = require(process.env.PLAYWRIGHT || 'playwright');
@@ -779,6 +784,107 @@ const ready = require('./ready');
     if (await open()) fails.push('a backdrop click did not close the modal');
   }
   await page.evaluate(() => { const d = document.getElementById('demo-modal'); if (d.open) d.close(); });
+
+  // A cover link and a cover image (D108). The link covers its card: what is
+  // under a point anywhere on the card is the link, but a button or a tag in
+  // it takes its own click, and a real click on each goes where it should. A
+  // list row's link does the same for a button in its end. The focus ring is
+  // drawn round the card. An image fills its frame by cover at the focal
+  // point, the frame whole cells; a bleeding frame meets the card's edges and
+  // takes its corners: a banner, a strip at the start, the whole ground.
+  {
+    await page.evaluate(() => {
+      const list = document.createElement('ul'); list.className = 'list'; list.id = 'cover-row-test';
+      list.innerHTML = '<li class="list-item"><div class="list-body"><p class="t-sm"><a class="list-link" href="#cover-row">A row that links</a></p><p class="t-xs">Its second line</p></div><div class="list-end"><button class="button cc-ghost cc-sm" type="button"><span class="button-label">Act</span></button></div></li>';
+      document.getElementById('demo-cover-line').after(list);
+      window.__coverHits = [];
+      window.__coverClick = e => { const a = e.target.closest('a, button'); window.__coverHits.push(a ? (a.className.split(' ')[0] || a.tagName) : 'none'); if (a && a.matches('a')) e.preventDefault(); };
+      document.addEventListener('click', window.__coverClick, true);
+      document.getElementById('demo-cover-banner').scrollIntoView({ block: 'center' });
+    });
+    await page.waitForTimeout(150);
+    const geo = await page.evaluate(() => {
+      const $ = s => document.querySelector(s), r = e => { const b = e.getBoundingClientRect(); return { l: b.left, t: b.top, r: b.right, b: b.bottom, w: b.width, h: b.height }; };
+      const mid = e => { const b = r(e); return { x: (b.l + b.r) / 2, y: (b.t + b.b) / 2 }; };
+      const at = (x, y) => { const e = document.elementFromPoint(x, y); return e ? (e.closest('a, button') || e) : null; };
+      const card = $('#demo-cover-banner'), link = card.querySelector('.card-link'), cb = r(card);
+      // Near each corner, inside its curve (a third of the radius in), the middle, and the words.
+      const k = Math.ceil(parseFloat(getComputedStyle(card).borderTopLeftRadius) / 3) + 1;
+      const spots = [[cb.l + k, cb.t + k], [cb.r - k, cb.t + k], [cb.l + k, cb.b - k], [cb.r - k, cb.b - k], [(cb.l + cb.r) / 2, (cb.t + cb.b) / 2], [mid(card.querySelector('.t-sm')).x, mid(card.querySelector('.t-sm')).y]];
+      const covered = spots.filter(([x, y]) => at(x, y) !== link).length;
+      const out = {
+        covered, spots: spots.length,
+        btnOwn: at(mid($('#demo-cover-save')).x, mid($('#demo-cover-save')).y) === $('#demo-cover-save'),
+        tagOwn: at(mid(card.querySelector('.tag')).x, mid(card.querySelector('.tag')).y) === card.querySelector('.tag'),
+        save: mid($('#demo-cover-save')), words: mid(card.querySelector('.t-sm')),
+        u: Trellis.cell(),
+      };
+      // Bleeds: each frame's box against its card's, and its corners against the card's.
+      const fr = (sel, corners) => { const m = $(sel), c = m.closest('.card'), mb = r(m), b = r(c), cs = getComputedStyle(m), cr = getComputedStyle(c).borderTopLeftRadius;
+        return { mb, b, radii: corners.map(k => cs[k]), cr, border: getComputedStyle(c, '::after').borderTopColor }; };
+      out.banner = fr('#demo-cover-banner > .media', ['borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomLeftRadius']);
+      out.strip = fr('#demo-cover-line > .media', ['borderTopLeftRadius', 'borderBottomLeftRadius', 'borderTopRightRadius']);
+      out.fill = fr('#demo-cover-fill > .media', ['borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomLeftRadius']);
+      const f = $('#demo-media-focus'), img = f.querySelector('img'), ics = getComputedStyle(img);
+      out.focus = { fb: r(f), ib: r(img), fit: ics.objectFit, pos: ics.objectPosition };
+      out.imgs = [...document.querySelectorAll('#demo-covers .media, #demo-cover-line .media')].map(m => { const a = r(m), b = r(m.querySelector('img')); return Math.max(Math.abs(a.l - b.l), Math.abs(a.t - b.t), Math.abs(a.w - b.w), Math.abs(a.h - b.h)); });
+      return out;
+    });
+    const near = (a, b, t = .5) => Math.abs(a - b) <= t, whole = v => { const m = ((v % geo.u) + geo.u) % geo.u; return m < .5 || m > geo.u - .5; };
+    if (geo.covered) fails.push(`cover link: ${geo.covered} of ${geo.spots} points on the card are not the link`);
+    if (!geo.btnOwn) fails.push("cover link: the card's button is under the cover, not above it");
+    if (!geo.tagOwn) fails.push("cover link: the card's tag link is under the cover, not above it");
+    await page.mouse.click(geo.save.x, geo.save.y);
+    await page.mouse.click(geo.words.x, geo.words.y);
+    const row = await page.evaluate(async () => {
+      const row = document.querySelector('#cover-row-test .list-item'), link = row.querySelector('.list-link'), btn = row.querySelector('button'), words = row.querySelector('.t-xs');
+      row.scrollIntoView({ block: 'center' }); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const mid = e => { const b = e.getBoundingClientRect(); return { x: (b.left + b.right) / 2, y: (b.top + b.bottom) / 2 }; };
+      const at = p => { const e = document.elementFromPoint(p.x, p.y); return e ? (e.closest('a, button') || e) : null; };
+      return { covered: at(mid(words)) === link, own: at(mid(btn)) === btn, btn: mid(btn), words: mid(words) };
+    });
+    if (!row.covered) fails.push("cover link: a list row's second line is not its link");
+    if (!row.own) fails.push("cover link: a list row's button is under its link's cover");
+    await page.mouse.click(row.btn.x, row.btn.y);
+    await page.mouse.click(row.words.x, row.words.y);
+    const hits = await page.evaluate(() => window.__coverHits.join(' '));
+    if (hits !== 'button card-link button list-link') fails.push(`cover link: real clicks on the button, the words, the row's button and the row's words went to "${hits}", not "button card-link button list-link"`);
+    if (geo.imgs.some(d => d > .5)) fails.push(`cover image: an image does not fill its frame (off by ${Math.max(...geo.imgs).toFixed(2)}px)`);
+    const fo = geo.focus;
+    if (fo.fit !== 'cover' || fo.pos !== '50% 25%') fails.push(`cover image: object-fit ${fo.fit} at ${fo.pos}, not cover at the focal point 50% 25%`);
+    if (!near(fo.fb.w, 8 * geo.u) || !near(fo.fb.h, 10 * geo.u)) fails.push(`cover image: a frame of 8 by 10 cells is ${fo.fb.w.toFixed(2)} by ${fo.fb.h.toFixed(2)}px`);
+    const meets = (n, f, sides) => { const off = sides.filter(s => !near(f.mb[s], f.b[s])); if (off.length) fails.push(`cover image: the ${n} does not meet its card's ${off.join(', ')} edge (${off.map(s => `${f.mb[s].toFixed(2)} against ${f.b[s].toFixed(2)}`).join('; ')})`); };
+    meets('banner', geo.banner, ['l', 't', 'r']); meets('strip', geo.strip, ['l', 't', 'b']); meets('full bleed', geo.fill, ['l', 't', 'r', 'b']);
+    const corners = (n, f, takes) => takes.forEach((t, i) => { if ((f.radii[i] === f.cr) !== t) fails.push(`cover image: the ${n}'s corner ${i + 1} is ${f.radii[i]}; the card's is ${f.cr}, and it should ${t ? '' : 'not '}take it`); });
+    corners('banner', geo.banner, [true, true, false]); corners('strip', geo.strip, [true, true, false]); corners('full bleed', geo.fill, [true, true, true]);
+    if (!near(geo.strip.mb.w, 3 * geo.u)) fails.push(`cover image: the strip is ${geo.strip.mb.w.toFixed(2)}px wide, not three cells`);
+    if (!whole(geo.banner.mb.h)) fails.push(`cover image: the banner is ${geo.banner.mb.h.toFixed(2)}px tall, not whole cells`);
+    if (!/^(transparent|rgba\(0, 0, 0, 0\))$/.test(geo.fill.border)) fails.push(`cover image: a full-bleed card still draws its edge (${geo.fill.border})`);
+    // The focus ring, from the keyboard: Tab from a field just before the card
+    // lands on its link, and the ring is drawn by the cover, round the card.
+    // WebKit leaves links out of Tab (as Safari does by default), so there the
+    // link is given a tabindex for the test.
+    await page.evaluate(wk => {
+      const before = document.createElement('input'); before.className = 'input';
+      const card = document.getElementById('demo-cover-banner'); card.before(before); before.focus();
+      if (wk) card.querySelector('.card-link').tabIndex = 0;
+    }, engine === 'webkit');
+    await page.keyboard.press('Tab');
+    const fr = await page.evaluate(() => {
+      const card = document.getElementById('demo-cover-banner'), link = card.querySelector('.card-link'), cs = getComputedStyle(link, '::before');
+      const focusColor = (() => { const p = document.createElement('i'); p.style.color = 'var(--focus)'; card.appendChild(p); const c = getComputedStyle(p).color; p.remove(); return c; })();
+      const out = { focused: document.activeElement === link, visible: link.matches(':focus-visible'), style: cs.outlineStyle, width: parseFloat(cs.outlineWidth), color: cs.outlineColor, focusColor, own: getComputedStyle(link).outlineStyle, pos: cs.position, inset: [cs.top, cs.left, cs.right, cs.bottom].join(' '), parent: link.offsetParent === card };
+      card.previousElementSibling.remove(); link.removeAttribute('tabindex'); link.blur();
+      return out;
+    });
+    if (!fr.focused || !fr.visible) fails.push(`cover link: the card's link did not take a visible focus (focused ${fr.focused}, focus-visible ${fr.visible})`);
+    else {
+      if (fr.style !== 'solid' || !(fr.width > 0) || fr.color !== fr.focusColor) fails.push(`cover link: the card's focus ring is ${fr.style} ${fr.width}px ${fr.color}, not the focus color ${fr.focusColor}`);
+      if (fr.own !== 'none') fails.push('cover link: the link draws a ring round its words as well as the card');
+      if (fr.pos !== 'absolute' || fr.inset !== '0px 0px 0px 0px' || !fr.parent) fails.push(`cover link: the ring is not drawn round the card (${fr.pos}, inset ${fr.inset}, the card ${fr.parent ? '' : 'not '}its box)`);
+    }
+    await page.evaluate(() => { document.removeEventListener('click', window.__coverClick, true); document.getElementById('cover-row-test').remove(); });
+  }
 
   // A clamp (D105). Layout: the box is its lines' own, the first capitals at its
   // top and whole cells tall, so it sits where unclamped text would. Pixels:
