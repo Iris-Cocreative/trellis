@@ -9,6 +9,12 @@
 const PACKED = /*DATA*/null;
 // Unpacked to the generator's JSON shape (tools/figma-variables.js, --plugin).
 const TYPES = { F: 'FLOAT', S: 'STRING', C: 'COLOR' };
+// A tint's values are 0: its role's hex, with the share in its name as alpha.
+const share = (pct) => Math.round(pct * 2.55).toString(16).padStart(2, '0');
+for (const c of PACKED.collections) for (const row of c.v) if (row[3] === 0) {
+  const [, theme, role, pct] = row[0].match(/^(light|dark)\/tint\/(.+)\/(\d+)$/);
+  row[3] = c.v.find((y) => y[0] === `${theme}/${role}`)[3].map((hex) => hex + share(+pct));
+}
 const DATA = { collections: PACKED.collections.map((c) => ({ name: c.name, modes: c.modes, variables: c.v.map(([name, t, sc, vs, cs]) => {
   const d = { name, type: TYPES[t], scopes: PACKED.scopes[sc] ? PACKED.scopes[sc].split(',') : [], values: {}, aliases: {} };
   c.modes.forEach((m, i) => { const y = vs[i]; if (typeof y === 'string' && y[0] === '@') d.aliases[m] = y.slice(1); else d.values[m] = d.type === 'COLOR' ? '#' + y : y; });
@@ -82,7 +88,9 @@ const fontFor = (familyName, w) => {
   if (!f) throw new Error(`Figma has no ${familyName} at ${w}; pick another stand-in in tools/figma-variables.js`);
   return f.fontName;
 };
-for (const fam of families) for (const w of weights) await figma.loadFontAsync(fontFor(fam, w));
+// A family may lack a weight another product sets (Alegreya Sans has no 600):
+// that pair is never drawn, so only a text style's own font must exist.
+for (const fam of families) for (const w of weights) { const f = fonts.find((x) => x.fontName.family === fam && key(x.fontName.style) === key(STYLE[w])); if (f) await figma.loadFontAsync(f.fontName); }
 
 const roles = [...new Set(DATA.collections.find((c) => c.name === 'Type').variables.map((x) => (x.name.match(/^type\/([a-z0-9]+)\/size$/) || [])[1]).filter(Boolean))];
 const styles = await figma.getLocalTextStylesAsync();
