@@ -104,14 +104,20 @@ for (const line of read('product.template.css').split('\n')) {
   // components name is generated.
   const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
   const plugin = execFileSync(process.execPath, [path.join(dir, 'tools', 'figma-variables.js'), '--plugin'], { encoding: 'utf8' });
-  const components = read('tools/figma-components.js');
-  for (const [name, src] of [['figma-variables --plugin', plugin], ['figma-components.js', components]]) {
+  // The components travel in parts (tools/figma-components.js), each the kit and a body.
+  const fc = require(path.join(dir, 'tools', 'figma-components.js'));
+  const scripts = [['figma-variables --plugin', plugin], ...Object.keys(fc.PARTS).map((p) => [`figma-components --plugin ${p}`, fc.script(p)])];
+  for (const [name, src] of scripts) {
     try { new AsyncFunction('figma', src); } catch (e) { check(false, `${name} does not parse: ${e.message}`); }
+    check(src.length < 50000, `${name} is ${src.length} characters; an agent's Figma tool takes 50,000`);
   }
-  check(plugin.length < 50000, `figma-variables --plugin is ${plugin.length} characters; an agent's Figma tool takes 50,000`);
-  check(components.length < 50000, `figma-components.js is ${components.length} characters; an agent's Figma tool takes 50,000`);
-  for (const [, n] of components.matchAll(/'((?:space|size|radius|knob|derived|type|color)\/[a-z0-9/-]+)'/g))
-    check(names.has(n), `figma-components.js binds ${n}, which isn't generated`);
+  for (const [name, src] of scripts.slice(1)) {
+    for (const [, n] of src.matchAll(/'((?:space|size|radius|knob|derived|type|color)\/[a-z0-9/-]+)'/g))
+      check(names.has(n), `${name} binds ${n}, which isn't generated`);
+    // A role it paints, edges or inks by name is a Color variable.
+    for (const m of src.matchAll(/(?:paint|edge|side|glyph)\('([a-z][a-z0-9-]*)'|ink: '([a-z][a-z0-9-]*)'/g))
+      check(names.has('color/' + (m[1] || m[2])), `${name} paints ${m[1] || m[2]}, which isn't a Color variable`);
+  }
 }
 
 // Package.
