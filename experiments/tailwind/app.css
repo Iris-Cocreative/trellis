@@ -1,0 +1,72 @@
+/* An app stylesheet shaped like the first app's entry, which is the case this
+   spike tests: Tailwind v4 through @tailwindcss/postcss, tw-animate-css, the
+   shadcn token names, unlayered :root tokens, an @theme inline block and an
+   @layer base that applies utilities. The values are placeholders; the shape,
+   and which names it declares where, is what matters.
+
+   Trellis is not imported here: index.html loads it beside this file, in the
+   order a query asks for. bundle.css imports both into one file. */
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Tailwind only writes the utilities it finds in use. */
+@source "./index.html";
+/* Three of Trellis's class names are also Tailwind utilities (names.js): a
+   .list-item would become display: list-item, an .outline would draw a 1px
+   outline, a .snap-x would snap-scroll. Tailwind makes them from any file it
+   scans that holds the word, so the app tells it not to. (dist/app-unguarded.css
+   is this file without the line, to show what it stops.) */
+@source not inline("list-item outline snap-x");
+
+/* Unlayered, as an app's own token blocks usually are. Unlayered CSS beats
+   every layer, so any name here that Trellis also uses is the app's, in every
+   import order: no @layer statement can change that (tailwind.js, tokens). */
+:root {
+  --bg: #f5f3f0;
+  --bg-raised: #fffcfb;
+  --text: #1c1b19;
+  --text-secondary: #524e48;
+  --border-subtle: #e8e4dd;
+  /* shadcn's names. --accent is shadcn's hover wash, and Trellis's accent. */
+  --background: var(--bg);
+  --foreground: var(--text);
+  --primary: #279daf;
+  --primary-foreground: #ffffff;
+  --accent: #f0ede8;
+  --accent-foreground: var(--text);
+  --border: #ddd9d2;
+  --ring: #279daf;
+  --radius: 0.375rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --font-sans: "App Sans", system-ui, sans-serif;
+  --radius-lg: var(--radius);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+@layer components {
+  .app-panel-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+}

@@ -97,7 +97,7 @@ Read `ADOPT.md` beside this file. It covers taking stock, sorting each part by i
 ## Starting a project on Trellis
 
 1. Pin a copy: `vendor/trellis/` with `core.css`, `settle.js` (and `float.js` or `presets.js` if it uses them) and a `SOURCE.txt` naming the commit or tag.
-2. Load, in order: `core.css`, the product layer, the app's CSS; then `settle.js` once. Beside Tailwind, state `@layer theme, base, trellis, components, utilities;` first.
+2. Load, in order: `core.css`, the product layer, the app's CSS; then `settle.js` once. Beside Tailwind, state `@layer theme, base, trellis, components, utilities;` first, and add `@source not inline("list-item outline snap-x");` after `@import "tailwindcss"` (D110). On a Trellis surface, Tailwind lengths name cells (`p-(--sp-2)`), never its rem scale.
 3. Copy `product.template.css` to the project's own product file, keep the knobs you change, put `data-product` on `<html>`.
 4. Write the budget (`--budget check.budget.json --write`) on day one, while it is all zeros.
 5. Put this in the project's `CLAUDE.md`, so every session sees it:

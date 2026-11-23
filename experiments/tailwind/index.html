@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trellis Tailwind Spike</title>
+<meta name="description" content="Real Tailwind v4 beside Trellis, in every import order.">
+<script>
+  // The stylesheets, in the order ?order= names (D110; tests/tailwind.js reads each):
+  //   statement           the @layer statement, then Tailwind, then Trellis (the default)
+  //   statement-trellis   the statement, then Trellis, then Tailwind
+  //   tailwind            Tailwind, then Trellis, no statement
+  //   trellis             Trellis, then Tailwind, no statement
+  //   bundle              one file: the statement, the app and core.css, built for production
+  //   unguarded           the statement order, with an app build that lets Tailwind
+  //                       make utilities of Trellis's class names
+  //   none                Trellis alone: what the others are compared with
+  // ?layer=<address>&product=<name> adds a product layer beside core.css, as the
+  // specimen does: another origin's layer only when this page is on localhost.
+  // ?theme=light|dark sets the theme.
+  (function () {
+    var d = document.documentElement, q = new URLSearchParams(location.search);
+    var order = q.get('order') || 'statement', layer = q.get('layer'), product = q.get('product'), href = '';
+    if (layer && product && /^[a-z][a-z0-9-]*$/.test(product)) {
+      try {
+        var u = new URL(layer, location.href), local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+        if (/\.css$/.test(u.pathname) && /^https?:$/.test(u.protocol) && (u.origin === location.origin || local)) { href = u.href; d.setAttribute('data-product', product); }
+      } catch (e) {}
+    }
+    var theme = q.get('theme');
+    if (theme === 'light' || theme === 'dark') d.setAttribute('data-theme', theme);
+    var link = function (h) { return '<link rel="stylesheet" href="' + h + '">'; };
+    var trellis = link('../../core.css') + (href ? link(href) : '');
+    var statement = '<style>@layer theme, base, trellis, components, utilities;</style>';
+    var sheets = {
+      statement: statement + link('dist/app.css') + trellis,
+      'statement-trellis': statement + trellis + link('dist/app.css'),
+      tailwind: link('dist/app.css') + trellis,
+      trellis: trellis + link('dist/app.css'),
+      bundle: link('dist/bundle.css') + (href ? link(href) : ''),
+      unguarded: statement + link('dist/app-unguarded.css') + trellis,
+      none: trellis
+    };
+    if (!sheets[order]) order = 'statement';
+    d.setAttribute('data-order', order);
+    document.write(sheets[order]);
+  })();
+</script>
+</head>
+<body>
+<main class="frame" id="top">
+  <div class="stack" style="--stack-gap: var(--sp-6)">
+
+    <!-- Trellis alone. Every box here must sit exactly where it sits with no
+         Tailwind at all (?order=none): that is the reset and preflight check. -->
+    <section class="stack" id="surface" style="--stack-gap: var(--sp-3)">
+      <header class="stack" style="--stack-gap: var(--sp-2)">
+        <p class="t-eyebrow">A Trellis spike · Tailwind v4</p>
+        <h1 class="t-h1" id="role">Trellis beside Tailwind</h1>
+        <p class="t-lg">This page loads the real Tailwind v4, built the way an app builds it, beside core.css. Its address picks the import order. Everything in this first part is Trellis alone, and must land where it lands without Tailwind.</p>
+      </header>
+      <article class="card stack">
+        <h2 class="t-h3">A Trellis card</h2>
+        <p class="t-body">Headlines stand on the cells, other text hangs from a cell line. Tailwind's preflight sets every heading's size to inherit and every margin to zero; under Trellis's layer it changes nothing here.</p>
+        <div class="cluster">
+          <button class="button cc-primary" type="button"><span class="button-label">Primary</span></button>
+          <button class="button" type="button"><span class="button-label">Secondary</span></button>
+          <span class="tag"><span class="tag-label">A tag</span></span>
+        </div>
+      </article>
+      <ul class="list" id="list">
+        <li class="list-item"><div class="list-body"><p class="t-sm list-title">A list row</p><p class="t-sm list-sub">Tailwind also has a utility called list-item.</p></div><div class="list-end"><span class="t-xs">2m</span></div></li>
+        <li class="list-item"><div class="list-body"><p class="t-sm list-title">Another row</p><p class="t-sm list-sub">Its rule adds no height.</p></div><div class="list-end"><span class="t-xs">1d</span></div></li>
+      </ul>
+      <nav class="outline" id="outline" aria-label="An outline">
+        <ul role="list">
+          <li><a class="outline-link" href="#top" aria-current="location">Growing</a>
+            <ul role="list"><li><a class="outline-link" href="#top">Sowing</a></li><li><a class="outline-link" href="#top">Spacing</a></li></ul></li>
+          <li><a class="outline-link" href="#top">Saving</a></li>
+        </ul>
+      </nav>
+    </section>
+
+    <!-- Trellis cards inside a Tailwind layout. The layout's lengths are cell
+         counts, named through Tailwind's (--var) shorthand. -->
+    <section class="stack" id="layout" style="--stack-gap: var(--sp-2)">
+      <h2 class="t-h2">Cards in a Tailwind layout</h2>
+      <div class="flex flex-col md:flex-row gap-(--sp-2)">
+        <aside class="md:w-(--sp-16) shrink-0 card stack">
+          <p class="t-label">An aside</p>
+          <p class="t-sm">Sixteen cells wide on a wide screen, by md:w-(--sp-16).</p>
+        </aside>
+        <div class="flex-1 min-w-0 grid grid-cols-[repeat(auto-fill,min(var(--sp-16),100%))] gap-(--sp-2)">
+          <article class="card stack"><h3 class="t-h3">First</h3><p class="t-sm">A grid track of sixteen cells, set by a Tailwind arbitrary value.</p></article>
+          <article class="card stack"><h3 class="t-h3">Second</h3><p class="t-sm">The gap is two cells: gap-(--sp-2).</p></article>
+          <article class="card stack"><h3 class="t-h3">Third</h3><p class="t-sm">Padding stays the card's own.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <!-- What utilities must still do to Trellis's elements. -->
+    <section class="stack" id="utilities" style="--stack-gap: var(--sp-2)">
+      <h2 class="t-h2">Utilities on Trellis's elements</h2>
+      <div>
+        <p class="t-body mt-(--sp-2)" id="utility">A margin utility on a paragraph Trellis's reset sets to zero: two cells above, from mt-(--sp-2).</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- For tailwind.js only, never shown: what a layout in Tailwind's own
+       lengths does, and where Trellis's .grid reaches an app's grid. -->
+  <template id="rem-layout">
+    <div class="grid grid-cols-3 gap-6 p-8" id="rem"><article class="card"><p class="t-sm">One</p></article><article class="card"><p class="t-sm">Two</p></article><article class="card"><p class="t-sm">Three</p></article></div>
+    <div class="grid grid-cols-2 gap-x-4" id="leak"><p class="t-sm">A</p><p class="t-sm">B</p><p class="t-sm">C</p><p class="t-sm">D</p></div>
+  </template>
+</main>
+<script src="../../settle.js"></script>
+</body>
+</html>

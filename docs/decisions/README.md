@@ -119,3 +119,4 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D105](D105.md) | A clamp is clipped from the top | 2026-11-19 | accepted |
 | [D106](D106.md) | A prose gallery is images and nothing else | 2026-11-19 | accepted |
 | [D107](D107.md) | Stages: seven seeds for a process, each with a fill and an ink | 2026-11-19 | accepted |
+| [D110](D110.md) | Beside Tailwind: the layer statement, and three class names Tailwind must not make | 2026-11-23 | accepted |

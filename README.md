@@ -449,11 +449,13 @@ Everything degrades to a working layout. Per feature:
 - **Without a bundler,** load the three files from a pinned copy: `core.css`, your product layer, `settle.js`.
 - **A product owns its layer.** Start from `product.template.css`, keep the knobs you change, and put `data-product` on `<html>`.
 - **Beside an existing stylesheet,** migrate one surface at a time. A surface uses Trellis or the other system, not both.
-- **With Tailwind, order matters, and neither import order is safe alone.** Namespacing stops the foundation's layers merging with Tailwind's, but `trellis` still has to sit between them: above Tailwind's preflight, or preflight flattens the type roles; below its utilities, or a utility margin on a heading loses to the reset. State the order first, before either stylesheet:
+- **With Tailwind, order matters, and neither import order is safe alone (D110).** Namespacing stops the foundation's layers merging with Tailwind's, but `trellis` still has to sit between them. State the order first, before either stylesheet, and keep Tailwind from making utilities of three of Trellis's class names:
   ```css
   @layer theme, base, trellis, components, utilities;
+  @import "tailwindcss";
+  @source not inline("list-item outline snap-x");
   ```
-  `tests/layers.js` proves this against the shape of Tailwind's layers, in both import orders; a later spike proves it against real Tailwind.
+  Without the statement, with Tailwind first, `trellis` lands above Tailwind's utilities and every utility on a Trellis element loses to Trellis (a `mt-*` on a paragraph does nothing). With Trellis first, it lands below `base`: preflight sets every heading role to body size and moves every box on a Trellis surface, and Tailwind's `--font-sans`, `--font-serif`, `--font-mono`, `--ease-in` and `--ease-out` replace Trellis's. With the statement, both orders are safe, and so is importing `core.css` from the Tailwind entry in a production build. Without the `@source` line, a `.list-item` becomes `display: list-item` and an `.outline` draws one. Three more things the statement can't fix: an app's own unlayered `:root` tokens beat every layer, so a name both declare is the app's (shadcn's `--accent` is a hover gray); Tailwind's spacing scale is rem, not cells, so a layout around a Trellis card names cells (`gap-(--sp-2)`, `p-(--sp-3)`); and Trellis's `.grid` also styles every Tailwind `grid` element (its gap and tracks where the element sets none). `tests/tailwind.js` proves all of it against real Tailwind v4 (`experiments/tailwind/`), in every order and both engines; `tests/layers.js` against the shape of Tailwind's layers.
 
 ## Open questions
 
