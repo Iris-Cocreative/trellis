@@ -67,12 +67,18 @@ const keys = (o) => Object.keys(o).filter((k) => k[0] !== '$');
 const space = [v('space/u', vals((m) => CELL[m]), ['GAP', 'WIDTH_HEIGHT'])];
 const spName = (k) => 'sp-' + k;
 for (const k of keys(tokens.space)) space.push(v('space/' + spName(k), vals((m) => CELL[m] * $('space', k)), ['GAP', 'WIDTH_HEIGHT']));
+// The other quarter (--sp-q2): a half less a quarter, so the two make a half at any cell.
+space.push(v('space/sp-q2', vals((m) => CELL[m] * ($('space', 'h') - $('space', 'q'))), ['GAP', 'WIDTH_HEIGHT']));
 space.push(v('space/line', vals(() => 1), ['STROKE_FLOAT']));
+// A hairline is one device pixel (--hair): a third of a point on the 3x phone, half on the 2x wide screen.
+space.push(v('space/hair', vals((m) => 1 / SCREENS[m].dpr), ['STROKE_FLOAT', 'WIDTH_HEIGHT']));
 // A ring's line (D103): a quarter of the dot, one line at the least and two at the most, on the half-cell dot.
 space.push(v('derived/dot-ring', vals((m) => Math.min(2, Math.max(1, CELL[m] * 0.5 / 4))), ['STROKE_FLOAT']));
 for (const k of keys(tokens.size.control)) space.push(v('size/size-control-' + k, vals((m) => CELL[m] * tokens.size.control[k].$value), ['WIDTH_HEIGHT']));
 for (const k of keys(tokens.size.icon)) space.push(v('size/size-icon' + (k === 'base' ? '' : '-' + k), vals((m) => CELL[m] * tokens.size.icon[k].$value), ['WIDTH_HEIGHT']));
 space.push(v('size/hit-min', vals(() => tokens.size['hit-min'].$value), ['WIDTH_HEIGHT']));
+// Measures core sets in cells and names: the shell's columns (D80), a bubble's measure (D99).
+for (const [k, n] of [['shell-nav-w', 20], ['shell-aside-w', 24], ['chat-measure', 40]]) space.push(v('size/' + k, vals((m) => CELL[m] * n), ['WIDTH_HEIGHT']));
 for (const k of keys(tokens.radius)) {
   const n = tokens.radius[k].$value;
   space.push(v('radius/r-' + k, vals((m) => (n >= 999 ? 999 : CELL[m] * n)), ['CORNER_RADIUS']));
@@ -197,10 +203,19 @@ for (const theme of ['Light', 'Dark']) for (const k of SOLIDS) pv(`${theme.toLow
 // Figma has no mix, and drops a paint's own opacity on an instance, so each
 // is a color with its alpha in it. [role, shares in percent]
 const HUES = SOLIDS;
-const TINTS = [['text', [6, 10, 12, 32]], ['accent-ink', [6, 12]], ['accent', [26]], ...HUES.map((k) => [k, /^kind-(person|group)$/.test(k) ? [14, 26, 42] : [14, 42]])];
+const TINTS = [['text', [6, 8, 10, 12, 32]], ['accent-ink', [6, 12]], ['accent', [16, 26, 60]], ...HUES.map((k) => [k, /^kind-(person|group)$/.test(k) ? [14, 26, 42] : [14, 42]])];
 const alpha = (pct) => Math.round(pct * 2.55).toString(16).padStart(2, '0');
 for (const theme of ['Light', 'Dark']) for (const [k, shares] of TINTS) for (const pct of shares)
   pv(`${theme.toLowerCase()}/tint/${k}/${pct}`, 'COLOR', [], (p) => M.hex(palettes.get(p.mode)[theme][k]) + alpha(pct));
+// A product's color knobs (the bubble's, D99): each the role the layer names,
+// in each theme, or a color written out. A mix is not carried.
+const COLOR_KNOBS = { 'chat-own-bg': ['FRAME_FILL', 'SHAPE_FILL'], 'chat-own-ink': ['TEXT_FILL', 'SHAPE_FILL'], 'chat-bubble-edge': ['STROKE_COLOR'] };
+for (const theme of ['light', 'dark']) for (const k of Object.keys(COLOR_KNOBS)) pv(`${theme}/${k}`, 'COLOR', [], (p) => {
+  const value = p.knobs.get('--' + k), ref = value && value.match(/^var\(--([a-z0-9-]+)\)$/);
+  if (ref && roles.includes(ref[1])) return { alias: `${theme}/${ref[1]}` };
+  if (value === 'transparent') return '#00000000';
+  try { return M.hex(M.parseColor(value)); } catch (e) { if (theme === 'light') (notCarried[p.mode] = notCarried[p.mode] || []).push(`--${k}: ${value}`); return { alias: `${theme}/${TEMPLATE.get('--' + k).match(/^var\(--([a-z0-9-]+)\)$/)[1]}` }; }
+});
 for (const f of FAMILIES) pv('font/' + f, 'STRING', [], (p) => family(p.knobs, '--' + f));
 for (const w of WEIGHTS) pv('weight/' + w, 'FLOAT', [], (p) => plain(follow(p.knobs, '--' + w)));
 
@@ -294,6 +309,7 @@ const color = roles.map((k) => Object.assign(
 for (const [k, shares] of TINTS) for (const pct of shares) color.push({ name: `color/tint/${k}/${pct}`, type: 'COLOR', scopes: ['FRAME_FILL', 'SHAPE_FILL', 'STROKE_COLOR'],
   codeSyntax: { WEB: /^stage-\d+$/.test(k) && pct === 14 ? `var(--${k}-tint)` : `color-mix(in oklab, var(--${k}) ${pct}%, transparent)` },
   values: { Light: at(`light/tint/${k}/${pct}`), Dark: at(`dark/tint/${k}/${pct}`) }, aliases: { Light: `light/tint/${k}/${pct}`, Dark: `dark/tint/${k}/${pct}` } });
+for (const [k, scopes] of Object.entries(COLOR_KNOBS)) color.push(Object.assign(v('color/' + k, { type: 'COLOR', values: { Light: at('light/' + k), Dark: at('dark/' + k) } }, scopes), { aliases: { Light: 'light/' + k, Dark: 'dark/' + k } }));
 // The shadow under a float or a modal (--lift): its color in each theme.
 color.push({ name: 'color/lift', type: 'COLOR', scopes: ['EFFECT_COLOR'], values: { Light: '#1014161f', Dark: '#0000008c' } });
 for (const k of SOLIDS) color.push({ name: 'color/on-' + k, type: 'COLOR', scopes: ['TEXT_FILL', 'SHAPE_FILL'], values: { Light: at('light/on-' + k), Dark: at('dark/on-' + k) }, aliases: { Light: 'light/on-' + k, Dark: 'dark/on-' + k } });
