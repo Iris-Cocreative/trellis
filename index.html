@@ -735,6 +735,19 @@
           </li>
           <li><p>A logbook. On paper, because the person who needs it in thirty years may not have our passwords.</p><p>Everything in it is copied to a shared folder once a season, which takes about an hour.</p></li>
         </ul>
+        <h3>Before the swap</h3>
+        <ul>
+          <li><input type="checkbox" disabled checked> Weigh the last tray of beans</li>
+          <li><input type="checkbox" disabled> Label the squash jars
+            <ul>
+              <li><input type="checkbox" disabled checked> Long Island Cheese</li>
+              <li><input type="checkbox" disabled> Seminole pumpkin</li>
+            </ul>
+          </li>
+        </ul>
+        <ul data-type="taskList">
+          <li data-type="taskItem"><label><input type="checkbox" aria-label="Done"></label><div><p>Print the sign-up sheet, as an editor writes a task</p></div></li>
+        </ul>
         <blockquote>
           <p>You don't save a variety by keeping it safe. You save it by growing it where people can argue about how it tastes.</p>
           <footer>Marisol Vega, <cite>Letters from the Trial Bed</cite></footer>
@@ -1169,8 +1182,27 @@
       <div class="tabs" role="tablist" aria-label="Example" id="demo-tabs"><button class="tab" role="tab" aria-selected="true" type="button">Overview</button><button class="tab" role="tab" aria-selected="false" type="button">Members</button><button class="tab" role="tab" aria-selected="false" type="button">Events</button><button class="tab" role="tab" aria-selected="false" type="button">Documents</button></div>
       <div class="tabs cc-seg" role="tablist" aria-label="Example, segmented"><button class="tab" role="tab" aria-selected="true" type="button">Week</button><button class="tab" role="tab" aria-selected="false" type="button">Month</button><button class="tab" role="tab" aria-selected="false" type="button">Year</button></div>
 
+      <h3 class="t-h5">.choice: checkbox, radio and switch</h3>
+      <div class="cols demo-choices" id="demo-choices">
+        <div class="stack u-gap-1">
+          <label class="choice"><input type="checkbox" checked><span class="choice-label cap-center">Checked</span></label>
+          <label class="choice"><input type="checkbox"><span class="choice-label cap-center">Not yet</span></label>
+          <label class="choice"><input type="checkbox" data-demo-mixed><span class="choice-label cap-center">Mixed: some of a nested list</span></label>
+          <label class="choice"><input type="checkbox" disabled checked><span class="choice-label cap-center">Disabled</span></label>
+          <label class="choice"><input type="checkbox" aria-invalid="true" required><span class="choice-label cap-center">Invalid</span></label>
+        </div>
+        <div class="stack u-gap-1" role="radiogroup" aria-label="Delivery">
+          <label class="choice"><input type="radio" name="demo-radio" checked><span class="choice-label cap-center">Pick up</span></label>
+          <label class="choice"><input type="radio" name="demo-radio"><span class="choice-label cap-center">Deliver</span></label>
+          <label class="choice"><input type="radio" name="demo-radio" disabled><span class="choice-label cap-center">Post (disabled)</span></label>
+          <label class="choice cc-sm"><input type="checkbox" checked><span class="choice-label cap-center">Small, a cell</span></label>
+          <label class="choice cc-lg"><input type="checkbox" checked><span class="choice-label cap-center">Large, two cells</span></label>
+        </div>
+      </div>
+      <p class="t-sm muted">One archetype: a box on half cells at the row's start, half a cell before its words, whose capitals center on it. The box is the native input, so Space, a radio group's arrows and the form are the browser's; mixed is the input's <code>indeterminate</code>, for a parent whose children are partly done. On a touch screen the row's hit area is at least 44px. The switch below is the same row with a track for a box.</p>
+
       <h3 class="t-h5">.switch and every state</h3>
-      <div class="cluster u-gap-2"><button class="switch" type="button" role="switch" aria-checked="true" data-demo-switch><span class="switch-label">Notify me</span></button><button class="switch" type="button" role="switch" aria-checked="false" data-demo-switch><span class="switch-label">Weekly digest</span></button><button class="switch" type="button" role="switch" aria-checked="false" aria-disabled="true"><span class="switch-label">Locked</span></button><label class="switch"><input class="u-sr-only" type="checkbox" role="switch" checked><span class="switch-label">In a form</span></label></div>
+      <div class="cluster u-gap-2"><button class="switch" type="button" role="switch" aria-checked="true" data-demo-switch><span class="switch-label">Notify me</span></button><button class="switch" type="button" role="switch" aria-checked="false" data-demo-switch><span class="switch-label">Weekly digest</span></button><button class="switch" type="button" role="switch" aria-checked="mixed" data-demo-switch aria-describedby="demo-switch-mixed"><span class="switch-label">Pinned</span></button><span class="u-sr-only" id="demo-switch-mixed">Some of the selection</span><button class="switch" type="button" role="switch" aria-checked="false" aria-disabled="true"><span class="switch-label">Locked</span></button><label class="switch"><input class="u-sr-only" type="checkbox" role="switch" checked><span class="switch-label">In a form</span></label></div>
       <div class="cluster"><button class="button" type="button"><span class="button-label">Default</span></button><button class="button" type="button" aria-pressed="true"><span class="button-label">Selected</span></button><button class="button" type="button" disabled><span class="button-label">Disabled</span></button><button class="button cc-primary" type="button"><span class="button-label">Primary</span></button><button class="button cc-primary" type="button" disabled><span class="button-label">Disabled</span></button></div>
       <p class="t-sm muted">Hover and press mix a control's own ink into its own fill, 6% and 12%, and selected 10% with a mark of its own; hover only where a pointer can hover. The task rows under Floating surfaces are a control of the specimen's own, given the same layer by <code>.u-state</code>.</p>
 

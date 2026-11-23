@@ -80,6 +80,7 @@ Everything here lands before the first app pins a version.
 | A clamp that keeps its descenders | done | `4439468` | D105: `.u-clamp` with `--lines` and `--clamp-reach`, clipped from the top by a `clip-path`, its box the role's own; `settle.js` measures the trim where a browser leaves a clamp's box untrimmed (Safari). `tests/layout.js` reads the pixels in both engines, wide and at 3x. From the Collab OS owed-cards bench. |
 | Inline atoms in prose | done | `508f29e` | D106: a prose gallery is images and nothing else, so a sentence with two links, a tag or a chip in it stays a sentence; `tests/layout.js` checks eleven shapes and a sentence of atoms, both engines. From the Collab OS owed-cards bench. A chip primitive for a record named in text waits for a second app's shape. |
 | Stages: a process palette | done | `f2416c1` | D107: seven stage seeds, each with a fill, an ink that reads as text and a tint, in both themes; a seed may be pale; `.dot` and `.tag` take `.cc-stage-1` to `-7`. `contract.js` holds every stage's ink at 4.5:1 for any seed in sRGB; `tests/math.js` 1,619 checks in Chromium and WebKit. The owner chose seven stages with the last for what is closed, variants on both primitives, and defaults round the wheel. From the Collab OS owed-cards bench. |
+| Choice inputs | done | | D109: `.choice`, checkbox and radio on the native input, boxes on half cells (a cell and a half; `.cc-sm` one, `.cc-lg` two), the row the hit area, at least `--hit-min` on touch; checked, mixed (`indeterminate`), disabled and invalid; `.switch` folded in (shared row and colors, `aria-checked="mixed"`, markup unchanged); the prose task list draws the same box. `tests/layout.js` in both engines, wide and touch. From the review of the second app's outlines. Not yet in the Figma template. |
 | A product's own seeds | idea | | A product names a seed of its own (Interbeing's gold) and gets light and dark forms and a contrast check, as the kinds do. From the scopes study. Stages (D107) are seven such seeds in an order, and their arithmetic for a pale seed (`shade()`) is what a named seed would use. |
 | Smaller gaps from the first app | idea | | The tooltip's side padding, a button's side padding, an option's ground as a variable, a row that must not wrap: each waits for a second app to ask. Not built, by design. |
 | Type by the ratio alone | decided | | Not in core for now: the playground keeps it in the specimen's own CSS, until a long document asks for it. |
@@ -135,7 +136,7 @@ Work that grows from the grid or leaves it, and still belongs to it.
 
 | Item | State |
 |---|---|
-| Review Outlines and mentions | idea |
+| Review Outlines and mentions | done: kit patterns named (a checklist outline, a mention atom, a mention picker, choice cards); its first core need, choice inputs, is D109 |
 | Fold | idea |
 | Stacked surfaces | done: see Before the second app |
 | Interaction presets | done: see Before the second app |

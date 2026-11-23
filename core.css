@@ -898,8 +898,7 @@
   }
   .prose :where(ol) { padding-inline-start: var(--sp-3); }
   .prose :where(li)::marker { color: var(--text-tertiary); }
-  .prose :where(li:has(> input[type="checkbox"])) { list-style: none; }
-  .prose :where(li > input[type="checkbox"]) { margin: 0; margin-inline-end: var(--sp-h); vertical-align: baseline; }
+  /* A task list's box is the choice's checkbox (D109, under Primitives). */
 
   /* Blocks that nest. What follows text or an image inside them can't be
      rounded in CSS: the text is an anonymous box, the image any height. So
@@ -1581,12 +1580,37 @@
     }
   }
 
+  /* CHOICE: the archetype (D109) -------------------------------------------
+     Checkbox, radio and switch are one control: a box at the row's start, on
+     half cells, half a cell before its label, in a row whole cells tall whose
+     label centers its capitals on the box (rule 8). The variants change the
+     box: a checkbox is a square a cell and a half across, a radio the same
+     circle, a switch a track three cells long (.switch). On, the box fills
+     with --choice-on and its mark takes --choice-ink; mixed is a bar, or a
+     switch's thumb half way. On a coarse pointer the row's hit area is at
+     least --hit-min. What they share is here; each box follows. */
+  :where(.choice, .switch) {
+    --choice-on: var(--accent);
+    --choice-ink: var(--accent-ink);
+    --choice-gap: var(--sp-h);
+    --choice-row: var(--size-control-sm);
+    position: relative;
+    display: inline-flex; align-items: center;
+    max-width: 100%;
+    min-height: calc(var(--choice-row) + max(0px, round(up, calc(1em - var(--choice-row)), var(--u))));   /* never shorter than its own type */
+    color: var(--text);
+    font-size: var(--fs-control); font-weight: var(--fw-label);
+    cursor: pointer;
+    user-select: none;
+  }
+
   /* Switch: on or off, now. A button with role="switch" and aria-checked, or a
      label around a visually hidden checkbox with role="switch" (for a form). The
      track is 3 × 1½ cells, drawn before the label; the thumb is 1 cell, a quarter
-     cell inside it. On, the thumb moves and the track fills with the accent. The
-     row is whole cells tall and its label's capitals center on the track (rule
-     8). Its states are the shared layer, on the track. Markup:
+     cell inside it. On, the thumb moves and the track fills with the accent;
+     aria-checked="mixed" (a setting over a selection that differs) holds the
+     thumb half way on the track's off fill. Its states are the shared layer, on
+     the track. Markup:
      button.switch[role=switch][aria-checked] > .switch-label, or
      label.switch > input[type=checkbox][role=switch].u-sr-only + .switch-label. */
   .switch {
@@ -1594,19 +1618,11 @@
     --switch-h: var(--sp-1h);
     --switch-knob: var(--sp-1);
     --switch-off: color-mix(in oklab, var(--text) 32%, transparent);
-    --switch-on: var(--accent);
+    --switch-on: var(--choice-on);
     --switch-fill: var(--switch-off);
     --switch-thumb: var(--white);
     --switch-x: 0%;
-    position: relative;
-    display: inline-flex; align-items: center;
-    max-width: 100%;
-    min-height: calc(var(--size-control-sm) + max(0px, round(up, calc(1em - var(--size-control-sm)), var(--u))));   /* never shorter than its own type */
-    padding-inline-start: calc(var(--switch-w) + var(--sp-h));
-    color: var(--text);
-    font-size: var(--fs-control); font-weight: var(--fw-label);
-    cursor: pointer;
-    user-select: none;
+    padding-inline-start: calc(var(--switch-w) + var(--choice-gap));
   }
   .switch::after {
     content: ""; position: absolute;
@@ -1619,11 +1635,13 @@
       color-mix(in oklab, var(--text) var(--state-act), var(--switch-fill));
     transition: background-position var(--dur-in) var(--ease-spring), background-color var(--dur-out) var(--ease-in);
   }
-  .switch:is([aria-checked="true"], :has(> input:checked)) { --switch-x: 100%; --switch-fill: var(--switch-on); --switch-thumb: var(--accent-ink); }
+  .switch:is([aria-checked="true"], :has(> input:checked)) { --switch-x: 100%; --switch-fill: var(--switch-on); --switch-thumb: var(--choice-ink); }
+  .switch[aria-checked="mixed"] { --switch-x: 50%; }
   .switch:is(:disabled, [aria-disabled="true"], :has(> input:disabled)) { --switch-fill: color-mix(in oklab, var(--text) 10%, transparent); --switch-thumb: var(--bg-sunken); color: var(--text-faint); cursor: not-allowed; }
   .switch:has(> input:focus-visible) { outline: calc(var(--line) * 2) solid var(--focus); outline-offset: var(--line); }
   [dir="rtl"] .switch { --switch-x: 100%; }
   [dir="rtl"] .switch:is([aria-checked="true"], :has(> input:checked)) { --switch-x: 0%; }
+  [dir="rtl"] .switch[aria-checked="mixed"] { --switch-x: 50%; }
   /* A switch in a menu row. The row is the control (role="menuitemcheckbox"
      with aria-checked), its label and hint at the start, and the switch an
      empty span at its end: it keeps no room for a label it doesn't have, it is
@@ -1634,9 +1652,131 @@
   .switch:empty { padding-inline-start: var(--switch-w); }
   .options-card-item > .switch { flex: none; margin-inline-start: auto; }
   .options-card-item > .switch::before { content: none; }
-  .options-card-item[aria-checked="true"] > .switch { --switch-x: 100%; --switch-fill: var(--switch-on); --switch-thumb: var(--accent-ink); }
+  .options-card-item[aria-checked="true"] > .switch { --switch-x: 100%; --switch-fill: var(--switch-on); --switch-thumb: var(--choice-ink); }
+  .options-card-item[aria-checked="mixed"] > .switch { --switch-x: 50%; }
   [dir="rtl"] .options-card-item[aria-checked="true"] > .switch { --switch-x: 0%; }
   .options-card-item:is(:disabled, [aria-disabled="true"]) > .switch { --switch-fill: color-mix(in oklab, var(--text) 10%, transparent); --switch-thumb: var(--bg-sunken); }
+
+  /* Checkbox and radio: the choice's square and circle. The box is the native
+     input, drawn with appearance: none, so the keyboard (Space, a radio
+     group's arrows), the form, :checked, :indeterminate, :disabled and
+     :user-invalid are the browser's own. The box is a cell and a half
+     (.cc-sm a cell, .cc-lg two), its edge a line of tertiary ink, a quarter
+     cell corner; the mark is the input's ::before: a check, a bar for mixed,
+     a dot a third of the radio. Mixed is the input's indeterminate property,
+     set from script (React: a ref): a parent in a nested checklist whose
+     children are partly done. Invalid is aria-invalid, or :user-invalid once
+     the person has touched it; the edge takes the alert. Disabled quiets the
+     box and the words. The whole row is the label, so the words take the
+     click; on a coarse pointer it grows an invisible --hit-min around itself.
+     Markup: label.choice > input[type=checkbox|radio] + .choice-label
+     (.choice-label.cap-center where the words may wrap). With
+     no words (a check beside text the person edits), label.choice >
+     input[aria-label]: the box alone, with its row and hit area. */
+  .choice {
+    --choice-box: var(--sp-1h);
+    --choice-radius: var(--r-q);
+    --choice-edge: var(--text-tertiary);
+    --choice-fill: transparent;
+    --choice-line: var(--line);
+    gap: var(--choice-gap);
+  }
+  .choice.cc-sm { --choice-box: var(--sp-1); font-size: var(--fs-control-sm); }
+  .choice.cc-lg { --choice-box: var(--sp-2); --choice-row: var(--size-control-lg); font-size: var(--fs-control-lg); }
+  .choice-label { display: block; min-width: 0; }
+  @supports (text-box: trim-both cap alphabetic) {
+    .choice-label { text-box: trim-both cap alphabetic; }
+    /* A label that may wrap takes .cap-center: once it wraps, settle.js marks
+       it, it hangs from the row's top line and rounds up (rule 8), and the box
+       stays centered on its first line's capitals, reaching above the row by
+       half the difference. */
+    .choice:has(> .choice-label[data-trellis-wrap]) > input { align-self: flex-start; margin-block-start: calc((1cap - var(--choice-box)) / 2); }
+  }
+  .choice > input:is([type="checkbox"], [type="radio"]) {
+    -webkit-appearance: none; appearance: none;
+    flex: none;
+    display: inline-grid; place-content: center;
+    inline-size: var(--choice-box); block-size: var(--choice-box);
+    margin: 0;
+    border: var(--choice-line) solid var(--choice-edge);
+    border-radius: var(--choice-radius);
+    background: color-mix(in oklab, var(--text) var(--state-act), var(--choice-fill));
+    color: var(--choice-ink);
+    cursor: inherit;
+    transition: background-color var(--dur-out) var(--ease-in), border-color var(--dur-out) var(--ease-in);
+  }
+  .choice > input:is([type="checkbox"], [type="radio"])::before {
+    content: "";
+    inline-size: calc(var(--choice-box) * .6); block-size: calc(var(--choice-box) * .6);
+    background: currentColor;
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+    transform: scale(0);
+    transition: transform var(--dur-in) var(--ease-out);
+  }
+  .choice > input[type="radio"] { border-radius: 50%; }
+  .choice > input[type="radio"]::before { inline-size: calc(var(--choice-box) / 3); block-size: calc(var(--choice-box) / 3); clip-path: none; border-radius: 50%; }
+  .choice > input[type="checkbox"]:indeterminate::before { inline-size: calc(var(--choice-box) / 2); block-size: calc(var(--line) * 2); clip-path: none; }
+  .choice > input:is(:checked, [type="checkbox"]:indeterminate) { --choice-fill: var(--choice-on); --choice-edge: var(--choice-on); }
+  .choice > input:is(:checked, [type="checkbox"]:indeterminate)::before { transform: scale(1); }
+  .choice > input:is([aria-invalid="true"], :user-invalid) { --choice-edge: var(--alert); }
+  .choice > input:disabled { --choice-edge: color-mix(in oklab, var(--text) 20%, transparent); --choice-fill: var(--bg-sunken); --choice-ink: var(--text-faint); }
+  .choice > input:disabled:is(:checked, [type="checkbox"]:indeterminate) { --choice-fill: color-mix(in oklab, var(--text) 20%, transparent); --choice-edge: transparent; --choice-ink: var(--bg); }
+  .choice:has(> input:disabled) { color: var(--text-faint); cursor: not-allowed; }
+  @media (hover: hover) { .choice:hover > input:not(:disabled) { --state-act: var(--state-hover); } }
+  .choice:active > input:not(:disabled) { --state-act: var(--state-press); }
+  @media (pointer: coarse) {
+    .choice::before { content: ""; position: absolute; inset: min(0px, calc((100% - var(--hit-min)) / 2)); }
+  }
+  @media (forced-colors: active) {
+    .choice > input:is([type="checkbox"], [type="radio"]) { forced-color-adjust: none; border-color: CanvasText; background: Canvas; color: HighlightText; }
+    .choice > input:is(:checked, [type="checkbox"]:indeterminate) { border-color: Highlight; background: Highlight; }
+    .choice > input:disabled { border-color: GrayText; }
+    .choice > input:disabled:is(:checked, [type="checkbox"]:indeterminate) { background: GrayText; }
+    .choice > input[aria-invalid="true"] { border-color: Mark; }
+  }
+  /* A task list in prose (Markdown's li > input, an editor's li > label >
+     input + div): the same box, a cell and a half, centered on the first
+     line's capitals. A checkbox there records a state, so disabled (as
+     Markdown writes it) keeps its full ink. A done item's own words go to the
+     tertiary ink; a list nested in it keeps the text's. */
+  .prose :where(li:has(> input[type="checkbox"], > label > input[type="checkbox"])) { list-style: none; }
+  .prose :where(li > input[type="checkbox"], li > label > input[type="checkbox"]):not(.choice > *) {
+    --choice-box: var(--sp-1h);
+    --choice-on: var(--accent);
+    --choice-ink: var(--accent-ink);
+    --choice-edge: var(--text-tertiary);
+    --choice-fill: transparent;
+    -webkit-appearance: none; appearance: none;
+    display: inline-block;   /* no line inside, so its baseline is its bottom edge, and vertical-align measures from there */
+    inline-size: var(--choice-box); block-size: var(--choice-box);
+    margin: 0; margin-inline-end: var(--sp-h);
+    vertical-align: calc((1cap - var(--choice-box)) / 2);
+    border: var(--line) solid var(--choice-edge); border-radius: var(--r-q);
+    background: var(--choice-fill); color: var(--choice-ink);
+  }
+  .prose :where(li > input[type="checkbox"], li > label > input[type="checkbox"]):not(.choice > *)::before {
+    content: ""; display: block;
+    inline-size: calc(var(--choice-box) * .6); block-size: calc(var(--choice-box) * .6);
+    margin: calc((var(--choice-box) * .4 - var(--line) * 2) / 2) auto 0;
+    background: currentColor;
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+    transform: scale(0);
+  }
+  .prose :where(li > input[type="checkbox"], li > label > input[type="checkbox"]):not(.choice > *):checked { --choice-fill: var(--choice-on); --choice-edge: var(--choice-on); }
+  .prose :where(li > input[type="checkbox"], li > label > input[type="checkbox"]):not(.choice > *):checked::before { transform: scale(1); }
+  .prose :where(li > input[type="checkbox"], li > label > input[type="checkbox"]):not(.choice > *):enabled { cursor: pointer; }
+  .prose :where(li:has(> input[type="checkbox"]:checked, > label > input[type="checkbox"]:checked)) { color: var(--text-tertiary); }
+  .prose :where(li:has(> input[type="checkbox"]:checked, > label > input[type="checkbox"]:checked) :is(ul, ol)) { color: var(--text); }
+  /* An editor's item is a row: the label (one capital tall, trimmed to it, so
+     its line's baseline is its bottom) holds the box as Markdown's line does,
+     and the words start after it, two cells in. */
+  .prose :where(li:has(> label > input[type="checkbox"])) { display: flex; }
+  .prose :where(li > label:has(> input[type="checkbox"])) { flex: none; display: block; block-size: 1cap; text-box: trim-both cap alphabetic; }
+  .prose :where(li:has(> label > input[type="checkbox"]) > :not(label)) { flex: 1; min-width: 0; }
+  @media (forced-colors: active) {
+    .prose :where(li > input[type="checkbox"], li > label > input[type="checkbox"]):not(.choice > *) { forced-color-adjust: none; border-color: CanvasText; background: Canvas; color: HighlightText; }
+    .prose :where(li > input[type="checkbox"], li > label > input[type="checkbox"]):not(.choice > *):checked { border-color: Highlight; background: Highlight; }
+  }
 
   /* SLIDER. A value along a line: an input[type=range] on the cells. The row
      is two cells tall, the track a quarter cell thick, the thumb a cell and a

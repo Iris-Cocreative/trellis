@@ -180,6 +180,8 @@
     });
   });
 
+  // The demo's mixed checkbox: indeterminate is a property, not an attribute.
+  document.querySelectorAll('[data-demo-mixed]').forEach(function (b) { b.indeterminate = true; });
   // Demo switches turn on and off.
   document.addEventListener('click', function (e) {
     var s = e.target.closest('[data-demo-switch]');
