@@ -1519,6 +1519,81 @@
   }
   .board-lane > .card { --card-pad: var(--board-card-pad); }
 
+  /* Cover link and cover image (D108) ------------------------------------
+     A whole card as one link, with no link wrapped round anything: the card's
+     title is an a.card-link, and its ::before covers the card (the link's
+     nearest positioned ancestor, so the card's own parts never hold one).
+     The card's other controls (links, buttons, fields, summaries, anything
+     focusable) are raised above it and keep their own clicks; a list row's
+     .list-link does the same. The covered card takes the shared state layer
+     on the cover (D55): hover and press mix the ink in, selected keeps an
+     accent mark at its start, and the focus ring is drawn round the card.
+     The card is isolated, so the cover and what is raised stay inside it. */
+  .card-link { color: inherit; text-decoration: none; }
+  .card-link::before {
+    content: ""; position: absolute; inset: 0; z-index: 1;
+    border-radius: var(--card-radius, 0px);
+    background: color-mix(in oklab, var(--text) calc(var(--state-on) + var(--state-act)), transparent);
+  }
+  @media (hover: hover) { .card-link:hover::before { --state-act: var(--state-hover); } }
+  .card-link:active::before { --state-act: var(--state-press); }
+  .card-link:is([aria-current]:not([aria-current="false"]), [aria-selected="true"])::before { --state-on: var(--state-selected); box-shadow: inset calc(var(--line) * 2) 0 0 var(--accent); }
+  .card-link:focus-visible { outline: none; }
+  .card-link:focus-visible::before { outline: calc(var(--line) * 2) solid var(--focus); outline-offset: var(--line); }
+  .list-link::before { z-index: 1; }
+  :where(.card:has(.card-link), .list-item:has(.list-link)) { isolation: isolate; }
+  :where(.card:has(.card-link), .list-item:has(.list-link)) :where(a[href], button, input, select, textarea, summary, label, [tabindex]:not([tabindex="-1"])):where(:not(.card-link, .list-link)) { position: relative; z-index: 2; }
+
+  /* A frame an image fills by cover: .media > img (or video, picture). The
+     frame is sized in cells, --media-w by --media-h (no width fills its
+     column), so nothing moves when the image loads; the image is a real
+     <img> with its alt, object-fit: cover, and --media-focus as its focal
+     point (object-position: 50% 25% keeps a face). An empty frame shows
+     --media-fill; --media-scrim draws over the image (a gradient for words
+     on it). In a card its corners are concentric with the card's (rule 21).
+     It bleeds to a card's edges as the card's own child, giving back the
+     card's padding and taking the card's corners where it meets them:
+     .cc-bleed reaches both sides, and the top as the card's first part, the
+     bottom as its last (a banner; in a .card.stack the stack's gap parts it
+     from the words); .cc-bleed-start and .cc-bleed-end are a strip
+     --media-w wide (three cells) at the card's start or end, as tall as the
+     card, which becomes a row; .cc-fill is the card's whole ground, at least
+     --media-h tall, with a scrim, the card's edge dropped and its words in
+     white at its foot (a card of a frame and one body). */
+  .media {
+    --media-w: initial;
+    --media-h: 12;
+    --media-focus: 50% 50%;
+    --media-radius: var(--r-1);
+    --media-fill: var(--bg-sunken);
+    --media-scrim: none;
+    --media-w-px: calc(var(--u) * var(--media-w));
+    position: relative;
+    display: block; flex: none;
+    inline-size: var(--media-w-px, auto);
+    block-size: calc(var(--u) * var(--media-h));
+    overflow: hidden;
+    border-radius: var(--media-radius);
+    background: var(--media-fill);
+  }
+  .media > :where(img, video, picture), .media > picture > img { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; object-position: var(--media-focus); border-radius: 0; }
+  .media::after { content: ""; position: absolute; inset: 0; background: var(--media-scrim); pointer-events: none; }
+  .card .media { --media-radius: max(var(--r-q), calc(var(--card-radius) - min(var(--card-pad-inline), var(--card-pad-block)))); }
+  .media.cc-round { --media-radius: var(--r-round); }
+  .media:is(.cc-bleed-start, .cc-bleed-end) { --media-w: 3; }
+  .media.cc-fill { --media-h: 18; --media-scrim: linear-gradient(to top, color-mix(in oklab, var(--black) 80%, transparent), transparent 70%); }
+  .card > .media.cc-bleed { inline-size: auto; margin-inline: calc(var(--card-pad-inline) * -1); border-radius: 0; }
+  .card > .media.cc-bleed:first-child { margin-block-start: calc(var(--card-pad-block) * -1); border-start-start-radius: var(--card-radius); border-start-end-radius: var(--card-radius); }
+  .card > .media.cc-bleed:last-child { margin-block-end: calc(var(--card-pad-block) * -1); border-end-start-radius: var(--card-radius); border-end-end-radius: var(--card-radius); }
+  .card:has(> .media:is(.cc-bleed-start, .cc-bleed-end)) { display: flex; flex-direction: row; align-items: flex-start; gap: var(--card-pad-inline); }
+  .card:has(> .media.cc-bleed-start) > .media + *, .card:has(> .media.cc-bleed-end) > :first-child:not(.media) { flex: 1 1 0; min-width: 0; }
+  .card > .media:is(.cc-bleed-start, .cc-bleed-end) { align-self: stretch; block-size: auto; margin-block: calc(var(--card-pad-block) * -1); border-radius: 0; }
+  .card > .media.cc-bleed-start { margin-inline-start: calc(var(--card-pad-inline) * -1); border-start-start-radius: var(--card-radius); border-end-start-radius: var(--card-radius); }
+  .card > .media.cc-bleed-end { margin-inline-end: calc(var(--card-pad-inline) * -1); border-start-end-radius: var(--card-radius); border-end-end-radius: var(--card-radius); }
+  .card:has(> .media.cc-fill) { --card-border: transparent; isolation: isolate; display: grid; grid-template: minmax(0, auto) / minmax(0, 1fr); color: var(--white); }
+  .card:has(> .media.cc-fill) > * { grid-area: 1 / 1; align-self: end; min-width: 0; }
+  .card > .media.cc-fill { z-index: -1; align-self: stretch; inline-size: auto; block-size: auto; min-block-size: calc(var(--u) * var(--media-h)); margin: calc(var(--card-pad-block) * -1) calc(var(--card-pad-inline) * -1); border-radius: var(--card-radius); }
+
   /* Labels inside controls: the text box is trimmed to the cap height, so
      centering the box centers the capitals exactly. */
   .button-label, .tag-label, .options-card-label, .switch-label {

@@ -54,15 +54,22 @@ if (LAYER) {
   WEBKIT.push(['1280x800', LAYER, 'light', 'webkit', 'outset'], ['393x852', LAYER, 'dark', 'touch', 'webkit'], ['440x956', LAYER, 'light', 'touch', 'webkit', 'math', 'outset']);
 }
 
+// Real Tailwind beside Trellis (experiments/tailwind, D110): Trellis cards in a
+// Tailwind layout, with the statement, and as one production bundle.
+// The bundle holds its own copy of core.css: once core moves on, until it is
+// rebuilt (CI rebuilds it), the WebKit run takes the statement order instead.
+const SPIKE = order => new URL(`experiments/tailwind/index.html?order=${order === 'bundle' && !require('./tailwind-fresh')() ? 'statement' : order}`, url).href;
 const jobs = [];
 if (engines !== 'webkit') {
   (quick ? CHROMIUM.slice(0, 2) : CHROMIUM).forEach(a => jobs.push(['align.js', url, ...a]));
-  jobs.push(['layers.js', url], ['layout.js', url, 'chromium', '1440x900'], ['layout.js', url, 'chromium', '393x852', 'touch'], ['math.js', url, 'chromium']);
+  jobs.push(['align.js', SPIKE('statement'), '1440x900', 'neutral', 'light']);
+  jobs.push(['layers.js', url], ['tailwind.js', url], ['layout.js', url, 'chromium', '1440x900'], ['layout.js', url, 'chromium', '393x852', 'touch'], ['math.js', url, 'chromium']);
 }
 if (engines !== 'chromium') {
   (quick ? WEBKIT.slice(2, 4) : WEBKIT).forEach(a => jobs.push(['align.js', url, ...a]));
   (quick ? PIXEL.slice(0, 1) : PIXEL).forEach(s => jobs.push(['pixel.js', url, s, 'webkit']));
-  jobs.push(['layers.js', url, 'webkit'], ['layout.js', url, 'webkit', '1440x900'], ['layout.js', url, 'webkit', '393x852', 'touch'], ['math.js', url, 'webkit']);
+  jobs.push(['align.js', SPIKE('bundle'), '393x852', 'neutral', 'dark', 'touch', 'webkit']);
+  jobs.push(['layers.js', url, 'webkit'], ['tailwind.js', url, 'webkit'], ['layout.js', url, 'webkit', '1440x900'], ['layout.js', url, 'webkit', '393x852', 'touch'], ['math.js', url, 'webkit']);
 }
 // perf.js times the runtime, so it runs last and alone: beside three other
 // browsers it measured the suite as much as the code.

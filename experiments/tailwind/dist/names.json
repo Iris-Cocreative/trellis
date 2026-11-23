@@ -1,0 +1,16 @@
+{
+  "tailwind": "4.3.2",
+  "classes": [
+    "grid",
+    "list-item",
+    "outline",
+    "snap-x"
+  ],
+  "tokens": [
+    "--ease-in",
+    "--ease-out",
+    "--font-mono",
+    "--font-sans",
+    "--font-serif"
+  ]
+}

@@ -1,0 +1,7 @@
+/* The one-file case: an app that imports Trellis from its Tailwind entry, so
+   Tailwind's build inlines core.css and, in production, minifies the lot with
+   Lightning CSS. The statement comes first, before any @import (CSS allows an
+   @layer statement there), and Tailwind keeps it first. */
+@layer theme, base, trellis, components, utilities;
+@import "./app.css";
+@import "../../core.css";
