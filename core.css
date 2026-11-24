@@ -2468,6 +2468,9 @@
     --chevron: calc(var(--sp-q) + var(--line) * 2);
     --chevron-color: currentColor;
     padding-inline-end: var(--sp-3);
+    /* A choice longer than the box is cut at the box: WebKit lets a select's
+       text overflow it, and on a phone at large text the page scrolled sideways. */
+    overflow: clip; text-overflow: ellipsis; white-space: nowrap;
     background-image: linear-gradient(45deg, transparent 50%, var(--chevron-color) 50%), linear-gradient(135deg, var(--chevron-color) 50%, transparent 50%);
     background-position: right calc(var(--sp-1) + var(--chevron)) center, right var(--sp-1) center;
     background-size: var(--chevron) var(--chevron);

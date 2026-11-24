@@ -1148,17 +1148,25 @@ const ready = require('./ready');
   // --options-w exactly (16 cells), checked above with the knobs.
   {
     const ax = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: touch ? 3 : 1, isMobile: touch, hasTouch: touch });
-    await ax.addInitScript(() => {
-      const set = () => { if (!document.documentElement) return false; document.documentElement.style.fontSize = '312%'; return true; };
+    // FONT=Verdana (or Georgia) sets every family to a wider face, as a runner's fonts can be.
+    await ax.addInitScript(font => {
+      const set = () => {
+        if (!document.documentElement) return false;
+        const s = document.documentElement.style; s.fontSize = '312%';
+        if (font) ['--font-sans', '--font-serif', '--font-heading', '--font-mono'].forEach(v => s.setProperty(v, font));
+        return true;
+      };
       if (!set()) new MutationObserver((m, o) => { if (set()) o.disconnect(); }).observe(document, { childList: true });
-    });
+    }, process.env.FONT || '');
     await ax.goto(url, { waitUntil: 'networkidle', timeout: 120000 });
     await ready(ax);
     fails.push(...await ax.evaluate(async () => {
       const fails = [], u = Trellis.cell(), root = document.documentElement, vw = root.clientWidth;
       const whole = v => { const m = ((v % u) + u) % u; return m < .5 || m > u - .5; };
       const check = (card, name) => {
-        const r = card.getBoundingClientRect(), cs = getComputedStyle(card), w16 = u * 16;
+        // Its laid-out width and place, not its drawn box: a float opens from 98% scale, and a slow runner measures it mid-way.
+        const b = card.getBoundingClientRect(), cs = getComputedStyle(card), w16 = u * 16, lw = parseFloat(cs.width), mid = (b.left + b.right) / 2;
+        const r = { width: lw, left: mid - lw / 2, right: mid + lw / 2 };
         if (!whole(r.width)) fails.push(`312%: ${name} is ${r.width.toFixed(1)}px wide, not whole cells`);
         if (r.width < w16 - .5) fails.push(`312%: ${name} is narrower than its 16 cells`);
         if (r.left < -.5 || r.right > vw + .5) fails.push(`312%: ${name} runs off the screen (${r.left.toFixed(0)} to ${r.right.toFixed(0)} of ${vw})`);
@@ -1179,7 +1187,10 @@ const ready = require('./ready');
       if (w < u * 16 + .5 && inline.parentElement.getBoundingClientRect().width > u * 17) fails.push('312%: the inline options card did not grow with its type');
       const menu = document.getElementById('roles-menu'), btn = document.querySelector('[data-roles]');
       btn.scrollIntoView({ block: 'center' }); await Trellis.settled();
-      btn.click(); await new Promise(r => setTimeout(r, 300));
+      // Placed: float.js has written its position (a slow runner takes longer than a PC).
+      btn.click();
+      for (let t = 0; t < 40 && !(menu.matches(':popover-open') && menu.style.getPropertyValue('--float-x')); t++) await new Promise(r => setTimeout(r, 100));
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
       if (!menu.matches(':popover-open')) fails.push('312%: the Roles menu did not open');
       else check(menu, 'the Roles menu');
       if (root.scrollWidth > vw + 1) fails.push(`312%: the page scrolls sideways (${root.scrollWidth} of ${vw})`);

@@ -233,7 +233,11 @@
     var w = graph.clientWidth, h = graph.clientHeight, u = window.Trellis && Trellis.cell ? Trellis.cell() : 12;
     if (!(w > 0 && h > 0)) return;
     var k = derive(state), seed = seedOf(k), lo = +scrub.min, hi = +scrub.max;
-    var left = u, right = u * 6, top = u * 3, bottom = u;
+    // The names sit in the right margin: six cells, or as many whole cells as the
+    // widest name needs at the reader's text size, so none runs off the screen.
+    var widest = 0;
+    ROLES.forEach(function (r) { var n = G.names[r]; if (n && n.getComputedTextLength) widest = Math.max(widest, n.getComputedTextLength()); });
+    var left = u, right = Math.max(u * 6, Math.ceil((widest + u * 1.25) / u) * u), top = u * 3, bottom = u;
     var ymax = Math.max(k['h1-max'], k['h1-min']) * REM * 1.04;
     var X = function (v) { return left + (v - lo) / (hi - lo) * (w - left - right); };
     var Y = function (v) { return h - bottom - v / ymax * (h - top - bottom); };
