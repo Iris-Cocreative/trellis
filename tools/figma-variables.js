@@ -27,9 +27,19 @@
 
    node tools/figma-variables.js              the collections as JSON, on stdout
    node tools/figma-variables.js --out FILE   written to FILE
-   node tools/figma-variables.js --plugin     a Figma plugin script that writes them
-                                              into the open file, by name, keeping
-                                              every binding (docs/figma/README.md)
+   node tools/figma-variables.js --plugin product            a Figma plugin script that
+   node tools/figma-variables.js --plugin space-type-color   writes them into the open
+                                              file, by name, keeping every binding, in
+                                              two parts to fit an agent's Figma tool
+                                              (docs/figma/README.md): the Product
+                                              collection, then the other three and the
+                                              text styles
+   node tools/figma-variables.js --plugin <part> --only <regex>   a delta: only the
+                                              variables whose names match, nothing removed
+   node tools/figma-variables.js --plugin checksum   a script that returns the open file's
+   node tools/figma-variables.js --checksum          checksum of every value, and the
+                                              generator's, to compare
+   node tools/figma-variables.js --lengths    each part's length
    node tools/figma-variables.js --tokens FILE    another token file
    node tools/figma-variables.js --layer FILE …   these product layers, not examples/
                                                   and experiments/scopes/grove.css */
@@ -79,6 +89,8 @@ for (const k of keys(tokens.size.icon)) space.push(v('size/size-icon' + (k === '
 space.push(v('size/hit-min', vals(() => tokens.size['hit-min'].$value), ['WIDTH_HEIGHT']));
 // Measures core sets in cells and names: the shell's columns (D80), a bubble's measure (D99).
 for (const [k, n] of [['shell-nav-w', 20], ['shell-aside-w', 24], ['chat-measure', 40]]) space.push(v('size/' + k, vals((m) => CELL[m] * n), ['WIDTH_HEIGHT']));
+// A media frame's height (D108), a count of cells in the code: twelve, and a full-bleed card's eighteen.
+for (const [k, n, css] of [['media-h', 12, 'calc(var(--u) * var(--media-h))'], ['media-h-fill', 18, '.media.cc-fill']]) space.push(Object.assign(v('size/' + k, vals((m) => CELL[m] * n), ['WIDTH_HEIGHT']), { codeSyntax: { WEB: css } }));
 for (const k of keys(tokens.radius)) {
   const n = tokens.radius[k].$value;
   space.push(v('radius/r-' + k, vals((m) => (n >= 999 ? 999 : CELL[m] * n)), ['CORNER_RADIUS']));
@@ -203,7 +215,7 @@ for (const theme of ['Light', 'Dark']) for (const k of SOLIDS) pv(`${theme.toLow
 // Figma has no mix, and drops a paint's own opacity on an instance, so each
 // is a color with its alpha in it. [role, shares in percent]
 const HUES = SOLIDS;
-const TINTS = [['text', [6, 8, 10, 12, 32]], ['accent-ink', [6, 12]], ['accent', [16, 26, 60]], ...HUES.map((k) => [k, /^kind-(person|group)$/.test(k) ? [14, 26, 42] : [14, 42]])];
+const TINTS = [['text', [6, 8, 10, 12, 20, 32]], ['accent-ink', [6, 12]], ['accent', [16, 26, 60]], ...HUES.map((k) => [k, /^kind-(person|group)$/.test(k) ? [14, 26, 42] : [14, 42]])];
 const alpha = (pct) => Math.round(pct * 2.55).toString(16).padStart(2, '0');
 for (const theme of ['Light', 'Dark']) for (const [k, shares] of TINTS) for (const pct of shares)
   pv(`${theme.toLowerCase()}/tint/${k}/${pct}`, 'COLOR', [], (p) => M.hex(palettes.get(p.mode)[theme][k]) + alpha(pct));
@@ -265,6 +277,8 @@ const DERIVED = {
   'option-r': (c) => Math.max(0.25, c('shape-float') - c('density-options-pad')),
   // .composer > .button: the box's corner less its padding, a quarter cell at the least (D99).
   'composer-btn-r': (c) => Math.max(0.25, c('shape-input') - 0.25),
+  // .card .media: concentric with the card, its corner less the smaller padding, a quarter cell at the least (D108).
+  'media-r': (c) => Math.max(0.25, c('shape-card') - Math.min(c('density-card-pad-inline'), c('density-card-pad-block'))),
   // A card in a card: how far it steps out, and its corner, concentric (rule 21).
   'card-nest-out': (c) => Math.min(1, Math.max(0, c('density-card-pad-inline') - 1)),
   'card-nest-r': (c) => { const out = Math.min(1, Math.max(0, c('density-card-pad-inline') - 1)); return Math.max(0.25, c('shape-card') - Math.min(c('density-card-pad-inline') - out, c('density-card-pad-block'))); },
@@ -311,6 +325,8 @@ for (const [k, shares] of TINTS) for (const pct of shares) color.push({ name: `c
   values: { Light: at(`light/tint/${k}/${pct}`), Dark: at(`dark/tint/${k}/${pct}`) }, aliases: { Light: `light/tint/${k}/${pct}`, Dark: `dark/tint/${k}/${pct}` } });
 for (const [k, scopes] of Object.entries(COLOR_KNOBS)) color.push(Object.assign(v('color/' + k, { type: 'COLOR', values: { Light: at('light/' + k), Dark: at('dark/' + k) } }, scopes), { aliases: { Light: 'light/' + k, Dark: 'dark/' + k } }));
 // The shadow under a float or a modal (--lift): its color in each theme.
+// White, for words on a full-bleed image (D108), as on a .cover.
+color.push({ name: 'color/white', type: 'COLOR', scopes: ['TEXT_FILL', 'SHAPE_FILL'], codeSyntax: { WEB: 'var(--white)' }, values: { Light: '#ffffff', Dark: '#ffffff' } });
 color.push({ name: 'color/lift', type: 'COLOR', scopes: ['EFFECT_COLOR'], values: { Light: '#1014161f', Dark: '#0000008c' } });
 for (const k of SOLIDS) color.push({ name: 'color/on-' + k, type: 'COLOR', scopes: ['TEXT_FILL', 'SHAPE_FILL'], values: { Light: at('light/on-' + k), Dark: at('dark/on-' + k) }, aliases: { Light: 'light/on-' + k, Dark: 'dark/on-' + k } });
 
@@ -326,24 +342,77 @@ const out = {
   ]
 };
 
-if (args.includes('--plugin')) {
-  // Compact, since a plugin can't fetch and the script travels whole: per
-  // variable [name, type, scopes, values in mode order, code syntax]; a value
-  // "@name" is an alias, a color is hex without its #, and the code syntax is
-  // 1 for var(--its last part), 0 for none (hidden), 2 for none (shown), or
-  // written out. A product's tint (light/tint/<role>/<pct>) is its role's hex
-  // with the share as alpha, so its values are 0 and the plugin works them out.
-  const scopes = [...new Set(out.collections.flatMap((c) => c.variables.map((x) => x.scopes.join(','))))];
+// The variables script travels in two parts, since an agent's Figma tool takes
+// 50,000 characters: the Product collection, and the other three with the text
+// styles (tools/figma-plugin.js). A variable's collection is known by the first
+// part of its name, so a part can make one the other part writes.
+const PARTS = { product: ['Product'], 'space-type-color': ['Space', 'Type', 'Color'] };
+const owner = {};
+for (const c of out.collections) for (const x of c.variables) {
+  const k = x.name.split('/')[0];
+  if (owner[k] && owner[k] !== c.name) throw new Error(`${x.name}: ${k}/ names variables in ${owner[k]} and ${c.name}`);
+  owner[k] = c.name;
+}
+const coreOf = (prefix) => Object.fromEntries(product.filter((x) => x.name.startsWith(prefix)).map((x) => [x.name, x.values.Core]));
+const fonts = { families: [...new Set(product.filter((x) => x.name.startsWith('font/')).flatMap((x) => Object.values(x.values)))],
+  weights: [...new Set(product.filter((x) => x.name.startsWith('weight/')).flatMap((x) => Object.values(x.values)))], core: Object.assign(coreOf('font/'), coreOf('weight/')) };
+
+// Compact, since a plugin can't fetch and the script travels whole: per
+// variable [name, type, scopes, values in mode order, code syntax]; a value
+// "@name" is an alias, a color is hex without its #, and the code syntax is
+// 1 for var(--its last part), 0 for none (hidden), 2 for none (shown), or
+// written out. A product's tint (light/tint/<role>/<pct>) is its role's hex
+// with the share as alpha, so its values are 0 and the plugin works them out.
+// only: a delta, the variables whose names match, written without removing the rest
+// (and so the parts' empty stand-ins, and the text styles, are left alone too).
+function plugin(part, only) {
+  const own = out.collections.filter((c) => PARTS[part].includes(c.name));
+  const scopes = [...new Set(own.flatMap((c) => c.variables.map((x) => x.scopes.join(','))))];
   const pack = (c, x) => {
     const val = (m) => { const a = x.aliases && x.aliases[m], y = x.values[m]; return a ? '@' + a : y && y.alias ? '@' + y.alias : x.type === 'COLOR' ? y.slice(1) : y; };
     const cs = !x.codeSyntax ? (x.hidden ? 0 : 2) : x.codeSyntax.WEB === `var(--${x.name.split('/').pop()})` ? 1 : x.codeSyntax.WEB;
     const tint = c.name === 'Product' && x.name.match(/^(light|dark)\/tint\/(.+)\/(\d+)$/);
-    if (tint && c.modes.every((m) => x.values[m] === c.variables.find((y) => y.name === `${tint[1]}/${tint[2]}`).values[m] + alpha(+tint[3])))
+    if (tint && !only && c.modes.every((m) => x.values[m] === c.variables.find((y) => y.name === `${tint[1]}/${tint[2]}`).values[m] + alpha(+tint[3])))
       return [x.name, x.type[0], scopes.indexOf(x.scopes.join(',')), 0, cs];
     return [x.name, x.type[0], scopes.indexOf(x.scopes.join(',')), c.modes.map(val), cs];
   };
-  const data = { scopes, collections: out.collections.map((c) => ({ name: c.name, modes: c.modes, v: c.variables.map((x) => pack(c, x)) })) };
-  process.stdout.write(fs.readFileSync(path.join(__dirname, 'figma-plugin.js'), 'utf8').replace('/*DATA*/null', JSON.stringify(data)));
+  const data = { scopes, owner, collections: out.collections.map((c) => Object.assign({ name: c.name, modes: c.modes }, own.includes(c) ? { v: c.variables.filter((x) => !only || only.test(x.name)).map((x) => pack(c, x)) } : {})) };
+  if (only) data.delta = true; else if (own.some((c) => c.name === 'Type')) data.fonts = fonts;
+  return fs.readFileSync(path.join(__dirname, 'figma-plugin.js'), 'utf8').replace(/\r\n/g, '\n').replace('/*DATA*/null', JSON.stringify(data));
+}
+
+// A checksum of every value in every mode, to check a file against the
+// generator: FNV-1a over the sorted lines "collection|name|mode|value", a
+// color as 8-digit hex, a number to 3 places, an alias as @name. The
+// checksum part prints a script that works out the same from the open file.
+const valueLine = (x, m) => { const a = x.aliases && x.aliases[m], y = x.values[m];
+  if (a || (y && y.alias)) return '@' + (a || y.alias);
+  if (x.type === 'COLOR') return (y.length === 7 ? y + 'ff' : y).slice(1).toLowerCase();
+  return x.type === 'FLOAT' ? (Math.round(y * 1000) / 1000).toFixed(3) : String(y); };
+const fnv = (lines) => { let h = 0x811c9dc5; for (const ch of lines.sort().join('\n')) { h ^= ch.charCodeAt(0); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(16).padStart(8, '0'); };
+const CHECKSUM = `const fnv = ${fnv.toString()};
+const lines = [], names = {};
+const cols = await figma.variables.getLocalVariableCollectionsAsync(), vars = await figma.variables.getLocalVariablesAsync();
+for (const x of vars) names[x.id] = x.name;
+const hex = (c) => ['r', 'g', 'b', 'a'].map((k) => Math.round((k in c ? c[k] : 1) * 255).toString(16).padStart(2, '0')).join('');
+for (const c of cols.filter((c) => ${JSON.stringify(out.collections.map((c) => c.name))}.includes(c.name))) for (const x of vars.filter((x) => x.variableCollectionId === c.id)) for (const m of c.modes) {
+  const y = x.valuesByMode[m.modeId];
+  lines.push([c.name, x.name, m.name, y && y.type === 'VARIABLE_ALIAS' ? '@' + names[y.id] : x.resolvedType === 'COLOR' ? hex(y) : x.resolvedType === 'FLOAT' ? (Math.round(y * 1000) / 1000).toFixed(3) : String(y)].join('|'));
+}
+return { values: lines.length, checksum: fnv(lines) };
+`;
+module.exports = { PARTS: Object.keys(PARTS).concat('checksum'), plugin: (part) => (part === 'checksum' ? CHECKSUM : plugin(part)) };
+
+if (require.main !== module) return;   // required (tests/contract.js): nothing printed
+if (args.includes('--plugin')) {
+  const part = flag('--plugin');
+  if (!module.exports.PARTS.includes(part)) { console.error(`--plugin takes one of: ${module.exports.PARTS.join(', ')}`); process.exit(1); }
+  process.stdout.write(part === 'checksum' ? CHECKSUM : plugin(part, flag('--only') && new RegExp(flag('--only'))));
+} else if (args.includes('--checksum')) {
+  const lines = out.collections.flatMap((c) => c.variables.flatMap((x) => c.modes.map((m) => [c.name, x.name, m, valueLine(x, m)].join('|'))));
+  console.log(JSON.stringify({ values: lines.length, checksum: fnv(lines) }));
+} else if (args.includes('--lengths')) {
+  for (const p of Object.keys(PARTS)) console.log(`${p}: ${plugin(p).length} characters`);
 } else {
   const json = JSON.stringify(out, null, 2) + '\n';
   const to = flag('--out');

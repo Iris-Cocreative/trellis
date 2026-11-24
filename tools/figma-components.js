@@ -13,7 +13,8 @@
           section Components (tools/figma-primitives.js)
      node tools/figma-components.js --plugin templates    what is built from
           them, in the section Templates: the bubble, a grouped list, a member
-          tile, a skeleton, the shell and its navigation; then the Screens
+          tile, a skeleton, a media frame, a covered card and row, the shell
+          and its navigation; then the Screens
           (tools/figma-templates.js)
      node tools/figma-components.js                       each part's length
 

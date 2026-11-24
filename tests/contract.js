@@ -99,19 +99,30 @@ for (const line of read('product.template.css').split('\n')) {
   for (const c of fv.collections) for (const x of c.variables) for (const a of [...Object.values(x.aliases || {}), ...Object.values(x.values).map((y) => y && y.alias)].filter(Boolean))
     check(names.has(a), `figma-variables: ${x.name} aliases ${a}, which isn't generated`);
   check(product && product.modes[0] === 'Core', 'figma-variables: the Product collection opens on Core');
-  // The two plugin scripts that write the file parse as the body of an async
+  // The plugin scripts that write the file parse as the body of an async
   // function, as Figma's plugin tool runs them, and every variable the
-  // components name is generated.
+  // components name is generated. The variables travel in parts
+  // (tools/figma-variables.js), and between them write every collection once.
   const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
-  const plugin = execFileSync(process.execPath, [path.join(dir, 'tools', 'figma-variables.js'), '--plugin'], { encoding: 'utf8' });
+  const fvParts = require(path.join(dir, 'tools', 'figma-variables.js')).PARTS;
+  const varScripts = fvParts.map((p) => [`figma-variables --plugin ${p}`, execFileSync(process.execPath, [path.join(dir, 'tools', 'figma-variables.js'), '--plugin', p], { encoding: 'utf8' })]);
+  const written = {};
+  for (const [name, src] of varScripts) {
+    const packed = src.match(/^const PACKED = (.*);$/m);
+    if (packed) for (const c of JSON.parse(packed[1]).collections.filter((c) => c.v)) {
+      check(!written[c.name], `${name} writes ${c.name}, which ${written[c.name]} writes too`); written[c.name] = name;
+      check(c.v.length === fv.collections.find((x) => x.name === c.name).variables.length, `${name} writes ${c.v.length} of ${c.name}'s variables`);
+    }
+  }
+  for (const c of fv.collections) check(written[c.name], `no figma-variables part writes ${c.name}`);
   // The components travel in parts (tools/figma-components.js), each the kit and a body.
   const fc = require(path.join(dir, 'tools', 'figma-components.js'));
-  const scripts = [['figma-variables --plugin', plugin], ...Object.keys(fc.PARTS).map((p) => [`figma-components --plugin ${p}`, fc.script(p)])];
-  for (const [name, src] of scripts) {
+  const compScripts = Object.keys(fc.PARTS).map((p) => [`figma-components --plugin ${p}`, fc.script(p)]);
+  for (const [name, src] of varScripts.concat(compScripts)) {
     try { new AsyncFunction('figma', src); } catch (e) { check(false, `${name} does not parse: ${e.message}`); }
     check(src.length < 50000, `${name} is ${src.length} characters; an agent's Figma tool takes 50,000`);
   }
-  for (const [name, src] of scripts.slice(1)) {
+  for (const [name, src] of compScripts) {
     for (const [, n] of src.matchAll(/'((?:space|size|radius|knob|derived|type|color)\/[a-z0-9/-]+)'/g))
       check(names.has(n), `${name} binds ${n}, which isn't generated`);
     // A role it paints, edges or inks by name is a Color variable.

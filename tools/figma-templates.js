@@ -1,11 +1,13 @@
 /* Trellis · figma-templates · the second part of the components script
    Run as `node tools/figma-components.js --plugin templates`, after the
    primitives part, which it is made of. The components built from primitives
-   (a bubble and a reaction, a grouped list, a member tile, a skeleton, the
-   shell and its navigation, D80) in the section Templates, then the Screens:
-   one settings card in each product, wide and light, phone and dark, a page of
-   scopes (D96), and the shell in two products. It removes and builds both
-   sections again. */
+   (a bubble and a reaction, a grouped list, a member tile, a skeleton, a
+   media frame, a covered card and a covered row, D108, the shell and its
+   navigation, D80) in the section Templates, then the Screens: one settings
+   card in each product, wide and light, phone and dark, a page of scopes
+   (D96), the shell in two products, and a page of events with covered cards,
+   covered rows and choices (D108, D109). It removes and builds both sections
+   again. */
 
 // ---- Start clean ------------------------------------------------------------
 const C = page.children.find((n) => n.name === 'Components');
@@ -98,6 +100,91 @@ await set('skeleton', { kind: ['default', 'cc-block'] }, async (p) => {
   return c;
 }, { caption: 'skeleton · kind', width: 700, description: 'Trellis .skeleton: a surface\'s real structure, shimmering, while its data is on its way. A text slot keeps its role and its placeholder copy, unseen, so it settles to the same cells. Anything that draws itself (a button, an avatar, an icon) becomes a .cc-block, sized in cells (--skel-w, --skel-h). The shimmer runs from the ink at 8% to 16%; the file draws the 8%.' });
 
+// ---- media, a covered card, a covered row (D108) ----------------------------
+// A stand-in photograph, since the sandbox can't fetch: a PNG drawn here (a
+// sky, a sun high in it, hills), stored without compression.
+function png(w, h, px) {
+  const raw = [];
+  for (let y = 0; y < h; y++) { raw.push(0); for (let x = 0; x < w; x++) raw.push(...px(x / w, y / h)); }
+  const T = []; for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; T.push(c >>> 0); }
+  const crc = (b) => { let c = ~0; for (const x of b) c = T[(c ^ x) & 255] ^ (c >>> 8); return ~c >>> 0; };
+  const u32 = (n) => [n >>> 24, (n >>> 16) & 255, (n >>> 8) & 255, n & 255];
+  const chunk = (t, d) => { const b = [...t].map((ch) => ch.charCodeAt(0)).concat(d); return u32(d.length).concat(b, u32(crc(b))); };
+  let a = 1, b = 0; for (const x of raw) { a = (a + x) % 65521; b = (b + a) % 65521; }
+  const z = [0x78, 1];
+  for (let i = 0; i < raw.length; i += 65535) { const n = Math.min(65535, raw.length - i); z.push(i + n >= raw.length ? 1 : 0, n & 255, n >> 8, ~n & 255, (~n >> 8) & 255); for (let j = i; j < i + n; j++) z.push(raw[j]); }
+  return new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, ...chunk('IHDR', [...u32(w), ...u32(h), 8, 2, 0, 0, 0]), ...chunk('IDAT', z.concat(u32(((b << 16) | a) >>> 0))), ...chunk('IEND', [])]);
+}
+const mix = (p, q, t) => p.map((x, i) => Math.round(x + (q[i] - x) * Math.min(1, Math.max(0, t))));
+const IW = 120, IH = 100;   // squarer than a banner, so a focal point shows
+const IMG = figma.createImage(png(IW, IH, (u, v) => {
+  if (v > 0.66 + 0.06 * Math.sin(u * 7 + 1)) return mix([92, 124, 82], [42, 66, 48], (v - 0.62) * 3);
+  if (v > 0.54 + 0.05 * Math.sin(u * 4)) return mix([122, 142, 150], [98, 116, 120], (v - 0.5) * 5);
+  if (Math.hypot((u - 0.68) * 1.6, v - 0.22) < 0.09) return [252, 230, 176];
+  return mix([140, 176, 210], [244, 204, 164], v / 0.56);
+})).hash;
+// The image by cover at its focal point (--media-focus). The middle is Figma's
+// own fill, which follows a resize; any other is a crop, worked out for the
+// frame's size at the wide screen, and stretches if the frame is resized.
+const photo = (w, h, focus = [0.5, 0.5]) => {
+  if (focus[0] === 0.5 && focus[1] === 0.5) return { type: 'IMAGE', scaleMode: 'FILL', imageHash: IMG };
+  const sw = Math.min(1, (w / h) / (IW / IH)), sh = Math.min(1, (IW / IH) / (w / h));
+  return { type: 'IMAGE', scaleMode: 'CROP', imageHash: IMG, imageTransform: [[sw, 0, (1 - sw) * focus[0]], [0, sh, (1 - sh) * focus[1]]] };
+};
+// A full bleed's scrim, to 80% black at its foot (a gradient's stops can't bind).
+const SCRIM = { type: 'GRADIENT_LINEAR', gradientTransform: [[0, 1, 0], [-1, 0, 1]], gradientStops: [{ position: 0.3, color: { r: 0, g: 0, b: 0, a: 0 } }, { position: 1, color: { r: 0, g: 0, b: 0, a: 0.8 } }] };
+const FOCUS = { '50% 50%': [0.5, 0.5], '50% 25%': [0.5, 0.25] };
+await set('media', { kind: ['default', 'cc-round'], focus: Object.keys(FOCUS), fill: ['image', 'empty'] }, async (p) => {
+  const c = component(), round = p.kind === 'cc-round', w = round ? 144 : 240;
+  c.primaryAxisSizingMode = c.counterAxisSizingMode = 'FIXED'; c.resize(w, 144); c.clipsContent = true;
+  bind(c, 'height', 'size/media-h'); if (round) bind(c, 'width', 'size/media-h');
+  corners(c, round ? 'radius/r-round' : 'radius/r-1');
+  fill(c, p.fill === 'empty' ? [paint('bg-sunken')] : [photo(w, 144, FOCUS[p.focus])]);
+  return c;
+}, { caption: 'media · kind × focus × fill', width: 1400, description: 'Trellis .media > img (D108): a frame sized in cells, --media-w by --media-h (twelve cells; no width fills its column), the image a real <img> by cover at --media-focus (50% 25% keeps a face). Empty, it shows --media-fill. Its corner is --r-1, in a card concentric with the card\'s (derived/media-r); .cc-round is a circle. The image here is a stand-in: replace the fill. A focus off the middle is a crop made at this size; resize the frame and crop again.' });
+
+const MEDIA = ['default', 'cc-bleed', 'cc-bleed-start', 'cc-fill'];
+async function cover(kind, state) {
+  const strip = kind === 'cc-bleed-start', full = kind === 'cc-fill', ink = (r) => (full ? 'white' : r);
+  const c = component(strip ? 'HORIZONTAL' : 'VERTICAL'); c.counterAxisAlignItems = 'MIN'; width(c, 300); c.itemSpacing = 0;
+  c.clipsContent = true; corners(c, 'knob/shape-card'); fill(c, [paint('bg-raised')]); if (!full) edge(c, 'border-subtle');
+  const frame = (n) => { const m = figma.createFrame(); m.name = `media ${n}`; m.clipsContent = true; m.resize(300, 144); fill(m, [photo(300, 144)]); return m; };
+  const body = col('card-body'); padX(body, 'knob/density-card-pad-inline'); padY(body, 'knob/density-card-pad-block'); bind(body, 'itemSpacing', 'space/sp-1');
+  if (full) {
+    bind(c, 'minHeight', 'size/media-h-fill'); c.primaryAxisAlignItems = 'MAX';
+    const m = frame(kind); c.appendChild(m); m.layoutPositioning = 'ABSOLUTE'; m.x = m.y = 0; m.resize(300, 216); fill(m, [photo(300, 216), SCRIM]);
+    m.constraints = { horizontal: 'STRETCH', vertical: 'STRETCH' };
+  } else if (kind !== 'default') {
+    const m = frame(kind); c.appendChild(m);
+    if (strip) { bind(m, 'width', 'space/sp-3'); m.layoutSizingVertical = 'FILL'; } else { bind(m, 'height', 'size/media-h'); m.layoutSizingHorizontal = 'FILL'; }
+  }
+  c.appendChild(body); if (strip) body.layoutGrow = 1; else body.layoutSizingHorizontal = 'FILL';
+  if (kind === 'default') { const m = frame(kind); body.appendChild(m); m.layoutSizingHorizontal = 'FILL'; bind(m, 'height', 'size/media-h'); corners(m, 'derived/media-r'); }
+  body.appendChild(await words('Saturday', { style: 'eyebrow', ink: ink('text-tertiary') }));
+  body.appendChild(await words('Lantern walk', { style: 'h4', ink: ink('text'), name: 'card-link' }));
+  const sub = await words('Meet at the gate at dusk; we take the lower path.', { style: 'sm', ink: ink('text-secondary'), name: 'sub' });
+  body.appendChild(sub); sub.layoutSizingHorizontal = 'FILL'; sub.textAutoResize = 'HEIGHT';
+  const cl = row('cluster'); bind(cl, 'itemSpacing', 'space/sp-h'); body.appendChild(cl);
+  cl.appendChild(inst(tagSet, { kind: 'cc-event', emphasis: full ? 'cc-solid' : 'default', size: 'cc-sm' }, 'label', 'Outdoors')); cl.appendChild(icon());
+  // The cover, a link's ::before over the whole card: the state layer, the accent mark at its start when selected.
+  if (share[state] || state === 'selected') {
+    const v = figma.createRectangle(); v.name = 'card-link::before'; c.appendChild(v); v.layoutPositioning = 'ABSOLUTE'; v.x = v.y = 0; v.resize(c.width, c.height);
+    v.constraints = { horizontal: 'STRETCH', vertical: 'STRETCH' }; corners(v, 'knob/shape-card'); fill(v, [paint('text', share[state])]);
+    if (state === 'selected') side(v, 'accent', 'Left', 2);
+  }
+  return c;
+}
+const coverSet = await set('card:has(.card-link)', { media: MEDIA, state: ['rest', 'hover', 'press', 'selected'] }, (p) => cover(p.media, p.state), { caption: 'card:has(.card-link) · media × state', width: 1400,
+  description: 'Trellis .card with an a.card-link title (D108): the link\'s ::before covers the card, so the whole card is one link and nothing is wrapped in an <a>; its other controls (the tag, the button) are raised above the cover and keep their own clicks. Hover and press mix the ink into the cover (6%, 12%), selected (aria-current) 10% with the accent mark at its start; the focus ring is the cover\'s, round the card. Hover is prototype-only. The media is a .media as the card\'s own child: default sits inside, concentric; .cc-bleed is a banner to the card\'s top and sides; .cc-bleed-start a strip three cells wide, the card a row; .cc-fill the card\'s whole ground, at least eighteen cells tall, under a scrim to 80% black, its edge dropped and its words white.' });
+
+const linkRowSet = await set('list-item:has(.list-link)', { state: ['rest', 'hover', 'press', 'selected'] }, async (p) => {
+  const c = component(); c.primaryAxisSizingMode = 'FIXED'; width(c, 380); bind(c, 'paddingRight', 'space/sp-1');
+  fill(c, share[p.state] ? [paint('text', share[p.state])] : []); if (p.state === 'selected') side(c, 'accent', 'Left', 2);
+  const r = inst(listSet, { mark: 'face', unread: 'false', state: 'rest' }, 'title', 'Study circle'); c.appendChild(r); r.layoutGrow = 1;
+  c.appendChild(icon());
+  return c;
+}, { caption: 'list-item:has(.list-link) · state', width: 900, description: 'Trellis .list-item with an a.list-link title (D108): its ::before covers the row, and a button in the row\'s end is raised above it. Hover and press mix the ink into the row; selected (aria-current on the link) is 10% with the accent mark at its start.' });
+
 // ---- the shell and its navigation (D80) -------------------------------------
 const LINKS = ['Home', 'People', 'Events', 'Library'];
 const PLUS = 'M 9 3 L 9 15 M 3 9 L 15 9', HOUSE = 'M 3 9 L 9 3 L 15 9 M 5 8 L 5 15 L 13 15 L 13 8', MENU = 'M 3 5 L 15 5 M 3 9 L 15 9 M 3 13 L 15 13';
@@ -106,8 +193,10 @@ async function link(t, on, how) {
   const l = how === 'tab' ? col('shell-link', { primaryAxisAlignItems: 'CENTER', counterAxisAlignItems: 'CENTER' }) : row('shell-link');
   bind(l, 'itemSpacing', how === 'tab' ? 'space/sp-q' : 'space/sp-h');
   if (how === 'tab') bind(l, 'minHeight', 'space/sp-4'); else { padX(l, 'space/sp-h'); bind(l, 'minHeight', how === 'bar' ? 'size/size-control-sm' : 'size/size-control-md'); }
-  cornersBut(l, 'radius/r-h', !on ? [] : how === 'bar' ? ['bottomLeftRadius', 'bottomRightRadius'] : ['topLeftRadius', 'bottomLeftRadius']);
-  if (on) side(l, 'accent', how === 'bar' ? 'Bottom' : 'Left', 2);
+  // The current link: the selected fill, and its mark on the bar's edge (a tab bar's on its top), the corners it touches square (D85).
+  const MARK = { bar: ['Bottom', 'bottomLeftRadius', 'bottomRightRadius'], tab: ['Top', 'topLeftRadius', 'topRightRadius'], side: ['Left', 'topLeftRadius', 'bottomLeftRadius'] }[how];
+  cornersBut(l, 'radius/r-h', on ? MARK.slice(1) : []);
+  if (on) { side(l, 'accent', MARK[0], 2); fill(l, [paint('text', share.selected)]); }
   if (how !== 'bar') l.appendChild(glyph(on ? 'text' : 'text-secondary', t === 'Home' ? HOUSE : PLUS));
   l.appendChild(await words(t, { fs: how === 'tab' ? 'type/control/fs-control-xs' : 'type/control/fs-control', ink: on ? 'text' : 'text-secondary' }));
   return l;
@@ -276,6 +365,33 @@ for (const [p, s, c, top] of [['Quarry', 'Wide', 'Light', 'cc-top'], ['Almanac',
   f.appendChild(variant(shellSet, { top, width: s === 'Wide' ? 'wide' : 'narrow' }).createInstance());
   screens.appendChild(f); f.x = sx; f.y = sy; sx += f.width + 80; shown.push(f.id);
 }
-screens.resizeWithoutConstraints(Math.max(x - 80, eco.width, sx - 80), sy + Math.max(...shown.slice(-3).map((id) => screens.findOne((n) => n.id === id).height)));
+// Covered cards, covered rows and choices (D108, D109), in one product: a page of events.
+const ev = col('Events · Almanac · Wide · Light'); width(ev, 1200); ev.counterAxisSizingMode = 'FIXED'; fill(ev, [paint('bg')]);
+modeOf(ev, { Product: 'Almanac', Space: 'Wide', Type: 'Wide', Color: 'Light' });
+padX(ev, 'space/sp-4'); padY(ev, 'space/sp-4'); bind(ev, 'itemSpacing', 'space/sp-3');
+const eh = col('section-head'); bind(eh, 'itemSpacing', 'space/sp-1'); ev.appendChild(eh);
+eh.appendChild(await words('This month', { style: 'eyebrow', ink: 'text-tertiary' })); eh.appendChild(await words('Events', { style: 'h2' }));
+const grid = row('grid cc-fill', { counterAxisAlignItems: 'MIN' }); ev.appendChild(grid); grid.layoutSizingHorizontal = 'FILL'; bind(grid, 'itemSpacing', 'space/sp-2');
+for (const [m, s] of [['cc-bleed', 'rest'], ['cc-fill', 'hover'], ['default', 'rest']]) { const i = variant(coverSet, { media: m, state: s }).createInstance(); grid.appendChild(i); i.layoutGrow = 1; }
+const lower = row('columns', { counterAxisAlignItems: 'MIN' }); ev.appendChild(lower); lower.layoutSizingHorizontal = 'FILL'; bind(lower, 'itemSpacing', 'space/sp-2');
+const left = col('column'); lower.appendChild(left); left.layoutGrow = 1; bind(left, 'itemSpacing', 'space/sp-2');
+const strip = variant(coverSet, { media: 'cc-bleed-start', state: 'selected' }).createInstance(); left.appendChild(strip); strip.layoutSizingHorizontal = 'FILL';
+const rows = col('list'); left.appendChild(rows); rows.layoutSizingHorizontal = 'FILL';
+for (const s of ['rest', 'hover', 'rest']) { const i = variant(linkRowSet, { state: s }).createInstance(); rows.appendChild(i); i.layoutSizingHorizontal = 'FILL'; }
+// A card of choices: a mixed parent over its children, a radio group, a draft tag, a block button.
+const prefs = col('card'); lower.appendChild(prefs); width(prefs, 400); fill(prefs, [paint('bg-raised')]); edge(prefs, 'border-subtle'); corners(prefs, 'knob/shape-card');
+padX(prefs, 'knob/density-card-pad-inline'); padY(prefs, 'knob/density-card-pad-block'); bind(prefs, 'itemSpacing', 'space/sp-2');
+const ph = row('section-head', { primaryAxisAlignItems: 'SPACE_BETWEEN' }); prefs.appendChild(ph); ph.layoutSizingHorizontal = 'FILL';
+ph.appendChild(await words('Reminders', { style: 'h4' }));
+const draft = inst(tagSet, { kind: 'default', emphasis: 'cc-outline', size: 'cc-sm' }, 'label', 'Draft'); ph.appendChild(draft); draft.dashPattern = [4, 2];
+const choiceSet = got('choice'), pick = (kind, checked, t, indent) => { const i = inst(choiceSet, { kind, checked, state: 'rest', size: 'default' }, 'choice-label', t); if (indent) { const w = row('nested'); bind(w, 'paddingLeft', 'space/sp-2'); w.appendChild(i); return w; } return i; };
+const checks = col('fieldset'); prefs.appendChild(checks);
+for (const [c, t, n] of [['mixed', 'Every event', false], ['true', 'A day before', true], ['false', 'An hour before', true]]) checks.appendChild(pick('checkbox', c, t, n));
+const radios = col('fieldset'); prefs.appendChild(radios);
+for (const [c, t] of [['false', 'By email'], ['true', 'By text message']]) radios.appendChild(pick('radio', c, t));
+const save = btn('cc-primary', 'default', 'Save reminders'); prefs.appendChild(save); save.layoutSizingHorizontal = 'FILL';
+const ey = sy + Math.max(...shown.slice(-3).map((id) => screens.findOne((n) => n.id === id).height)) + 80;
+screens.appendChild(ev); ev.x = 0; ev.y = ey; shown.push(ev.id);
+screens.resizeWithoutConstraints(Math.max(x - 80, eco.width, sx - 80, ev.width), ey + ev.height);
 C.x = 0; C.y = 0; tpl.x = 0; tpl.y = C.height + 200; screens.x = 0; screens.y = tpl.y + tpl.height + 200;
 return { components: made, templatesSection: tpl.id, screensSection: screens.id, screens: shown, size: [Math.round(tpl.width), Math.round(tpl.height)] };
