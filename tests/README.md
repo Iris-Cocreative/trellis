@@ -13,6 +13,7 @@ They run in CI on every push and pull request (`.github/workflows/test.yml`), in
 | `math.js` | `math.js` at the root says in arithmetic what `core.css` says in CSS. This checks that they agree across eight screens and all three layers: the fit's count, cell and gutter; the whole cell, frame and gutter on a wide screen; every type role's size from the live knobs; standing and hanging; and the specimen's ratio playground, whose sample boxes carry knobs of their own: every role at its wide end and at its narrow end, and the half step as the root of the ratio; from the browser alone, that no heading is smaller than body text (D89); and that the seeds the browser derives from an accent, the seven stages among them, are the ones `math.js` derives, for core's accent and four others (D90); a scope's roles, a pale stage's fill and ink among them, in both themes (D96, D107). 1,619 checks. |
 | `perf.js` | The runtime under load: see below. |
 | `matrix.js` | Runs all of the browser tests across the list below. |
+| `package.js` | What an installed consumer gets. It runs `npm pack`, installs the tarball and a pinned esbuild into a clean project in a temporary folder, and from there: the tarball carries every export, both commands and the skill, and nothing of the repository's own; `settle.js`, `float.js` and `presets.js`, imported by their package paths, survive a minified, tree-shaken bundle and set their `window.Trellis` APIs in each engine (a control bundle with the old `sideEffects` list must lose two of them); `trellis-check` counts a raw length and a raw color and exits 1 over its budget; `trellis-product` accepts the template and a layer with a scope, and rejects a layer that sets a property, an unknown knob and an unreadable accent; every installed path, import and command the packaged docs name resolves. Needs npm and the network. Not in the matrix: CI runs it as its own step. |
 | `ready.js` | What they all wait on: the document, then the runtime, then `Trellis.settled()`. `networkidle` doesn't mean parsed. |
 | `tailwind-fresh.js` | Whether the spike's committed bundle holds today's `core.css`. When it doesn't, `tailwind.js` skips the bundle and the matrix runs the statement order in its place; CI rebuilds the spike first. |
 | `target.js` | Which specimen a test opens: core alone, an example layer, or a layer from outside the repository. |
@@ -26,6 +27,7 @@ python -m http.server 8765 --bind 127.0.0.1          # from the repository root
 export PLAYWRIGHT=/path/to/node_modules/playwright   # if it isn't resolvable
 node tests/contract.js
 node tests/matrix.js http://127.0.0.1:8765/ all      # or: chromium, webkit, and --quick
+node tests/package.js                                # or: chromium, webkit; no server
 ```
 
 Each browser needs the Playwright version its build came from. On a machine with mismatched builds, run `matrix.js ... chromium` and `... webkit` with a different `PLAYWRIGHT` each.

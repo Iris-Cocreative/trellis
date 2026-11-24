@@ -18,7 +18,12 @@
     "./math.js": "./math.js",
     "./presets.js": "./presets.js",
     "./float.js": "./float.js",
+    "./tools/product.js": "./tools/product.js",
     "./package.json": "./package.json"
+  },
+  "bin": {
+    "trellis-check": "tools/check.js",
+    "trellis-product": "tools/product.js"
   },
   "files": [
     "core.css",
@@ -28,6 +33,10 @@
     "math.js",
     "presets.js",
     "float.js",
+    "tools/check.js",
+    "tools/product.js",
+    "skill/SKILL.md",
+    "skill/ADOPT.md",
     "README.md",
     "CHANGELOG.md",
     "REACT.md",
@@ -35,7 +44,9 @@
   ],
   "sideEffects": [
     "*.css",
-    "settle.js"
+    "./settle.js",
+    "./float.js",
+    "./presets.js"
   ],
   "scripts": {
     "test": "node tests/contract.js"

@@ -10,7 +10,7 @@ Match the site's approved look closely, not pixel for pixel. Trellis measures sp
 
 ## 1. Take stock before touching anything
 
-- Run `node <trellis>/tools/check.js <the app's own folders>` and keep the numbers as the "before" baseline. Leave out archives, print files and vendored code.
+- Run `npx trellis-check <the app's own folders>` (or `node <trellis>/tools/check.js …` from a pinned copy) and keep the numbers as the "before" baseline. Leave out archives, print files and vendored code.
 - Count the classes the markup actually uses, most used first. Frequency tells you what matters, and the list shows every name.
 - List every component the stylesheets define.
 - Read the site's token file. A three-tier one (raw values → semantic roles → section grounds) maps almost one to one onto seeds → roles → scopes.
@@ -37,7 +37,7 @@ Three checks while sorting:
 - Hit exact brand grounds with the depth and lift knobs: `--day-depth` for paper, `--night-lift` for night. The brand site set `--night-lift: .025` so the night ground lands on the umber its WebGL scenes clear to. Measure the lightness you need and set the knob from it; don't guess.
 - Set families, weights, tracking and the ratio (`--h1-max`, `--body-max`) from the old type scale's top values.
 - Get density from the knobs (`--density-control-h`, `--density-control-fs`), never by restyling a button.
-- Run `node <trellis>/tests/contract.js <product file>`. It checks the knobs and the contrast.
+- Run `npx trellis-product <product file>` (or `node <trellis>/tools/product.js …` from a pinned copy). It checks the knobs and the contrast, on the root and every scope.
 
 ## 4. Turn section grounds into scopes
 

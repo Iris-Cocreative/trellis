@@ -17,10 +17,11 @@
 | `tools/build-tokens.js` | The web generator. It writes the generated tokens of `core.css` from `tokens.json`, and holds the rem conversion. `contract.js` fails if the two disagree. |
 | `math.js` | The fit, the ratio, standing, hanging, the gutter parity rule and the palette as plain functions, in points and OKLCH, with no DOM. The specimen's math view runs on it, and a native screen uses it as is. |
 | `product.template.css` | Every knob, with its default and a line on what it does. Copy it to start a product layer. |
-| `package.json` | Exports `core.css`, `settle.js` and the template. The product layers aren't exports: products will own them. |
+| `package.json` | Exports `core.css`, `settle.js`, `float.js`, `presets.js`, `math.js`, `tokens.json`, the template and `tools/product.js`, and installs two commands, `trellis-check` and `trellis-product`. The three runtimes are its side effects, so a bundler keeps a bare import of each. The product layers aren't exports: products will own them. |
 | `tools/figma-variables.js` | The Figma file's variables, generated from `tokens.json` through `math.js`: Space and Type at a phone and a wide screen, Color in light and dark, each named as its CSS variable. What Figma can't express is in [docs/figma](docs/figma/README.md). |
-| `tools/check.js` | The check for an app built on Trellis: it counts raw lengths, type, colors and radii, restyled primitives, modifiers without their base, variables in a product layer that are not knobs, and inline styles that are not variables, per file. With `--budget` it fails when a count rises. No browser, no dependencies. |
-| `skill/SKILL.md` | The same contract as instructions for a coding agent: which primitive answers which need, the five rules for an app's own CSS, what a raw number becomes, how to mock up, and how to start a project. Copy it to where your agent loads skills. |
+| `tools/check.js` | The check for an app built on Trellis: it counts raw lengths, type, colors and radii, restyled primitives, modifiers without their base, variables in a product layer that are not knobs, and inline styles that are not variables, per file. With `--budget` it fails when a count rises. No browser, no dependencies. Installed, it is `npx trellis-check`. |
+| `tools/product.js` | The check for a product layer: one `:root[data-product]` rule and its scopes in `@layer trellis.product`, only the template's knobs, and every text role, accent, status and stage over its contrast floor in both themes, on every scope. Installed, it is `npx trellis-product <layer>`; `tests/contract.js` runs it on `examples/`. |
+| `skill/SKILL.md` | The same contract as instructions for a coding agent: which primitive answers which need, the five rules for an app's own CSS, what a raw number becomes, how to mock up, and how to start a project. It ships in the package, with `skill/ADOPT.md` for moving an existing site over: copy `node_modules/@iris-cocreative/trellis/skill/` to where your agent loads skills. |
 | `REACT.md` | The contract for a React app, with the pull request checklist. |
 | `CHANGELOG.md` | What changed in each version, and what broke. |
 | `experiments/solids.js` | An experiment: point, line, plane carried on into solid, motion and transformation (the cube turning a quarter at a time, and truncating through the cuboctahedron to the octahedron and back). Not part of the package. |
@@ -28,7 +29,7 @@
 | `brand/` | The Trellis mark: a lattice with a vine through it, in one color (`currentColor`), with a solid version for small sizes and a lockup. |
 | `index.html`, `specimen.css`, `specimen.js`, `hero.js`, `palette.js` | The specimen (`hero.js` moves the hero's drawings; `palette.js` is the Color section's study, a palette from one color). Built only from the foundation, so it is also the first test of it. A column beside the field names every section. Controls: theme, the dial (cell size), fit, Outset or Contained (the `--outset` knob, switchable), the grid (lines, dots at the crossings, or off), Measure (padding, gap, a heading's own space, the line each text block stands on or hangs from), CSS (every stylesheet in a side panel; with Measure on, click anything to find its rule). The ratio section shows the math behind every type role, recomputed live and checked against the browser. |
 | `STATUS.md` | Where each planned piece stands: its state, the commit that changed it, the test that backs it. |
-| `tests/` | `align.js`, `pixel.js`, `layout.js`, `layers.js`, `math.js`, `perf.js`, `contract.js`, `matrix.js`. They run in CI; see `tests/README.md`. |
+| `tests/` | `align.js`, `pixel.js`, `layout.js`, `layers.js`, `math.js`, `perf.js`, `contract.js`, `matrix.js`, `package.js`. They run in CI; see `tests/README.md`. Not part of the package. |
 | `LICENSE` | MIT, held by Iris Cocreative. |
 
 ## Why
@@ -363,7 +364,7 @@ This is what a consumer may rely on. Anything here changing is a changelog entry
 
 | Part | The API |
 |---|---|
-| **Files** | `core.css`, `settle.js`, `product.template.css`, `tokens.json`, `math.js` · optional: `presets.js`, `float.js` |
+| **Files** | `core.css`, `settle.js`, `product.template.css`, `tokens.json`, `math.js` · optional: `presets.js`, `float.js` · checks: `tools/check.js` and `tools/product.js`, installed as the commands `trellis-check` and `trellis-product`, and `tools/product.js`'s `validate(css)` · agent instructions: `skill/SKILL.md`, `skill/ADOPT.md` |
 | **Layers** | `@layer trellis`, with sublayers `reset`, `tokens`, `theme`, `base`, `layout`, `primitives`, `product`, `utilities`, in that order |
 | **Root attributes** | `data-product` (selects a product layer; absent is the neutral default; on any other element, a scope, D96) · `data-theme` (`light`, `dark`; absent follows the system) · `data-unit-fit` (`on`, `off`; absent fits touch screens) |
 | **Runtime** | `window.Trellis`: `fit()`, `cell()` (the cell in px, measured), `all()`, `observe(el)`, `settled()`, `range(el)`, `composer(el)`; with `presets.js`, `presets` (the seven names) and `transition(update)`; with `float.js`, `float`, whose methods are `open(float, anchor, options)`, `toggle(…)`, `close(float)`, `place(…)` and `isOpen(float)` (options: `side`, `align`, `gap`, `margin`, `onClose`), which writes `--float-x` and `--float-y` and an anchor's `aria-expanded`. `presets.js` writes `--glow-x`, `--glow-y`, `data-trellis-glowing`, `data-trellis-scrolling`, `--tray-offset`, `data-trellis-dragging`, `--swipe-x`, `data-trellis-swiped` and a shared element's `view-transition-name`; those are its own. `data-settle-skip` opts an overlay out. It closes a `dialog.modal` on a backdrop click that began and ended on the backdrop; `data-trellis-stay` opts a modal out. It keeps the order of open modals, writing `--modal-index` on each and `data-trellis-depth` on those under the top one, and closes the third when a fourth opens. It writes `--dpr`, `--fit-width`, `--settle-n`, `--settle`, `--settle-start`, `data-prose-empty`, `tabindex` with `data-trellis-reach` on prose that scrolls, and, where a browser leaves a clamp's box untrimmed, `data-trellis-clamp`, `--clamp-top` and `--clamp-h` on a `.u-clamp`; those are its own. |
@@ -426,7 +427,7 @@ Today, in CI on every push and pull request ([`tests/README.md`](tests/README.md
 - **`perf.js`**: 5,000 blocks stay on their lines, inside the budgets.
 - **`contract.js`**: the Public API is complete, **products only turn knobs**, the template matches core.
 
-In an app built on Trellis, `tools/check.js` counts what breaks three of the rules (**no raw values**, **products turn knobs**, **inline styles set variables only**), a primitive redrawn from outside (named in the selector, or through a class of the app's own that sits on the primitive's element in its markup or scripts), and a modifier without its base (`icon-button` with no `button`, a `cc-*` with nothing core beside it), and holds each file to a budget that only goes down. It reads source and never opens a browser, so **edges land on lines** and **every class registered** are still the review checklist in [`REACT.md`](REACT.md).
+In an app built on Trellis, `tools/check.js` (`npx trellis-check`) counts what breaks three of the rules (**no raw values**, **products turn knobs**, **inline styles set variables only**), a primitive redrawn from outside (named in the selector, or through a class of the app's own that sits on the primitive's element in its markup or scripts), and a modifier without its base (`icon-button` with no `button`, a `cc-*` with nothing core beside it), and holds each file to a budget that only goes down. It reads source and never opens a browser, so **edges land on lines** and **every class registered** are still the review checklist in [`REACT.md`](REACT.md).
 
 ## Browser support
 
@@ -449,7 +450,15 @@ Everything degrades to a working layout. Per feature:
   ```bash
   npm install github:Iris-Cocreative/trellis#<commit>
   ```
-  Then import `@iris-cocreative/trellis/core.css`, your own product layer, and `@iris-cocreative/trellis/settle.js`. For React, see [`REACT.md`](REACT.md).
+  Then import `@iris-cocreative/trellis/core.css`, your own product layer, and `@iris-cocreative/trellis/settle.js` (and `float.js` or `presets.js` if you use them). For React, see [`REACT.md`](REACT.md).
+- **Check the app from the installed package.** Two commands come with it, and neither needs a browser or a dependency:
+  ```bash
+  npx trellis-check src                                   # counts, per file
+  npx trellis-check src --budget check.budget.json --write   # record today's counts
+  npx trellis-check src --budget check.budget.json        # exits 1 if a count rose
+  npx trellis-product src/product.css                     # exits 1 if the layer is more than knobs, or can't be read
+  ```
+  The agent instructions are in the package too: `node_modules/@iris-cocreative/trellis/skill/SKILL.md` and `skill/ADOPT.md`. `tests/package.js` installs the packed tarball into a clean project and runs these.
 - **Without a bundler,** load the three files from a pinned copy: `core.css`, your product layer, `settle.js`.
 - **A product owns its layer.** Start from `product.template.css`, keep the knobs you change, and put `data-product` on `<html>`.
 - **In a native app, choose per surface.** The default: native for the shell, navigation, messaging and any long list; a web view on Trellis for content, media, canvases and what the web already does well.
