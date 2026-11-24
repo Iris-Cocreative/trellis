@@ -576,6 +576,55 @@ const ready = require('./ready');
     host.remove();
     return fails;
   }));
+  // What a site moving onto Trellis needed: a fill grid reaches both edges, a
+  // block button its container's width, a tag's edge may be dashed, a select's
+  // chevron takes its own color, a top-level card its own ground, the widest
+  // frame is a product knob, and a frame that is a grid of cards keeps its
+  // centering under the outset.
+  fails.push(...await page.evaluate(async () => {
+    const fails = [], u = Trellis.cell(), host = document.createElement('div'), root = document.documentElement;
+    host.style.cssText = `position:absolute;top:0;left:0;width:${u * 46}px`;
+    host.innerHTML = '<div class="grid cc-fill" style="--grid-min:var(--sp-16)"><div class="card">a</div><div class="card">b</div></div>' +
+      '<div class="grid" style="--grid-min:var(--sp-16)"><div class="card">a</div><div class="card">b</div></div>' +
+      '<div class="stack" style="width:' + (u * 20) + 'px"><button class="button cc-block" type="button"><span class="button-label">Send</span></button><button class="button" type="button"><span class="button-label">Send</span></button></div>' +
+      '<span class="tag" style="--tag-edge-style:dashed"><span class="tag-label">Soon</span></span><span class="tag"><span class="tag-label">Here</span></span>' +
+      '<select class="input" style="--chevron-color:rgb(255, 0, 0)"><option>One</option></select>' +
+      '<div class="card" style="--surface:rgb(0, 128, 0)">ground</div>';
+    document.body.appendChild(host);
+    await Trellis.settled();
+    const box = e => e.getBoundingClientRect(), hb = box(host);
+    const [fill, plain] = host.querySelectorAll('.grid');
+    const fc = [...fill.children].map(box), pc = [...plain.children].map(box);
+    // Two tracks of a fill grid reach both of its edges; a plain grid's leave the remainder as space.
+    const gutter = (fc[0].left - box(fill).left), end = box(fill).right - fc[1].right;
+    if (Math.abs(gutter) > .5 || Math.abs(end) > .5) fails.push(`.grid.cc-fill: its cards start ${gutter.toFixed(1)}px and end ${end.toFixed(1)}px from its edges`);
+    if (Math.abs(box(fill).right - box(plain).right) > .5) fails.push('.grid.cc-fill: not the same box as a plain grid');
+    if (box(plain).right - pc[1].right < u) fails.push('a plain .grid now stretches its tracks');
+    const [block, btn] = host.querySelectorAll('.stack .button');
+    if (Math.abs(box(block).width - u * 20) > .5) fails.push(`.button.cc-block is ${box(block).width.toFixed(1)}px in a ${u * 20}px column`);
+    if (box(btn).width > u * 10) fails.push('a plain button stretched in a column');
+    const [dashed, solid] = host.querySelectorAll('.tag');
+    if (getComputedStyle(dashed).borderTopStyle !== 'dashed') fails.push('--tag-edge-style: dashed does not reach the tag: ' + getComputedStyle(dashed).borderTopStyle);
+    if (getComputedStyle(solid).borderTopStyle !== 'solid') fails.push("a tag's edge is not solid by default");
+    if (!/255, 0, 0/.test(getComputedStyle(host.querySelector('select')).backgroundImage)) fails.push("--chevron-color does not reach a select's chevron");
+    if (getComputedStyle(host.querySelector('.stack ~ .card')).backgroundColor !== 'rgb(0, 128, 0)') fails.push("--surface on a top-level card is not its ground");
+    host.remove();
+    // A frame that is a grid of cards: centered, inside the screen, and the knob moves its widest.
+    const f = document.createElement('div'); f.className = 'grid frame'; f.innerHTML = '<div class="card">a</div><div class="card">b</div>';
+    const ref = document.createElement('div'); ref.className = 'frame';
+    document.body.append(f, ref);
+    await Trellis.settled();
+    const r = box(f), q = box(ref);
+    if (Math.abs(r.left - q.left) > .5 || Math.abs(r.right - q.right) > .5) fails.push(`a frame that is a grid of cards is not where a frame is: ${r.left.toFixed(1)} to ${r.right.toFixed(1)}, a frame ${q.left.toFixed(1)} to ${q.right.toFixed(1)}`);
+    const before = r.width;
+    root.style.setProperty('--frame-max-n', '40');
+    const narrow = box(f).width;
+    if (narrow > u * 40 + .5 || (before > u * 40 + .5 && narrow >= before)) fails.push(`--frame-max-n: 40 leaves a frame ${narrow.toFixed(1)}px wide (a cell is ${u}px)`);
+    root.style.removeProperty('--frame-max-n');
+    f.remove(); ref.remove();
+    await Trellis.settled();
+    return fails;
+  }));
   // Stages (D107): seven of them, each a dot in its fill, a ring in its ink and
   // a tag tinted from its fill; a product's own seed reaches all three.
   fails.push(...await page.evaluate(() => {
