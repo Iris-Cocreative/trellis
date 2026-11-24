@@ -2,7 +2,7 @@
 
 The companion to `SKILL.md` for a site or app that already has its own CSS. It adds the steps a new project doesn't need: take stock, sort, translate the brand, switch, measure. Everything in `SKILL.md` still applies; read it first.
 
-The worked example is Hermitage World (`Iris-Cocreative/hermitage-world-latest`, branch `adopt-trellis`, 2026-11-19). It is a static site with a dark-first brand, 28 pages and three WebGL scenes. Its own-file counts went from 381 raw lengths, 79 raw colors and 136 restyled primitives to 61, 8 and 47, and it ended close to the approved design.
+The worked example is a brand site moved over on 2026-11-19: a static site with a dark-first brand, 28 pages and three WebGL scenes. Its own-file counts went from 381 raw lengths, 79 raw colors and 136 restyled primitives to 61, 8 and 47, and it ended close to the approved design.
 
 ## The aim
 
@@ -20,7 +20,7 @@ Match the site's approved look closely, not pixel for pixel. Trellis measures sp
 
 Each component goes into exactly one bucket:
 
-| Bucket | Test | Action | Hermitage examples |
+| Bucket | Test | Action | Examples from the brand site |
 |---|---|---|---|
 | **Same job** | A Trellis primitive does what it does | Use the primitive and delete the site's version | `.btn` → `.button`, `.icon-btn` → `.button.icon-button`, `.container` → `.frame`; Trellis's own `.stack`, `.cluster`, `.grid`, `.split`, `.card`, `.tag`, `.field`/`.input`, `.skip-link`; the type roles |
 | **Same name, other job** | The name exists in Trellis but means something else | Rename the site's class, then sort it again | `.board` (a schedule) → `.timetable`; `.section` → `.room`; `.pair` → `.lib-pair` |
@@ -34,14 +34,14 @@ Three checks while sorting:
 ## 3. Put the brand into knobs
 
 - Convert the palette to OKLCH. Seeds take their light-theme form; `--seed-accent-night` takes the brand's own night accent where it isn't a plain lift.
-- Hit exact brand grounds with the depth and lift knobs: `--day-depth` for paper, `--night-lift` for night. Hermitage set `--night-lift: .025` so the night ground lands on the umber its WebGL scenes clear to. Measure the lightness you need and set the knob from it; don't guess.
+- Hit exact brand grounds with the depth and lift knobs: `--day-depth` for paper, `--night-lift` for night. The brand site set `--night-lift: .025` so the night ground lands on the umber its WebGL scenes clear to. Measure the lightness you need and set the knob from it; don't guess.
 - Set families, weights, tracking and the ratio (`--h1-max`, `--body-max`) from the old type scale's top values.
 - Get density from the knobs (`--density-control-h`, `--density-control-fs`), never by restyling a button.
 - Run `node <trellis>/tests/contract.js <product file>`. It checks the knobs and the contrast.
 
 ## 4. Turn section grounds into scopes
 
-A section with its own ground (a "room", a band, a mood) becomes a scope: `data-product="part"` plus `data-theme` when it flips day or night. It gets a `[data-product="part"]` rule of knobs in the product file. Hermitage's plaster and stone rooms became light scopes on a dark page. Never re-declare roles to recolor a section.
+A section with its own ground (a "room", a band, a mood) becomes a scope: `data-product="part"` plus `data-theme` when it flips day or night. It gets a `[data-product="part"]` rule of knobs in the product file. The brand site's plaster and stone rooms became light scopes on a dark page. Never re-declare roles to recolor a section.
 
 ## 5. Switch in one step
 
@@ -56,7 +56,7 @@ Keep the old site served beside the new one (a worktree of `main` on another por
 
 ## 6. Write down what doesn't fit
 
-Every difference Trellis can't express gets a row in `TRELLIS-LEDGER.md`: what was needed, what was used instead, and what Trellis should gain (a variant, a knob, a primitive or nothing). Hermitage logged 13. The common ones to expect:
+Every difference Trellis can't express gets a row in `TRELLIS-LEDGER.md`: what was needed, what was used instead, and what Trellis should gain (a variant, a knob, a primitive or nothing). The brand site logged 13. The common ones to expect:
 - type above H1
 - a frame wider than 1200px, or a narrow one
 - a grid whose tracks stretch to fill
