@@ -32,7 +32,7 @@
                                               every binding (docs/figma/README.md)
    node tools/figma-variables.js --tokens FILE    another token file
    node tools/figma-variables.js --layer FILE …   these product layers, not examples/
-                                                  and experiments/scopes/interbeing.css */
+                                                  and experiments/scopes/grove.css */
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -46,7 +46,7 @@ const tokens = JSON.parse(fs.readFileSync(flag('--tokens') || path.join(root, 't
 const seed = M.seedFromTokens(tokens);
 // The example layers, and the scopes study: the one layer with scopes in it.
 const LAYERS = (flags('--layer').length ? flags('--layer') : fs.readdirSync(path.join(root, 'examples')).filter((f) => f.endsWith('.css')).sort().map((f) => path.join(root, 'examples', f))
-  .concat(path.join(root, 'experiments', 'scopes', 'interbeing.css')));
+  .concat(path.join(root, 'experiments', 'scopes', 'grove.css')));
 
 // The two screens the modes stand for.
 const SCREENS = { Phone: { width: 393, dpr: 3 }, Wide: { width: 1440, dpr: 2 } };
@@ -149,7 +149,7 @@ const STAND_IN = {
   'Helvetica Neue': 'Hanken Grotesk', Helvetica: 'Hanken Grotesk', Arial: 'Hanken Grotesk',
   'Gill Sans': 'Lato', 'Gill Sans MT': 'Lato', 'Trebuchet MS': 'Lato',
   'Iowan Old Style': 'Source Serif 4', 'Palatino Linotype': 'Source Serif 4', Palatino: 'Source Serif 4',
-  // Web fonts a layer names that Figma has: Interbeing's.
+  // Web fonts a layer names that Figma has: the scopes study's (Grove).
   Geist: 'Geist', Halant: 'Halant', 'Cormorant Garamond': 'Cormorant Garamond', 'Alegreya Sans': 'Alegreya Sans'
 };
 const family = (k, name, seen = []) => {

@@ -1,14 +1,15 @@
 /* ==========================================================================
-   Interbeing, as products in a product · for the scopes study
-   The ecosystem sets what everyone shares; each community is a scope that
-   sets only what makes it itself. Seeds from Interbeing's own colors, in
-   OKLCH (app/globals.css, 2026-11-17).
+   Grove, as products in a product · for the scopes study
+   Grove stands in for a community platform with several communities on one
+   page. The ecosystem sets what everyone shares; each community is a scope
+   that sets only what makes it itself. Seeds from that platform's own
+   colors, in OKLCH (2026-11-17).
    Since D96 core does this itself; this file is just a product layer, and
-   tests/contract.js checks it: node tests/contract.js experiments/scopes/interbeing.css
+   tests/contract.js checks it: node tests/contract.js experiments/scopes/grove.css
    ========================================================================== */
 @layer trellis.product {
   /* The ecosystem: linen paper, forest ink, a forest accent; Halant over Geist; a calm ratio. */
-  :root[data-product="interbeing"] {
+  :root[data-product="grove"] {
     --font-sans: "Geist", system-ui, sans-serif;
     --font-heading: "Halant", Georgia, serif;
     --fw-heading: 400;
@@ -19,8 +20,8 @@
     --shape-card: var(--r-2);
   }
 
-  /* Practice House: warm paper, blue-graphite ink, the dusk blue from the Vienna rooftop skies; Cormorant headings. */
-  [data-product="practice-house"] {
+  /* The studio: warm paper, blue-graphite ink, a dusk blue; Cormorant headings. */
+  [data-product="studio"] {
     --seed-accent: oklch(.491 .061 256.5);
     --seed-ground: oklch(.55 .006 84.6);
     --seed-ink: oklch(.55 .024 258.4);
@@ -29,8 +30,8 @@
     --shape-card: var(--r-q);
   }
 
-  /* Interbeing Monastery: evolve's night teal and bone, evening gold. Night by nature (data-theme="dark" on the scope). */
-  [data-product="monastery"] {
+  /* The lodge: night teal and bone, evening gold. Night by nature (data-theme="dark" on the scope). */
+  [data-product="lodge"] {
     --seed-accent: oklch(.634 .112 82.1);
     --seed-ground: oklch(.55 .028 231.5);
     --seed-ink: oklch(.55 .013 82.4);
@@ -38,8 +39,8 @@
     --rh-max: 1.414;
   }
 
-  /* The Chapel: shared by every community, moonlit; it carries the ecosystem's type and only changes its light. */
-  [data-product="chapel"] {
+  /* The lantern room: shared by every community, moonlit; it carries the ecosystem's type and only changes its light. */
+  [data-product="lantern"] {
     --seed-accent: oklch(.62 .035 120);
     --seed-ground: oklch(.55 .017 152.4);
     --seed-ink: oklch(.55 .02 120);

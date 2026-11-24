@@ -309,13 +309,13 @@ A product is one file: a `:root[data-product="name"]` rule in `@layer trellis.pr
 
 ```css
 @layer trellis.product {
-  :root[data-product="ecosystem"] { --seed-accent: oklch(.33 .063 134); --seed-ground: oklch(.55 .011 77); --font-heading: "Halant", serif; }
-  [data-product="house"]          { --seed-accent: oklch(.49 .061 257); --font-heading: "Cormorant Garamond", serif; }
-  [data-product="chapel"]         { --seed-accent: oklch(.62 .035 120); --seed-ground: oklch(.55 .017 152); }
+  :root[data-product="grove"]     { --seed-accent: oklch(.33 .063 134); --seed-ground: oklch(.55 .011 77); --font-heading: "Halant", serif; }
+  [data-product="studio"]         { --seed-accent: oklch(.49 .061 257); --font-heading: "Cormorant Garamond", serif; }
+  [data-product="lantern"]        { --seed-accent: oklch(.62 .035 120); --seed-ground: oklch(.55 .017 152); }
 }
 ```
 ```html
-<html data-product="ecosystem"> … <article class="card" data-product="house"> … <section data-product="chapel" data-theme="dark"> …
+<html data-product="grove"> … <article class="card" data-product="studio"> … <section data-product="lantern" data-theme="dark"> …
 ```
 
 With no product layer the page is core's own defaults: the neutral theme, system fonts, both color themes. That is what the specimen shows.
@@ -452,6 +452,7 @@ Everything degrades to a working layout. Per feature:
   Then import `@iris-cocreative/trellis/core.css`, your own product layer, and `@iris-cocreative/trellis/settle.js`. For React, see [`REACT.md`](REACT.md).
 - **Without a bundler,** load the three files from a pinned copy: `core.css`, your product layer, `settle.js`.
 - **A product owns its layer.** Start from `product.template.css`, keep the knobs you change, and put `data-product` on `<html>`.
+- **In a native app, choose per surface.** The default: native for the shell, navigation, messaging and any long list; a web view on Trellis for content, media, canvases and what the web already does well.
 - **Beside an existing stylesheet,** migrate one surface at a time. A surface uses Trellis or the other system, not both.
 - **With Tailwind, order matters, and neither import order is safe alone (D110).** Namespacing stops the foundation's layers merging with Tailwind's, but `trellis` still has to sit between them. State the order first, before either stylesheet, and keep Tailwind from making utilities of three of Trellis's class names:
   ```css

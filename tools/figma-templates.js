@@ -243,7 +243,7 @@ for (const [p, s, c] of [['Core', 'Wide', 'Light'], ['Core', 'Phone', 'Dark'], [
 // Product mode, and a mood (data-theme) the same frame in the Dark Color mode.
 const modeOf = (f, modes) => { for (const [k, m] of Object.entries(modes)) f.setExplicitVariableModeForCollection(COL[k], COL[k].modes.find((x) => x.name === m).modeId); };
 async function scopeCard(name, scope, dark) {
-  const card = col(`[data-product="${scope}"]`); modeOf(card, Object.assign({ Product: 'Interbeing › ' + name }, dark ? { Color: 'Dark' } : {}));
+  const card = col(`[data-product="${scope}"]`); modeOf(card, Object.assign({ Product: 'Grove › ' + name }, dark ? { Color: 'Dark' } : {}));
   fill(card, [paint('bg-raised')]); edge(card, 'border-subtle'); corners(card, 'knob/shape-card');
   padX(card, 'knob/density-card-pad-inline'); padY(card, 'knob/density-card-pad-block'); bind(card, 'itemSpacing', 'space/sp-2');
   const head = col('section-head'); card.appendChild(head); head.layoutSizingHorizontal = 'FILL'; bind(head, 'itemSpacing', 'space/sp-1');
@@ -254,12 +254,12 @@ async function scopeCard(name, scope, dark) {
   const b = variant(btnSet, { kind: 'cc-primary', size: 'default', state: 'rest' }).createInstance(); card.appendChild(b); label(b, 'label', 'Join');
   return card;
 }
-const eco = col('Interbeing · Wide · Light · scopes'); width(eco, 1200); eco.counterAxisSizingMode = 'FIXED'; fill(eco, [paint('bg')]);
-modeOf(eco, { Product: 'Interbeing', Space: 'Wide', Type: 'Wide', Color: 'Light' });
+const eco = col('Grove · Wide · Light · scopes'); width(eco, 1200); eco.counterAxisSizingMode = 'FIXED'; fill(eco, [paint('bg')]);
+modeOf(eco, { Product: 'Grove', Space: 'Wide', Type: 'Wide', Color: 'Light' });
 padX(eco, 'space/sp-4'); padY(eco, 'space/sp-4'); bind(eco, 'itemSpacing', 'space/sp-3');
 eco.appendChild(await words('One ecosystem', { style: 'h2' }));
 const arch = row('archways', { counterAxisAlignItems: 'MIN' }); eco.appendChild(arch); arch.layoutSizingHorizontal = 'FILL'; bind(arch, 'itemSpacing', 'space/sp-2');
-for (const [n, s, d] of [['Practice House', 'practice-house', false], ['Monastery', 'monastery', true], ['Chapel', 'chapel', false]]) { const k = await scopeCard(n, s, d); arch.appendChild(k); k.layoutGrow = 1; }
+for (const [n, s, d] of [['Studio', 'studio', false], ['Lodge', 'lodge', true], ['Lantern', 'lantern', false]]) { const k = await scopeCard(n, s, d); arch.appendChild(k); k.layoutGrow = 1; }
 const threads = row('threads', { counterAxisAlignItems: 'MIN' }); eco.appendChild(threads); bind(threads, 'itemSpacing', 'space/sp-4');
 const talk = col('chat-thread cc-flat'); threads.appendChild(talk); width(talk, 520); bind(talk, 'itemSpacing', 'space/sp-q');
 for (const v of [{ run: 'first', state: 'rest' }, { run: 'cc-cont', state: 'hover' }]) { const i = variant(chatSet, v).createInstance(); talk.appendChild(i); i.layoutSizingHorizontal = 'FILL'; }
