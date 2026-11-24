@@ -105,8 +105,10 @@
 @layer trellis.tokens {
   :root {
     /* The cell's target: 10pt up to a 500pt screen, rising to 12pt at 1000pt.
-       It follows the reader's text size up to 1.5× and no further: above that only type grows. */
-    --u-base: min(clamp(0.625rem, calc(0.5rem + 0.4vw), 0.75rem), clamp(15px, calc(12px + 0.4vw), 18px));
+       It follows the reader's text size up to 1.5× and no further: above that only type grows.
+       --u-type is the rem line alone, the cell the reader's text size asks for past the cap too. */
+    --u-type: clamp(0.625rem, calc(0.5rem + 0.4vw), 0.75rem);
+    --u-base: min(var(--u-type), clamp(15px, calc(12px + 0.4vw), 18px));
     --frame-max-n: 100;
 
     /* Counts: space in cells. Any whole count is on the grid; these have names */
@@ -2343,6 +2345,23 @@
     max-height: var(--options-max-h);
     overflow-y: auto;
     overflow-x: clip;   /* it scrolls down, never sideways: a long label truncates instead */
+  }
+  /* Past the cap (D111): the cell stops following the reader's text size and
+     the type goes on, so the card's width grows with its type, in whole
+     cells, as a control past the cap grows by whole cells: --options-w
+     times how far the type has gone past the cell (--u-type over --u-base,
+     exactly 1 at default sizes, so nothing moves). It stops at the screen
+     less half a cell each side (float.js's margin), and at its container;
+     past that a label truncates. Where a browser can't divide a length by a
+     length, it stays --options-w wide. */
+  @supports (width: calc(100vw / 1px * 1px)) {
+    .options-card {
+      --options-grow: max(1, var(--u-type) / var(--u-base));
+      width: max(var(--options-w), min(
+        round(up, calc(var(--options-w) * var(--options-grow)), var(--u)),
+        round(down, calc(var(--fit-width, 100vw) - var(--u)), var(--u)),
+        100%));
+    }
   }
   .options-card-item {
     display: flex; align-items: center; gap: var(--sp-h);

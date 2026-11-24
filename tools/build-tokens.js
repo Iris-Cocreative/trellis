@@ -43,8 +43,10 @@ function build(tokens) {
   const cap = val(c, 'text-scale-max');
   const px = pt => n(pt) + 'px';
   out.push(`    /* The cell's target: ${lo}pt up to a ${val(c, 'screen-narrow')}pt screen, rising to ${hi}pt at ${val(c, 'screen-wide')}pt.`,
-    `       It follows the reader's text size up to ${cap}× and no further: above that only type grows. */`);
-  line('u-base', `min(clamp(${rem(lo)}, calc(${rem(intercept)} + ${n(slope * 100)}vw), ${rem(hi)}), ` +
+    `       It follows the reader's text size up to ${cap}× and no further: above that only type grows.`,
+    `       --u-type is the rem line alone, the cell the reader's text size asks for past the cap too. */`);
+  line('u-type', `clamp(${rem(lo)}, calc(${rem(intercept)} + ${n(slope * 100)}vw), ${rem(hi)})`);
+  line('u-base', `min(var(--u-type), ` +
     `clamp(${px(lo * cap)}, calc(${px(intercept * cap)} + ${n(slope * 100)}vw), ${px(hi * cap)}))`);
   line('frame-max-n', val(tokens.frame, 'max'));
 

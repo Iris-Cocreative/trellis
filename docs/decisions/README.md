@@ -122,3 +122,4 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D108](D108.md) | A card is one link, and an image fills its frame | 2026-11-23 | accepted |
 | [D109](D109.md) | Checkbox, radio and switch are one archetype | 2026-11-23 | accepted |
 | [D110](D110.md) | Beside Tailwind: the layer statement, and three class names Tailwind must not make | 2026-11-23 | accepted |
+| [D111](D111.md) | Past the cap, a float grows with its type | 2026-11-23 | accepted |

@@ -26,7 +26,9 @@
 //           half, rest full, close when dragged down; share names and runs
 //   floats  a closed popover float has no box and takes no clicks; it opens
 //           and closes to nothing again; float.js places one by its anchor, keeps it on
-//           screen, flips it, follows it in a scroller and closes it
+//           screen, flips it, follows it in a scroller and closes it; at
+//           312% text an options card grows with its type, in whole cells, to
+//           the screen less its margins, and cuts no label off that fits (D111)
 //   switch  in a menu row: no room for a label, at the row's end, lit by the
 //           row, the row not washed
 //   choice  checkbox, radio and switch (D109): boxes on half cells at the
@@ -1114,6 +1116,52 @@ const ready = require('./ready');
       const stray = r.slice(from + last + 1, from + last + 1 + Math.round(m.u * D)).findIndex(l => l < CLEAR);
       if (stray >= 0) fails.push(`clamp: ${m.role}: ink ${((last + 1 + stray) / D).toFixed(1)}px under the last baseline, past its descenders: the hidden line shows`);
     });
+  }
+  // Floats past the cap (D111): at the reader's largest text size (312%) the
+  // specimen's options cards grow with their type, in whole cells, up to the
+  // screen less its margins: no sideways scroll, inside the screen, and no
+  // label cut off where its row fits the screen. At default sizes the card is
+  // --options-w exactly (16 cells), checked above with the knobs.
+  {
+    const ax = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: touch ? 3 : 1, isMobile: touch, hasTouch: touch });
+    await ax.addInitScript(() => {
+      const set = () => { if (!document.documentElement) return false; document.documentElement.style.fontSize = '312%'; return true; };
+      if (!set()) new MutationObserver((m, o) => { if (set()) o.disconnect(); }).observe(document, { childList: true });
+    });
+    await ax.goto(url, { waitUntil: 'networkidle', timeout: 120000 });
+    await ready(ax);
+    fails.push(...await ax.evaluate(async () => {
+      const fails = [], u = Trellis.cell(), root = document.documentElement, vw = root.clientWidth;
+      const whole = v => { const m = ((v % u) + u) % u; return m < .5 || m > u - .5; };
+      const check = (card, name) => {
+        const r = card.getBoundingClientRect(), cs = getComputedStyle(card), w16 = u * 16;
+        if (!whole(r.width)) fails.push(`312%: ${name} is ${r.width.toFixed(1)}px wide, not whole cells`);
+        if (r.width < w16 - .5) fails.push(`312%: ${name} is narrower than its 16 cells`);
+        if (r.left < -.5 || r.right > vw + .5) fails.push(`312%: ${name} runs off the screen (${r.left.toFixed(0)} to ${r.right.toFixed(0)} of ${vw})`);
+        if (card.scrollWidth > card.clientWidth + 1) fails.push(`312%: ${name} scrolls sideways`);
+        const room = round => Math.floor(round / u) * u;
+        const capped = r.width >= room(vw - u) - .5 || r.width >= card.parentElement.getBoundingClientRect().width - .5;
+        card.querySelectorAll('.options-card-item .button-label').forEach(l => {
+          const range = document.createRange(); range.selectNodeContents(l);
+          const need = range.getBoundingClientRect().width, has = l.getBoundingClientRect().width;
+          if (need > has + 1 && !capped) fails.push(`312%: "${l.textContent}" in ${name} is cut off (${need.toFixed(0)}px of words in ${has.toFixed(0)}px) though the card could grow`);
+        });
+        if (getComputedStyle(root).fontSize === '16px') fails.push('312%: the text size was not set');
+        return r.width;
+      };
+      const inline = document.querySelector('.options-card.settle[role="listbox"]');
+      inline.scrollIntoView({ block: 'center' }); await Trellis.settled();
+      const w = check(inline, 'the inline options card');
+      if (w < u * 16 + .5 && inline.parentElement.getBoundingClientRect().width > u * 17) fails.push('312%: the inline options card did not grow with its type');
+      const menu = document.getElementById('roles-menu'), btn = document.querySelector('[data-roles]');
+      btn.scrollIntoView({ block: 'center' }); await Trellis.settled();
+      btn.click(); await new Promise(r => setTimeout(r, 300));
+      if (!menu.matches(':popover-open')) fails.push('312%: the Roles menu did not open');
+      else check(menu, 'the Roles menu');
+      if (root.scrollWidth > vw + 1) fails.push(`312%: the page scrolls sideways (${root.scrollWidth} of ${vw})`);
+      return fails;
+    }));
+    await ax.close();
   }
   await Promise.race([browser.close(), new Promise(r => setTimeout(r, 5000))]); // WebKit on Windows can hang on close
   console.log(`${engine} ${size}${touch ? ' touch' : ''}: layout ${fails.length ? fails.length + ' FAILED' : 'ok'}`);
