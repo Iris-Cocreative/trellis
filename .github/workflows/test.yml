@@ -11,7 +11,8 @@ jobs:
     # Pinned, as Playwright is below: these compare pixels, so nothing here should
     # move on its own. ubuntu-latest became 26.04, which Playwright 1.60 can't install on.
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    # The install step has taken 22 minutes on a slow package mirror; the tests take about 6.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
