@@ -735,6 +735,19 @@
           </li>
           <li><p>A logbook. On paper, because the person who needs it in thirty years may not have our passwords.</p><p>Everything in it is copied to a shared folder once a season, which takes about an hour.</p></li>
         </ul>
+        <h3>Before the swap</h3>
+        <ul>
+          <li><input type="checkbox" disabled checked> Weigh the last tray of beans</li>
+          <li><input type="checkbox" disabled> Label the squash jars
+            <ul>
+              <li><input type="checkbox" disabled checked> Long Island Cheese</li>
+              <li><input type="checkbox" disabled> Seminole pumpkin</li>
+            </ul>
+          </li>
+        </ul>
+        <ul data-type="taskList">
+          <li data-type="taskItem"><label><input type="checkbox" aria-label="Done"></label><div><p>Print the sign-up sheet, as an editor writes a task</p></div></li>
+        </ul>
         <blockquote>
           <p>You don't save a variety by keeping it safe. You save it by growing it where people can argue about how it tastes.</p>
           <footer>Marisol Vega, <cite>Letters from the Trial Bed</cite></footer>
@@ -1169,8 +1182,27 @@
       <div class="tabs" role="tablist" aria-label="Example" id="demo-tabs"><button class="tab" role="tab" aria-selected="true" type="button">Overview</button><button class="tab" role="tab" aria-selected="false" type="button">Members</button><button class="tab" role="tab" aria-selected="false" type="button">Events</button><button class="tab" role="tab" aria-selected="false" type="button">Documents</button></div>
       <div class="tabs cc-seg" role="tablist" aria-label="Example, segmented"><button class="tab" role="tab" aria-selected="true" type="button">Week</button><button class="tab" role="tab" aria-selected="false" type="button">Month</button><button class="tab" role="tab" aria-selected="false" type="button">Year</button></div>
 
+      <h3 class="t-h5">.choice: checkbox, radio and switch</h3>
+      <div class="cols demo-choices" id="demo-choices">
+        <div class="stack u-gap-1">
+          <label class="choice"><input type="checkbox" checked><span class="choice-label cap-center">Checked</span></label>
+          <label class="choice"><input type="checkbox"><span class="choice-label cap-center">Not yet</span></label>
+          <label class="choice"><input type="checkbox" data-demo-mixed><span class="choice-label cap-center">Mixed: some of a nested list</span></label>
+          <label class="choice"><input type="checkbox" disabled checked><span class="choice-label cap-center">Disabled</span></label>
+          <label class="choice"><input type="checkbox" aria-invalid="true" required><span class="choice-label cap-center">Invalid</span></label>
+        </div>
+        <div class="stack u-gap-1" role="radiogroup" aria-label="Delivery">
+          <label class="choice"><input type="radio" name="demo-radio" checked><span class="choice-label cap-center">Pick up</span></label>
+          <label class="choice"><input type="radio" name="demo-radio"><span class="choice-label cap-center">Deliver</span></label>
+          <label class="choice"><input type="radio" name="demo-radio" disabled><span class="choice-label cap-center">Post (disabled)</span></label>
+          <label class="choice cc-sm"><input type="checkbox" checked><span class="choice-label cap-center">Small, a cell</span></label>
+          <label class="choice cc-lg"><input type="checkbox" checked><span class="choice-label cap-center">Large, two cells</span></label>
+        </div>
+      </div>
+      <p class="t-sm muted">One archetype: a box on half cells at the row's start, half a cell before its words, whose capitals center on it. The box is the native input, so Space, a radio group's arrows and the form are the browser's; mixed is the input's <code>indeterminate</code>, for a parent whose children are partly done. On a touch screen the row's hit area is at least 44px. The switch below is the same row with a track for a box.</p>
+
       <h3 class="t-h5">.switch and every state</h3>
-      <div class="cluster u-gap-2"><button class="switch" type="button" role="switch" aria-checked="true" data-demo-switch><span class="switch-label">Notify me</span></button><button class="switch" type="button" role="switch" aria-checked="false" data-demo-switch><span class="switch-label">Weekly digest</span></button><button class="switch" type="button" role="switch" aria-checked="false" aria-disabled="true"><span class="switch-label">Locked</span></button><label class="switch"><input class="u-sr-only" type="checkbox" role="switch" checked><span class="switch-label">In a form</span></label></div>
+      <div class="cluster u-gap-2"><button class="switch" type="button" role="switch" aria-checked="true" data-demo-switch><span class="switch-label">Notify me</span></button><button class="switch" type="button" role="switch" aria-checked="false" data-demo-switch><span class="switch-label">Weekly digest</span></button><button class="switch" type="button" role="switch" aria-checked="mixed" data-demo-switch aria-describedby="demo-switch-mixed"><span class="switch-label">Pinned</span></button><span class="u-sr-only" id="demo-switch-mixed">Some of the selection</span><button class="switch" type="button" role="switch" aria-checked="false" aria-disabled="true"><span class="switch-label">Locked</span></button><label class="switch"><input class="u-sr-only" type="checkbox" role="switch" checked><span class="switch-label">In a form</span></label></div>
       <div class="cluster"><button class="button" type="button"><span class="button-label">Default</span></button><button class="button" type="button" aria-pressed="true"><span class="button-label">Selected</span></button><button class="button" type="button" disabled><span class="button-label">Disabled</span></button><button class="button cc-primary" type="button"><span class="button-label">Primary</span></button><button class="button cc-primary" type="button" disabled><span class="button-label">Disabled</span></button></div>
       <p class="t-sm muted">Hover and press mix a control's own ink into its own fill, 6% and 12%, and selected 10% with a mark of its own; hover only where a pointer can hover. The task rows under Floating surfaces are a control of the specimen's own, given the same layer by <code>.u-state</code>.</p>
 
@@ -1260,6 +1292,32 @@
         <article class="card member-tile"><span class="avatar cc-lg" aria-hidden="true">AO</span><div class="member-tile-body"><p class="t-h5">Ada Okafor</p><p class="t-sm muted">New this week.</p></div><div class="cluster"><span class="badge">3</span><span class="badge cc-quiet">12</span><span class="badge cc-accent">New</span><span class="dot" role="img" aria-label="Unread"></span><span class="dot cc-ok" role="img" aria-label="Online"></span><span class="dot cc-quiet" role="img" aria-label="Away"></span></div></article>
       </div>
       <article class="card member-tile cc-row"><span class="avatar cc-md" aria-hidden="true">JB</span><div class="member-tile-body"><p class="t-h6">Jonah Baptiste</p><p class="t-sm muted">.cc-row puts the avatar beside the words.</p></div></article>
+
+      <h3 class="t-h5">.card-link, .media</h3>
+      <div class="grid demo-tiles" id="demo-covers">
+        <article class="card stack" id="demo-cover-banner">
+          <div class="media cc-bleed" style="--media-h: 14"><img class="ph" style="--ph: var(--ok)" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='500'/%3E" alt="Gradient placeholder: the trial bed in June" loading="lazy" width="800" height="500"></div>
+          <p class="t-h5"><a class="card-link" href="#primitives">The trial bed in June</a></p>
+          <p class="t-sm muted">Eleven varieties up, two still sleeping. The whole card is the link; the button keeps its own click.</p>
+          <div class="cluster"><button class="button cc-ghost cc-sm" type="button" aria-pressed="false" id="demo-cover-save"><span class="button-label">Save</span></button><a class="tag cc-sm cc-ok" href="#tags"><span class="tag-label">Growing</span></a></div>
+        </article>
+        <article class="card" id="demo-cover-fill">
+          <div class="media cc-fill"><img class="ph" style="--ph: var(--kind-event); --ph-to: var(--warn)" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='500'/%3E" alt="Gradient placeholder: the swap table" loading="lazy" width="900" height="500"></div>
+          <div class="stack"><p class="t-eyebrow">Saturday</p><p class="t-h5"><a class="card-link" href="#primitives">Seed swap at the library</a></p></div>
+        </article>
+      </div>
+      <article class="card" id="demo-cover-line">
+        <div class="media cc-bleed-start"><img class="ph" style="--ph: var(--kind-group)" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='800'/%3E" alt="Gradient placeholder: a labeled jar" loading="lazy" width="600" height="800"></div>
+        <div class="stack"><p class="t-sm"><a class="card-link" href="#primitives">Glass Gem, saved 2025</a></p><p class="t-xs muted">A strip three cells wide, as tall as the card.</p></div>
+        <button class="button icon-button cc-ghost cc-sm" type="button" aria-label="More"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><circle cx="3" cy="7" r="1"></circle><circle cx="7" cy="7" r="1"></circle><circle cx="11" cy="7" r="1"></circle></svg></button>
+      </article>
+      <div class="cluster u-gap-2" id="demo-media-points">
+        <div class="media" id="demo-media-focus" style="--media-w: 8; --media-h: 10; --media-focus: 50% 25%"><img class="ph" style="--ph: var(--kind-person)" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='1200'/%3E" alt="Gradient placeholder: a portrait" loading="lazy" width="800" height="1200"></div>
+        <div class="media cc-round" style="--media-w: 4; --media-h: 4"><img class="ph" style="--ph: var(--accent)" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='640'/%3E" alt="Gradient placeholder: a face" loading="lazy" width="640" height="640"></div>
+        <div class="media" style="--media-w: 4; --media-h: 4"><img class="ph" style="--ph: var(--kind-group)" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='640'/%3E" alt="Gradient placeholder: a team's mark" loading="lazy" width="640" height="640"></div>
+        <div class="media" style="--media-w: 4; --media-h: 4" role="img" aria-label="An empty frame"></div>
+      </div>
+      <p class="t-xs faint">A card is one link without wrapping it in one: its title is an <code>a.card-link</code>, which covers the card, and the card's own buttons, tags and fields are raised above it, so a press on them is theirs. Hover, press and the focus ring are the card's. A <code>.media</code> frame is sized in cells (<code>--media-w</code>, <code>--media-h</code>), so nothing moves as its image loads; the image fills it by cover, at <code>--media-focus</code> (here, <code>50% 25%</code> keeps a face). In a card it bleeds to the edges and takes the card's corners: <code>.cc-bleed</code> for a banner, <code>.cc-bleed-start</code> for a strip, <code>.cc-fill</code> for the whole ground with a scrim.</p>
 
       <h3 class="t-h5">.u-clamp</h3>
       <div class="grid demo-tiles" id="demo-clamp">

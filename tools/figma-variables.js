@@ -5,7 +5,7 @@
    core.css does, and each product layer's knobs, and writes the variables a
    Figma file holds, resolved:
 
-     Product  Core and one mode per product layer   what a product turns:
+     Product  Core, one mode per product layer and one per scope   what a product turns:
                 each role's size and line at both screens, every color in
                 both themes, the families and weights, and the shape and
                 density knobs (as aliases of Space, as the layer writes them)
@@ -16,7 +16,10 @@
    Figma holds a number per mode and no arithmetic, and a variable has one set
    of modes. So a product is its own collection: Type and Color alias it, and a
    frame picks a screen, a theme and a product by three modes, with one set of
-   layers. Each value is worked out here at the two screens the modes stand for
+   layers. A scope (D96), a product nested in a product, is a Product mode of
+   its own, worked out with what its layer's root set carried in, and set on an
+   inner frame, as data-product is on an inner element; a mood is that frame in
+   the Dark Color mode too. Each value is worked out here at the two screens the modes stand for
    (a 393pt phone and a 1440pt wide screen) and written as a number. What that
    loses is written down in docs/figma/README.md. Each variable is named as its
    CSS variable, with its code syntax set to it, so a designer's file reads in
@@ -28,7 +31,8 @@
                                               into the open file, by name, keeping
                                               every binding (docs/figma/README.md)
    node tools/figma-variables.js --tokens FILE    another token file
-   node tools/figma-variables.js --layer FILE …   these product layers, not examples/ */
+   node tools/figma-variables.js --layer FILE …   these product layers, not examples/
+                                                  and experiments/scopes/interbeing.css */
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -40,7 +44,9 @@ const flag = (name) => { const i = args.indexOf(name); return i < 0 ? null : arg
 const flags = (name) => args.flatMap((a, i) => (a === name ? [args[i + 1]] : []));
 const tokens = JSON.parse(fs.readFileSync(flag('--tokens') || path.join(root, 'tokens.json'), 'utf8'));
 const seed = M.seedFromTokens(tokens);
-const LAYERS = (flags('--layer').length ? flags('--layer') : fs.readdirSync(path.join(root, 'examples')).filter((f) => f.endsWith('.css')).sort().map((f) => path.join(root, 'examples', f)));
+// The example layers, and the scopes study: the one layer with scopes in it.
+const LAYERS = (flags('--layer').length ? flags('--layer') : fs.readdirSync(path.join(root, 'examples')).filter((f) => f.endsWith('.css')).sort().map((f) => path.join(root, 'examples', f))
+  .concat(path.join(root, 'experiments', 'scopes', 'interbeing.css')));
 
 // The two screens the modes stand for.
 const SCREENS = { Phone: { width: 393, dpr: 3 }, Wide: { width: 1440, dpr: 2 } };
@@ -61,10 +67,18 @@ const keys = (o) => Object.keys(o).filter((k) => k[0] !== '$');
 const space = [v('space/u', vals((m) => CELL[m]), ['GAP', 'WIDTH_HEIGHT'])];
 const spName = (k) => 'sp-' + k;
 for (const k of keys(tokens.space)) space.push(v('space/' + spName(k), vals((m) => CELL[m] * $('space', k)), ['GAP', 'WIDTH_HEIGHT']));
+// The other quarter (--sp-q2): a half less a quarter, so the two make a half at any cell.
+space.push(v('space/sp-q2', vals((m) => CELL[m] * ($('space', 'h') - $('space', 'q'))), ['GAP', 'WIDTH_HEIGHT']));
 space.push(v('space/line', vals(() => 1), ['STROKE_FLOAT']));
+// A hairline is one device pixel (--hair): a third of a point on the 3x phone, half on the 2x wide screen.
+space.push(v('space/hair', vals((m) => 1 / SCREENS[m].dpr), ['STROKE_FLOAT', 'WIDTH_HEIGHT']));
+// A ring's line (D103): a quarter of the dot, one line at the least and two at the most, on the half-cell dot.
+space.push(v('derived/dot-ring', vals((m) => Math.min(2, Math.max(1, CELL[m] * 0.5 / 4))), ['STROKE_FLOAT']));
 for (const k of keys(tokens.size.control)) space.push(v('size/size-control-' + k, vals((m) => CELL[m] * tokens.size.control[k].$value), ['WIDTH_HEIGHT']));
 for (const k of keys(tokens.size.icon)) space.push(v('size/size-icon' + (k === 'base' ? '' : '-' + k), vals((m) => CELL[m] * tokens.size.icon[k].$value), ['WIDTH_HEIGHT']));
 space.push(v('size/hit-min', vals(() => tokens.size['hit-min'].$value), ['WIDTH_HEIGHT']));
+// Measures core sets in cells and names: the shell's columns (D80), a bubble's measure (D99).
+for (const [k, n] of [['shell-nav-w', 20], ['shell-aside-w', 24], ['chat-measure', 40]]) space.push(v('size/' + k, vals((m) => CELL[m] * n), ['WIDTH_HEIGHT']));
 for (const k of keys(tokens.radius)) {
   const n = tokens.radius[k].$value;
   space.push(v('radius/r-' + k, vals((m) => (n >= 999 ? 999 : CELL[m] * n)), ['CORNER_RADIUS']));
@@ -76,11 +90,20 @@ const controlType = keys(tokens['control-type']).map((k) => v('type/control/fs-c
 // default for every knob, so core is the template, and a product is the
 // template with its own layer over it.
 const stripComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
-const knobsOf = (file) => new Map([...stripComments(fs.readFileSync(file, 'utf8')).matchAll(/(--[a-z][a-z0-9-]*)\s*:\s*([^;]+);/g)].map((m) => [m[1], m[2].trim()]));
-const TEMPLATE = knobsOf(path.join(root, 'product.template.css'));
-const PRODUCTS = [{ mode: 'Core', knobs: TEMPLATE }].concat(LAYERS.map((file) => {
-  const css = fs.readFileSync(file, 'utf8'), name = (css.match(/data-product="([^"]+)"/) || [])[1] || path.basename(file, '.css');
-  return { mode: name[0].toUpperCase() + name.slice(1), file: path.relative(root, file).replace(/\\/g, '/'), knobs: new Map([...TEMPLATE, ...knobsOf(file)]) };
+const knobsIn = (css) => new Map([...css.matchAll(/(--[a-z][a-z0-9-]*)\s*:\s*([^;]+);/g)].map((m) => [m[1], m[2].trim()]));
+const TEMPLATE = knobsIn(stripComments(fs.readFileSync(path.join(root, 'product.template.css'), 'utf8')));
+// A layer is its :root[data-product] rule and any scopes after it, each a
+// [data-product] rule (D96), as tests/contract.js reads them. A scope is the
+// template, then the root's knobs, then its own: a choice the root made
+// carries in, and what nobody set follows again from the scope's own values.
+const title = (name) => name.split('-').map((w) => w[0].toUpperCase() + w.slice(1)).join(' ');
+const PRODUCTS = [{ mode: 'Core', knobs: TEMPLATE }].concat(LAYERS.flatMap((file) => {
+  const rel = path.relative(root, file).replace(/\\/g, '/');
+  const blocks = [...stripComments(fs.readFileSync(file, 'utf8')).matchAll(/((?::root)?\[data-product="([a-z-]+)"\])\s*\{([^}]*)\}/g)];
+  const top = blocks.find((b) => b[1].startsWith(':root')), base = new Map([...TEMPLATE, ...(top ? knobsIn(top[3]) : [])]);
+  const name = top ? title(top[2]) : title(path.basename(file, '.css'));
+  return (top ? [{ mode: name, file: rel, knobs: base }] : []).concat(blocks.filter((b) => b !== top).map((b) =>
+    ({ mode: `${name} › ${title(b[2])}`, file: rel, scope: b[2], knobs: new Map([...base, ...knobsIn(b[3])]) })));
 }));
 
 // A number a knob holds, in px for a length: 2 and 2rem are 32 (the type knobs
@@ -88,6 +111,9 @@ const PRODUCTS = [{ mode: 'Core', knobs: TEMPLATE }].concat(LAYERS.map((file) =>
 // works it out, and so does math.js.
 const num = (s) => { const m = s && s.match(/^(-?[\d.]+)(rem|px)?$/); return m ? +m[1] * (m[2] === 'px' ? 1 : 16) : undefined; };
 const plain = (s) => { const m = s && s.match(/^-?[\d.]+$/); return m ? +s : undefined; };
+// A knob that follows another (--fw-button: var(--fw-label)) is the one it names.
+const follow = (k, name, seen = []) => { const value = k.get(name), ref = value && value.match(/^var\((--[a-z0-9-]+)\)$/);
+  return ref && k.has(ref[1]) && !seen.includes(ref[1]) ? follow(k, ref[1], seen.concat(name)) : value; };
 
 // A product's seed, as tests/math.js builds it from the live knobs.
 function productSeed(k) {
@@ -102,11 +128,15 @@ function productSeed(k) {
       lineParagraphStep: or(K('lh-p-step'), t.lineParagraphStep), lineLabel: or(K('lh-label'), t.lineLabel) });
   const color = JSON.parse(JSON.stringify(seed.color));
   for (const [name, value] of k) {
-    const m = name.match(/^--seed-([a-z]+)$/);
-    if (m && !/^var\(--[a-z-]+\)$/.test(value)) color.seeds[m[1]] = M.parseColor(value);
+    // Every seed a layer sets, the night ones (D97, D98) and the stages (D107)
+    // too; one it leaves as the template has it (var(--…)) follows.
+    const m = name.match(/^--seed-([a-z0-9-]+)$/);
+    if (m && !/^var\(--[a-z0-9-]+\)$/.test(value)) color.seeds[m[1]] = M.parseColor(value);
   }
   if (K('color-lift') !== undefined) color.lift = K('color-lift');
   if (K('ink-flip') !== undefined) color.flip = K('ink-flip');
+  if (K('night-lift') !== undefined) color.nightLift = K('night-lift');   // a dusk (D97)
+  if (K('day-depth') !== undefined) color.dayDepth = K('day-depth');      // a paper that is not white (D98)
   return Object.assign({}, seed, { seven, type, color });
 }
 
@@ -118,7 +148,9 @@ const STAND_IN = {
   Georgia: 'Gelasio', serif: 'Gelasio',
   'Helvetica Neue': 'Hanken Grotesk', Helvetica: 'Hanken Grotesk', Arial: 'Hanken Grotesk',
   'Gill Sans': 'Lato', 'Gill Sans MT': 'Lato', 'Trebuchet MS': 'Lato',
-  'Iowan Old Style': 'Source Serif 4', 'Palatino Linotype': 'Source Serif 4', Palatino: 'Source Serif 4'
+  'Iowan Old Style': 'Source Serif 4', 'Palatino Linotype': 'Source Serif 4', Palatino: 'Source Serif 4',
+  // Web fonts a layer names that Figma has: Interbeing's.
+  Geist: 'Geist', Halant: 'Halant', 'Cormorant Garamond': 'Cormorant Garamond', 'Alegreya Sans': 'Alegreya Sans'
 };
 const family = (k, name, seen = []) => {
   const value = k.get(name) || '';
@@ -140,8 +172,8 @@ const KNOBS = [
   ['tag-default-h', 'WIDTH_HEIGHT'], ['tag-default-fs', 'FONT_SIZE'], ['tag-fs-sm', 'FONT_SIZE'], ['tag-fs-md', 'FONT_SIZE'], ['tag-fs-lg', 'FONT_SIZE'],
   ['tag-r-fixed', 'CORNER_RADIUS']
 ];
-const WEIGHTS = ['fw-body', 'fw-heading', 'fw-label', 'fw-label-text', 'fw-strong'];
-const FAMILIES = ['font-sans', 'font-serif', 'font-heading'];
+const WEIGHTS = ['fw-body', 'fw-heading', 'fw-label', 'fw-label-text', 'fw-strong', 'fw-button'];
+const FAMILIES = ['font-sans', 'font-serif', 'font-heading', 'font-button'];   // a button's face (D100)
 
 const product = [], notCarried = {};
 const pv = (name, type, scopes, pick, codeSyntax) => {
@@ -164,19 +196,28 @@ const roles = Object.keys(M.palette('light', seed));
 for (const theme of ['Light', 'Dark']) for (const k of roles) pv(`${theme.toLowerCase()}/${k}`, 'COLOR', [], (p) => M.hex(palettes.get(p.mode)[theme][k]));
 // Ink on a solid fill of each hue, as core computes it from the fill (C4):
 // a solid tag's, a badge's. Core writes it inline; the file holds it as a role.
-const SOLIDS = roles.filter((k) => /^(kind-|ok$|warn$|alert$)/.test(k));
+const SOLIDS = roles.filter((k) => /^(kind-|ok$|warn$|alert$|stage-\d+$)/.test(k));
 for (const theme of ['Light', 'Dark']) for (const k of SOLIDS) pv(`${theme.toLowerCase()}/on-${k}`, 'COLOR', [], (p) => M.hex(M.ink(palettes.get(p.mode)[theme][k], seeds.get(p.mode))));
 // Tints: a role at a share over nothing, as core mixes them with color-mix()
 // (a state over a control's fill, a tag's ground and edge, an avatar's wash).
 // Figma has no mix, and drops a paint's own opacity on an instance, so each
 // is a color with its alpha in it. [role, shares in percent]
 const HUES = SOLIDS;
-const TINTS = [['text', [6, 10, 12, 32]], ['accent-ink', [6, 12]], ...HUES.map((k) => [k, /^kind-(person|group)$/.test(k) ? [14, 26, 42] : [14, 42]])];
+const TINTS = [['text', [6, 8, 10, 12, 32]], ['accent-ink', [6, 12]], ['accent', [16, 26, 60]], ...HUES.map((k) => [k, /^kind-(person|group)$/.test(k) ? [14, 26, 42] : [14, 42]])];
 const alpha = (pct) => Math.round(pct * 2.55).toString(16).padStart(2, '0');
 for (const theme of ['Light', 'Dark']) for (const [k, shares] of TINTS) for (const pct of shares)
   pv(`${theme.toLowerCase()}/tint/${k}/${pct}`, 'COLOR', [], (p) => M.hex(palettes.get(p.mode)[theme][k]) + alpha(pct));
+// A product's color knobs (the bubble's, D99): each the role the layer names,
+// in each theme, or a color written out. A mix is not carried.
+const COLOR_KNOBS = { 'chat-own-bg': ['FRAME_FILL', 'SHAPE_FILL'], 'chat-own-ink': ['TEXT_FILL', 'SHAPE_FILL'], 'chat-bubble-edge': ['STROKE_COLOR'] };
+for (const theme of ['light', 'dark']) for (const k of Object.keys(COLOR_KNOBS)) pv(`${theme}/${k}`, 'COLOR', [], (p) => {
+  const value = p.knobs.get('--' + k), ref = value && value.match(/^var\(--([a-z0-9-]+)\)$/);
+  if (ref && roles.includes(ref[1])) return { alias: `${theme}/${ref[1]}` };
+  if (value === 'transparent') return '#00000000';
+  try { return M.hex(M.parseColor(value)); } catch (e) { if (theme === 'light') (notCarried[p.mode] = notCarried[p.mode] || []).push(`--${k}: ${value}`); return { alias: `${theme}/${TEMPLATE.get('--' + k).match(/^var\(--([a-z0-9-]+)\)$/)[1]}` }; }
+});
 for (const f of FAMILIES) pv('font/' + f, 'STRING', [], (p) => family(p.knobs, '--' + f));
-for (const w of WEIGHTS) pv('weight/' + w, 'FLOAT', [], (p) => plain(p.knobs.get('--' + w)));
+for (const w of WEIGHTS) pv('weight/' + w, 'FLOAT', [], (p) => plain(follow(p.knobs, '--' + w)));
 
 // Any variable this file holds, by its CSS name, for a knob that names one.
 const byCss = new Map(space.concat(controlType).map((x) => [x.codeSyntax.WEB.slice(6, -1), x.name]));
@@ -222,6 +263,8 @@ const DERIVED = {
   'seg-tab-r': (c) => (c('shape-control') >= ROUND ? ROUND : Math.max(0.25, c('shape-control') - 0.25)),
   // .options-card-item: the float's corner less its padding.
   'option-r': (c) => Math.max(0.25, c('shape-float') - c('density-options-pad')),
+  // .composer > .button: the box's corner less its padding, a quarter cell at the least (D99).
+  'composer-btn-r': (c) => Math.max(0.25, c('shape-input') - 0.25),
   // A card in a card: how far it steps out, and its corner, concentric (rule 21).
   'card-nest-out': (c) => Math.min(1, Math.max(0, c('density-card-pad-inline') - 1)),
   'card-nest-r': (c) => { const out = Math.min(1, Math.max(0, c('density-card-pad-inline') - 1)); return Math.max(0.25, c('shape-card') - Math.min(c('density-card-pad-inline') - out, c('density-card-pad-block'))); },
@@ -264,8 +307,9 @@ const color = roles.map((k) => Object.assign(
   v('color/' + k, { type: 'COLOR', values: { Light: at('light/' + k), Dark: at('dark/' + k) } }, colorScopes(k)),
   { aliases: { Light: 'light/' + k, Dark: 'dark/' + k } }));
 for (const [k, shares] of TINTS) for (const pct of shares) color.push({ name: `color/tint/${k}/${pct}`, type: 'COLOR', scopes: ['FRAME_FILL', 'SHAPE_FILL', 'STROKE_COLOR'],
-  codeSyntax: { WEB: `color-mix(in oklab, var(--${k}) ${pct}%, transparent)` },
+  codeSyntax: { WEB: /^stage-\d+$/.test(k) && pct === 14 ? `var(--${k}-tint)` : `color-mix(in oklab, var(--${k}) ${pct}%, transparent)` },
   values: { Light: at(`light/tint/${k}/${pct}`), Dark: at(`dark/tint/${k}/${pct}`) }, aliases: { Light: `light/tint/${k}/${pct}`, Dark: `dark/tint/${k}/${pct}` } });
+for (const [k, scopes] of Object.entries(COLOR_KNOBS)) color.push(Object.assign(v('color/' + k, { type: 'COLOR', values: { Light: at('light/' + k), Dark: at('dark/' + k) } }, scopes), { aliases: { Light: 'light/' + k, Dark: 'dark/' + k } }));
 // The shadow under a float or a modal (--lift): its color in each theme.
 color.push({ name: 'color/lift', type: 'COLOR', scopes: ['EFFECT_COLOR'], values: { Light: '#1014161f', Dark: '#0000008c' } });
 for (const k of SOLIDS) color.push({ name: 'color/on-' + k, type: 'COLOR', scopes: ['TEXT_FILL', 'SHAPE_FILL'], values: { Light: at('light/on-' + k), Dark: at('dark/on-' + k) }, aliases: { Light: 'light/on-' + k, Dark: 'dark/on-' + k } });
@@ -273,7 +317,7 @@ for (const k of SOLIDS) color.push({ name: 'color/on-' + k, type: 'COLOR', scope
 const out = {
   $description: 'Trellis variables for Figma, generated by tools/figma-variables.js from tokens.json, math.js and the product layers. Do not edit; regenerate.',
   screens: SCREENS,
-  products: PRODUCTS.map((p) => ({ mode: p.mode, layer: p.file || 'product.template.css', notCarried: notCarried[p.mode] || [] })),
+  products: PRODUCTS.map((p) => Object.assign({ mode: p.mode, layer: p.file || 'product.template.css' }, p.scope ? { scope: p.scope } : {}, { notCarried: notCarried[p.mode] || [] })),
   collections: [
     { name: 'Product', modes: PRODUCTS.map((p) => p.mode), variables: product },
     { name: 'Space', modes: Object.keys(SCREENS), variables: space },
@@ -287,11 +331,15 @@ if (args.includes('--plugin')) {
   // variable [name, type, scopes, values in mode order, code syntax]; a value
   // "@name" is an alias, a color is hex without its #, and the code syntax is
   // 1 for var(--its last part), 0 for none (hidden), 2 for none (shown), or
-  // written out.
+  // written out. A product's tint (light/tint/<role>/<pct>) is its role's hex
+  // with the share as alpha, so its values are 0 and the plugin works them out.
   const scopes = [...new Set(out.collections.flatMap((c) => c.variables.map((x) => x.scopes.join(','))))];
   const pack = (c, x) => {
     const val = (m) => { const a = x.aliases && x.aliases[m], y = x.values[m]; return a ? '@' + a : y && y.alias ? '@' + y.alias : x.type === 'COLOR' ? y.slice(1) : y; };
     const cs = !x.codeSyntax ? (x.hidden ? 0 : 2) : x.codeSyntax.WEB === `var(--${x.name.split('/').pop()})` ? 1 : x.codeSyntax.WEB;
+    const tint = c.name === 'Product' && x.name.match(/^(light|dark)\/tint\/(.+)\/(\d+)$/);
+    if (tint && c.modes.every((m) => x.values[m] === c.variables.find((y) => y.name === `${tint[1]}/${tint[2]}`).values[m] + alpha(+tint[3])))
+      return [x.name, x.type[0], scopes.indexOf(x.scopes.join(',')), 0, cs];
     return [x.name, x.type[0], scopes.indexOf(x.scopes.join(',')), c.modes.map(val), cs];
   };
   const data = { scopes, collections: out.collections.map((c) => ({ name: c.name, modes: c.modes, v: c.variables.map((x) => pack(c, x)) })) };

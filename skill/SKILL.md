@@ -23,7 +23,8 @@ Find the need here first. If it is here, use it and write no CSS for it.
 | Rows: sessions, files, members, results | `.list` > `.list-item` > `.list-body`, `.list-end`; `.cc-group` for rows sharing one surface; `.cc-dense` for tight rows; a dot, an icon or a small face beside the first line goes in a `.list-mark` (`span.list-mark.t-sm` beside a `.t-sm` line); a row that is one line and its controls sets `--list-align: center` on the list, with `.cap-center` on its words. Never `align-items` on a row |
 | A button, an icon button | `.button`; `.button.icon-button` for an icon alone, never `.icon-button` by itself: `<button class="button icon-button cc-ghost cc-sm" aria-label="…">`; `.cc-primary`, `.cc-ghost`; `.cc-sm`, `.cc-md`, `.cc-lg` |
 | A text field, select, textarea, search box | `.input` inside `.field` with `.field-label`, `.field-hint`; `.cc-sm`, `.cc-lg` |
-| On or off | `.switch`; in a menu row, the row is `button.options-card-item[role=menuitemcheckbox][aria-checked]` and the switch an empty `<span class="switch" aria-hidden="true">` at its end, with no script to copy the state |
+| A checkbox, a radio, a check beside a row's text | `label.choice` > a native `input type="checkbox"` or `"radio"` + `.choice-label` (`.cc-sm`, `.cc-lg`); the input is the box, so never hide it or draw one of your own. Mixed is `input.indeterminate = true` from script (a parent whose children are partly done); invalid is `aria-invalid="true"`. A box with no words: `label.choice` > `input[aria-label]`. Words that may wrap: `.choice-label.cap-center`. A task list in `.prose` needs nothing |
+| On or off | `.switch` (the same archetype, with a track; `aria-checked="mixed"` for a selection that differs); in a menu row, the row is `button.options-card-item[role=menuitemcheckbox][aria-checked]` and the switch an empty `<span class="switch" aria-hidden="true">` at its end, with no script to copy the state |
 | A value along a line (a slider) | `input.range`; `.cc-zone` to ink a stretch between two values |
 | One of several (a filter, a view switch) | `.tabs.cc-seg` > `.tab[aria-selected]`; plain `.tabs` for tabs |
 | A label, a status, a chip | `.tag` (kinds `.cc-ok`, `.cc-warn`, `.cc-alert`…; `.cc-solid`, `.cc-outline`) |
@@ -32,6 +33,8 @@ Find the need here first. If it is here, use it and write no CSS for it.
 | A menu, a popover, a tooltip | `.float.options-card` > `.options-card-item`; `.float.tooltip`. Always a popover: `popover="manual"` and `Trellis.float.open(float, anchor)` from `float.js` (it places, flips, follows and closes it), or `.cc-anchor` with a `popovertarget` button. Never `position` or `z-index` of your own |
 | A dialog, a drawer, a bottom sheet | `dialog.modal` > `.modal-inner` > `.modal-header`, `.modal-body`, `.modal-footer`; `.cc-tray` with a side. Open with `showModal()` |
 | A person or group | `.avatar`, `.member-tile` |
+| A whole card or row that opens something | the title is an `a.card-link` (a row's `a.list-link`): it covers the card, and the card's own buttons, tags and fields stay above it with their own clicks. Never an `<a>` round the card, never a click handler on it |
+| An image: a cover, a banner, a thumbnail, a photo | `.media` > `img` (with `alt`, `loading="lazy"`), sized in cells (`--media-w`, `--media-h`), filled by cover at `--media-focus` (`50% 25%` keeps a face); as a card's own child `.cc-bleed` (a banner), `.cc-bleed-start` / `-end` (a strip), `.cc-fill` (the whole ground, under `--media-scrim`); `.cc-round` for a face. Never `background-image` for a picture |
 | Messages | `.chat-item` (`.cc-own`, `.cc-cont`, `.cc-system`) |
 | Rendered Markdown or editor content | `.prose` on the wrapper, bare tags inside |
 | Loading | `.skeleton` |
@@ -97,7 +100,7 @@ Read `ADOPT.md` beside this file. It covers taking stock, sorting each part by i
 ## Starting a project on Trellis
 
 1. Pin a copy: `vendor/trellis/` with `core.css`, `settle.js` (and `float.js` or `presets.js` if it uses them) and a `SOURCE.txt` naming the commit or tag.
-2. Load, in order: `core.css`, the product layer, the app's CSS; then `settle.js` once. Beside Tailwind, state `@layer theme, base, trellis, components, utilities;` first.
+2. Load, in order: `core.css`, the product layer, the app's CSS; then `settle.js` once. Beside Tailwind, state `@layer theme, base, trellis, components, utilities;` first, and add `@source not inline("list-item outline snap-x");` after `@import "tailwindcss"` (D110). On a Trellis surface, Tailwind lengths name cells (`p-(--sp-2)`), never its rem scale.
 3. Copy `product.template.css` to the project's own product file, keep the knobs you change, put `data-product` on `<html>`.
 4. Write the budget (`--budget check.budget.json --write`) on day one, while it is all zeros.
 5. Put this in the project's `CLAUDE.md`, so every session sees it:

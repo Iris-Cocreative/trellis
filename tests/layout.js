@@ -29,6 +29,11 @@
 //           screen, flips it, follows it in a scroller and closes it
 //   switch  in a menu row: no room for a label, at the row's end, lit by the
 //           row, the row not washed
+//   choice  checkbox, radio and switch (D109): boxes on half cells at the
+//           row's start, rows whole cells, capitals centered on the box, a
+//           wrapped label's box on its first line; the touch hit area; checked,
+//           mixed, disabled and invalid; Space, a radio group's arrows, a
+//           click on the words; a prose task's box on its first line
 //   forced  in forced colors, current and selected marks, the switch, dots,
 //           badges and avatar rings still draw
 //   ring    a ring dot keeps the dot's box, its line a quarter of the dot and
@@ -40,6 +45,11 @@
 //   clamp   clamped text keeps the box of its lines, in whole cells; in the
 //           pixels, its last line's descenders are as deep as its first line's,
 //           and nothing of the hidden line shows under them
+//   covers  a card's link covers the card, its button and tag take their own
+//           clicks, a row's link the same, and the focus ring is the card's;
+//           an image fills its frame at the focal point, the frame in cells,
+//           and a banner, a strip and a full bleed meet the card's edges and
+//           take its corners
 // Usage: node layout.js <url> [webkit] [WxH] [touch]
 // Needs Playwright (PLAYWRIGHT=module path). Exits 1 if anything is off.
 const pw = require(process.env.PLAYWRIGHT || 'playwright');
@@ -753,6 +763,118 @@ const ready = require('./ready');
     host.remove();
     return fails;
   }));
+  // Choice inputs (D109): checkbox, radio and switch as one archetype. Each box
+  // is on half cells at its row's start, the row whole cells, the label's
+  // capitals centered on the box; the hit area is the touch minimum on a coarse
+  // pointer; checked, mixed, disabled and invalid each draw; Space and a radio
+  // group's arrows work; a prose task list's box centers on its first line.
+  await page.evaluate(() => {
+    const host = document.createElement('div'); host.id = 'choice-test'; host.className = 'stack';
+    host.style.cssText = 'position: fixed; inset-block-start: 0; inset-inline-start: 0; z-index: 2147483647; padding: var(--sp-2); background: var(--bg); --stack-gap: var(--sp-1);';
+    host.innerHTML = '<label class="choice" id="ch-off"><input type="checkbox"><span class="choice-label">Off</span></label>'
+      + '<label class="choice" id="ch-on"><input type="checkbox" checked><span class="choice-label">On</span></label>'
+      + '<label class="choice" id="ch-mixed"><input type="checkbox"><span class="choice-label">Mixed</span></label>'
+      + '<label class="choice" id="ch-dis"><input type="checkbox" disabled><span class="choice-label">Disabled</span></label>'
+      + '<label class="choice" id="ch-dis-on"><input type="checkbox" disabled checked><span class="choice-label">Disabled on</span></label>'
+      + '<label class="choice" id="ch-bad"><input type="checkbox" aria-invalid="true"><span class="choice-label">Invalid</span></label>'
+      + '<label class="choice" id="ch-r1"><input type="radio" name="ch-r" checked><span class="choice-label">First</span></label>'
+      + '<label class="choice" id="ch-r2"><input type="radio" name="ch-r"><span class="choice-label">Second</span></label>'
+      + '<label class="choice cc-sm" id="ch-sm"><input type="checkbox"><span class="choice-label">Small</span></label>'
+      + '<label class="choice cc-lg" id="ch-lg"><input type="checkbox"><span class="choice-label">Large</span></label>'
+      + '<label class="choice" id="ch-bare"><input type="checkbox" aria-label="Done"></label>'
+      + '<div style="inline-size: calc(var(--u) * 8)"><label class="choice" id="ch-wrap"><input type="checkbox"><span class="choice-label cap-center">A label long enough to wrap</span></label></div>'
+      + '<button class="switch" type="button" role="switch" aria-checked="mixed" id="ch-sw-mixed"><span class="switch-label">Mixed</span></button>'
+      + '<div class="prose"><ul><li id="ch-task"><input type="checkbox" disabled checked> A task done</li></ul></div>'
+      + '<span id="ch-accent" style="background: color-mix(in oklab, var(--text) 0%, var(--accent))"></span><span id="ch-accent-raw" style="background: var(--accent)"></span><span id="ch-alert" style="color: var(--alert)"></span>';
+    document.body.prepend(host);
+    host.querySelector('#ch-mixed input').indeterminate = true;
+  });
+  await page.evaluate(async () => { await Trellis.settled(); await new Promise(r => setTimeout(r, 100)); await Trellis.settled(); });
+  fails.push(...await page.evaluate(async () => {
+    const fails = [], u = Trellis.cell(), $ = id => document.getElementById(id), r = e => e.getBoundingClientRect(), near = (a, b, t = .6) => Math.abs(a - b) < t;
+    const onHalf = v => { const h = u / 2, m = ((v % h) + h) % h; return m < .3 || m > h - .3; };
+    const whole = v => { const m = ((v % u) + u) % u; return m < .5 || m > u - .5; };
+    // The height of a capital in an element's own type.
+    const cap = e => { const p = document.createElement('span'); p.style.cssText = 'position: absolute; inline-size: 0; block-size: 1cap'; e.appendChild(p); const h = r(p).height; p.remove(); return h; };
+    const accent = getComputedStyle($('ch-accent')).backgroundColor, alert = getComputedStyle($('ch-alert')).color;
+    // Let the color transitions finish.
+    await Promise.all(document.getAnimations().filter(a => a.effect && a.effect.target && a.effect.target.closest && a.effect.target.closest('#choice-test')).map(a => a.finished.catch(() => {})));
+    const want = { 'ch-off': 1.5, 'ch-r1': 1.5, 'ch-sm': 1, 'ch-lg': 2, 'ch-bare': 1.5 };
+    for (const id of ['ch-off', 'ch-on', 'ch-mixed', 'ch-r1', 'ch-sm', 'ch-lg', 'ch-bare']) {
+      const row = $(id), box = row.querySelector('input'), b = r(box), rb = r(row), words = row.querySelector('.choice-label');
+      if (!onHalf(b.width) || !onHalf(b.height) || !near(b.width, b.height)) fails.push(`choice ${id}: its box is ${b.width.toFixed(2)}×${b.height.toFixed(2)}, not square on half cells`);
+      if (want[id] && !near(b.width, want[id] * u)) fails.push(`choice ${id}: its box is ${b.width.toFixed(2)}px, not ${want[id]} cells`);
+      if (!near(b.left, rb.left)) fails.push(`choice ${id}: its box starts ${(b.left - rb.left).toFixed(2)}px into its row`);
+      if (!whole(rb.height) || rb.height < 2 * u - .5) fails.push(`choice ${id}: its row is ${rb.height.toFixed(2)}px tall, not whole cells`);
+      if (words) {
+        const w = r(words);
+        if (!near(w.left - b.right, u / 2)) fails.push(`choice ${id}: its words start ${(w.left - b.right).toFixed(2)}px after the box, not half a cell`);
+        if (CSS.supports('text-box: trim-both cap alphabetic') && !near(w.top + w.height / 2, b.top + b.height / 2)) fails.push(`choice ${id}: its capitals' middle is ${(w.top + w.height / 2 - b.top - b.height / 2).toFixed(2)}px from its box's`);
+      }
+    }
+    if (getComputedStyle($('ch-r1').querySelector('input')).borderRadius !== '50%') fails.push('choice: a radio is not a circle');
+    // Hit area: on a coarse pointer at least --hit-min around the row; the words take the click anywhere.
+    if (matchMedia('(pointer: coarse)').matches) {
+      const hit = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hit-min')) || 44;
+      for (const id of ['ch-off', 'ch-bare', 'ch-sm']) {
+        const rb = r($(id)), x = rb.left + rb.width / 2, y = rb.top + rb.height / 2;
+        const reach = [[x, y - hit / 2 + 1], [x, y + hit / 2 - 1], [x - Math.max(rb.width, hit) / 2 + 1, y], [x + Math.max(rb.width, hit) / 2 - 1, y]];
+        // Neighbors in the test's stack sit a cell away and would win the hit: lift this row above them to measure its own.
+        $(id).style.zIndex = '1';
+        for (const [px, py] of reach) { const at = document.elementFromPoint(px, py); if (!at || !at.closest('#' + id)) fails.push(`choice ${id}: a tap at ${(px - rb.left).toFixed(0)},${(py - rb.top).toFixed(0)} (inside ${hit}px) misses the row`); }
+        $(id).style.zIndex = '';
+      }
+    }
+    // States.
+    const bg = id => getComputedStyle($(id).querySelector('input')).backgroundColor, edge = id => getComputedStyle($(id).querySelector('input')).borderTopColor;
+    const mark = id => getComputedStyle($(id).querySelector('input'), '::before');
+    if (bg('ch-on') !== accent || mark('ch-on').transform === 'matrix(0, 0, 0, 0, 0, 0)') fails.push(`choice: a checked box is not filled with the accent and marked (${bg('ch-on')}, ${accent})`);
+    if (bg('ch-off') === accent || mark('ch-off').transform !== 'matrix(0, 0, 0, 0, 0, 0)') fails.push('choice: an unchecked box is drawn as checked');
+    if (bg('ch-mixed') !== accent || mark('ch-mixed').clipPath !== 'none' || parseFloat(mark('ch-mixed').height) > u / 2) fails.push(`choice: a mixed box is not filled with a bar (${bg('ch-mixed')}, ${mark('ch-mixed').clipPath}, ${mark('ch-mixed').height})`);
+    if (bg('ch-r1') !== accent || mark('ch-r1').borderRadius !== '50%') fails.push('choice: a chosen radio is not filled with a dot');
+    if (edge('ch-bad') !== alert) fails.push(`choice: an invalid box's edge is ${edge('ch-bad')}, not the alert ${alert}`);
+    if (bg('ch-dis-on') === accent || getComputedStyle($('ch-dis')).color === getComputedStyle($('ch-off')).color || getComputedStyle($('ch-dis')).cursor !== 'not-allowed') fails.push('choice: a disabled choice is not quieted');
+    // A wrapped label hangs from its row's top line, the row whole cells, the box on its first line's capitals.
+    if (CSS.supports('text-box: trim-both cap alphabetic')) {
+      const w = $('ch-wrap'), words = w.querySelector('.choice-label'), b = r(w.querySelector('input'));
+      if (!words.hasAttribute('data-trellis-wrap')) fails.push('choice: a wrapping .cap-center label is not marked as wrapped');
+      else {
+        const first = r(words).top, capH = cap(words);
+        if (!whole(r(w).height)) fails.push(`choice: a row with a wrapped label is ${r(w).height.toFixed(2)}px, not whole cells`);
+        if (!near(b.top + b.height / 2, first + capH / 2, 1)) fails.push(`choice: with a wrapped label the box's middle is ${(b.top + b.height / 2 - first - capH / 2).toFixed(2)}px from the first line's capitals`);
+      }
+    }
+    // A switch that is mixed holds its thumb half way.
+    if (getComputedStyle($('ch-sw-mixed')).getPropertyValue('--switch-x').trim() !== '50%') fails.push('choice: a mixed switch does not hold its thumb half way');
+    // A prose task: the box is the choice's, centered on the first line's capitals, at full ink though disabled.
+    const t = $('ch-task'), tb = r(t.querySelector('input')), tr = r(t);
+    if (!near(tb.width, 1.5 * u)) fails.push(`prose task: its box is ${tb.width.toFixed(2)}px, not a cell and a half`);
+    if (CSS.supports('text-box: trim-both cap alphabetic')) {
+      const capH = cap(t);
+      if (!near(tb.top + tb.height / 2, tr.top + capH / 2, 1)) fails.push(`prose task: its box's middle is ${(tb.top + tb.height / 2 - tr.top - capH / 2).toFixed(2)}px from the first line's capitals`);
+    }
+    if (getComputedStyle(t.querySelector('input')).backgroundColor !== getComputedStyle($('ch-accent-raw')).backgroundColor) fails.push('prose task: a done task written disabled is not drawn at full ink');
+    return fails;
+  }));
+  // Keyboard and pointer: Space toggles a checkbox, arrows move a radio group, a click on the words toggles.
+  {
+    const checked = sel => page.evaluate(s => document.querySelector(s).checked, sel);
+    await page.focus('#ch-off input'); await page.keyboard.press('Space');
+    if (!(await checked('#ch-off input'))) fails.push('choice: Space does not check a focused checkbox');
+    await page.focus('#ch-r1 input'); await page.keyboard.press('ArrowDown');
+    if (!(await checked('#ch-r2 input')) || await checked('#ch-r1 input')) fails.push('choice: an arrow key does not move a radio group');
+    await page.focus('#ch-off input'); await page.keyboard.press('Tab');
+    const focused = await page.evaluate(() => { const i = document.querySelector('#ch-on input'); return document.activeElement === i && getComputedStyle(i).outlineStyle !== 'none' ? '' : `${document.activeElement === i ? 'focused' : 'not focused: ' + document.activeElement.outerHTML.slice(0, 60)}, outline ${getComputedStyle(i).outlineStyle}, focus-visible ${i.matches(':focus-visible')}`; });
+    if (focused) fails.push('choice: a focused box draws no focus ring: ' + focused);
+    const end = async sel => { const b = await page.locator(sel).boundingBox(); return { x: b.width - 2, y: b.height / 2 }; };
+    await page.locator('#ch-on').click({ position: await end('#ch-on') });
+    if (await checked('#ch-on input')) fails.push('choice: a click on the words does not toggle the box');
+    if (touch) { await page.locator('#ch-sm').tap({ position: await end('#ch-sm') }); if (!(await checked('#ch-sm input'))) fails.push('choice: a tap on the words does not toggle the box'); }
+    await page.locator('#ch-dis').click({ position: await end('#ch-dis'), force: true });
+    if (await checked('#ch-dis input')) fails.push('choice: a disabled box toggled');
+  }
+  await page.evaluate(() => document.getElementById('choice-test').remove());
+
   // A backdrop click closes a modal through the runtime, but only when the press
   // began on the backdrop too: a press inside the card let go outside it (selecting
   // text) keeps it open, and data-trellis-stay keeps it open whatever is clicked.
@@ -779,6 +901,107 @@ const ready = require('./ready');
     if (await open()) fails.push('a backdrop click did not close the modal');
   }
   await page.evaluate(() => { const d = document.getElementById('demo-modal'); if (d.open) d.close(); });
+
+  // A cover link and a cover image (D108). The link covers its card: what is
+  // under a point anywhere on the card is the link, but a button or a tag in
+  // it takes its own click, and a real click on each goes where it should. A
+  // list row's link does the same for a button in its end. The focus ring is
+  // drawn round the card. An image fills its frame by cover at the focal
+  // point, the frame whole cells; a bleeding frame meets the card's edges and
+  // takes its corners: a banner, a strip at the start, the whole ground.
+  {
+    await page.evaluate(() => {
+      const list = document.createElement('ul'); list.className = 'list'; list.id = 'cover-row-test';
+      list.innerHTML = '<li class="list-item"><div class="list-body"><p class="t-sm"><a class="list-link" href="#cover-row">A row that links</a></p><p class="t-xs">Its second line</p></div><div class="list-end"><button class="button cc-ghost cc-sm" type="button"><span class="button-label">Act</span></button></div></li>';
+      document.getElementById('demo-cover-line').after(list);
+      window.__coverHits = [];
+      window.__coverClick = e => { const a = e.target.closest('a, button'); window.__coverHits.push(a ? (a.className.split(' ')[0] || a.tagName) : 'none'); if (a && a.matches('a')) e.preventDefault(); };
+      document.addEventListener('click', window.__coverClick, true);
+      document.getElementById('demo-cover-banner').scrollIntoView({ block: 'center' });
+    });
+    await page.waitForTimeout(150);
+    const geo = await page.evaluate(() => {
+      const $ = s => document.querySelector(s), r = e => { const b = e.getBoundingClientRect(); return { l: b.left, t: b.top, r: b.right, b: b.bottom, w: b.width, h: b.height }; };
+      const mid = e => { const b = r(e); return { x: (b.l + b.r) / 2, y: (b.t + b.b) / 2 }; };
+      const at = (x, y) => { const e = document.elementFromPoint(x, y); return e ? (e.closest('a, button') || e) : null; };
+      const card = $('#demo-cover-banner'), link = card.querySelector('.card-link'), cb = r(card);
+      // Near each corner, inside its curve (a third of the radius in), the middle, and the words.
+      const k = Math.ceil(parseFloat(getComputedStyle(card).borderTopLeftRadius) / 3) + 1;
+      const spots = [[cb.l + k, cb.t + k], [cb.r - k, cb.t + k], [cb.l + k, cb.b - k], [cb.r - k, cb.b - k], [(cb.l + cb.r) / 2, (cb.t + cb.b) / 2], [mid(card.querySelector('.t-sm')).x, mid(card.querySelector('.t-sm')).y]];
+      const covered = spots.filter(([x, y]) => at(x, y) !== link).length;
+      const out = {
+        covered, spots: spots.length,
+        btnOwn: at(mid($('#demo-cover-save')).x, mid($('#demo-cover-save')).y) === $('#demo-cover-save'),
+        tagOwn: at(mid(card.querySelector('.tag')).x, mid(card.querySelector('.tag')).y) === card.querySelector('.tag'),
+        save: mid($('#demo-cover-save')), words: mid(card.querySelector('.t-sm')),
+        u: Trellis.cell(),
+      };
+      // Bleeds: each frame's box against its card's, and its corners against the card's.
+      const fr = (sel, corners) => { const m = $(sel), c = m.closest('.card'), mb = r(m), b = r(c), cs = getComputedStyle(m), cr = getComputedStyle(c).borderTopLeftRadius;
+        return { mb, b, radii: corners.map(k => cs[k]), cr, border: getComputedStyle(c, '::after').borderTopColor }; };
+      out.banner = fr('#demo-cover-banner > .media', ['borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomLeftRadius']);
+      out.strip = fr('#demo-cover-line > .media', ['borderTopLeftRadius', 'borderBottomLeftRadius', 'borderTopRightRadius']);
+      out.fill = fr('#demo-cover-fill > .media', ['borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomLeftRadius']);
+      const f = $('#demo-media-focus'), img = f.querySelector('img'), ics = getComputedStyle(img);
+      out.focus = { fb: r(f), ib: r(img), fit: ics.objectFit, pos: ics.objectPosition };
+      out.imgs = [...document.querySelectorAll('#demo-covers .media, #demo-cover-line .media')].map(m => { const a = r(m), b = r(m.querySelector('img')); return Math.max(Math.abs(a.l - b.l), Math.abs(a.t - b.t), Math.abs(a.w - b.w), Math.abs(a.h - b.h)); });
+      return out;
+    });
+    const near = (a, b, t = .5) => Math.abs(a - b) <= t, whole = v => { const m = ((v % geo.u) + geo.u) % geo.u; return m < .5 || m > geo.u - .5; };
+    if (geo.covered) fails.push(`cover link: ${geo.covered} of ${geo.spots} points on the card are not the link`);
+    if (!geo.btnOwn) fails.push("cover link: the card's button is under the cover, not above it");
+    if (!geo.tagOwn) fails.push("cover link: the card's tag link is under the cover, not above it");
+    await page.mouse.click(geo.save.x, geo.save.y);
+    await page.mouse.click(geo.words.x, geo.words.y);
+    const row = await page.evaluate(async () => {
+      const row = document.querySelector('#cover-row-test .list-item'), link = row.querySelector('.list-link'), btn = row.querySelector('button'), words = row.querySelector('.t-xs');
+      row.scrollIntoView({ block: 'center' }); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const mid = e => { const b = e.getBoundingClientRect(); return { x: (b.left + b.right) / 2, y: (b.top + b.bottom) / 2 }; };
+      const at = p => { const e = document.elementFromPoint(p.x, p.y); return e ? (e.closest('a, button') || e) : null; };
+      return { covered: at(mid(words)) === link, own: at(mid(btn)) === btn, btn: mid(btn), words: mid(words) };
+    });
+    if (!row.covered) fails.push("cover link: a list row's second line is not its link");
+    if (!row.own) fails.push("cover link: a list row's button is under its link's cover");
+    await page.mouse.click(row.btn.x, row.btn.y);
+    await page.mouse.click(row.words.x, row.words.y);
+    const hits = await page.evaluate(() => window.__coverHits.join(' '));
+    if (hits !== 'button card-link button list-link') fails.push(`cover link: real clicks on the button, the words, the row's button and the row's words went to "${hits}", not "button card-link button list-link"`);
+    if (geo.imgs.some(d => d > .5)) fails.push(`cover image: an image does not fill its frame (off by ${Math.max(...geo.imgs).toFixed(2)}px)`);
+    const fo = geo.focus;
+    if (fo.fit !== 'cover' || fo.pos !== '50% 25%') fails.push(`cover image: object-fit ${fo.fit} at ${fo.pos}, not cover at the focal point 50% 25%`);
+    if (!near(fo.fb.w, 8 * geo.u) || !near(fo.fb.h, 10 * geo.u)) fails.push(`cover image: a frame of 8 by 10 cells is ${fo.fb.w.toFixed(2)} by ${fo.fb.h.toFixed(2)}px`);
+    const meets = (n, f, sides) => { const off = sides.filter(s => !near(f.mb[s], f.b[s])); if (off.length) fails.push(`cover image: the ${n} does not meet its card's ${off.join(', ')} edge (${off.map(s => `${f.mb[s].toFixed(2)} against ${f.b[s].toFixed(2)}`).join('; ')})`); };
+    meets('banner', geo.banner, ['l', 't', 'r']); meets('strip', geo.strip, ['l', 't', 'b']); meets('full bleed', geo.fill, ['l', 't', 'r', 'b']);
+    const corners = (n, f, takes) => takes.forEach((t, i) => { if ((f.radii[i] === f.cr) !== t) fails.push(`cover image: the ${n}'s corner ${i + 1} is ${f.radii[i]}; the card's is ${f.cr}, and it should ${t ? '' : 'not '}take it`); });
+    corners('banner', geo.banner, [true, true, false]); corners('strip', geo.strip, [true, true, false]); corners('full bleed', geo.fill, [true, true, true]);
+    if (!near(geo.strip.mb.w, 3 * geo.u)) fails.push(`cover image: the strip is ${geo.strip.mb.w.toFixed(2)}px wide, not three cells`);
+    if (!whole(geo.banner.mb.h)) fails.push(`cover image: the banner is ${geo.banner.mb.h.toFixed(2)}px tall, not whole cells`);
+    if (!/^(transparent|rgba\(0, 0, 0, 0\))$/.test(geo.fill.border)) fails.push(`cover image: a full-bleed card still draws its edge (${geo.fill.border})`);
+    // The focus ring, from the keyboard: Tab from a field just before the card
+    // lands on its link, and the ring is drawn by the cover, round the card.
+    // WebKit leaves links out of Tab (as Safari does by default), so there the
+    // link is given a tabindex for the test.
+    await page.evaluate(wk => {
+      const before = document.createElement('input'); before.className = 'input';
+      const card = document.getElementById('demo-cover-banner'); card.before(before); before.focus();
+      if (wk) card.querySelector('.card-link').tabIndex = 0;
+    }, engine === 'webkit');
+    await page.keyboard.press('Tab');
+    const fr = await page.evaluate(() => {
+      const card = document.getElementById('demo-cover-banner'), link = card.querySelector('.card-link'), cs = getComputedStyle(link, '::before');
+      const focusColor = (() => { const p = document.createElement('i'); p.style.color = 'var(--focus)'; card.appendChild(p); const c = getComputedStyle(p).color; p.remove(); return c; })();
+      const out = { focused: document.activeElement === link, visible: link.matches(':focus-visible'), style: cs.outlineStyle, width: parseFloat(cs.outlineWidth), color: cs.outlineColor, focusColor, own: getComputedStyle(link).outlineStyle, pos: cs.position, inset: [cs.top, cs.left, cs.right, cs.bottom].join(' '), parent: link.offsetParent === card };
+      card.previousElementSibling.remove(); link.removeAttribute('tabindex'); link.blur();
+      return out;
+    });
+    if (!fr.focused || !fr.visible) fails.push(`cover link: the card's link did not take a visible focus (focused ${fr.focused}, focus-visible ${fr.visible})`);
+    else {
+      if (fr.style !== 'solid' || !(fr.width > 0) || fr.color !== fr.focusColor) fails.push(`cover link: the card's focus ring is ${fr.style} ${fr.width}px ${fr.color}, not the focus color ${fr.focusColor}`);
+      if (fr.own !== 'none') fails.push('cover link: the link draws a ring round its words as well as the card');
+      if (fr.pos !== 'absolute' || fr.inset !== '0px 0px 0px 0px' || !fr.parent) fails.push(`cover link: the ring is not drawn round the card (${fr.pos}, inset ${fr.inset}, the card ${fr.parent ? '' : 'not '}its box)`);
+    }
+    await page.evaluate(() => { document.removeEventListener('click', window.__coverClick, true); document.getElementById('cover-row-test').remove(); });
+  }
 
   // A clamp (D105). Layout: the box is its lines' own, the first capitals at its
   // top and whole cells tall, so it sits where unclamped text would. Pixels:

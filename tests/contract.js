@@ -104,14 +104,20 @@ for (const line of read('product.template.css').split('\n')) {
   // components name is generated.
   const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
   const plugin = execFileSync(process.execPath, [path.join(dir, 'tools', 'figma-variables.js'), '--plugin'], { encoding: 'utf8' });
-  const components = read('tools/figma-components.js');
-  for (const [name, src] of [['figma-variables --plugin', plugin], ['figma-components.js', components]]) {
+  // The components travel in parts (tools/figma-components.js), each the kit and a body.
+  const fc = require(path.join(dir, 'tools', 'figma-components.js'));
+  const scripts = [['figma-variables --plugin', plugin], ...Object.keys(fc.PARTS).map((p) => [`figma-components --plugin ${p}`, fc.script(p)])];
+  for (const [name, src] of scripts) {
     try { new AsyncFunction('figma', src); } catch (e) { check(false, `${name} does not parse: ${e.message}`); }
+    check(src.length < 50000, `${name} is ${src.length} characters; an agent's Figma tool takes 50,000`);
   }
-  check(plugin.length < 50000, `figma-variables --plugin is ${plugin.length} characters; an agent's Figma tool takes 50,000`);
-  check(components.length < 50000, `figma-components.js is ${components.length} characters; an agent's Figma tool takes 50,000`);
-  for (const [, n] of components.matchAll(/'((?:space|size|radius|knob|derived|type|color)\/[a-z0-9/-]+)'/g))
-    check(names.has(n), `figma-components.js binds ${n}, which isn't generated`);
+  for (const [name, src] of scripts.slice(1)) {
+    for (const [, n] of src.matchAll(/'((?:space|size|radius|knob|derived|type|color)\/[a-z0-9/-]+)'/g))
+      check(names.has(n), `${name} binds ${n}, which isn't generated`);
+    // A role it paints, edges or inks by name is a Color variable.
+    for (const m of src.matchAll(/(?:paint|edge|side|glyph)\('([a-z][a-z0-9-]*)'|ink: '([a-z][a-z0-9-]*)'/g))
+      check(names.has('color/' + (m[1] || m[2])), `${name} paints ${m[1] || m[2]}, which isn't a Color variable`);
+  }
 }
 
 // Package.
@@ -179,7 +185,8 @@ const FLOORS = [['text', 'bg', 4.5], ['text', 'bg-raised', 4.5], ['text', 'bg-su
 // A file with scopes is checked once per scope too: the root's seeds, then the
 // scope's over them, as M.scope() and core.css both have it (D96).
 const layersToCheck = [[null, 'core', M.SEED]];
-for (const f of PRODUCTS) {
+// Each scope of a layer, the root first: [what to call it, the scope's name or null for the root, its seed].
+function scopesOf(f) {
   const css = stripComments(read(f)), base = JSON.parse(JSON.stringify(M.SEED));
   const blocks = [...css.matchAll(/((?::root)?\[data-product="([a-z-]+)"\])\s*\{([^}]*)\}/g)];
   const seedsOf = body => {
@@ -200,13 +207,35 @@ for (const f of PRODUCTS) {
   const dayOf = body => { const m = body.match(/--day-depth\s*:\s*([\d.]+)/); return m ? +m[1] : undefined; };
   if (rootBlock && nightOf(rootBlock[3]) !== undefined) base.color.nightLift = nightOf(rootBlock[3]);
   if (rootBlock && dayOf(rootBlock[3]) !== undefined) base.color.dayDepth = dayOf(rootBlock[3]);
-  const rootSeeds = rootBlock ? seedsOf(rootBlock[3]) : {};
-  if (rootBlock) layersToCheck.push([f, f, M.scope(base, rootSeeds)]);
+  const rootSeeds = rootBlock ? seedsOf(rootBlock[3]) : {}, out = [];
+  if (rootBlock) out.push([f, null, M.scope(base, rootSeeds)]);
   for (const b of blocks.filter(x => x !== rootBlock)) {
     const sc = M.scope(base, rootSeeds, seedsOf(b[3]));
     if (nightOf(b[3]) !== undefined) sc.color.nightLift = nightOf(b[3]);
     if (dayOf(b[3]) !== undefined) sc.color.dayDepth = dayOf(b[3]);
-    layersToCheck.push([f, `${f} [data-product="${b[2]}"]`, sc]);
+    out.push([`${f} [data-product="${b[2]}"]`, b[2], sc]);
+  }
+  return out;
+}
+for (const f of PRODUCTS) for (const [label, , seed] of scopesOf(f)) layersToCheck.push([f, label, seed]);
+// The Figma file's products (tools/figma-variables.js): core and every scope of
+// every layer it reads is a Product mode (D96), and each mode's colors, night,
+// dusk and paper included (D97, D98), are the ones this file composes and checks.
+{
+  const fv = JSON.parse(require('child_process').execFileSync(process.execPath, [path.join(dir, 'tools', 'figma-variables.js')], { encoding: 'utf8' }));
+  const vars = new Map(fv.collections.find(c => c.name === 'Product').variables.map(x => [x.name, x]));
+  const modes = [[fv.products[0], 'core', M.SEED]];
+  for (const f of [...new Set(fv.products.slice(1).map(p => p.layer))]) for (const [label, scope, seed] of scopesOf(f)) {
+    const p = fv.products.find(x => x.layer === f && (x.scope || null) === scope);
+    check(p, `figma-variables: ${label} is not a Product mode`);
+    if (p) modes.push([p, label, seed]);
+  }
+  for (const [p, label, seed] of modes) for (const theme of ['light', 'dark']) {
+    const pal = M.palette(theme, seed);
+    for (const k of Object.keys(pal)) {
+      const v = vars.get(`${theme}/${k}`), got = v && v.values[p.mode];
+      check(got === M.hex(pal[k]), `figma-variables: ${p.mode} ${theme}/${k} is ${got}, where ${label} is ${M.hex(pal[k])}`);
+    }
   }
 }
 for (const [, f, seed] of layersToCheck) {
