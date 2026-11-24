@@ -154,6 +154,21 @@ const ready = require('./ready');
     expect(box(narrow.querySelector('.shell-nav')).top >= box(narrow.querySelector('.shell-aside')).bottom - 1, 'the tab bar is not below the content');
     expect(whole(box(narrow).height), `the narrow shell is ${box(narrow).height.toFixed(2)}px, not whole cells`);
     narrow.querySelectorAll('.shell-link').forEach(l => expect(box(l).height >= 44 || parseFloat(getComputedStyle(l).minHeight) >= 44, 'a tab is under the 44px touch target'));
+    // The current link's mark: at the start in the column, on the top edge in the tab bar.
+    {
+      const mark = l => getComputedStyle(l).boxShadow, cur = s => $(s + ' .shell-link[aria-current="page"]');
+      const xy = l => { const m = /(-?[\d.]+)px\s+(-?[\d.]+)px/.exec(mark(l)); return m ? [+m[1], +m[2]] : [0, 0]; };
+      const tabCur = cur('#demo-shell-narrow');
+      expect(tabCur, 'the narrow shell has no current link');
+      if (tabCur) {
+        const m = mark(tabCur), cs = getComputedStyle(tabCur);
+        const [x, y] = xy(tabCur);
+        expect(/inset/.test(m) && x === 0 && y === 2, `the tab bar's current link draws the column's mark, not its own: ${m}`);
+        expect(cs.borderTopLeftRadius === '0px' && cs.borderTopRightRadius === '0px' && parseFloat(cs.borderBottomLeftRadius) > 0, `the tab bar's current mark meets rounded corners: ${cs.borderRadius}`);
+      }
+      const colCur = cur('#demo-shell-wide');
+      if (colCur && nav('#demo-shell-wide') === 'column') expect(xy(colCur)[0] === 2 && xy(colCur)[1] === 0, `the column's current link lost its start mark: ${mark(colCur)}`);
+    }
 
     // Cover
     const media = box($('#demo-cover .cover-media')), W = document.documentElement.clientWidth;
@@ -575,6 +590,15 @@ const ready = require('./ready');
     const [on, off] = host.querySelectorAll('.tab'), [t1, t2] = host.querySelectorAll('.tag');
     if (getComputedStyle(on).backgroundColor === getComputedStyle(off).backgroundColor) fails.push('a current tab link draws like the others');
     if (getComputedStyle(t1).backgroundColor === getComputedStyle(t2).backgroundColor) fails.push('a current tag link is not solid');
+    // A segmented control written as radios: aria-checked="true" is selected, as aria-selected is.
+    const seg = document.createElement('div'); seg.className = 'tabs cc-seg'; seg.setAttribute('role', 'radiogroup');
+    seg.innerHTML = '<button class="tab" type="button" role="radio" aria-checked="true">Day</button><button class="tab" type="button" role="radio" aria-checked="false">Week</button>' +
+      '<button class="tab" type="button" role="tab" aria-selected="true">Month</button>';
+    host.appendChild(seg);
+    const [rOn, rOff, sel] = seg.querySelectorAll('.tab'), bg = e => getComputedStyle(e).backgroundColor;
+    if (bg(rOn) === bg(rOff)) fails.push('a tab with aria-checked="true" draws like the others');
+    if (bg(rOn) !== bg(sel)) fails.push(`a checked radio tab (${bg(rOn)}) is not drawn as a selected tab (${bg(sel)})`);
+    if (getComputedStyle(rOn).color !== getComputedStyle(sel).color) fails.push("a checked radio tab's ink is not a selected tab's");
     host.remove();
     return fails;
   }));

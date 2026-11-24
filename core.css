@@ -1307,6 +1307,14 @@
       padding-inline: 0;
       font-size: var(--fs-control-xs);
     }
+    /* The tab bar's own current state: the fill, and its mark on the bar's
+       edge, the top, where the wide column's mark is on the start. The
+       corners the mark touches are square (D85). Not in .cc-top, whose
+       narrow links are a tray and keep the column's mark. */
+    .shell:not(.cc-top) .shell-link[aria-current]:not([aria-current="false"]) {
+      box-shadow: inset 0 calc(var(--line) * 2) 0 var(--accent);
+      border-radius: 0 0 var(--r-h) var(--r-h);
+    }
   }
 
   /* SHELL ACROSS THE TOP (.shell.cc-top): the navigation is a bar across the
@@ -2572,10 +2580,11 @@
   .tab { background: color-mix(in oklab, var(--text) var(--state-act), var(--tab-bg, transparent)); }
   @media (hover: hover) { .tab:hover { color: var(--text); } }
   /* A tab that is a link (a view, a filter, a page) is the current one by aria-current, and
-     carries no underline: its mark says it is a control (D101). */
+     carries no underline: its mark says it is a control (D101). A segmented
+     control written as radios (role="radio") is selected by aria-checked. */
   a.tab, a.tag { text-decoration: none; }
-  .tab:is([aria-selected="true"], [aria-current]:not([aria-current="false"])) { --tab-bg: var(--tab-on-bg); color: var(--text); }
-  .tab:is([aria-selected="true"], [aria-current]:not([aria-current="false"]))::after {
+  .tab:is([aria-selected="true"], [aria-checked="true"], [aria-current]:not([aria-current="false"])) { --tab-bg: var(--tab-on-bg); color: var(--text); }
+  .tab:is([aria-selected="true"], [aria-checked="true"], [aria-current]:not([aria-current="false"]))::after {
     content: ""; position: absolute;
     inset-inline: 0; inset-block-end: 0;
     height: var(--tab-mark-h);
@@ -3213,10 +3222,11 @@
 @layer trellis.utilities {
   @media (forced-colors: active) {
     :is(.shell-link, .outline-link, .list-item, .tab, .options-card-item):is([aria-current]:not([aria-current="false"]), [aria-selected="true"]),
+    .tab[aria-checked="true"],
     .list-item:has(.list-link:is([aria-current]:not([aria-current="false"]), [aria-selected="true"])) {
       outline: calc(var(--line) * 2) solid Highlight; outline-offset: calc(var(--line) * -2);
     }
-    .tab:is([aria-selected="true"], [aria-current]:not([aria-current="false"]))::after { forced-color-adjust: none; background: Highlight; }
+    .tab:is([aria-selected="true"], [aria-checked="true"], [aria-current]:not([aria-current="false"]))::after { forced-color-adjust: none; background: Highlight; }
     .switch::after { forced-color-adjust: none; outline: var(--line) solid CanvasText; outline-offset: calc(var(--line) * -1); --switch-fill: Canvas; --switch-thumb: CanvasText; }
     :is(.switch:is([aria-checked="true"], :has(> input:checked)), .options-card-item[aria-checked="true"] > .switch)::after { --switch-fill: Highlight; --switch-thumb: HighlightText; outline-color: Highlight; }
     .switch:is(:disabled, [aria-disabled="true"], :has(> input:disabled))::after { --switch-thumb: GrayText; outline-color: GrayText; }
