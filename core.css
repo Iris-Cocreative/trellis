@@ -1,20 +1,26 @@
 /* ==========================================================================
    Trellis · core · v0.10 · 2026-11-15
 
-   Two seeds, and how they meet the world:
-     the CELL      u = 0.75rem: a whole even pixel, or fitted to the screen.
-                   Space is counted in cells: any whole count is on the grid.
-     the RATIO     type sizes step by a ratio that itself grows with the space.
-     RESPONSE      both answer to the screen: the cell fits it, the ratio opens
-                   with it, and the reader's dial scales them together.
-     CONTEXT       both answer to the box they're in: type sizes come from the
-                   container, contexts change variables, so anything nests.
+   Two values set everything else:
+     the CELL      u = 0.75rem, rounded to a whole even pixel or fitted to the
+                   screen. Space is counted in cells, and any whole count is
+                   on the grid.
+     the RATIO     type sizes step by a ratio, and the ratio itself grows on
+                   wider screens.
+     RESPONSE      on touch screens the cell is fitted to the screen's width,
+                   the ratio grows with the space, and --u-scale (the reader's
+                   size setting) scales both.
+     CONTEXT       type sizes come from the container's width, and a context
+                   changes variables rather than markup, so a component can
+                   sit inside any other.
 
-   Headlines stand on the cells; other text hangs from a cell line and
-   settles to whole cells. The cell is the only line on the page.
+   h1 to h3 get line heights in whole cells, so every baseline sits on a cell
+   line. Other text is trimmed to the top of its capitals, starts on a cell
+   line, and its block rounds up to whole cells, so the next block starts on
+   one too.
 
-   This file is product-agnostic. Product layers branch from it by changing
-   variables, never by redrawing a primitive.
+   This file is product-agnostic. Product layers customize it by setting
+   variables. They don't add or override rules.
    ========================================================================== */
 
 /* One namespace, so nothing merges with a framework's layers of the same name
@@ -32,17 +38,18 @@
      length ratio: --cells came out 0, the unit infinite, the page blank.
    Unregistered, they stay expressions; everything in them (rem, vw) resolves
    the same on every element. --u-px is a registered copy, kept for
-   convenience; never build layout from it. Scripts read the cell from the
-   probe below (Trellis.cell()): WebKit computes a registered length on the
-   root against the default text size when a page or app sets the root's
-   font size, so there --u-px is wrong while --u is right. */
+   convenience. Don't build layout from it: when a page or app sets the root's
+   font size, WebKit computes a registered length on the root against the
+   default text size, so --u-px can be wrong while --u is right. Scripts read
+   the cell from the probe below (Trellis.cell()) instead. */
 @property --u-px {
   syntax: "<length>";
   inherits: true;
   initial-value: 12px;
 }
-/* What settle.js writes belongs to one box. Unregistered, it would inherit: a
-   blockquote's cell count would also hold every paragraph inside it open. */
+/* settle.js writes these per element, so they're registered with inherits:
+   false. Unregistered, they would inherit, and a blockquote's cell count would
+   hold open every paragraph inside it too. */
 @property --settle-n {
   syntax: "<number>";
   inherits: false;
@@ -106,7 +113,7 @@
   :root {
     /* The cell's target: 10pt up to a 500pt screen, rising to 12pt at 1000pt.
        It follows the reader's text size up to 1.5× and no further: above that only type grows.
-       --u-type is the rem line alone, the cell the reader's text size asks for past the cap too. */
+       --u-type is the rem formula alone, with no cap and no dial: the cell the reader's text size asks for. */
     --u-type: clamp(0.625rem, calc(0.5rem + 0.4vw), 0.75rem);
     --u-base: min(var(--u-type), clamp(15px, calc(12px + 0.4vw), 18px));
     --frame-max-n: 100;
@@ -197,13 +204,14 @@
     /* Seeds: one color each, in its light-theme form. A product sets the accent. The others follow
        from it, and a product may set any of them in its place (--seed-neutral, --seed-person, …,
        --seed-ground and --seed-ink, the neutral for grounds and for text, and --seed-night, the ground at
-       night; --seed-stage-1 to -7, the steps of a process). They have no default:
-       one a layer set carries into its scopes; one it left follows each scope's accent. Never a role. */
+       night; --seed-stage-1 to -7, the steps of a process). None has a default. If a
+       product layer sets one, it carries into its scopes; if not, each scope works it out from its own
+       accent. Products set seeds here, never roles. */
     --seed-accent: oklch(.553 .166 258.4);
     --color-lift: .17;   /* how much lighter a hue is in the dark theme */
     --ink-flip: .58;   /* ink on a fill: white below this lightness, dark above it */
-    --day-depth: 0;   /* how much darker every ground and edge is by day: 0 is white paper, higher is linen */
-    --night-lift: 0;   /* how much lighter every ground and edge is at night: 0 is night, higher is dusk */
+    --day-depth: 0;   /* how much darker every ground and edge is by day: 0 is white paper, higher is a beige paper */
+    --night-lift: 0;   /* how much lighter every ground and edge is at night: 0 is core's night, higher is lighter, like dusk */
     --gradient-space: oklch;   /* the space gradients interpolate in */
     --gradient-turn: 40;   /* degrees the accent gradient turns its hue */
   }
@@ -351,11 +359,11 @@
     --u: round(nearest, var(--u-target), 2px);
     --u-px: var(--u);
 
-    /* Point, line, plane. Lines never scale with the unit.
-       --line is one logical pixel; --hair is one device pixel (⅓px on a 3x
-       screen, ½px on 2x), the thinnest mark a screen can make. A line is a
-       plane: it occupies the pixels just after its coordinate (right of it,
-       below it), so N cells drawn with their edges need N cells plus one. */
+    /* Lines don't scale with the cell. --line is one CSS pixel; --hair is one
+       device pixel (⅓px on a 3x screen, ½px on 2x), the thinnest mark a
+       screen can make. A line is drawn in the pixels just after its
+       coordinate (to the right of it, below it), so N cells drawn with their
+       edges need N cells plus one line. */
     --line: 1px;
     --dpr: 1;
     --hair: calc(1px / var(--dpr));
@@ -409,7 +417,7 @@
     --outset: 1;                 /* cells a card's edge steps out into the space around it */
     --prose-measure: calc(var(--u) * 56);   /* the widest a column of running text gets */
     --shape-control: var(--r-round);
-    --shape-input: var(--r-h);   /* an input holds a sentence: pills suit buttons, not this */
+    --shape-input: var(--r-h);   /* a small corner: a pill suits a button's short label, but an input holds a sentence */
     --shape-float: var(--r-1);
     --density-card-pad: var(--sp-2);
     /* --density-card-pad-inline and --density-card-pad-block: its sides and its
@@ -551,7 +559,7 @@
     --lift: 0 var(--sp-h) var(--sp-2) light-dark(rgb(16 20 22 / .12), rgb(0 0 0 / .55)),
             0 0 0 var(--line) light-dark(rgb(16 20 22 / .04), rgb(0 0 0 / .3));
 
-    /* Scrollbars: one archetype. A variant changes a variable, never the rule. */
+    /* Scrollbars: one rule for all of them. Variants change its variables. */
     --scrollbar-width: thin;
     --scrollbar-size: var(--sp-h);
     --scrollbar-thumb: color-mix(in oklab, var(--text) 22%, transparent);
@@ -646,8 +654,8 @@
   :where(.t-h1, .t-h2, .t-h3, .prose :is(h1, h2, h3)) { --t-line: round(nearest, calc(1em * var(--t-lh)), var(--u)); }
   :where(.t-h1, .t-h2, .t-h3, .t-h4, .t-h5, .t-h6, .prose :is(h1, h2, h3, h4, h5, h6)) { font-family: var(--font-heading, var(--font-sans)); font-weight: var(--fw-heading); text-wrap: balance; letter-spacing: var(--heading-tracking, -.01em); }
   /* A heading carries its own space after it, proportional to its size and
-     rounded up to whole cells. In a stack it is the larger of that space and the
-     stack's gap, never the sum. */
+     rounded up to whole cells. In a stack, the space below it is whichever is
+     larger, that space or the stack's gap; the two aren't added. */
   :where(.t-h1, .t-h2, .t-h3, .t-h4, .t-h5, .t-h6, .prose :is(h1, h2, h3, h4, h5, h6)):not(:last-child) {
     --t-own: round(up, calc(1em * var(--t-mb) - 1px / 64), var(--u));   /* up, or a common size drops a cell; 1/64px absorbs layout's rounding */
     margin-block-end: var(--t-own);
@@ -683,9 +691,10 @@
     :where(.t-h1, .t-h2, .t-h3, .t-h4, .t-h5, .t-h6, .t-xl, .t-lg, .t-body, .t-sm, .t-xs, .t-label, .t-eyebrow, .snap,
            .prose :is(h1, h2, h3, h4, h5, h6), .prose :is(p, li, dt, dd, summary, blockquote, figcaption, caption), .prose blockquote > :is(footer, cite), .prose div:not([class], :has(> :is(p, div, ul, ol, dl, h1, h2, h3, h4, h5, h6, blockquote, pre, table, figure, hr, details, img, video, iframe)))) { text-box: trim-both cap alphabetic; }
     /* A headline pads its top so the block is whole cells. Its bottom edge
-       is its last baseline, every line above it is one line-height (whole
-       cells) up: every baseline on a line. Layout stores the trimmed box in
-       1/64px units; quantize the cap the same way, or the drift adds up. */
+       is its last baseline, and each line above is one line-height (a whole
+       number of cells) higher, so every baseline falls on a cell line. Layout
+       stores the trimmed box in 1/64px units, so the cap height is quantized
+       the same way; otherwise the error adds up down the page. */
     :where(.t-h1, .t-h2, .t-h3, .prose :is(h1, h2, h3)) {
       --t-stand: calc(round(up, 1cap, var(--u)) - round(down, 1cap, 0.015625px));
       padding-block-start: var(--t-stand);
@@ -704,15 +713,15 @@
   @supports (height: calc-size(fit-content, size)) and (text-box: trim-both cap alphabetic) {
     :where(.t-h4, .t-h5, .t-h6, .t-xl, .t-lg, .t-body, .t-sm, .t-xs, .t-label, .t-eyebrow, .snap, .snap-x,
            .prose :is(h4, h5, h6), .prose :is(p, li, dt, dd, summary, blockquote, figcaption, caption), .prose blockquote > :is(footer, cite), .prose div:not([class], :has(> :is(p, div, ul, ol, dl, h1, h2, h3, h4, h5, h6, blockquote, pre, table, figure, hr, details, img, video, iframe)))) { height: calc-size(fit-content, round(up, size, var(--u))); }
-    /* A cluster (a wrapping row of tags, chips, avatars) settles like text:
-       inside, it keeps its own half-cell rhythm, as letters do in a word;
-       its block rounds up to whole cells. */
+    /* A cluster (a wrapping row of tags, chips, avatars) settles like text.
+       Its items are spaced in half cells, and its block rounds up to whole
+       cells. */
     .settle, .field, .pair, .chat-item-meta, .chat-quote, .chat-link, .chat-reactions, :where(.prose :is(pre, table, figure, details, dl, video, audio), .prose > :not(h1, h2, h3, h4, h5, h6, p, ul, ol, hr, blockquote, iframe, div:not([class]))) { height: calc-size(fit-content, round(up, size, var(--u))); }
-    /* A cluster rounds to the nearest whole cell, halves down (at least one
-       cell): a row of 1½-cell tags takes one cell and lets the rest sit in
-       the gap after it. So its content can overflow into that gap by up to half
-       a cell. That is safe only because the gap is always whole cells and at
-       least one (rule 6), which is why .u-gap-q and .u-gap-h don't reach a stack.
+    /* A cluster rounds to the nearest whole cell, with halves going down and a
+       minimum of one cell. So a row of 1½-cell tags takes one cell, and the
+       extra half cell overlaps the gap after it. That's safe only because the
+       gap between blocks is always a whole number of cells, at least one
+       (rule 6), which is why .u-gap-q and .u-gap-h don't apply to a stack.
        Don't follow a cluster with less than a cell. */
     .cluster { height: calc-size(fit-content, max(var(--u), round(down, calc(size + var(--sp-h) - 0.5px), var(--u)))); }
     /* At the end of a surface nothing follows a cluster but the surface's own
@@ -724,9 +733,10 @@
     .cap-center[data-trellis-wrap] { height: calc-size(fit-content, round(up, size, var(--u))); }
   }
   /* Without calc-size (Safari today) settle.js counts the cells each text block
-     needs and writes the count, and the block's least height is exactly that many
-     cells. A count, not a measured gap: WebKit's trimmed heights jitter by 1/64px
-     with where a box sits, and a box held at whole cells has nothing to add up. */
+     needs and writes the count, and the block's min-height is exactly that many
+     cells. It writes a count rather than a measured height because WebKit's
+     trimmed heights vary by 1/64px depending on where a box sits, and a height
+     held at whole cells can't build up that error. */
   @supports not (height: calc-size(fit-content, size)) {
     :where(.t-h4, .t-h5, .t-h6, .t-xl, .t-lg, .t-body, .t-sm, .t-xs, .t-label, .t-eyebrow, .snap, .snap-x,
            .prose :is(h4, h5, h6), .prose :is(p, li, dt, dd, summary, blockquote, figcaption, caption), .prose blockquote > :is(footer, cite), .prose div:not([class], :has(> :is(p, div, ul, ol, dl, h1, h2, h3, h4, h5, h6, blockquote, pre, table, figure, hr, details, img, video, iframe)))) { min-height: calc(var(--u) * var(--settle-n, 0)); }
@@ -757,10 +767,10 @@
    SURFACE      .card       a plane with padding, an edge and its own type
    ELEMENT      the primitives: type roles, tag, button, avatar, float …
 
-   Rules every composition keeps: children start on cells; space between
-   blocks is whole cells; it responds to its container, never the window,
-   so it behaves the same in a sidebar, a card or a page; and it changes
-   variables, never markup, from one context to the next.
+   Every composition starts its children on cells and keeps whole cells
+   between blocks. It sizes itself from its container rather than the
+   window, so it works the same in a sidebar, a card or a page. Contexts
+   change its variables; the markup stays the same.
    -------------------------------------------------------------------------- */
 @layer trellis.layout {
   /* PAGE. The frame: whole cells wide (plus the hair its last line needs)
@@ -810,8 +820,8 @@
   /* Pair: two lines that belong together, a name over its context, a title over
      its source. Text is trimmed to its letters, so two lines a stack holds a
      cell apart read as two things and a zero gap makes them collide. Inside, a
-     pair keeps a half-cell rhythm, as letters do in a word; its block rounds up
-     to whole cells, like .settle, so what follows it is on a line. In a cluster
+     pair's lines are spaced in half cells; its block rounds up to whole cells,
+     like .settle, so what follows it is on a line. In a cluster
      it takes the row's spare room, so a header's trailing buttons sit at its end. */
   .pair { display: flex; flex-direction: column; gap: var(--sp-h); min-width: 0; }
   .cluster > .pair { flex: 1 1 0; }
@@ -875,8 +885,8 @@
   /* PROSE: the CMS layer. Content arrives from editors and markdown as bare
      tags with no classes; .prose maps each tag to its role and settles every
      block to whole cells. All of it has zero specificity against a class, so
-     a class on a tag wins. The same two rules as everywhere: headlines stand,
-     text hangs. README, Prose, has the whole map and what it does with things
+     a class on a tag wins. Headings and text follow the same rules as
+     everywhere else (see the type roles in BASE). README, Prose, has the whole map and what it does with things
      an editor emits that have no role. */
   .prose {
     --stack-gap: var(--sp-2);
@@ -959,8 +969,8 @@
   .prose :where(sup) { inset-block-start: -.4em; }
   .prose :where(sub) { inset-block-start: .25em; }
 
-  /* A line is a plane: it takes the pixels after its coordinate and gives them
-     back, so what follows is still on a line. */
+  /* The rule is one line tall, and its bottom margin is one line shorter to
+     make up for it, so what follows stays on the cell grid. */
   .prose :where(hr) {
     height: var(--line);
     margin-block: var(--sp-2) calc(var(--sp-2) - var(--line));
@@ -1164,7 +1174,7 @@
   @media (hover: hover) { .list-item:has(.list-link:hover) { --state-act: var(--state-hover); } }
   .list-item:has(.list-link:active) { --state-act: var(--state-press); }
   .list-item:has(.list-link:is([aria-current]:not([aria-current="false"]), [aria-selected="true"])) { --state-on: var(--state-selected); }
-  /* Selected keeps a mark of its own, so it never looks merely hovered. */
+  /* A selected row also gets an accent bar at its start (see States). */
   .list-item:is([aria-current]:not([aria-current="false"]), [aria-selected="true"]) { --state-on: var(--state-selected); background: color-mix(in oklab, var(--text) calc(var(--state-on) + var(--state-act)), transparent); }
   .list-item:is([aria-current]:not([aria-current="false"]), [aria-selected="true"]), .list-item:has(.list-link:is([aria-current]:not([aria-current="false"]), [aria-selected="true"])) { box-shadow: inset calc(var(--line) * 2) 0 0 var(--accent); }
   /* A row that links rings the whole row, not the words in it. */
@@ -1225,12 +1235,12 @@
   .list.cc-group > .list-item:not(:last-child) > .list-body {
     border-image: linear-gradient(to top, var(--list-rule) var(--hair), transparent var(--hair)) fill 0 // 0 100vw calc(var(--list-pad-y) + var(--hair)) 0;
   }
-  /* A dense row is one thing: its edges stay on lines and its contents keep a
-     half-cell rhythm, as in a button or a cluster. */
+  /* A dense row is treated as one control: its edges stay on cell lines and
+     its contents are spaced in half cells, as in a button or a cluster. */
   .cc-dense .list, .list.cc-dense { --list-pad-y: var(--sp-h); --list-gap: var(--sp-h); }
 
-  /* SHELL: navigation, main, an aside, and a foot. It answers to its own
-     width, not the window: three columns, then the aside under main, then a
+  /* SHELL: navigation, main, an aside, and a foot. It lays out by its own
+     width rather than the window's: three columns, then the aside under main, then a
      tab bar. A query can't restyle the container it asks, so .shell is the
      container and .shell-grid does the layout. Markup: .shell > .shell-grid >
      .shell-nav, .shell-main, .shell-aside, .shell-foot. .shell.cc-top puts the
@@ -1419,8 +1429,9 @@
      clipped section): a card there silently loses its step-out. Give that
      ancestor --outset: 0, or a cell of inline padding. */
   :where(.stack, .section-body):not(:where(.cols, .split, .grid, .rail) > *) > .card { margin-inline: calc(var(--outset) * var(--u) * -1); }
-  /* Never on a frame: a frame's margins are its centering, and a grid of
-     cards that is also the frame would lose it and run off the page. */
+  /* Not applied to .frame: a frame is centered by its margins, so a grid of
+     cards that is also the frame would lose its centering and run off the
+     page. */
   :where(.cols, .grid, .split, .rail):has(> .card):not(:has(> :not(.card))):not(.frame) { margin-inline: calc(var(--outset) * var(--u) * -1); }
 }
 
@@ -1468,18 +1479,18 @@
     overflow: hidden;
   }
   .cc-dense .card, .card.cc-dense { --card-pad: var(--sp-1); --card-radius: var(--r-1); }
-  /* Surfaces on surfaces (D81). Depth is the ground, not a shadow: a surface
-     inside a surface (a card, a grouped list, a modal, a float) is one step
-     along the neutral ladder, --bg-raised-2, and one inside that --bg-raised-3,
-     where it stops: three levels at most. --surface-level says which, for
+  /* Surfaces on surfaces (D81). Nesting shows as a change of ground rather
+     than a shadow. A surface inside a surface (a card, a grouped list, a
+     modal, a float) is one step along the neutral ladder, --bg-raised-2, and
+     one inside that is --bg-raised-3, where it stops at three levels. --surface-level says which, for
      anything that reads it. Nesting needs no class. */
   .card, .list.cc-group { --surface-level: 1; }
   :is(.card, .list.cc-group, .modal-inner, .float) :is(.card, .list.cc-group) { --surface-level: 2; --surface: var(--bg-raised-2); }
   :is(.card, .list.cc-group, .modal-inner, .float) :is(.card, .list.cc-group, .modal-inner, .float) :is(.card, .list.cc-group) { --surface-level: 3; --surface: var(--bg-raised-3); }
-  /* A surface on a surface is drawn by its ground alone (D88): no edge of its
-     own, since an outline inside an outline inside an outline is a wireframe,
-     and one cell of padding, so with its step out its text stands on the same
-     line as the text of the surface it is in. */
+  /* A surface on a surface is drawn by its ground alone (D88). It has no
+     border, because outlines nested two or three deep start to look like a
+     wireframe. It has one cell of padding, so after its one-cell step out its
+     text lines up with the text of the surface around it. */
   :is(.card, .list.cc-group, .modal-inner, .float) .card {
     --card-border: transparent;
     --card-pad-inline: var(--card-pad, min(var(--density-card-pad-inline, var(--density-card-pad)), var(--sp-1)));
@@ -1632,8 +1643,10 @@
     --btn-ink: var(--text);
     --btn-border: var(--border-strong);
     --btn-track: var(--btn-tracking, var(--button-tracking));
-    /* Never shorter than its own type: past the cell's cap the label can
-       outgrow the height, and then the button grows by whole cells. */
+    /* Height grows with the label's type. Once the reader's text size passes
+       the cell's cap, a label's font size (1em) can be taller than --btn-h;
+       the button then adds whole cells until it fits. Choices, tags, inputs,
+       tabs and badges do the same. */
     --btn-draw: calc(var(--btn-h) + max(0px, round(up, calc(1em - var(--btn-h)), var(--u))));
     display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-h);
     max-width: 100%;
@@ -1690,7 +1703,7 @@
     position: relative;
     display: inline-flex; align-items: center;
     max-width: 100%;
-    min-height: calc(var(--choice-row) + max(0px, round(up, calc(1em - var(--choice-row)), var(--u))));   /* never shorter than its own type */
+    min-height: calc(var(--choice-row) + max(0px, round(up, calc(1em - var(--choice-row)), var(--u))));   /* grows by whole cells with its type, as a button does */
     color: var(--text);
     font-size: var(--fs-control); font-weight: var(--fw-label);
     cursor: pointer;
@@ -1937,7 +1950,7 @@
     --tag-h: var(--tag-default-h);
     --tag-fs: var(--tag-default-fs);
     --tag-color: var(--kind-topic);
-    --tag-draw: calc(var(--tag-h) + max(0px, round(up, calc(1em - var(--tag-h)), var(--u))));   /* never shorter than its own type */
+    --tag-draw: calc(var(--tag-h) + max(0px, round(up, calc(1em - var(--tag-h)), var(--u))));   /* grows by whole cells with its type, as a button does */
     --tag-radius: max(var(--tag-r-fixed), calc(var(--tag-draw) * var(--tag-r-ratio)));
     --tag-pad: clamp(var(--sp-h), round(down, var(--tag-radius), var(--sp-h)), var(--sp-1));
     --tag-fill: 14%;
@@ -2083,7 +2096,7 @@
   }
 
   /* Touch: on a coarse pointer a control's hit area grows to --hit-min
-     around what it draws, so density never costs a missed tap. */
+     around what it draws, so compact controls are still easy to tap. */
   @media (pointer: coarse) {
     :where(.button, .icon-button, button.tag, a.tag, .switch) { position: relative; }
     :where(.button, .icon-button, button.tag, a.tag, .switch)::before {
@@ -2354,14 +2367,14 @@
     overflow-y: auto;
     overflow-x: clip;   /* it scrolls down, never sideways: a long label truncates instead */
   }
-  /* Past the cap (D111): the cell stops following the reader's text size and
-     the type goes on, so the card's width grows with its type, in whole
-     cells, as a control past the cap grows by whole cells: --options-w
-     times how far the type has gone past the cell (--u-type over --u-base,
-     exactly 1 at default sizes, so nothing moves). It stops at the screen
-     less half a cell each side (float.js's margin), and at its container;
-     past that a label truncates. Where a browser can't divide a length by a
-     length, it stays --options-w wide. */
+  /* Past the cap (D111). When the reader's text size passes the cell's cap,
+     type keeps growing but the cell doesn't, so the card widens in
+     proportion, in whole cells, as a control grows by whole cells. Its width
+     is --options-w times --u-type / --u-base, which is exactly 1 at default
+     sizes, so nothing moves there. It goes no wider than the screen less half
+     a cell each side (float.js's margin), or its container; past that a label
+     truncates. Where a browser can't divide a length by a length, it stays
+     --options-w wide. */
   @supports (width: calc(100vw / 1px * 1px)) {
     .options-card {
       --options-grow: max(1, var(--u-type) / var(--u-base));
@@ -2427,7 +2440,7 @@
     --input-border: var(--border);
     --input-pad: var(--sp-1);
     --input-hit: 0px;
-    --input-draw: calc(max(var(--input-h), var(--input-hit)) + max(0px, round(up, calc(1em - max(var(--input-h), var(--input-hit))), var(--u))));   /* never shorter than its own type */
+    --input-draw: calc(max(var(--input-h), var(--input-hit)) + max(0px, round(up, calc(1em - max(var(--input-h), var(--input-hit))), var(--u))));   /* grows by whole cells with its type, as a button does */
     display: block;
     width: 100%;
     height: var(--input-draw);
@@ -2510,7 +2523,7 @@
     padding: var(--composer-pad-block) var(--composer-pad);
     border-radius: var(--composer-radius);
     background: var(--bg-raised);
-    box-shadow: inset 0 0 0 var(--line) var(--composer-edge);   /* an edge drawn, not laid out: a border snaps to device pixels */
+    box-shadow: inset 0 0 0 var(--line) var(--composer-edge);   /* an inset shadow, which takes no layout space; a border would snap to device pixels */
     cursor: text;
     transition: box-shadow var(--dur-out) var(--ease-in);
   }
@@ -2573,7 +2586,7 @@
   .tab {
     position: relative; flex: none;
     display: inline-flex; align-items: center; gap: var(--sp-h);
-    height: calc(var(--tab-h) + max(0px, round(up, calc(1em - var(--tab-h)), var(--u))));   /* never shorter than its own type */
+    height: calc(var(--tab-h) + max(0px, round(up, calc(1em - var(--tab-h)), var(--u))));   /* grows by whole cells with its type, as a button does */
     padding-inline: var(--tab-pad);
     border-radius: var(--tab-radius);
     color: var(--text-secondary);
@@ -2658,8 +2671,9 @@
     gap: var(--sp-1);
     min-width: 0;
   }
-  /* The row's fill on hover: drawn, not laid out, half the run gap above and
-     below and stepped out like a list row, so the rows of a run meet. */
+  /* The row's fill on hover, a positioned ::before that takes no layout space.
+     It reaches half the run gap above and below and steps out like a list
+     row, so the fills of a run's rows meet. */
   .chat-item::before {
     content: ""; position: absolute; z-index: -1;
     inset-block: calc(var(--chat-run-gap) / -2);
@@ -2881,7 +2895,7 @@
     --badge-ink: var(--white);
     --badge-h: var(--size-control-xs);
     display: inline-flex; align-items: center; justify-content: center; flex: none;
-    --badge-draw: calc(var(--badge-h) + max(0px, round(up, calc(1em - var(--badge-h)), var(--u))));   /* never shorter than its own type */
+    --badge-draw: calc(var(--badge-h) + max(0px, round(up, calc(1em - var(--badge-h)), var(--u))));   /* grows by whole cells with its type, as a button does */
     min-width: var(--badge-draw); height: var(--badge-draw);
     padding-inline: var(--sp-q);
     border-radius: var(--r-round);
@@ -3122,14 +3136,14 @@
   html:has(.modal[open]) { overflow: hidden; scrollbar-gutter: stable; }
 
   /* States ----------------------------------------------------------------
-     One relational layer for every control. Hover, press and selected mix the
-     control's own ink into its own fill, by a share (--state-hover, -press,
-     -selected), so the same rule works on a light fill, a solid one and none.
+     Every control uses the same state rules. Hover, press and selected mix a
+     share of the control's own ink into its own fill (--state-hover, -press,
+     -selected), which works on a light fill, a solid one or none.
      Each primitive paints color-mix(its ink calc(--state-on + --state-act),
      its fill). Hover only where a pointer can hover, so a tap never leaves it
      stuck. Selected keeps a mark of its own as well (a border, an edge, a
-     check, a solid tag, a tab's line), so it never looks merely hovered.
-     Disabled drops hover and press. Focus is the one global ring.
+     check, a solid tag, a tab's line), so it doesn't look merely hovered.
+     Disabled drops hover and press. Focus uses one shared ring everywhere.
      A control of your own takes the same layer with .u-state: set
      --state-fill and --state-ink on it, and every state follows. */
   @media (hover: hover) {

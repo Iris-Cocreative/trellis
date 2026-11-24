@@ -141,7 +141,7 @@
       });
       var fit = 6 - under.length - lands.length;
       var at = end === 'wide' ? 'At ' + num(state.rw) + ' H1 is ' + num(place(state), 2) + ' steps above body: '
-        : 'At ' + num(state.rn) + ' the steps are smaller and the places are the same: ';
+        : 'At ' + num(state.rn) + ' the ratio is smaller, but each heading is still the same number of steps above body: ';
       var a = !under.length && !lands.length ? at + 'all six headings are larger than body text.'
         : at + (fit === 1 ? 'only h1 is' : fit ? COUNT[fit] + ' headings are' : 'no heading is') + ' larger than body text' +
           (lands.length ? ', ' + words(lands) + ' lands on its size by the ratio' : '') +
@@ -161,8 +161,8 @@
     fill(scrub);
     drawGraph(s);
     var t = (s - state.sn) / (state.sw - state.sn);
-    say(where, (t < 0 ? 'Narrower than the narrow space, so every size holds at its narrow end.'
-      : t > 1 ? 'Wider than the wide space, so every size holds at its wide end.'
+    say(where, (t < 0 ? 'Narrower than the narrow space, so every size stays at its narrow value.'
+      : t > 1 ? 'Wider than the wide space, so every size stays at its wide value.'
       : Math.round(t * 100) + '% of the way from the narrow space to the wide one, and so is every size.') +
       (s * k > fit + .5 ? ' The box runs past this column; its type answers to its whole width.' : ''));
   }
@@ -353,7 +353,7 @@
   });
   one('[data-play-copy]').addEventListener('click', function (e) {
     var label = e.currentTarget.querySelector('.button-label');
-    if (navigator.clipboard) navigator.clipboard.writeText(exportText()).then(function () { label.textContent = 'Copied'; setTimeout(function () { label.textContent = 'Copy'; }, 1500); });
+    if (navigator.clipboard) navigator.clipboard.writeText(exportText()).then(function () { label.textContent = 'Copied'; setTimeout(function () { label.textContent = 'Copy CSS'; }, 1500); });
   });
   one('[data-play-save]').addEventListener('click', function () {
     var a = document.createElement('a');

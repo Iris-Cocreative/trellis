@@ -255,7 +255,7 @@
     if (sizes.h1 && sizes.h2) {
       var rcs = getComputedStyle(root);
       var narrow = +parseFloat(rcs.getPropertyValue('--rh-min')).toFixed(3), wide = +parseFloat(rcs.getPropertyValue('--rh-max')).toFixed(3);
-      document.getElementById('seed-r-note').textContent = 'On this page H1 is ' + (sizes.h1 / sizes.h2).toFixed(3) + ' times H2: the ratio opens from ' + narrow + ' in a narrow space to ' + wide + ' in a wide one.';
+      document.getElementById('seed-r-note').textContent = 'On this page H1 is ' + (sizes.h1 / sizes.h2).toFixed(3) + ' times H2: the ratio goes from ' + narrow + ' in a narrow space to ' + wide + ' in a wide one.';
     }
     document.querySelectorAll('[data-ctx-readout]').forEach(function (o) {
       var h = o.closest('.card').querySelector('.t-h3');

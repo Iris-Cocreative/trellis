@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Trellis</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 18 18%27%3E%3Crect x=%27.5%27 y=%27.5%27 width=%2717%27 height=%2717%27 rx=%274.5%27 fill=%27%23101111%27 stroke=%27%236aa5f5%27/%3E%3Cline x1=%27.5%27 y1=%2712.5%27 x2=%2717.5%27 y2=%2712.5%27 stroke=%27%236aa5f5%27/%3E%3Ccircle cx=%276%27 cy=%276%27 r=%272%27 fill=%27%23f4f4f2%27/%3E%3C/svg%3E">
-<meta name="description" content="Trellis: a CSS framework from a cell and a ratio, in context.">
+<meta name="description" content="Trellis is a CSS and HTML framework built on one spacing unit, the cell, and one type ratio. This page shows every part of it.">
 <link rel="stylesheet" href="core.css?v=0.10.14">
 <link rel="stylesheet" id="product-layer">
 <script>
@@ -92,7 +92,7 @@
         </div>
       </div>
       <div class="toggles" role="group" aria-label="Overlays">
-        <button class="switch" type="button" role="switch" aria-checked="false" data-toggle="outset"><span class="switch-label">Outset</span></button>
+        <button class="switch" type="button" role="switch" aria-checked="false" data-toggle="outset" title="Show where cards step out a cell"><span class="switch-label">Outset</span></button>
         <button class="button toggle" type="button" data-toggle="grid"><span class="dot cc-ring" aria-hidden="true"></span><span class="button-label">Grid</span></button>
         <button class="switch" type="button" role="switch" aria-checked="false" data-toggle="measure"><span class="switch-label">Measure</span></button>
         <button class="switch" type="button" role="switch" aria-checked="false" data-toggle="css"><span class="switch-label">CSS</span></button>
@@ -127,7 +127,7 @@
   <a class="toc-link" href="#context"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Context</span></a>
   <a class="toc-link" href="#organic"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Organic</span></a>
   <a class="toc-link" href="#free"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Free layouts</span></a>
-  <a class="toc-link" href="#keeping"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Keeping it</span></a>
+  <a class="toc-link" href="#keeping"><span class="dot cc-quiet" aria-hidden="true"></span><span class="toc-label">Checks</span></a>
 </nav>
 
 <main class="page frame" id="top" tabindex="-1">
@@ -141,10 +141,10 @@
       <hgroup class="hero-title stack">
         <h1 class="t-h1">Trellis</h1>
         <p class="t-h2 hero-tagline">Something to grow on.</p>
-        <p class="t-lg hero-sub">A measured CSS and HTML framework for agents and humans working together.</p>
+        <p class="t-lg hero-sub">A CSS and HTML framework for people and AI agents building interfaces together.</p>
       </hgroup>
     </div>
-    <p class="t-lg hero-lead">Trellis helps you grow a design system into a product. Choose a few things with care, and let everything else follow. It holds your core choices and lets them be expressed many ways without losing their harmony.</p>
+    <p class="t-lg hero-lead">You set a few values (the cell size, the type ratio, an accent color) and Trellis works out spacing, type sizes and colors from them. Each product changes those values to get its own look, and the markup stays the same.</p>
     <!-- The four pillars. Each card draws what it names, inside itself. A thread
          runs the channels between them: the two-cell gap has a cell line down
          its middle, and the thread keeps to it. hero.js draws all of it. -->
@@ -154,28 +154,28 @@
         <article class="card seed stack">
           <p class="t-label">Cells</p>
           <div class="seed-art sa-cells" aria-hidden="true" data-art="cells"><canvas class="sa-lattice" data-settle-skip></canvas><div class="sa-bento"><i style="--x: 0; --y: 0; --w: 4; --h: 4"></i><i style="--x: 5; --y: 0; --w: 2; --h: 1"></i><i style="--x: 5; --y: 2; --w: 2; --h: 2"></i><i style="--x: 8; --y: 0; --w: 3; --h: 4"></i><i style="--x: 12; --y: 0; --w: 1; --h: 2"></i><i style="--x: 0; --y: 5; --w: 2; --h: 3"></i><i style="--x: 3; --y: 5; --w: 5; --h: 2"></i><i style="--x: 9; --y: 5; --w: 2; --h: 2"></i><i style="--x: 12; --y: 3; --w: 1; --h: 4"></i><i style="--x: 3; --y: 8; --w: 1; --h: 1"></i><i style="--x: 5; --y: 8; --w: 3; --h: 1"></i><i style="--x: 9; --y: 8; --w: 4; --h: 1"></i></div><span class="sa-readout" data-art-readout>1 cell</span></div>
-          <p class="t-h5 seed-title">Space is counted</p>
-          <p class="t-sm muted">One measure for every gap, inset, control and corner. A thing is so many cells wide, and its neighbor so many cells away. Change the cell and everything made of cells follows: the screen sets it, and so does the reader.</p>
+          <p class="t-h5 seed-title">Spacing in cells</p>
+          <p class="t-sm muted">One measure for every gap, inset, control and corner. A thing is so many cells wide, and its neighbor so many cells away. The screen width and the reader's text size set the cell, and everything measured in cells resizes with it.</p>
           <p class="t-xs faint" id="seed-u-note">100 cells across this frame.</p>
         </article>
         <article class="card seed stack">
           <p class="t-label">Ratios</p>
           <div class="seed-art sa-ratio" aria-hidden="true" data-art="ratio"><div class="sa-lines"><span style="--n: 3">Harmony</span><span style="--n: 2">in sequence,</span><span style="--n: 1">each step the same</span><span style="--n: 0">ratio from the last.</span></div><span class="sa-readout" data-art-readout>&times; 1.333</span></div>
-          <p class="t-h5 seed-title">Type keeps a proportion</p>
-          <p class="t-sm muted">Each size is the one before it times a ratio, so headings and text hold one harmony however many there are. Open the ratio and the whole hierarchy opens with it; a narrow space closes it again.</p>
+          <p class="t-h5 seed-title">Type sizes from one ratio</p>
+          <p class="t-sm muted">Each size is the one before it times a ratio, so headings and text stay in proportion however many sizes there are. In a wide container the ratio is larger, so headings sit further apart in size. In a narrow one it shrinks.</p>
           <p class="t-xs faint" id="seed-r-note">The ratio between H1 and H2, here.</p>
         </article>
         <article class="card seed stack">
           <p class="t-label">Context</p>
           <div class="seed-art sa-context" aria-hidden="true" data-art="context"><div class="sa-window"><div class="sa-w-bar"><i></i><i></i><i></i></div><div class="sa-w-body"><div class="sa-w-side"><i></i><i></i><i></i></div><div class="sa-w-main"><div class="sa-tile"><b></b><i></i></div><div class="sa-tile"><b></b><i></i></div><div class="sa-tile"><b></b><i></i></div></div></div></div><span class="sa-readout" data-art-readout>14 cells</span></div>
-          <p class="t-h5 seed-title">Everything answers to its box</p>
+          <p class="t-h5 seed-title">Components size to their container</p>
           <p class="t-sm muted">A window is a box, and so is a card. Whatever sits inside can resize, rearrange or restyle itself for the space it is given, at any depth, and the markup never changes.</p>
         </article>
         <article class="card seed stack">
           <p class="t-label">Expression</p>
           <div class="seed-art sa-expression" aria-hidden="true" data-art="expression" data-look="neutral"><div class="sa-mock"><div class="sa-mock-head"><span class="avatar cc-sm cc-group">SL</span><div class="sa-mock-title"><b>Seed library</b><span>12 members</span></div></div><div class="cluster"><span class="tag cc-ok cc-sm"><span class="tag-label">Open</span></span><span class="button cc-primary cc-sm"><span class="button-label">Join</span></span></div></div><div class="sa-looks"><i></i><i></i><i></i><span class="sa-readout" data-art-readout>Neutral</span></div></div>
-          <p class="t-h5 seed-title">Many products, one seed</p>
-          <p class="t-sm muted">A product turns knobs (type, ratio, palette, shape, density) and never redraws a part. Each one looks like itself, and all of them still belong to the same family.</p>
+          <p class="t-h5 seed-title">One set of components, many products</p>
+          <p class="t-sm muted">A product sets variables for type, ratio, palette, shape and density, and uses the same components as every other product.</p>
         </article>
       </div>
     </div>
@@ -183,15 +183,13 @@
       <p class="t-eyebrow">What is Trellis?</p>
       <div class="cols rules">
         <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="17" r="2.5"/><circle cx="18" cy="7" r="2.5"/><path d="M8 15.4 16 8.6"/></svg><p class="t-label">Relational</p><p class="t-sm">Nothing has a value of its own. Sizes, spaces and colors are written as relationships to your core choices.</p></div>
-        <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13"/><path d="M14 5.5v13M14 13.5h6.5M17 13.5v5"/></svg><p class="t-label">Proportional</p><p class="t-sm">Cells that share one measure, and ratios that open with the space, make harmonies you can feel before you can name them.</p></div>
-        <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18V10M8 18v-4M12 18V6M16 18v-4M20 18v-8"/></svg><p class="t-label">Rhythmic</p><p class="t-sm">Blocks land on lines at regular intervals. You set the tempo and the reader can change it. Regularity is what lets the expressive dance off the page.</p></div>
-        <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6.5" width="13" height="10" rx="1"/><rect x="17.5" y="9.5" width="4" height="7" rx="1"/><path d="M6.5 19.5h5"/></svg><p class="t-label">Responsive</p><p class="t-sm">The grid answers to the screen, type flows to fit its container, and both follow the reader's settings, so your content reaches all eyes with equal care.</p></div>
+        <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13"/><path d="M14 5.5v13M14 13.5h6.5M17 13.5v5"/></svg><p class="t-label">Proportional</p><p class="t-sm">Spacing shares one unit and type shares one ratio, so sizes relate to each other in fixed steps.</p></div>
+        <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18V10M8 18v-4M12 18V6M16 18v-4M20 18v-8"/></svg><p class="t-label">Rhythmic</p><p class="t-sm">Blocks land on lines at regular intervals. You set the interval and the reader can change it.</p></div>
+        <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6.5" width="13" height="10" rx="1"/><rect x="17.5" y="9.5" width="4" height="7" rx="1"/><path d="M6.5 19.5h5"/></svg><p class="t-label">Responsive</p><p class="t-sm">The grid answers to the screen, type flows to fit its container, and both respect the reader's text size and reduced-motion settings.</p></div>
         <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17"/><path d="M3.5 12H12v8.5M3.5 16.25h4.25v4.25"/></svg><p class="t-label">Fractal</p><p class="t-sm">The same structure repeats at every scale. Any card can be the context for what it contains, so the markup never has to change.</p></div>
-        <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8h3M11 8h9.5M3.5 16h9.5M17.5 16h3"/><circle cx="8.75" cy="8" r="2.25"/><circle cx="15.25" cy="16" r="2.25"/></svg><p class="t-label">Tunable</p><p class="t-sm">Play with proportions and parameters until it feels right and works the way you need.</p></div>
-        <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6.5 3.5 12 8 17.5M16 6.5l4.5 5.5-4.5 5.5M10 12h4"/></svg><p class="t-label">Legible</p><p class="t-sm">On the surface and beneath it. Classes and markup are named to be read by people and by agents. A measured vocabulary makes a measured interface.</p></div>
+        <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6.5 3.5 12 8 17.5M16 6.5l4.5 5.5-4.5 5.5M10 12h4"/></svg><p class="t-label">Legible</p><p class="t-sm">Classes and markup are named to be read by people and by agents.</p></div>
         <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="4.5" width="15" height="15"/><path d="m8.5 12.3 2.4 2.4 4.6-5.2"/></svg><p class="t-label">Checkable</p><p class="t-sm">A test fails when an edge leaves its line.</p></div>
         <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="7.5" width="9" height="12" rx="1"/><path d="M12.5 12h8M17.5 9l3 3-3 3"/></svg><p class="t-label">Portable</p><p class="t-sm">One token file and one math module for every platform.</p></div>
-        <div class="rule stack"><svg class="icon rule-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9.5" cy="12" r="5.5"/><circle cx="14.5" cy="12" r="5.5"/></svg><p class="t-label">Collaborative</p><p class="t-sm">Shared roots and clear boundaries let many hands work at once.</p></div>
       </div>
     </div>
     <p class="t-sm muted hero-more">Use the bar above to switch theme and cell size, and turn on Measure to see every space on this page named in cells.</p>
@@ -202,7 +200,7 @@
     <header class="section-head stack">
       <p class="t-eyebrow">Elements</p>
       <h2 class="t-h4">Point, line, plane +</h2>
-      <p class="t-sm muted">Digital interfaces are made of points, lines and planes. On a screen, every pixel and every line is really a plane, however thin. Trellis is built on that understanding, and grows from it: screens are made of pixels, but the principles behind its choices are geometric. With depth and time, the plane extrudes into a solid, moves, and becomes another form by rule.</p>
+      <p class="t-sm muted">Digital interfaces are made of points, lines and planes. On a screen, every pixel and every line is really a plane, however thin. Trellis sizes things in those three geometric terms, even though the screen draws them in pixels. The demos below add depth and time: a solid, a motion and a transformation.</p>
     </header>
     <div class="section-body stack">
       <div class="plate" tabindex="0">
@@ -271,7 +269,7 @@
       </div>
       <div class="stack count-group">
         <h3 class="t-h6">Lines</h3>
-        <p class="t-sm muted">A line is not a count of cells. It is counted in pixels and never scales with the cell. It is a plane too, however thin: it takes the pixels just after its coordinate, so cells drawn with their edges need one line more than their count.</p>
+        <p class="t-sm muted">Lines are measured in pixels and don't change with the cell size. A line fills the pixels just after its coordinate, so a row of n cells drawn with borders takes n cells plus one line.</p>
         <div class="grid counts">
           <div class="count stack"><span class="stroke" aria-hidden="true"></span><p class="t-label">Line</p><span class="t-mono snap">--line</span><p class="t-sm muted">One CSS pixel, which is three device pixels on a 3× phone. Borders, rings, and the edges of the cells drawn here.</p></div>
           <div class="count stack"><span class="stroke cc-hair" aria-hidden="true"></span><p class="t-label">Hair</p><span class="t-mono snap">--hair</span><p class="t-sm muted">One device pixel, the thinnest mark a screen can make. The grid on this page, and the rule between rows. On a 1× screen it is the same as a line.</p></div>
@@ -290,7 +288,7 @@
           <div class="rods" role="img" aria-label="Rods of 1, 2, 3, 5, 8 and 13 cells"><span class="rod-of stack"><span class="rod" aria-hidden="true"><i></i></span><span class="t-mono snap" aria-hidden="true">1</span></span><span class="rod-of stack"><span class="rod" aria-hidden="true"><i></i><i></i></span><span class="t-mono snap" aria-hidden="true">2</span></span><span class="rod-of stack"><span class="rod" aria-hidden="true"><i></i><i></i><i></i></span><span class="t-mono snap" aria-hidden="true">3</span></span><span class="rod-of stack"><span class="rod" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span class="t-mono snap" aria-hidden="true">5</span></span><span class="rod-of stack"><span class="rod" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="t-mono snap" aria-hidden="true">8</span></span><span class="rod-of stack"><span class="rod" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="t-mono snap" aria-hidden="true">13</span></span></div>
           <p class="t-sm muted">Each count is the sum of the two before it, and each step comes closer to 1.618. It is the natural partner of a golden type ratio: margins, gaps and type then share one proportion.</p>
         </div>
-        <p class="t-sm">Trellis enforces neither. Any whole count is on the grid. Much of the art is knowing when to count and when to use a ratio.</p>
+        <p class="t-sm">Trellis enforces neither. Any whole count is on the grid.</p>
       </div>
     </div>
   </section>
@@ -303,10 +301,10 @@
   <section class="section cc-split" id="ratio">
     <header class="section-head stack">
       <p class="t-eyebrow">The ratio</p>
-      <h2 class="t-h4">Type grows with its space</h2>
-      <p class="t-sm muted">One ratio measures type. Headings step down from H1 by it, and none comes out smaller than body text: one the ratio would put under it takes body's size. The text sizes step out from body by half a step, its square root. Every size has two ends, one in a narrow space and one in a wide one, and runs in a straight line between them.</p>
+      <h2 class="t-h4">The type scale and its ratio</h2>
+      <p class="t-sm muted">One ratio measures type. Headings step down from H1 by it, and none comes out smaller than body text: one the ratio would put under it takes body's size. The text sizes step out from body by half a step, its square root. Each size has one value for a narrow container and one for a wide container, and scales linearly between them.</p>
       <p class="t-sm muted">A narrow space shrinks the step and keeps every role's place: H1 sits as many steps above body there as in a wide space, so the hierarchy compresses without losing its shape.</p>
-      <p class="t-sm muted">Seven values set all of it: three sizes, two ratios and two spaces. Drag them, or start from a named ratio. Everything else is worked out, and shown beside its sum. The two columns of samples are set by the ratio alone, each line on its own line height, so a size moves as its slider does; on a page the same roles stand and hang on the cells, as the box under the graph shows.</p>
+      <p class="t-sm muted">Seven values set all of it: three sizes, two ratios and two spaces. Drag them, or start from a named ratio. Everything else is worked out, and shown beside its sum. The two columns of samples are set by the ratio alone, each line on its own line height, so a size moves as its slider does; on a real page, headlines snap to the cell lines and smaller text hangs from them, as the box under the graph shows.</p>
     </header>
     <div class="section-body stack">
       <div class="play stack" data-play>
@@ -370,7 +368,7 @@
         <div class="stack play-export">
           <h3 class="t-h6">The product layer</h3>
           <pre class="code cc-wrap settle" data-play-export tabindex="0"></pre>
-          <div class="cluster"><button class="button cc-sm cc-primary" type="button" data-play-save><span class="button-label">Save product.css</span></button><button class="button cc-sm" type="button" data-play-copy><span class="button-label">Copy</span></button></div>
+          <div class="cluster"><button class="button cc-sm cc-primary" type="button" data-play-save><span class="button-label">Save product.css</span></button><button class="button cc-sm" type="button" data-play-copy><span class="button-label">Copy CSS</span></button></div>
           <p class="t-xs faint">One <code>:root[data-product]</code> rule in <code>@layer trellis.product</code>, the shape <code>tests/contract.js</code> checks: the seven values, as the knobs core reads. Core works the other five out the same way, <code>--rp-min</code>, <code>--rp-max</code>, <code>--body-min</code>, <code>--h1-min</code> and <code>--label-min</code>, and a product may set any of them in its place.</p>
         </div>
       </div>
@@ -415,8 +413,8 @@
   <section class="section cc-split" id="type-cell">
     <header class="section-head stack">
       <p class="t-eyebrow">Type on the cell</p>
-      <h2 class="t-h4">Headlines stand, text hangs</h2>
-      <p class="t-sm muted">The cell is the only line on the page. Headlines are large enough to be seen keeping it: their line height rounds to whole cells and every baseline lands on a cell line. Smaller text runs on its own proportional line, which reads better than any grid could make it. It hangs from a cell line by the top of its capitals, and its block rounds up to whole cells, so whatever comes next starts on a line.</p>
+      <h2 class="t-h4">How headlines and text sit on the cells</h2>
+      <p class="t-sm muted">Headlines are big enough that a reader notices whether they line up, so their line height rounds to whole cells and each baseline sits on a cell line. Smaller text runs on its own proportional line, which reads better than any grid could make it. It hangs from a cell line by the top of its capitals, and its block rounds up to whole cells, so whatever comes next starts on a line.</p>
     </header>
     <div class="section-body stack">
       <div class="plate" tabindex="0">
@@ -459,13 +457,13 @@
   <section class="section cc-split" id="color">
     <header class="section-head stack">
       <p class="t-eyebrow">Color</p>
-      <h2 class="t-h4">One seed, and every color follows</h2>
+      <h2 class="t-h4">Color seeds and roles</h2>
       <p class="t-sm muted">A product chooses one seed, the accent, in its light form. The others follow from it, the neutral, a seed for each kind, one for each status and one for each of seven stages, and a product may set any of them in its place. Every role is a seed at a lightness, written with relative colors, so one declaration carries both themes, and the dark theme lifts each hue by <code>--color-lift</code>. The ink on a fill is computed from the fill. Everything else is a mix of a role into a ground.</p>
     </header>
     <div class="section-body stack">
       <div class="stack color-part pal" id="palette" data-pal>
         <h3 class="t-h6">Start from one color</h3>
-        <p class="t-sm muted">How few colors does a palette need? One. Choose an accent. Core turns it around the wheel for the five kinds, a fifth apart; the three statuses keep their own hues and take its strength; the neutral takes a trace of its hue. Each takes the accent's lightness, kept clear of where ink flips from white to dark, so its ink reads at 4.5:1 at any hue, and no more chroma than sRGB holds there. Every role in both themes then follows as before. Even and The accent are core's own rule. The other harmonies and neutrals go past it, and are written out as seeds of their own.</p>
+        <p class="t-sm muted">You can start a palette from the accent alone. Core turns it around the wheel for the five kinds, a fifth apart; the three statuses keep their own hues and take its strength; the neutral takes a trace of its hue. Each takes the accent's lightness, kept clear of where ink flips from white to dark, so its ink reads at 4.5:1 at any hue, and no more chroma than sRGB holds there. Every role in both themes then follows as before. Core handles the Even harmony and the accent-hued neutral itself. The other harmonies and neutrals write out their own seeds.</p>
         <div class="pal-top">
           <div class="pal-wheel-box"><canvas class="pal-wheel" data-pal-wheel data-settle-skip role="img" aria-label="The hue wheel: the accent and the kinds placed from it. Drag the accent around the wheel."></canvas></div>
           <div class="stack pal-controls">
@@ -498,12 +496,12 @@
             <div class="stack"><div class="pal-shadow" data-pal-shadow="2"></div><p class="t-xs faint">Half a cell down, two cells of blur.</p></div>
             <div class="stack"><div class="pal-shadow" data-pal-shadow="3"></div><p class="t-xs faint">A cell down, four cells of blur.</p></div>
           </div>
-          <p class="t-xs faint">A shadow is the ink at a low share, tinted toward the accent's opposite, as light does: offsets and blurs are cells, doubling. Depth still never depends on one (rule 21).</p>
+          <p class="t-xs faint">A shadow is the ink at a low share, tinted toward the accent's opposite, as light does: offsets and blurs are cells, doubling. Depth never depends on a shadow (<a href="https://github.com/Iris-Cocreative/trellis/blob/main/README.md#rules">rule 21</a>); surfaces also step in tone.</p>
         </div>
         <div class="stack pal-part">
           <h4 class="t-label">The seeds, for a product layer</h4>
           <pre class="code cc-wrap settle" data-pal-export tabindex="0"></pre>
-          <div class="cluster"><button class="switch" type="button" role="switch" aria-checked="false" data-pal-whole><span class="switch-label">Apply to the whole page</span></button><button class="button cc-sm" type="button" data-pal-copy><span class="button-label">Copy</span></button><button class="button cc-sm" type="button" data-pal-reset><span class="button-label">Reset</span></button></div>
+          <div class="cluster"><button class="switch" type="button" role="switch" aria-checked="false" data-pal-whole><span class="switch-label">Apply to the whole page</span></button><button class="button cc-sm" type="button" data-pal-copy><span class="button-label">Copy CSS</span></button><button class="button cc-sm" type="button" data-pal-reset><span class="button-label">Reset</span></button></div>
         </div>
       </div>
       <div class="stack color-part">
@@ -641,7 +639,7 @@
     <header class="section-head stack">
       <p class="t-eyebrow">Layout</p>
       <h2 class="t-h4">Page, section, composition, surface, element</h2>
-      <p class="t-sm muted">Five levels, each with a few named parts. A page holds sections; a section holds compositions; a composition arranges surfaces and elements. Every part starts on the cells, spaces blocks in whole cells and asks its container, not the window, how much room it has. A unique design changes variables at any level; it doesn't invent a sixth.</p>
+      <p class="t-sm muted">Five levels, each with a few named parts. A page holds sections; a section holds compositions; a composition arranges surfaces and elements. Every part starts on the cells, spaces blocks in whole cells and asks its container, not the window, how much room it has. A custom design changes variables at any of these five levels rather than adding a new one.</p>
     </header>
     <div class="section-body stack">
       <div class="plate" tabindex="0">
@@ -675,7 +673,7 @@
           <div class="m-block cc-d"></div><div class="m-block cc-e"></div><div class="m-block cc-f"></div><div class="m-block cc-g"></div>
         </div>
       </div>
-      <p class="t-xs faint">.cells: seven planes placed by <code>--cell-x</code>, <code>--cell-y</code>, <code>--cell-w</code> and <code>--cell-h</code>, in a few proportions with the empty field doing work. In a narrow container a query re-places them; nothing is in pixels.</p>
+      <p class="t-xs faint">.cells: seven planes placed by <code>--cell-x</code>, <code>--cell-y</code>, <code>--cell-w</code> and <code>--cell-h</code>, in a few proportions, with empty space as part of the composition. In a narrow container a query re-places them; nothing is in pixels.</p>
       <div class="rail" tabindex="0" role="group" aria-label="A rail of cards" style="--rail-item: calc(var(--u) * 18)">
         <article class="card stack"><p class="t-label faint">Gathering</p><p class="t-sm">Thursday circle</p><p class="t-xs faint">Seed Library</p></article>
         <article class="card stack"><p class="t-label faint">Course</p><p class="t-sm">Pattern design, part 2</p><p class="t-xs faint">6 sessions</p></article>
@@ -1002,7 +1000,7 @@
   <section class="section cc-split" id="surfaces">
     <header class="section-head stack">
       <p class="t-eyebrow">Surfaces on surfaces</p>
-      <h2 class="t-h4">Depth is the ground</h2>
+      <h2 class="t-h4">Nesting surfaces, up to three levels</h2>
       <p class="t-sm muted">A surface inside a surface takes the next step of the neutral ladder, not a shadow: in light it steps back toward the page, in dark it steps lighter. Three levels, then it stops. A nested surface draws no edge of its own, pads a cell, and keeps a cell from the surface around it; corners nest concentric. Rows in a group share one surface, their rules starting at the text. A tray over a tray lets the one behind peek by two cells.</p>
     </header>
     <div class="section-body stack">
@@ -1072,8 +1070,8 @@
   <section class="section cc-split" id="presets">
     <header class="section-head stack">
       <p class="t-eyebrow">Interaction presets</p>
-      <h2 class="t-h4">Seven, each asked for by name</h2>
-      <p class="t-sm muted">Each preset is off until an element asks for it with a data attribute. Fade and press are CSS alone; the rest need presets.js, the one optional file beside settle.js. Under reduced motion each still works and nothing travels.</p>
+      <h2 class="t-h4">Seven opt-in interaction presets</h2>
+      <p class="t-sm muted">Each preset is off until an element asks for it with a data attribute. Fade and press are CSS alone; the rest need presets.js, the one optional file beside settle.js. With reduced motion on, each preset still works but nothing slides or moves.</p>
     </header>
     <div class="section-body stack">
       <h3 class="t-h5">data-trellis-fade</h3>
@@ -1090,7 +1088,7 @@
       <p class="t-xs faint">The edges fade only where there is more to see: none at the start, then both, then none at the end.</p>
 
       <h3 class="t-h5">data-trellis-glow, data-trellis-reveal</h3>
-      <div class="scroll-pane stack" id="demo-glow" data-trellis-glow="all" data-trellis-reveal tabindex="0" role="region" aria-label="A field with a glow and a scrollbar that shows while it scrolls"><p class="t-sm">Touch the field and drag: a light follows the finger.</p><p class="t-sm">Its scrollbar shows while it scrolls, then steps away.</p><p class="t-sm">The light is the field's own background, so nothing in it moves.</p><p class="t-sm">With a mouse it lights too, since this one says "all".</p><p class="t-sm">Sow after the last frost, an inch deep.</p><p class="t-sm">Thin to a foot apart once the true leaves show.</p><p class="t-sm">Save from the best plants, never the first to bolt.</p></div>
+      <div class="scroll-pane stack" id="demo-glow" data-trellis-glow="all" data-trellis-reveal tabindex="0" role="region" aria-label="A field with a glow and a scrollbar that shows while it scrolls"><p class="t-sm">Touch the field and drag: a light follows the finger.</p><p class="t-sm">Its scrollbar shows while you scroll, then hides.</p><p class="t-sm">The light is the field's own background, so nothing in it moves.</p><p class="t-sm">This one sets data-trellis-glow="all", so it lights up under a mouse too.</p><p class="t-sm">Sow after the last frost, an inch deep.</p><p class="t-sm">Thin to a foot apart once the true leaves show.</p><p class="t-sm">Save from the best plants, never the first to bolt.</p></div>
 
       <h3 class="t-h5">data-trellis-press</h3>
       <div class="cluster">
@@ -1112,14 +1110,14 @@
       <h3 class="t-h5">data-trellis-share</h3>
       <div class="split" id="demo-share" style="--split-a: 1; --split-b: 2">
         <div class="stack" id="demo-share-shelf"><button class="card stack demo-share-card" type="button" data-trellis-share="demo-seed" aria-pressed="false"><p class="t-label">Glass Gem</p><p class="t-xs faint">Press to move it</p></button></div>
-        <div class="stack" id="demo-share-stage"><p class="t-xs faint">It carries across the change, where the browser can.</p></div>
+        <div class="stack" id="demo-share-stage"><p class="t-xs faint">It animates to its new place with a view transition, in browsers that support one.</p></div>
       </div>
     </div>
     <dialog class="modal cc-tray cc-bottom" id="demo-detents" data-trellis-detents="half full" aria-labelledby="demo-detents-title">
       <div class="modal-inner">
         <div class="modal-grabber" aria-hidden="true"></div>
         <header class="modal-header"><h3 class="t-h5" id="demo-detents-title">Half, then full</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg></button></header>
-        <div class="modal-body"><p class="t-sm">It opens at half the screen. Drag the grabber up for full, down to close.</p><p class="t-sm">Touch the field and drag: a light follows the finger.</p><p class="t-sm">Its scrollbar shows while it scrolls, then steps away.</p><p class="t-sm">The light is the field's own background, so nothing in it moves.</p><p class="t-sm">With a mouse it lights too, since this one says "all".</p><p class="t-sm">Sow after the last frost, an inch deep.</p><p class="t-sm">Thin to a foot apart once the true leaves show.</p><p class="t-sm">Save from the best plants, never the first to bolt.</p></div>
+        <div class="modal-body"><p class="t-sm">It opens at half the screen. Drag the grabber up for full, down to close.</p><p class="t-sm">Sow after the last frost, an inch deep.</p><p class="t-sm">Thin to a foot apart once the true leaves show.</p><p class="t-sm">Save from the best plants, never the first to bolt.</p></div>
         <footer class="modal-footer"><button class="button cc-primary" type="button" data-close-modal><span class="button-label">Done</span></button></footer>
       </div>
     </dialog>
@@ -1131,13 +1129,13 @@
       <div class="cover-media"><img class="ph" style="--ph: var(--kind-group); --ph-to: var(--warn); --ph-from: 40%" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'/%3E" alt="A gradient standing in for a photograph"></div>
       <div class="cover-body">
         <p class="t-label">A post type, worked through</p>
-        <h2 class="t-h1">An article, with a cover and its people</h2>
+        <h2 class="t-h1">An article with a cover, related posts and comments</h2>
         <p class="t-lg">A <code class="t-mono">.cover</code>, then a <code class="t-mono">.split</code> holding <code class="t-mono">.prose</code> and a <code class="t-mono">.list</code> of related posts, then a <code class="t-mono">.list</code> of comments. No layout here that isn't one of those.</p>
       </div>
     </div>
     <div class="split post-type-body">
       <article class="prose">
-        <p>The cover is the part people remember, and it reaches the screen's edges. The words don't: they stay in the field, on the same left edge as everything below them.</p>
+        <p>The cover image runs to the screen's edges. Its text stays in the field, on the same left edge as everything below it.</p>
         <p>The article is plain <code>.prose</code>. It knows nothing about the cover above it or the related posts beside it, so the same content can appear in a feed, an email or a course without changing.</p>
         <h2>Why the sidebar is a list</h2>
         <p>Because a related post, a comment and a chat are the same thing to the grid: a row with something at its start, words in the middle and something at its end.</p>
@@ -1165,7 +1163,7 @@
     <header class="section-head stack">
       <p class="t-eyebrow">Primitives</p>
       <h2 class="t-h4">Fields, tabs, chat, tiles, modal</h2>
-      <p class="t-sm muted">Same discipline as the tag: one archetype, and every variant only changes its variables.</p>
+      <p class="t-sm muted">Like the tag, each primitive has one base class, and its variants only change variables.</p>
     </header>
     <div class="section-body stack">
       <h3 class="t-h5">.field and .input</h3>
@@ -1382,7 +1380,7 @@
   <section class="section cc-split" id="avatars">
     <header class="section-head stack">
       <p class="t-eyebrow">Edges</p>
-      <h2 class="t-h4">Photo on the cells, halo in the gutter</h2>
+      <h2 class="t-h4">Box edges, shown on the avatar</h2>
       <p class="t-sm muted">A box's edges land on lines, or a hairline or quarter unit off them. A box centered on a line is then an even size. A box pinned to something else, like the edge of the screen, takes whatever size lands its free edge on a line. The avatar shows it best: the photo is whole cells, and its gap and ring are drawn outside it by the same geometry, so they stay even all the way round.</p>
     </header>
     <div class="section-body stack">
@@ -1431,7 +1429,7 @@
   <section class="section cc-split" id="tags">
     <header class="section-head stack">
       <p class="t-eyebrow">Tags</p>
-      <h2 class="t-h4">One archetype, many branches</h2>
+      <h2 class="t-h4">One tag class, set by variables</h2>
       <p class="t-sm muted">A tag is a height; a corner; padding equal to the corner, so the label starts where the curve ends; a hairline edge and a tint mixed from one kind color; and a label trimmed to its capitals so it centers exactly. Kinds, emphases, sizes, states and contexts change those variables and nothing else. Load the Quarry example to watch pills become squared, uppercase labels.</p>
     </header>
     <div class="section-body stack">
@@ -1474,7 +1472,7 @@
         </div>
       </div>
       <div class="stack color-part">
-        <h3 class="t-h6">Where it centers (rule 9)</h3>
+        <h3 class="t-h6">Where it centers (<a href="https://github.com/Iris-Cocreative/trellis/blob/main/README.md#rules">rule 9</a>)</h3>
         <div class="icon-rows stack">
           <div class="icon-row"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg><span class="lbl cc-cap">SEEDS 12</span></div>
           <div class="icon-row"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg><span class="lbl cc-ex">seeds and swaps</span></div>
@@ -1487,7 +1485,7 @@
           <div class="icon-row cc-tall"><svg class="icon cc-lg-demo" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg><span class="lbl cc-ex">the row grows to its icon: two cells</span></div>
           <div class="icon-row cc-given"><svg class="icon cc-lg-demo" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg><span class="lbl cc-ex">the icon gives its overhang back: the row keeps one cell</span></div>
         </div>
-        <p class="t-xs faint">A two-cell icon beside one line of text. Either is on the cells; the component chooses (D68).</p>
+        <p class="t-xs faint">A two-cell icon beside one line of text. Either is on the cells; the component chooses (<a href="https://github.com/Iris-Cocreative/trellis/blob/main/docs/decisions/D68.md">D68</a>).</p>
       </div>
       <div class="stack color-part">
         <h3 class="t-h6">Stroke</h3>
@@ -1504,7 +1502,7 @@
   <section class="section cc-split" id="floating">
     <header class="section-head stack">
       <p class="t-eyebrow">Floating surfaces</p>
-      <h2 class="t-h4">One surface, anchored</h2>
+      <h2 class="t-h4">Popovers, menus and tooltips</h2>
       <p class="t-sm muted">Every popover, menu and tooltip is the same surface with different variables. It opens in the browser's top layer, follows its anchor and closes when the anchor scrolls out of view. Without that, one menu follows its button out of the card, one is clipped inside it, and the rest drift when anything scrolls.</p>
     </header>
     <div class="section-body stack">
@@ -1555,8 +1553,8 @@
   <section class="section cc-split" id="scrollbars">
     <header class="section-head stack">
       <p class="t-eyebrow">Scrollbars</p>
-      <h2 class="t-h4">One scrollbar, branched</h2>
-      <p class="t-sm muted">Every scroll area uses one archetype: a width, a thumb, a track. A variant changes one variable and lives in the core, so the next large pane reuses the thick bar instead of inventing another. The archetype can be redesigned later in one place.</p>
+      <h2 class="t-h4">The scrollbar and its two variants</h2>
+      <p class="t-sm muted">Every scroll area uses one archetype: a width, a thumb, a track. Each variant changes one variable and is defined in core, so a new large pane uses <code>.cc-scroll-thick</code> rather than a new style. The archetype can be redesigned later in one place.</p>
     </header>
     <div class="section-body stack">
       <div class="cols scrollers">
@@ -1603,15 +1601,15 @@
   <section class="section cc-split" id="organic">
     <header class="section-head stack">
       <p class="t-eyebrow">Organic</p>
-      <h2 class="t-h4">Grow from the grid</h2>
-      <p class="t-sm muted">A community map, a constellation of people, a field of work and a web of relationships don't sit on a grid, and shouldn't. Their rules branch from the same seed. Positions may be free or sit on a lattice; sizes, strokes and labels still come from the cell: counts of cells, and the line. This lattice slopes 2:1, so every lattice point is also a cell corner: the square grid is included, not left behind.</p>
+      <h2 class="t-h4">Maps and constellations on the lattice</h2>
+      <p class="t-sm muted">A community map, a constellation of people, a field of work and a web of relationships don't sit on the square grid. Their positions can be free or on a lattice, but sizes, strokes and labels still come from the cell: counts of cells, and the line. This lattice slopes 2:1, so every lattice point is also a cell corner, and the square grid is part of it.</p>
     </header>
     <div class="section-body stack">
       <div class="plate organic" tabindex="0"><svg id="organic-art" role="img" aria-label="A constellation of groups and people placed on a 2:1 isometric lattice"></svg></div>
       <div class="cols masters">
         <div class="master stack"><p class="t-label">Kandinsky</p><p class="t-sm">Point, line, plane. The dot and hairline, the edge of a cell, the surface. Every mark is one of the three.</p></div>
-        <div class="master stack"><p class="t-label">Mondrian</p><p class="t-sm">A few proportions in asymmetric balance, with the empty field doing work. Columns favor 1:2 over equal halves; space is a component, not leftovers.</p></div>
-        <div class="master stack"><p class="t-label">Frank Lloyd Wright</p><p class="t-sm">The unit system: plans drawn on one module, the whole grown from the part. Organic means part and whole share one principle. That's u.</p></div>
+        <div class="master stack"><p class="t-label">Mondrian</p><p class="t-sm">A few proportions in asymmetric balance, with empty space as part of the composition. Columns favor 1:2 over equal halves, and empty space is planned like any other part.</p></div>
+        <div class="master stack"><p class="t-label">Frank Lloyd Wright</p><p class="t-sm">The unit system: plans drawn on one module, the whole grown from the part. Organic means part and whole share one principle. In Trellis that module is the cell, <code>--u</code>.</p></div>
         <div class="master stack"><p class="t-label">Buckminster Fuller</p><p class="t-sm">Triangulation and growth by frequency. The isometric lattice for maps and constellations; detail added by more of the same part, never by new numbers.</p></div>
         <div class="master stack"><p class="t-label">Christopher Alexander</p><p class="t-sm">Levels of scale, strong centers, boundaries. Neighboring sizes differ by about two, every element has a center, and a boundary, like a ring or a border, is proportional to what it bounds.</p></div>
       </div>
@@ -1622,8 +1620,8 @@
   <section class="section cc-split" id="free">
     <header class="section-head stack">
       <p class="t-eyebrow">Free layouts</p>
-      <h2 class="t-h4">Free, flowing, moving, and still on the cells</h2>
-      <p class="t-sm muted">Open, animated and organic layouts stay on the trellis by six rules. Each will get a demonstration of its own; the solids at the top of the page are the first, and the drawing above is the second.</p>
+      <h2 class="t-h4">Six rules for free and animated layouts</h2>
+      <p class="t-sm muted">These six rules keep open, animated and organic layouts on the cells. Each will get a demonstration of its own; the solids at the top of the page are the first, and the drawing above is the second.</p>
     </header>
     <div class="section-body stack">
       <div class="cols rules">
@@ -1640,15 +1638,15 @@
   <!-- ============================================================ KEEPING -->
   <section class="section cc-split" id="keeping">
     <header class="section-head stack">
-      <p class="t-eyebrow">Keeping it</p>
-      <h2 class="t-h4">Rules a machine checks</h2>
-      <p class="t-sm muted">An interface drifts when nothing stops the drift. Each of these is meant to fail the build, so a person or an agent hears about it before review. The tests in tests/ run in CI today; the rest come as lints, and until then these five are the pull request checklist.</p>
+      <p class="t-eyebrow">Checks</p>
+      <h2 class="t-h4">Rules the build checks</h2>
+      <p class="t-sm muted">Each rule below is meant to fail the build, so a person or an agent hears about it before review. The tests in tests/ run in CI today; the rest come as lints, and until then these five are the pull request checklist.</p>
     </header>
     <div class="section-body stack">
       <div class="checks stack">
         <div class="check"><svg class="icon" viewBox="0 0 18 18"><path d="M4 9.5 7.5 13 14 5.5"></path></svg><p class="t-body"><b>No raw values.</b> A color, size, space, radius, shadow or z-index outside the token layer fails.</p></div>
         <div class="check"><svg class="icon" viewBox="0 0 18 18"><path d="M4 9.5 7.5 13 14 5.5"></path></svg><p class="t-body"><b>Edges land on lines.</b> A test checks every headline's baseline, every text block's top and every box's edges against the cells, in Chrome and in WebKit; a pixel test checks card edges against their grid lines' device pixels.</p></div>
-        <div class="check"><svg class="icon" viewBox="0 0 18 18"><path d="M4 9.5 7.5 13 14 5.5"></path></svg><p class="t-body"><b>Every class is registered.</b> A class the stylesheet doesn't define, or the style guide doesn't show, fails. That stops a new avatar before it starts.</p></div>
+        <div class="check"><svg class="icon" viewBox="0 0 18 18"><path d="M4 9.5 7.5 13 14 5.5"></path></svg><p class="t-body"><b>Every class is registered.</b> A class the stylesheet doesn't define, or the style guide doesn't show, fails. So a one-off avatar style can't be added without registering it.</p></div>
         <div class="check"><svg class="icon" viewBox="0 0 18 18"><path d="M4 9.5 7.5 13 14 5.5"></path></svg><p class="t-body"><b>Products turn knobs.</b> A product layer may only set variables on the root. Variants and contexts set the primitive's own variables.</p></div>
         <div class="check"><svg class="icon" viewBox="0 0 18 18"><path d="M4 9.5 7.5 13 14 5.5"></path></svg><p class="t-body"><b>Inline styles set variables only.</b> <code class="t-mono">style="--face: var(--kind-person)"</code> passes; <code class="t-mono">style="padding: 13px"</code> fails.</p></div>
       </div>
