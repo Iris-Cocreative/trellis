@@ -586,7 +586,7 @@ const ready = require('./ready');
     host.style.cssText = `position:absolute;top:0;left:0;width:${u * 46}px`;
     host.innerHTML = '<div class="grid cc-fill" style="--grid-min:var(--sp-16)"><div class="card">a</div><div class="card">b</div></div>' +
       '<div class="grid" style="--grid-min:var(--sp-16)"><div class="card">a</div><div class="card">b</div></div>' +
-      '<div class="stack" style="width:' + (u * 20) + 'px"><button class="button cc-block" type="button"><span class="button-label">Send</span></button><button class="button" type="button"><span class="button-label">Send</span></button></div>' +
+      '<div class="block-test" style="width:' + (u * 20) + 'px"><button class="button cc-block" type="button"><span class="button-label">Send</span></button><button class="button" type="button"><span class="button-label">Send</span></button></div>' +
       '<span class="tag" style="--tag-edge-style:dashed"><span class="tag-label">Soon</span></span><span class="tag"><span class="tag-label">Here</span></span>' +
       '<select class="input" style="--chevron-color:rgb(255, 0, 0)"><option>One</option></select>' +
       '<div class="card" style="--surface:rgb(0, 128, 0)">ground</div>';
@@ -600,14 +600,14 @@ const ready = require('./ready');
     if (Math.abs(gutter) > .5 || Math.abs(end) > .5) fails.push(`.grid.cc-fill: its cards start ${gutter.toFixed(1)}px and end ${end.toFixed(1)}px from its edges`);
     if (Math.abs(box(fill).right - box(plain).right) > .5) fails.push('.grid.cc-fill: not the same box as a plain grid');
     if (box(plain).right - pc[1].right < u) fails.push('a plain .grid now stretches its tracks');
-    const [block, btn] = host.querySelectorAll('.stack .button');
+    const [block, btn] = host.querySelectorAll('.block-test .button');
     if (Math.abs(box(block).width - u * 20) > .5) fails.push(`.button.cc-block is ${box(block).width.toFixed(1)}px in a ${u * 20}px column`);
     if (box(btn).width > u * 10) fails.push('a plain button stretched in a column');
     const [dashed, solid] = host.querySelectorAll('.tag');
     if (getComputedStyle(dashed).borderTopStyle !== 'dashed') fails.push('--tag-edge-style: dashed does not reach the tag: ' + getComputedStyle(dashed).borderTopStyle);
     if (getComputedStyle(solid).borderTopStyle !== 'solid') fails.push("a tag's edge is not solid by default");
     if (!/255, 0, 0/.test(getComputedStyle(host.querySelector('select')).backgroundImage)) fails.push("--chevron-color does not reach a select's chevron");
-    if (getComputedStyle(host.querySelector('.stack ~ .card')).backgroundColor !== 'rgb(0, 128, 0)') fails.push("--surface on a top-level card is not its ground");
+    if (getComputedStyle(host.querySelector('.block-test ~ .card')).backgroundColor !== 'rgb(0, 128, 0)') fails.push("--surface on a top-level card is not its ground");
     host.remove();
     // A frame that is a grid of cards: centered, inside the screen, and the knob moves its widest.
     const f = document.createElement('div'); f.className = 'grid frame'; f.innerHTML = '<div class="card">a</div><div class="card">b</div>';
