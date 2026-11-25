@@ -1139,7 +1139,7 @@ const ready = require('./ready');
       const pair = (id, cls, attrs) => `<input class="input ${cls}" id="${id}-plain" aria-label="${id}" ${attrs}>` + box(id, icon, attrs, '', cls);
       const sel = '<option>One</option><option>Two</option>';
       const all = p => box(p + 'icon', icon, 'value="Words"', '') + box(p + 'unit', unit('H'), 'value="H"', unit('a month')) + box(p + 'long', unit('https://'), 'value="Words"', unit('USD'))
-        + box(p + 'search', icon, 'type="search" value="Words"', btn()) + box(p + 'lead', btn(), 'value="Words"', '') + box(p + 'two', icon, 'value="Words"', unit('%') + btn())
+        + box(p + 'search', icon, 'type="search" value="Words"', btn()) + box(p + 'lead', btn(), 'value="Words"', '') + box(p + 'over', unit('a unit far longer than its room'), 'value="Words"', '') + box(p + 'two', icon, 'value="Words"', unit('a unit') + btn())
         + box(p + 'text', '', 'value="Words"', '<button class="button cc-ghost" type="button"><span class="button-label">Show it</span></button>');
       host.innerHTML = pair('sl-rest', '', 'value="Words"') + pair('sl-sm', 'cc-sm', 'value="Words"') + pair('sl-lg', 'cc-lg', 'value="Words"')
         + pair('sl-off', '', 'value="Words" disabled') + pair('sl-ro', '', 'value="Words" readonly') + pair('sl-bad', '', 'value="Words" aria-invalid="true"') + `<div class="field">${box('sl-asked', icon, 'value="Words" aria-invalid="true"', '')}<p class="field-hint t-xs" id="sl-hint">A hint</p></div><div class="input cc-slots" id="sl-cut" style="--input-unit: 20em">${unit('https://a-long-address.example.org/with/a/path/of/its/own/')}<input class="input-control" aria-label="Cut" value="Words"></div>`

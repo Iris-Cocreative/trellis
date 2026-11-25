@@ -2648,14 +2648,14 @@
      under the slots to the box's edges (padding to its words, a negative
      margin back out), so a click on a unit or an icon is a click on the field
      and a browser's autofill fills the whole box; its words, a number's
-     spinner and a search's clear button stay between the slots. A slot's
-     width is only how far it runs, so a long unit moves the words and never
-     meets them. A select takes a start slot; its end is its chevron. A
+     spinner and a search's clear button stay between the slots. A unit is as
+     wide as its words, up to --input-unit and half the box, which is how far
+     the control runs under it, so it never ends short of the edge. A select takes a start slot; its end is its chevron. A
      textarea takes none: controls round lines of text are the composer.
      Markup: .field > label.field-label + .input.cc-slots > .icon or .input-unit
      or .button.icon-button, .input-control, then the same at the end. */
   .input.cc-slots {
-    --input-unit: 4em;   /* how far the control runs under a unit: as long as the unit, or more */
+    --input-unit: 6em;   /* a unit's longest, and how far the control runs under one */
     --input-slot-ink: var(--text-secondary);
     --input-inset: calc(var(--input-pad) - var(--line));
     --input-slot: calc(max(var(--input-h), var(--input-hit)) - var(--sp-h));
@@ -2665,7 +2665,7 @@
   }
   .input.cc-slots > :not(.input-control) { flex: none; z-index: 1; }
   .input.cc-slots > :is(.icon, .input-unit) { color: var(--input-slot-ink); pointer-events: none; }
-  .input-unit { max-inline-size: 50%; overflow-x: clip; white-space: nowrap; text-overflow: ellipsis; }
+  .input-unit { max-inline-size: min(50%, var(--input-unit, 6em)); overflow-x: clip; white-space: nowrap; text-overflow: ellipsis; }
   .input.cc-slots > .button {
     --btn-h: var(--input-slot); --btn-fs: var(--fs-control-sm);
     --btn-radius: max(var(--r-q), calc(var(--input-radius) - var(--sp-q)));
@@ -2694,8 +2694,8 @@
   .input-control:has(+ .input-unit) { --control-end: calc(var(--input-inset) + var(--input-unit) + var(--sp-h)); }
   .button + .input-control { --control-start: calc(var(--sp-q) - var(--line) + var(--input-slot) + var(--sp-h)); }
   .input-control:has(+ .button) { --control-end: calc(var(--sp-q) - var(--line) + var(--input-slot) + var(--sp-h)); }
-  .input-control:has(+ .button:not(.icon-button)), .input-control:has(+ * + *) { --control-end: calc(var(--input-inset) + var(--input-slot) + var(--input-unit)); }
-  .button:not(.icon-button) + .input-control, * + * + .input-control { --control-start: calc(var(--input-inset) + var(--input-slot) + var(--input-unit)); }
+  .input-control:has(+ .button:not(.icon-button)), .input-control:has(+ * + *) { --control-end: calc(var(--input-inset) + var(--input-slot) + var(--input-unit) + var(--sp-1)); }
+  .button:not(.icon-button) + .input-control, * + * + .input-control { --control-start: calc(var(--input-inset) + var(--input-slot) + var(--input-unit) + var(--sp-1)); }
   .input-control::placeholder { color: var(--text-tertiary); opacity: 1; }
   .input-control:focus-visible { outline: none; }
   .input.cc-slots:has(> .input-control:focus-visible) { outline: calc(var(--line) * 2) solid var(--focus); outline-offset: var(--line); }
