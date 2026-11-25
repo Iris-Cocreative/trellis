@@ -4,7 +4,8 @@
 // every card's edge pure red on black, screenshots it, and checks that each
 // edge starts on the device pixel its coordinate rounds to (half up), which
 // is where the grid canvas draws that line, and that it is 3 device pixels
-// (one CSS pixel) wide.
+// (one CSS pixel) wide. A card that is a choice and lit (D116) draws an edge two
+// lines thick over the card's own: 6 pixels, whose outer 3 are the grid line's.
 // Usage: node pixel.js <url> [WxH] [webkit] [dial]
 // Needs Playwright (PLAYWRIGHT=module path; CHROME=a Chrome binary for Chromium).
 // Exits 1 if any edge is off. Run it in WebKit: that is what an iPhone draws
@@ -22,7 +23,7 @@ const ready = require('./ready');
   const decoder = await browser.newPage();
   await page.addInitScript(d => localStorage.setItem('trellis', JSON.stringify({ dial: d, grid: false })), +dial);
   await page.goto(url, { waitUntil: 'networkidle', timeout: 120000 });
-  await page.addStyleTag({ content: '.card::after{border-color:#f00 !important} .card{background:#000 !important} *{transition:none !important}' });
+  await page.addStyleTag({ content: '.card::after{border-color:#f00 !important} .card{background:#000 !important} *{transition:none !important} .card-choice::before{border-color:#f00 !important} .card-choice::after{background:none !important}' });
   await ready(page);
 
   const red = p => p[0] > 200 && p[1] < 60 && p[2] < 60;
@@ -36,6 +37,7 @@ const ready = require('./ready');
     await page.waitForTimeout(120);
     const r = await cards[i].evaluate(e => { const b = e.getBoundingClientRect(); return { l: b.left, t: b.top, r: b.right, b: b.bottom }; });
     if (r.t < 0 || r.b > h || r.r - r.l < 4) continue;   // taller than the screen: its edges are checked where they show
+    const lit = await cards[i].evaluate(e => { const c = e.querySelector('.card-choice'); return !!c && c.closest('.card') === e && parseFloat(getComputedStyle(c, '::before').borderTopWidth) > 0; });
     const png = (await page.screenshot()).toString('base64');
     const exp = { L: R0(r.l), R: R0(r.r), T: R0(r.t), B: R0(r.b) };
     const ym = R0((r.t + r.b) / 2), xm = R0(r.l * .6 + r.r * .4);
@@ -54,9 +56,11 @@ const ready = require('./ready');
     for (const k of Object.keys(runs)) {
       const first = runs[k].findIndex(red);
       let width = 0; if (first >= 0) while (first + width < 13 && red(runs[k][first + width])) width++;
-      res[k] = first < 0 ? 'none' : (first - 6) + (width === 3 ? '' : ` (${width}dp wide)`);
+      // Where the edge starts, and how wide it is: a lit edge runs a line further in from the right and the bottom.
+      const from = lit && (k === 'R' || k === 'B') ? -3 : 0, wide = lit ? 6 : 3;
+      res[k] = first < 0 ? 'none' : (first - 6 - from) + (width === wide ? '' : ` (${width}dp wide)`);
       checked++;
-      if (first - 6 !== 0 || width !== 3) off++;
+      if (first - 6 !== from || width !== wide) off++;
     }
     if (process.env.VERBOSE || Object.values(res).some(v => v !== '0')) console.log(`  card ${i}`, JSON.stringify(res));
   }

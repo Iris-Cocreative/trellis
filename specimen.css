@@ -166,6 +166,8 @@
 
   .demo-fields { --cols: 2; }
   @container page (width < 576px) { .demo-fields { --cols: 1; } }
+  .demo-choice-cards { --cols: 2; --grid-min: calc(var(--u) * 18); }
+  @container page (width < 576px) { .demo-choice-cards { --cols: 1; } }
   .demo-inputs > .input { flex: 1 1 calc(var(--u) * 14); min-width: 0; }
   .demo-chat { --stack-gap: var(--sp-2); }
   /* A thread: replies step in by the width of a face and its gap; the
