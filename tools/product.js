@@ -9,7 +9,10 @@
      knobs      it sets variables only, and only those product.template.css lists
      contrast   every text role, the accent and its ink, each status as a line,
                 each stage's ink and a solid kind's ink meet their floors
-                (WCAG AA), in both themes, for the root and for every scope
+                (WCAG AA), in both themes, for the root and for every scope.
+                A scope whose rule names the dark theme in its selector,
+                [data-product="part"][data-theme="dark"], never applies by day,
+                so it is held to its floors at night alone (D114)
 
      node tools/product.js <product.css> ...      report, exit 1 if any fails
      npx trellis-product <product.css> ...         the same, from an installed package
@@ -42,6 +45,7 @@ const FLOORS = [['text', 'bg', 4.5], ['text', 'bg-raised', 4.5], ['text', 'bg-su
   // A stage's ink is for words and for a ring's line (D107): text, on the page and every raised
   // level, whatever color the product gave the stage. Its fill has no floor: it may be pale.
   ...[1, 2, 3, 4, 5, 6, 7].flatMap((n) => GROUNDS.map((g) => [`stage-${n}-ink`, g, 4.5]))];
+const THEMES = ['light', 'dark'];
 const SOLIDS = ['kind-person', 'kind-group', 'kind-event', 'kind-course', 'kind-topic', 'ok', 'warn', 'alert'];
 
 // The shape and the knobs. Returns the failures and the knobs the layer sets.
@@ -51,12 +55,13 @@ function shape(css, label, knobs = template()) {
   const rules = (body0.match(/[^{}]+\{/g) || []).map((r) => r.trim().replace(/\s*\{$/, ''));
   // One product: a :root[data-product] rule, and any scopes it brings (D96), each
   // a [data-product] rule, all in @layer trellis.product. Or a file of scopes alone.
-  if (!(rules.length >= 2 && /^@layer trellis\.product$/.test(rules[0]) && rules.slice(1).every((r) => /^(:root)?\[data-product="[a-z-]+"\]$/.test(r))
+  // A scope that is always dark says so in its selector (D114); a root can't be one.
+  if (!(rules.length >= 2 && /^@layer trellis\.product$/.test(rules[0]) && rules.slice(1).every((r) => /^(:root\[data-product="[a-z-]+"\]|\[data-product="[a-z-]+"\](\[data-theme="dark"\])?)$/.test(r))
     && rules.slice(2).every((r) => !r.startsWith(':root'))))
     fails.push(`${label} must be a :root[data-product] rule and [data-product] scopes in @layer trellis.product; found: ${rules.join(' | ') || 'no rules'}`);
   const at = body0.indexOf('@layer');
   const body = at < 0 ? body0 : body0.slice(body0.indexOf('{', at) + 1);
-  const notVar = body.replace(/(?::root)?\[data-product="[a-z-]+"\]\s*\{/g, '').replace(/--[a-z][a-z0-9-]*\s*:[^;]+;/g, '').replace(/[\s}]/g, '');
+  const notVar = body.replace(/(?::root)?\[data-product="[a-z-]+"\](?:\[data-theme="dark"\])?\s*\{/g, '').replace(/--[a-z][a-z0-9-]*\s*:[^;]+;/g, '').replace(/[\s}]/g, '');
   if (notVar) fails.push(`${label} sets something other than a variable: ${notVar.slice(0, 60)}`);
   for (const [k, v] of decl(body)) {
     sets.set(k, v);
@@ -66,12 +71,15 @@ function shape(css, label, knobs = template()) {
 }
 
 // Each scope of a layer, the root first: [what to call it, the scope's name or
-// null for the root, its seed]. A file with scopes is checked once per scope: the
-// root's seeds, then the scope's over them, as M.scope() and core.css both have it (D96).
+// null for the root, its seed, the themes it can be seen in]. A file with scopes is
+// checked once per scope: the root's seeds, then the scope's over them, as M.scope() and
+// core.css both have it (D96). A rule for [data-product="x"][data-theme="dark"] matches
+// only an element that is dark, and core makes such an element dark whatever the page is,
+// so by day it is never seen; a plain rule for the same scope is under it (D114).
 function scopesOf(css, label, fails = []) {
   css = stripComments(normalize(css));
   const base = JSON.parse(JSON.stringify(M.SEED));
-  const blocks = [...css.matchAll(/((?::root)?\[data-product="([a-z-]+)"\])\s*\{([^}]*)\}/g)];
+  const blocks = [...css.matchAll(/((?::root)?\[data-product="([a-z-]+)"\](\[data-theme="dark"\])?)\s*\{([^}]*)\}/g)];
   const seedsOf = (body) => {
     const out = {};
     // A seed a layer sets is that color; one it leaves, or leaves as the
@@ -83,7 +91,7 @@ function scopesOf(css, label, fails = []) {
     return out;
   };
   const rootBlock = blocks.find((b) => b[1].startsWith(':root'));
-  const rootBody = rootBlock ? rootBlock[3] : '';
+  const rootBody = rootBlock ? rootBlock[4] : '';
   const lift = rootBody.match(/--color-lift\s*:\s*([\d.]+)/), flip = rootBody.match(/--ink-flip\s*:\s*([\d.]+)/);
   if (lift) base.color.lift = +lift[1];
   if (flip) base.color.flip = +flip[1];
@@ -92,20 +100,24 @@ function scopesOf(css, label, fails = []) {
   if (nightOf(rootBody) !== undefined) base.color.nightLift = nightOf(rootBody);
   if (dayOf(rootBody) !== undefined) base.color.dayDepth = dayOf(rootBody);
   const rootSeeds = rootBlock ? seedsOf(rootBody) : {}, out = [];
-  if (rootBlock) out.push([label, null, M.scope(base, rootSeeds)]);
+  if (rootBlock) out.push([label, null, M.scope(base, rootSeeds), THEMES]);
   for (const b of blocks.filter((x) => x !== rootBlock)) {
-    const sc = M.scope(base, rootSeeds, seedsOf(b[3]));
-    if (nightOf(b[3]) !== undefined) sc.color.nightLift = nightOf(b[3]);
-    if (dayOf(b[3]) !== undefined) sc.color.dayDepth = dayOf(b[3]);
-    out.push([`${label} [data-product="${b[2]}"]`, b[2], sc]);
+    const under = b[3] ? blocks.filter((x) => x !== rootBlock && !x[3] && x[2] === b[2]).map((x) => x[4]) : [];
+    const bodies = [...under, b[4]];
+    const sc = M.scope(base, rootSeeds, ...bodies.map(seedsOf));
+    for (const body of bodies) {
+      if (nightOf(body) !== undefined) sc.color.nightLift = nightOf(body);
+      if (dayOf(body) !== undefined) sc.color.dayDepth = dayOf(body);
+    }
+    out.push([`${label} ${b[1]}`, b[2], sc, b[3] ? ['dark'] : THEMES]);
   }
   return out;
 }
 
-// Contrast for one seed, in both themes.
-function contrast(label, seed) {
+// Contrast for one seed, in both themes, or in the ones scopesOf() says it is seen in.
+function contrast(label, seed, themes = THEMES) {
   const fails = [];
-  for (const theme of ['light', 'dark']) {
+  for (const theme of themes) {
     const p = M.palette(theme, seed);
     for (const [ink, ground, floor] of FLOORS) {
       const r = M.contrast(p[ink], p[ground]);
@@ -123,7 +135,7 @@ function contrast(label, seed) {
 // Everything a product owns: shape, knobs, and contrast on every scope.
 function validate(css, label = 'product layer', knobs = template()) {
   const { fails, sets } = shape(css, label, knobs);
-  for (const [scope, , seed] of scopesOf(css, label, fails)) fails.push(...contrast(scope, seed));
+  for (const [scope, , seed, themes] of scopesOf(css, label, fails)) fails.push(...contrast(scope, seed, themes));
   return { fails, sets };
 }
 
@@ -138,8 +150,8 @@ if (require.main === module) {
     let css;
     try { css = fs.readFileSync(f, 'utf8'); } catch (e) { console.log(`${f}: can't read it (${e.code || e.message})`); failed++; continue; }
     const { fails, sets } = validate(css, f, knobs);
-    const n = scopesOf(css, f).length;
-    console.log(`${f}: ${sets.size} knobs, ${n} ${n === 1 ? 'scope' : 'scopes'} · ${fails.length ? fails.length + ' FAILED' : 'ok'}`);
+    const all = scopesOf(css, f), n = all.length, night = all.filter((s) => s[3].length === 1).length;
+    console.log(`${f}: ${sets.size} knobs, ${n} ${n === 1 ? 'scope' : 'scopes'}${night ? ` (${night} always dark, so checked at night alone)` : ''} · ${fails.length ? fails.length + ' FAILED' : 'ok'}`);
     fails.forEach((x) => console.log('  ' + x));
     if (fails.length) failed++;
   }

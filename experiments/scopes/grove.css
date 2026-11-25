@@ -5,7 +5,7 @@
    that sets only what makes it itself. Seeds from that platform's own
    colors, in OKLCH (2026-11-17).
    Since D96 core does this itself; this file is just a product layer, and
-   tests/contract.js checks it: node tests/contract.js experiments/scopes/grove.css
+   tests/contract.js checks it with the examples, on every run.
    ========================================================================== */
 @layer trellis.product {
   /* The ecosystem: linen paper, forest ink, a forest accent; Halant over Geist; a calm ratio. */
@@ -30,8 +30,9 @@
     --shape-card: var(--r-q);
   }
 
-  /* The lodge: night teal and bone, evening gold. Night by nature (data-theme="dark" on the scope). */
-  [data-product="lodge"] {
+  /* The lodge: night teal and bone, evening gold. Night by nature, so its rule asks for data-theme="dark"
+     beside its name and is checked at night alone (D114). */
+  [data-product="lodge"][data-theme="dark"] {
     --seed-accent: oklch(.634 .112 82.1);
     --seed-ground: oklch(.55 .028 231.5);
     --seed-ink: oklch(.55 .013 82.4);
@@ -39,7 +40,8 @@
     --rh-max: 1.414;
   }
 
-  /* The lantern room: shared by every community, moonlit; it carries the ecosystem's type and only changes its light. */
+  /* The lantern room: shared by every community, moonlit; it carries the ecosystem's type and only changes its
+     light. The study shows it at night, but its colors hold by day too, so it doesn't ask for the dark. */
   [data-product="lantern"] {
     --seed-accent: oklch(.62 .035 120);
     --seed-ground: oklch(.55 .017 152.4);

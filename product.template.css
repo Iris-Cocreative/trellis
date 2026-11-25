@@ -18,7 +18,9 @@
    element with data-product="part" (a community, a section, a mood). What the
    root set carries in; what the scope sets is its own; every role follows
    again from the scope's seeds. Add data-theme to the element to make it
-   night on a day page, or the reverse.
+   night on a day page, or the reverse. A scope that is always dark asks for it
+   in its rule, [data-product="part"][data-theme="dark"], and its contrast is
+   checked at night alone (D114).
    ========================================================================== */
 @layer trellis.product {
   :root[data-product="yours"] {

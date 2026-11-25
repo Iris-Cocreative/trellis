@@ -107,13 +107,14 @@ const stripComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
 const knobsIn = (css) => new Map([...css.matchAll(/(--[a-z][a-z0-9-]*)\s*:\s*([^;]+);/g)].map((m) => [m[1], m[2].trim()]));
 const TEMPLATE = knobsIn(stripComments(fs.readFileSync(path.join(root, 'product.template.css'), 'utf8')));
 // A layer is its :root[data-product] rule and any scopes after it, each a
-// [data-product] rule (D96), as tests/contract.js reads them. A scope is the
+// [data-product] rule (D96), or [data-product][data-theme="dark"] where it is
+// always dark (D114), as tests/contract.js reads them. A scope is the
 // template, then the root's knobs, then its own: a choice the root made
 // carries in, and what nobody set follows again from the scope's own values.
 const title = (name) => name.split('-').map((w) => w[0].toUpperCase() + w.slice(1)).join(' ');
 const PRODUCTS = [{ mode: 'Core', knobs: TEMPLATE }].concat(LAYERS.flatMap((file) => {
   const rel = path.relative(root, file).replace(/\\/g, '/');
-  const blocks = [...stripComments(fs.readFileSync(file, 'utf8')).matchAll(/((?::root)?\[data-product="([a-z-]+)"\])\s*\{([^}]*)\}/g)];
+  const blocks = [...stripComments(fs.readFileSync(file, 'utf8')).matchAll(/((?::root)?\[data-product="([a-z-]+)"\](?:\[data-theme="dark"\])?)\s*\{([^}]*)\}/g)];
   const top = blocks.find((b) => b[1].startsWith(':root')), base = new Map([...TEMPLATE, ...(top ? knobsIn(top[3]) : [])]);
   const name = top ? title(top[2]) : title(path.basename(file, '.css'));
   return (top ? [{ mode: name, file: rel, knobs: base }] : []).concat(blocks.filter((b) => b !== top).map((b) =>

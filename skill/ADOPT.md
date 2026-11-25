@@ -41,7 +41,7 @@ Three checks while sorting:
 
 ## 4. Turn section grounds into scopes
 
-A section with its own ground (a "room", a band, a mood) becomes a scope: `data-product="part"` plus `data-theme` when it flips day or night. It gets a `[data-product="part"]` rule of knobs in the product file. The brand site's plaster and stone rooms became light scopes on a dark page. Never re-declare roles to recolor a section.
+A section with its own ground (a "room", a band, a mood) becomes a scope: `data-product="part"` plus `data-theme` when it flips day or night. It gets a `[data-product="part"]` rule of knobs in the product file; one that is always dark gets `[data-product="part"][data-theme="dark"]`, and the contrast check skips its light theme. The brand site's plaster and stone rooms became light scopes on a dark page. Never re-declare roles to recolor a section.
 
 ## 5. Switch in one step
 

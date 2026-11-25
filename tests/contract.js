@@ -5,7 +5,8 @@
 //   every variable that section names exists in core.css
 //   every layer in core.css is named there
 //   products turn knobs: a product layer is one :root rule of variables. Every
-//     layer in examples/ is checked, and so is any path given as an argument:
+//     layer in examples/ is checked, the scopes study's (experiments/scopes/grove.css),
+//     and so is any path given as an argument:
 //     node contract.js ../my-app/product.css
 //   every knob a product sets is in product.template.css, and exists in core
 //   every template default matches core's
@@ -49,7 +50,8 @@ check(!core.match(/@layer\s+(reset|tokens|theme|base|layout|primitives|product|u
 const P = require('../tools/product.js');
 const EXAMPLES = fs.readdirSync(path.join(dir, 'examples')).filter(f => f.endsWith('.css')).map(f => 'examples/' + f);
 check(EXAMPLES.length >= 2, 'examples/ needs at least two product layers: they are what proves knobs can reshape everything');
-const PRODUCTS = [...EXAMPLES, ...process.argv.slice(2).map(f => path.resolve(f))];
+// The scopes study's layer is the one with scopes, one of them always dark (D114).
+const PRODUCTS = [...EXAMPLES, 'experiments/scopes/grove.css', ...process.argv.slice(2).map(f => path.resolve(f))];
 const decl = s => [...s.matchAll(/(--[a-z][a-z0-9-]*)\s*:\s*([^;]+);/g)].map(m => [m[1], m[2].replace(/\s+/g, ' ').trim()]);
 for (const f of PRODUCTS) fails.push(...P.shape(read(f), f).fails);
 
@@ -188,7 +190,7 @@ check(JSON.stringify(fromTokens.color) === JSON.stringify(M.SEED.color), "math.j
 // arithmetic core.css uses (the floors are tools/product.js's).
 const layersToCheck = [[null, 'core', M.SEED]];
 const scopesOf = f => P.scopesOf(read(f), f, fails);
-for (const f of PRODUCTS) for (const [label, , seed] of scopesOf(f)) layersToCheck.push([f, label, seed]);
+for (const f of PRODUCTS) for (const [label, , seed, themes] of scopesOf(f)) layersToCheck.push([f, label, seed, themes]);
 // The Figma file's products (tools/figma-variables.js): core and every scope of
 // every layer it reads is a Product mode (D96), and each mode's colors, night,
 // dusk and paper included (D97, D98), are the ones this file composes and checks.
@@ -209,7 +211,27 @@ for (const f of PRODUCTS) for (const [label, , seed] of scopesOf(f)) layersToChe
     }
   }
 }
-for (const [, f, seed] of layersToCheck) fails.push(...P.contrast(f, seed));
+for (const [, f, seed, themes] of layersToCheck) fails.push(...P.contrast(f, seed, themes));
+// A scope that is always dark says so in its selector, and only then is the day skipped (D114).
+{
+  // A night scope's colors: a status, as a line, is under its floor by day and over it at night.
+  const night = '--seed-accent: oklch(.634 .112 82.1); --seed-ground: oklch(.55 .028 231.5);';
+  const layer = (selector, knobs, more = '') => `@layer trellis.product { :root[data-product="p"] { --seed-accent: oklch(.333 .063 134.2); } ${more} ${selector} { ${knobs} } }`;
+  const themesOf = (css) => [...new Set(P.validate(css, 'p').fails.filter((x) => x.startsWith('contrast:')).map((x) => / (light|dark): /.exec(x)[1]))].join(' ');
+  const bad = '--seed-accent-night: oklch(.3 .02 90);';   // too dark for the night's page
+  check(themesOf(layer('[data-product="x"]', night)) === 'light', 'product.js: a scope that does not say it is dark must be held to its floors by day');
+  check(P.validate(layer('[data-product="x"][data-theme="dark"]', night), 'p').fails.length === 0, 'product.js: a scope that is always dark must not be held to its floors by day');
+  check(themesOf(layer('[data-product="x"][data-theme="dark"]', night + bad)) === 'dark', 'product.js: a scope that is always dark must be held to its floors at night');
+  check(themesOf(layer('[data-product="x"][data-theme="dark"]', '--shape-card: var(--r-1);', `[data-product="x"] { ${night} }`)) === 'light', "product.js: a scope's plain rule must be held to its floors in both themes, with a dark rule beside it");
+  check(P.validate(layer('[data-product="x"][data-theme="dark"]', '--seed-accent-night: oklch(.8 .1 90);', `[data-product="x"] { --seed-ground: oklch(.55 .028 231.5); ${bad} }`), 'p').fails.filter((x) => x.includes('[data-theme="dark"]')).length === 0, "product.js: a dark rule's own seeds must win over its plain rule's");
+  check(P.validate(layer('[data-product="x"][data-theme="dark"]', '--shape-card: var(--r-1);', `[data-product="x"] { ${bad} }`), 'p').fails.some((x) => x.includes('[data-theme="dark"]')), "product.js: a dark rule must stand on its plain rule's seeds");
+  check(P.validate(read('experiments/scopes/grove.css').replaceAll('[data-theme="dark"] {', ' {'), 'grove').fails.length > 0, 'grove.css: without its selector the lodge must be held to its floors by day');
+  // Not a way out: a light rule, a root rule or anything else in the selector is no scope.
+  for (const s of ['[data-product="x"][data-theme="light"]', ':root[data-product="x"][data-theme="dark"]', '[data-product="x"].cc-dark'])
+    check(P.shape(layer(s, night), 'p').fails.length > 0, `product.js: ${s} must not be taken for a scope`);
+  // What makes it true: core draws that element in the dark theme, whatever the page's.
+  check(/\[data-product\]\[data-theme="dark"\]:not\(:root\)\s*\{\s*color-scheme: dark;/.test(core), 'core.css: an element with data-product and data-theme="dark" must be dark whatever the page is');
+}
 // One seed (D90). Whatever accent a product chooses, inside sRGB, the seeds that
 // follow from it carry an ink that reads, in both themes, and those whose ink
 // is white are inside sRGB themselves.
