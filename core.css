@@ -215,8 +215,8 @@
     --seed-accent: oklch(.553 .166 258.4);
     --color-lift: .17;   /* how much lighter a hue is in the dark theme */
     --ink-flip: .58;   /* ink on a fill: white below this lightness, dark above it */
-    --day-depth: 0;   /* how much darker every ground and edge is by day: 0 is white paper, higher is a beige paper */
-    --night-lift: 0;   /* how much lighter every ground and edge is at night: 0 is core's night, higher is lighter, like dusk */
+    --day-depth: 0;   /* how much darker every ground and edge is by day: 0 is white paper, higher is a beige paper; never under 0 */
+    --night-lift: 0;   /* how much lighter every ground and edge is at night: 0 is core's night, higher is lighter, like dusk, and down to -.025 is a deeper night */
     --gradient-space: oklch;   /* the space gradients interpolate in */
     --gradient-turn: 40;   /* degrees the accent gradient turns its hue */
   }
@@ -303,6 +303,17 @@
     --gradient-accent: in var(--gradient-space), var(--accent), oklch(from var(--accent) l c calc(h + var(--gradient-turn)));
     --gradient-surface: in var(--gradient-space), var(--bg-raised), var(--bg-sunken);
   }
+
+  /* A product's own colors (D117): --seed-own-gold and any other a layer names. An element that takes one as its
+     --seed has its roles, worked out as a stage's are: a fill, an ink that reads as text in both themes, a tint,
+     and a solid fill (the fill, clear of the ink flip) with the ink that reads on it. No element, no cost. */
+  .u-seed, .tag.cc-seed, .dot.cc-seed {
+    --seeded: light-dark(var(--seed, var(--seed-accent)), oklch(from var(--seed, var(--seed-accent)) max(l, min(l + var(--color-lift), .61 + var(--color-lift))) calc(c * min(1, (1 - max(l, min(l + var(--color-lift), .61 + var(--color-lift)))) / max(1 - l, .001))) h));
+    --seeded-ink: light-dark(oklch(from var(--seed, var(--seed-accent)) min(l, .48) calc(c * min(1, .48 / max(l, .001))) h), oklch(from var(--seed, var(--seed-accent)) max(l, .76) calc(c * min(1, (1 - max(l, .76)) / max(1 - l, .001))) h));
+    --seeded-tint: color-mix(in oklab, var(--seeded) 14%, transparent);
+    --seeded-solid: oklch(from var(--seeded) calc((1 - clamp(0, (l - var(--ink-flip)) * 100000, 1)) * min(l, .54) + clamp(0, (l - var(--ink-flip)) * 100000, 1) * max(l, .62)) calc(c * min(1, ((1 - clamp(0, (l - var(--ink-flip)) * 100000, 1)) * min(l, .54) + clamp(0, (l - var(--ink-flip)) * 100000, 1) * max(l, .62)) / max(l, .001), (1 - ((1 - clamp(0, (l - var(--ink-flip)) * 100000, 1)) * min(l, .54) + clamp(0, (l - var(--ink-flip)) * 100000, 1) * max(l, .62))) / max(1 - l, .001))) h);
+    --seeded-solid-ink: oklch(from var(--seeded-solid) clamp(.16, (var(--ink-flip) - l) * 1000, 1) calc(clamp(0, (l - var(--ink-flip)) * 1000, 1) * c * .3) h);
+  }
   /* Without relative colors: core's palette, resolved by math.js. */
   @supports not (color: oklch(from red l c h)) {
     :root {
@@ -347,6 +358,7 @@
       --gradient-accent: in oklab, var(--accent), var(--accent);
       --gradient-surface: in oklab, var(--bg-raised), var(--bg-sunken);
     }
+    .u-seed, .tag.cc-seed, .dot.cc-seed { --seeded: var(--seed, var(--accent)); --seeded-ink: var(--text); --seeded-solid: var(--text); --seeded-solid-ink: var(--bg); }
   }
 }
 /* tokens:end */
@@ -2022,6 +2034,10 @@
   .tag.cc-stage-5 { --tag-color: var(--stage-5); }
   .tag.cc-stage-6 { --tag-color: var(--stage-6); }
   .tag.cc-stage-7 { --tag-color: var(--stage-7); }
+  /* A color of the product's own (D117): --seed names it on the tag or round it. Solid or selected, the fill is the
+     one a label reads on, whatever the color. */
+  .tag.cc-seed { --tag-color: var(--seeded); }
+  .tag.cc-seed:is(.cc-solid, [aria-pressed="true"], [aria-current]:not([aria-current="false"])) { --tag-color: var(--seeded-solid); }
   /* emphasis */
   .tag.cc-outline { --tag-fill: 0%; }
   .tag.cc-solid, .tag:is([aria-pressed="true"], [aria-current]:not([aria-current="false"])) {
@@ -3005,6 +3021,9 @@
   .dot.cc-ring.cc-stage-5 { --dot-color: var(--stage-5-ink); }
   .dot.cc-ring.cc-stage-6 { --dot-color: var(--stage-6-ink); }
   .dot.cc-ring.cc-stage-7 { --dot-color: var(--stage-7-ink); }
+  /* The same of a color of the product's own (.cc-seed, D117). */
+  .dot.cc-seed { --dot-color: var(--seeded); }
+  .dot.cc-ring.cc-seed { --dot-color: var(--seeded-ink); }
 
   /* Skeleton: a surface's real structure, shimmering, while its data is on its
      way. A text slot keeps its role, so its block settles to the same cells and

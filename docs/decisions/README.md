@@ -126,3 +126,4 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D112](D112.md) | A bubble holds typed text, or prose, and both keep their shape | 2026-11-24 | accepted |
 | [D113](D113.md) | Padding clears the corner | 2026-11-24 | accepted |
 | [D114](D114.md) | A scope that is always dark says so in its selector | 2026-11-24 | accepted |
+| [D117](D117.md) | A product's own colors, named by it and derived where they are used; and a night deeper than core's | 2026-11-24 | accepted |

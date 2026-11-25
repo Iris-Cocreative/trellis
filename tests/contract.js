@@ -279,6 +279,86 @@ for (const [, f, seed, themes] of layersToCheck) fails.push(...P.contrast(f, see
   }
   check(sn > 1500, `stages: only ${sn} seeds were checked`);
   check(lowInk[0] >= 4.5, `stages: the ink of a stage seeded oklch(${lowInk.slice(3).map(x => +x.toFixed(2)).join(' ')}) is ${lowInk[0].toFixed(2)}:1 on --${lowInk[2]} in ${lowInk[1]}, under 4.5`);
+  // A product's own colors (D117). Whatever color a product names, anywhere in sRGB, black and
+  // white included: its ink is text on core's page and every raised level, a label reads on
+  // its solid fill, on its tint over the page and the first two raised levels its ink is text too,
+  // and its solid fill is its fill but for a small step, and inside sRGB, near enough.
+  {
+    const low = { ink: [99], solid: [99], tint: [99] }, most = [0, 0];
+    const gamma = x => x <= 0.0031308 ? 12.92 * x : 1.055 * x ** (1 / 2.4) - 0.055, lin = x => x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+    const hexOf = c => [1, 3, 5].map(i => parseInt(M.hex(c).slice(i, i + 2), 16) / 255), lumOf = c => 0.2126 * lin(c[0]) + 0.7152 * lin(c[1]) + 0.0722 * lin(c[2]);
+    let n = 0;
+    for (let l = 0; l <= 1.0001; l += 0.02) for (let c = 0; c <= 0.321; c += 0.04) for (let h = 0; h < 360; h += 10) {
+      if (!inside([l, c, h])) continue;
+      n++;
+      const seed = JSON.parse(JSON.stringify(M.SEED)); seed.color.seeds['own-any'] = [l, c, h];
+      for (const theme of ['light', 'dark']) {
+        const p = M.palette(theme, seed), at = [theme, l, c, h], fill = hexOf(p['own-any']);
+        for (const g of ['bg', 'bg-raised', 'bg-raised-2', 'bg-raised-3']) { const r = M.contrast(p['own-any-ink'], p[g]); if (r < low.ink[0]) low.ink = [r, g, ...at]; }
+        for (const g of ['bg', 'bg-raised', 'bg-raised-2']) {
+          const ground = hexOf(p[g]), a = lumOf(fill.map((x, i) => x * M.SEED.color.stage.tint + ground[i] * (1 - M.SEED.color.stage.tint))), b = lumOf(hexOf(p['own-any-ink']));
+          const r = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05); if (r < low.tint[0]) low.tint = [r, g, ...at];
+        }
+        const r = M.contrast(p['own-any-solid-ink'], p['own-any-solid']); if (r < low.solid[0]) low.solid = [r, ...at];
+        most[0] = Math.max(most[0], Math.abs(p['own-any-solid'][0] - p['own-any'][0])); most[1] = Math.max(most[1], over(p['own-any-solid']));
+      }
+    }
+    check(n > 3500, `own colors: only ${n} were checked`);
+    for (const k of Object.keys(low)) check(low[k][0] >= 4.5, `own colors: ${k} is ${low[k][0].toFixed(2)}:1 at ${low[k].slice(1).join(' ')}, under 4.5`);
+    check(most[0] <= 0.0401 && most[1] < 0.1, `own colors: a solid fill is ${most[0].toFixed(3)} of lightness from its fill, and ${most[1].toFixed(3)} outside sRGB`);
+    // The layer check finds each one a layer names, on the root and carried into each scope, and holds it.
+    const own = (seeds, more = '') => `@layer trellis.product { :root[data-product="p"] { --seed-accent: oklch(.333 .063 134.2); ${seeds} } ${more} }`;
+    const failsOf = css => P.validate(css, 'p').fails;
+    const named = P.scopesOf(own('--seed-own-gold: #c09642; --seed-own-axis-2: oklch(.5 .1 285);', '[data-product="x"] { --seed-own-gold: #fff3c0; --seed-own-more: #000000; }'), 'p');
+    check(P.ownOf(named[0][2]).join() === 'own-gold,own-axis-2' && P.ownOf(named[1][2]).join() === 'own-gold,own-axis-2,own-more', "product.js: a layer's own colors must be found, on the root and carried into a scope");
+    check(M.hex(named[1][2].color.seeds['own-gold']) === '#fff3c0', "product.js: a scope's own color must win over the root's");
+    check(failsOf(own('--seed-own-gold: #c09642; --seed-own-pale: #fffdf5; --seed-own-mid: oklch(.6 .27 330); --seed-own-deep: #000000;')).length === 0, 'product.js: any color may be named, a pale, a middling and a black one');
+    const doctored = (f) => { const s = M.scope(M.SEED, { 'own-gold': '#c09642', 'own-mid': [0.6, 0.27, 330] }); f(s.color); return P.contrast('p', s).filter(x => x.includes('own-')); };
+    check(doctored(() => {}).length === 0, 'product.js: own colors that hold must pass');
+    check(doctored(c => { c.stage.ink = [0.7, 0.5]; }).some(x => /light: the ink of --seed-own-gold/.test(x)) && doctored(c => { c.stage.ink = [0.7, 0.5]; }).some(x => /dark: the ink of --seed-own-mid/.test(x)), "product.js: an own color's ink must be held to 4.5 in both themes");
+    check(doctored(c => { c.own.solid = [0.58, 0.58]; }).some(x => /solid fill of --seed-own-mid/.test(x)), "product.js: the ink on an own color's solid fill must be held to 4.5");
+    for (const [bad, why] of [['--seed-ownn-gold: #c09642;', 'a name that is not a seed'], ['--seed-own-gold: var(--seed-accent);', 'a name in place of a color'], ['--seed-own-gold: gold;', 'a color no check can read'],
+      ['--seed-own-gold-ink: #000000;', "a role's name"], ['--seeded: #c09642;', 'a role'], ['--seed: #c09642;', "an element's choice"]])
+      check(failsOf(own(bad)).length > 0, `product.js: ${bad} must be refused: ${why}`);
+    // Nothing is declared for a product that names none: the roles live on the elements that ask.
+    const blocks = [...core.matchAll(/([^{}]+)\{[^{}]*--seeded[a-z-]*\s*:/g)].map(m => m[1].trim());
+    check(blocks.length === 2 && blocks.every(b => b === '.u-seed, .tag.cc-seed, .dot.cc-seed'), `core.css: --seeded must be declared on the elements that ask and nowhere else; found: ${blocks.join(' | ')}`);
+    check(!/--seed\s*:/.test(core), 'core.css: --seed is an element\'s to set, and has no default');
+  }
+  // The palette's numbers (D117). A layer's number is read as it is written, its sign too, on the
+  // root and on every scope; one under its floor, or that is no number, is refused by name.
+  {
+    const layer = (root, scope = '', selector = '[data-product="x"]') => `@layer trellis.product { :root[data-product="p"] { --seed-accent: oklch(.553 .166 258.4); ${root} } ${scope && `${selector} { ${scope} }`} }`;
+    const colorOf = (css, i = 0) => P.scopesOf(css, 'p')[i][2].color, failsOf = css => P.validate(css, 'p').fails;
+    for (const [k, name] of [['night-lift', 'nightLift'], ['day-depth', 'dayDepth'], ['color-lift', 'lift'], ['ink-flip', 'flip']]) for (const [v, n] of [['-.012', -0.012], ['-0.012', -0.012], ['+.02', 0.02], ['.15', 0.15], ['1e-2', 0.01]]) {
+      check(colorOf(layer(`--${k}: ${v};`))[name] === n, `product.js: --${k}: ${v} on the root is read as ${colorOf(layer(`--${k}: ${v};`))[name]}`);
+      check(colorOf(layer('', `--${k}: ${v};`), 1)[name] === n, `product.js: --${k}: ${v} on a scope is read as ${colorOf(layer('', `--${k}: ${v};`), 1)[name]}`);
+      check(colorOf(layer(`--${k}: ${v};`, '--shape-card: var(--r-1);'), 1)[name] === n, `product.js: --${k}: ${v} on the root must carry into a scope`);
+    }
+    check(colorOf(layer('', '--night-lift: -.02;', '[data-product="x"][data-theme="dark"]'), 1).nightLift === -0.02, 'product.js: an always dark scope has its own --night-lift');
+    for (const ok of ['--night-lift: -.012;', '--night-lift: -.025;', '--night-lift: .1;', '--day-depth: .019;', '--night-lift: -.012; --seed-ground: oklch(.55 .0025 70);'])
+      check(failsOf(layer(ok)).length === 0, `product.js: ${ok} must pass; it says ${failsOf(layer(ok))[0]}`);
+    for (const [bad, says] of [['--night-lift: -.026;', /--night-lift is -0.026, under its floor of -0.025/], ['--day-depth: -.001;', /--day-depth is -0.001, under its floor of 0/], ['--color-lift: -.1;', /--color-lift is -0.1, under its floor of 0/],
+      ['--night-lift: calc(0 - .012);', /--night-lift is "calc\(0 - .012\)": it must be a plain number/], ['--day-depth: 2%;', /--day-depth is "2%": it must be a plain number/],
+      ['--night-lift: -.012; --seed-night: oklch(.55 .048 132);', /--bg, --bg-sunken are outside sRGB/]]) {
+      check(failsOf(layer(bad)).some(x => says.test(x)), `product.js: ${bad} must be refused, saying so; it says ${failsOf(layer(bad))[0]}`);
+      if (!/seed-night/.test(bad)) check(failsOf(layer('', bad)).some(x => says.test(x)), `product.js: ${bad} on a scope must be refused, saying so; it says ${failsOf(layer('', bad))[0]}`);
+    }
+    // Why -.025: down to it every floor holds on core's grounds, and the ladder is in order, no step
+    // under three quarters of core's own least (6 of 255 at its night), whatever hue the grounds have; and the next step down
+    // is where core's own tertiary ink stops.
+    const gray = c => { const y = M.contrast(c, [0, 0, 0]) * 0.05 - 0.05; return 255 * (y <= 0.0031308 ? 12.92 * y : 1.055 * y ** (1 / 2.4) - 0.055); };
+    let least = [99];
+    for (const lift of [-0.025, -0.012]) for (let c = 0; c <= 0.0501; c += 0.005) for (let h = 0; h < 360; h += 15) {
+      const s = M.scope(M.SEED, { night: [0.55, c, h] }); s.color.nightLift = lift;
+      const p = M.palette('dark', s), up = ['bg-sunken', 'bg', 'bg-raised', 'bg-raised-2', 'bg-raised-3'];
+      if (!up.every(k => M.inGamut(p[k]))) continue;
+      for (let i = 1; i < up.length; i++) { const d = gray(p[up[i]]) - gray(p[up[i - 1]]); if (d < least[0]) least = [d, up[i], lift, c, h]; }
+    }
+    check(least[0] >= 4.5, `night: at a lift of ${least[2]} --${least[1]} is ${least[0].toFixed(1)} of 255 over the ground under it`);
+    const at = lift => { const s = M.scope(M.SEED); s.color.nightLift = lift; const p = M.palette('dark', s); return M.contrast(p['text-tertiary'], p['bg-raised-3']); };
+    check(at(-0.025) >= 4.5 && at(-0.032) < 4.5, `night: tertiary ink on the third raised ground is ${at(-0.025).toFixed(2)}:1 at -.025 and ${at(-0.032).toFixed(2)}:1 at -.032`);
+  }
   check(far[0] < 0.1, `stages: a stage seeded oklch(${far.slice(2).map(x => +x.toFixed(2)).join(' ')}) leaves sRGB by ${far[0].toFixed(3)} in ${far[1]}`);
 }
 for (const [k, name] of [['lineH1', '--lh-h1'], ['lineHeadingStep', '--lh-h-step'], ['lineBody', '--lh-body'], ['lineParagraphStep', '--lh-p-step'], ['lineLabel', '--lh-label'], ['afterH1', '--mb-h1'], ['afterHeadingStep', '--mb-h-step']])

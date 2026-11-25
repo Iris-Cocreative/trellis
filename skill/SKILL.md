@@ -30,6 +30,7 @@ Find the need here first. If it is here, use it and write no CSS for it.
 | A label, a status, a chip | `.tag` (kinds `.cc-ok`, `.cc-warn`, `.cc-alert`…; `.cc-solid`, `.cc-outline`); a color per value is `style="--tag-color: var(--…)"`, never a class that sets `background` |
 | A status light, a count | `.dot` (`--dot-color`, `--dot-size`; `.cc-ring` for a state not yet reached, drawn as a ring), `.badge` |
 | A step of a process (idea, planned, underway, done…) | `.dot.cc-stage-1` … `.cc-stage-7`, `.tag.cc-stage-n`; words in the stage's color take `--stage-n-ink`, a wash `--stage-n-tint`, a fill `--stage-n`. The product layer sets `--seed-stage-1` … `-7`, pale colors included; map your status names to the numbers in markup. Never keep a status color list of your own |
+| A color core has no seed for (a brand gold, an axis, an alliance) | name it in the product layer, `--seed-own-gold: #c09642`, as many as the product has. Use it by `--seed: var(--seed-own-gold)` on a `.tag.cc-seed`, a `.dot.cc-seed` or, for a part of your own, anything with `.u-seed`; that element (and what is in it) has `--seeded` (a fill), `--seeded-ink` (words, a ring), `--seeded-tint`, and `--seeded-solid` with `--seeded-solid-ink` (a fill and its label), right in both themes. A button takes the last two in its `--btn-*` variables, on `:not(:disabled, [aria-disabled="true"])`. Never a hand-mixed `oklch(from var(--kind-…) …)`, and never a light and a dark copy of a color |
 | A menu, a popover, a tooltip | `.float.options-card` > `.options-card-item`; `.float.tooltip`. Always a popover: `popover="manual"` and `Trellis.float.open(float, anchor)` from `float.js` (it places, flips, follows and closes it), or `.cc-anchor` with a `popovertarget` button. Never `position` or `z-index` of your own |
 | A dialog, a drawer, a bottom sheet | `dialog.modal` > `.modal-inner` > `.modal-header`, `.modal-body`, `.modal-footer`; `.cc-tray` with a side; a step counter goes above the title, not beside it. Open with `showModal()` |
 | A person or group | `.avatar`, `.member-tile` (`.cc-row`; words on a tall avatar's middle: `align-self: center` on the body); a photo is `img.avatar`, or with an `.avatar-dot` a `.media.cc-round` inside the `.avatar` |
@@ -56,7 +57,7 @@ An app's own parts (a timeline, a diff view, a canvas) are legitimate. They foll
 1. **No raw values.** Every length is a token or cells; every color is a role or a `color-mix()` of roles; every font size is a type role or a `--fs-control-*` token.
 2. **Space between blocks is whole cells.** Halves and quarters live inside a control only.
 3. **Context changes variables, not markup or properties.**
-4. **The product layer sets knobs only**: a `:root[data-product="name"]` rule in `@layer trellis.product`, in its own file, holding only variables listed in `product.template.css`, and any scopes after it. Colors go in as seeds (`--seed-accent`), never roles (`--accent`). A part of the page with its own look (a community, a section, a mood) is a **scope**: `data-product="part"` on its element and a `[data-product="part"]` rule of knobs in the same file; add `data-theme` for night on a day page, and for a scope that is always dark write its rule `[data-product="part"][data-theme="dark"]`, so its contrast is checked at night alone. Set only what makes it itself: what the root chose carries in, and every role follows from the scope's seeds. Never re-declare roles in a context to recolor a part.
+4. **The product layer sets knobs only**: a `:root[data-product="name"]` rule in `@layer trellis.product`, in its own file, holding only variables listed in `product.template.css` and colors of its own (`--seed-own-<name>`), and any scopes after it. Colors go in as seeds (`--seed-accent`), never roles (`--accent`). A part of the page with its own look (a community, a section, a mood) is a **scope**: `data-product="part"` on its element and a `[data-product="part"]` rule of knobs in the same file; add `data-theme` for night on a day page, and for a scope that is always dark write its rule `[data-product="part"][data-theme="dark"]`, so its contrast is checked at night alone. Set only what makes it itself: what the root chose carries in, and every role follows from the scope's seeds. Never re-declare roles in a context to recolor a part.
 5. **Inline styles and scripts set variables only**: `el.style.setProperty('--x', …)`, with the property that uses `--x` in the stylesheet.
 
 What a number becomes, with the cell at 12px:
@@ -70,7 +71,7 @@ What a number becomes, with the cell at 12px:
 | Corners 3 · 6 · 12 · 18 · 24 · pill | `--r-q` · `--r-h` · `--r-1` · `--r-1h` · `--r-2` · `--r-round` |
 | Small type in a control | `--fs-control-xs` … `--fs-control-lg` |
 | Grays, edges, fills | `--text`, `--text-secondary`, `--text-tertiary`, `--text-faint`, `--border`, `--border-subtle`, `--bg`, `--bg-raised`, `--bg-sunken` |
-| Hues | `--accent`, `--ok`, `--warn`, `--alert`, `--kind-*`, `--stage-1` … `--stage-7` (with `-ink` and `-tint`) |
+| Hues | `--accent`, `--ok`, `--warn`, `--alert`, `--kind-*`, `--stage-1` … `--stage-7` (with `-ink` and `-tint`); on an element with a color of the product's own, `--seeded` (with `-ink`, `-tint`, `-solid`, `-solid-ink`) |
 | Time, stacking | `--dur-in`, `--dur-out`, `--ease-out`; `--z-raised`, `--z-sticky`, `--z-overlay`, `--z-float`, `--z-toast` |
 
 A design that asks for 26px or 10.5px gets the nearest token (24px, `--fs-control-xs`). If the nearest token is truly wrong, that is a gap in Trellis: see below.
@@ -96,7 +97,7 @@ npx trellis-product <product layer file>                   # knobs only, and con
 
 Where it pins a copy or sits beside the repository, the same files by path: `node <trellis>/tools/check.js …` and `node <trellis>/tools/product.js <product layer file>`, with `core.css` and `product.template.css` one folder above `tools/`. In an installed package `<trellis>` is `node_modules/@iris-cocreative/trellis`.
 
-It also counts a modifier without its base (`--show bare-modifiers`). If the project has a budget file, run the third form before you finish: your change must not raise any count, and lowering one is part of the job. After lowering, rewrite the budget with `--write`. The product check exits 1 on a layer that sets anything but the template's knobs, or whose text falls under its contrast floor on any scope.
+It also counts a modifier without its base (`--show bare-modifiers`). If the project has a budget file, run the third form before you finish: your change must not raise any count, and lowering one is part of the job. After lowering, rewrite the budget with `--write`. The product check exits 1 on a layer that sets anything but the template's knobs and colors of its own, or a knob to a number it can't check, or whose text falls under its contrast floor on any scope.
 
 ## Moving an existing site onto Trellis
 

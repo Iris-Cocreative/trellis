@@ -195,6 +195,11 @@
   .demo-stages { --stack-gap: var(--sp-2); }
   .demo-stages .dot { --dot-size: var(--sp-1); }
   .demo-stage-ink { color: var(--ink); }
+  .demo-seeds { --stack-gap: var(--sp-2); }
+  .demo-seeds .dot { --dot-size: var(--sp-1); }
+  .demo-seed-ink { color: var(--seeded-ink); }
+  .demo-seed-meter { height: var(--sp-1); border-radius: var(--r-round); background: linear-gradient(to right, var(--seeded) calc(var(--at) * 100%), var(--bg-sunken) 0); }
+  .demo-seed-button { --btn-bg: var(--seeded-solid); --btn-border: var(--seeded-solid); --btn-ink: var(--seeded-solid-ink); }
   /* A record named in a sentence: the specimen's own inline atom, on tokens. */
   .demo-chip {
     display: inline-flex; align-items: center; gap: var(--sp-q);

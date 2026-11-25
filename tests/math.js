@@ -169,6 +169,11 @@ const CASES = [
           // Stages (D107): a pale seed and a deep one, each with its fill and its ink in both themes; one the root set carries in.
           ['a scope with a pale stage and a deep one; the root\'s last stage carries in', { 'stage-7': [0.676, 0.015, 78] }, { 'stage-1': [0.887, 0.182, 95.3], 'stage-4': [0.45, 0.2, 264] }]
         ];
+        CASES2.push(
+          // A product's own colors (D117): pale, deep, middling and gray, on the scope, and one the root named that carries in.
+          ['a scope with colors of its own; the root\'s gold carries in', { 'own-gold': [0.699, 0.112, 82.1] }, { 'own-pale': [0.95, 0.06, 95], 'own-deep': [0.3, 0.12, 275], 'own-mid': [0.585, 0.22, 330], 'own-gray': [0.6, 0.004, 80] }],
+          ['a scope whose gold is its own, under the root\'s', { 'own-gold': [0.699, 0.112, 82.1] }, { accent: [0.45, 0.1, 150], 'own-gold': [0.887, 0.182, 95.3] }]);
+        const seeded = document.createElement('i'); seeded.className = 'u-seed'; scopeEl.appendChild(seeded);
         for (const [what, rootSet, scopeSet] of CASES2) {
           for (const [k, v] of Object.entries(rootSet)) root.style.setProperty(`--seed-${k}`, `oklch(${v.join(' ')})`);
           for (const [k, v] of Object.entries(scopeSet)) scopeEl.style.setProperty(`--seed-${k}`, `oklch(${v.join(' ')})`);
@@ -180,6 +185,17 @@ const CASES = [
               const got = triple(getComputedStyle(inner).color);
               expect(same(got, p[role]), `scope: ${what}, ${theme}: --${role} is ${getComputedStyle(inner).color}, math says ${p[role].map(x => +x.toFixed(4)).join(' ')}`);
             }
+            for (const k of Object.keys(p).filter(k => /^own-(?!.*-(?:ink|solid)$)/.test(k))) {
+              seeded.style.setProperty('--seed', `var(--seed-${k})`);
+              for (const [css, role] of [['--seeded', k], ['--seeded-ink', k + '-ink'], ['--seeded-solid', k + '-solid'], ['--seeded-solid-ink', k + '-solid-ink']]) {
+                seeded.style.color = `var(${css})`;
+                expect(same(triple(getComputedStyle(seeded).color), p[role]), `own colors: ${what}, ${theme}: ${css} of --seed-${k} is ${getComputedStyle(seeded).color}, math says ${p[role].map(x => +x.toFixed(4)).join(' ')}`);
+              }
+              // The tint: the fill at its share, over nothing.
+              seeded.style.color = 'var(--seeded-tint)';
+              const t = getComputedStyle(seeded).color, share = /\/ ([\d.]+)\)$/.exec(t);
+              expect(share && near(+share[1], M.SEED.color.stage.tint, .002) && near(+(/^okl(?:ab|ch)\(([\d.]+)/.exec(t) || [])[1], p[k][0], .004), `own colors: ${what}, ${theme}: --seeded-tint of --seed-${k} is ${t}`);
+            }
           }
           for (const k of Object.keys(rootSet)) root.style.removeProperty(`--seed-${k}`);
           for (const k of Object.keys(scopeSet)) scopeEl.style.removeProperty(`--seed-${k}`);
@@ -189,7 +205,8 @@ const CASES = [
           // and (D98) a paper darker than white by day, and an accent with a night of its own
           const set = { accent: [0.5, 0.1, 250], ground: [0.55, 0.011, 77], night: [0.55, 0.048, 132], 'accent-night': [0.896, 0.068, 133.3], ink: [0.55, 0.06, 134.5], 'ink-night': [0.55, 0.012, 80] };
           for (const [k, v] of Object.entries(set)) scopeEl.style.setProperty(`--seed-${k}`, `oklch(${v.join(' ')})`);
-          for (const [lift, depth] of [[0, 0], [0.15, 0.019]]) {
+          // A night deeper than core's too, at its floor and at a product's (D117).
+          for (const [lift, depth] of [[0, 0], [0.15, 0.019], [-0.012, 0], [-0.025, 0.006]]) {
             scopeEl.style.setProperty('--night-lift', String(lift));
             scopeEl.style.setProperty('--day-depth', String(depth));
             for (const theme of ['light', 'dark']) {

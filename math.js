@@ -55,7 +55,10 @@
       // Stages (D107): what follows from a stage's seed. Its ink is no lighter
       // than ink[0] by day and no darker than ink[1] at night; its tint is its
       // fill at this share.
-      stage: { ink: [0.48, 0.76], tint: 0.14 }
+      stage: { ink: [0.48, 0.76], tint: 0.14 },
+      // A product's own colors (D117): a solid fill is no lighter than solid[0]
+      // where its ink is white, and no darker than solid[1] where its ink is dark.
+      own: { solid: [0.54, 0.62] }
     }
   };
 
@@ -262,14 +265,19 @@
     var B = 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s;
     return [L, Math.sqrt(A * A + B * B), mod(Math.atan2(B, A) * 180 / Math.PI, 360)];
   }
-  function oklchToRgb(c) {
+  function linear(c) {
     var a = c[1] * Math.cos(c[2] * Math.PI / 180), b = c[1] * Math.sin(c[2] * Math.PI / 180);
     var l = Math.pow(c[0] + 0.3963377774 * a + 0.2158037573 * b, 3);
     var m = Math.pow(c[0] - 0.1055613458 * a - 0.0638541728 * b, 3);
     var s = Math.pow(c[0] - 0.0894841775 * a - 1.291485548 * b, 3);
     return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
       -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
-      -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s].map(function (x) { return clamp(0, fromLinear(Math.max(0, x)), 1); });
+      -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s];
+  }
+  function oklchToRgb(c) { return linear(c).map(function (x) { return clamp(0, fromLinear(Math.max(0, x)), 1); }); }
+  // Inside sRGB, to half a step of a channel's 255.
+  function inGamut(c) {
+    return linear(c).every(function (x) { return x > -0.00016 && fromLinear(Math.max(0, x)) < 1 + 0.5 / 255; });
   }
   function hex(c) { return '#' + oklchToRgb(c).map(function (x) { return ('0' + Math.round(x * 255).toString(16)).slice(-2); }).join(''); }
   // WCAG 2 relative luminance and contrast, for the checks.
@@ -302,6 +310,13 @@
   function stageInk(seedColor, theme, seed) {
     var s = parseColor(seedColor), ends = stageOf(seed).ink;
     return theme === 'dark' ? shade(s, Math.max(s[0], ends[1])) : shade(s, Math.min(s[0], ends[0]));
+  }
+  // A product's own color (D117): a seed a layer names itself (--seed-own-gold).
+  // Its fill, its ink and its tint are a stage's. A fill a label stands on is the
+  // fill moved clear of the flip, so ink on it reads at 4.5:1 for any color in sRGB.
+  function ownSolid(seedColor, theme, seed) {
+    var f = stage(seedColor, theme, seed), col = (seed || SEED).color, ends = (col.own || SEED.color.own).solid;
+    return shade(f, f[0] < col.flip ? Math.min(f[0], ends[0]) : Math.max(f[0], ends[1]));
   }
   // Ink on a fill: white below the flip, a dark ink of the fill's hue above it.
   function ink(fill, seed) {
@@ -375,7 +390,11 @@
     return base;
   }
 
-  // Every role in one theme, as OKLCH triples.
+  // Every role in one theme, as OKLCH triples. A seed named own-… (a product's
+  // own color, D117) adds four: own-gold, its fill; own-gold-ink; own-gold-solid,
+  // the fill a label stands on; and own-gold-solid-ink, that label. In CSS they are
+  // --seeded, --seeded-ink, --seeded-solid and --seeded-solid-ink on an element
+  // whose --seed is var(--seed-own-gold).
   function palette(theme, seed) {
     var col = (seed || SEED).color, s = seeds(seed), out = {}, n, k, l;
     var dark = theme === 'dark' ? 1 : 0;
@@ -384,7 +403,7 @@
       // At night ink climbs toward white as the night lifts, three times as fast (D97).
       // By day grounds darken by dayDepth and ink with them, three times as fast (D98).
       if (k.indexOf('text') === 0) { n = dark ? s['ink-night'] : s.ink; l = col.neutrals[k][dark]; out[k] = [dark ? l + (1 - l) * Math.min(1, (col.nightLift || 0) * 3) : l * (1 - Math.min(1, (col.dayDepth || 0) * 3)), n[1], n[2]]; }
-      else { n = dark ? s.night : s.ground; out[k] = [col.neutrals[k][dark] + (dark ? (col.nightLift || 0) : -(col.dayDepth || 0)), n[1], n[2]]; }
+      else { n = dark ? s.night : s.ground; out[k] = [clamp(0, col.neutrals[k][dark] + (dark ? (col.nightLift || 0) : -(col.dayDepth || 0)), 1), n[1], n[2]]; }
     }
     out.accent = dark && s['accent-night'] ? s['accent-night'] : hue(s.accent, theme, seed);   // the accent's own night, if set (D98)
     out['accent-ink'] = ink(out.accent, seed);
@@ -392,6 +411,13 @@
     ['person', 'group', 'event', 'course', 'topic'].forEach(function (k) { out['kind-' + k] = hue(s[k], theme, seed); });
     ['ok', 'warn', 'alert'].forEach(function (k) { out[k] = hue(s[k], theme, seed); });
     Object.keys(stagesOf(seed).stages).forEach(function (k) { out['stage-' + k] = stage(s['stage-' + k], theme, seed); out['stage-' + k + '-ink'] = stageInk(s['stage-' + k], theme, seed); });
+    Object.keys(s).forEach(function (k) {
+      if (k.indexOf('own-') !== 0) return;
+      out[k] = stage(s[k], theme, seed);
+      out[k + '-ink'] = stageInk(s[k], theme, seed);
+      out[k + '-solid'] = ownSolid(s[k], theme, seed);
+      out[k + '-solid-ink'] = ink(out[k + '-solid'], seed);
+    });
     return out;
   }
 
@@ -414,7 +440,8 @@
       spaceNarrow: v(t, 'space-narrow'), spaceWide: v(t, 'space-wide') };
     return {
       color: { seeds: seeds, lift: v(col, 'lift'), flip: v(col, 'ink-flip'), nightLift: v(col, 'night-lift'), dayDepth: v(col, 'day-depth'), neutrals: neutrals, derive: derive,
-        stage: { ink: [v(col.stage, 'ink-light'), v(col.stage, 'ink-dark')], tint: v(col.stage, 'tint') } },
+        stage: { ink: [v(col.stage, 'ink-light'), v(col.stage, 'ink-dark')], tint: v(col.stage, 'tint') },
+        own: { solid: [v(col.own, 'solid-below'), v(col.own, 'solid-above')] } },
       cell: { targetNarrow: v(c, 'target-narrow'), targetWide: v(c, 'target-wide'), screenNarrow: v(c, 'screen-narrow'), screenWide: v(c, 'screen-wide'), textScaleMax: v(c, 'text-scale-max') },
       frame: { max: v(tokens.frame, 'max'), module: SEED.frame.module },
       seven: seven,
@@ -428,7 +455,7 @@
     typeFrom: typeFrom, typeSteps: typeSteps, typeEnds: typeEnds, typeSize: typeSize, lineRatio: lineRatio, lineHeight: lineHeight,
     standPad: standPad, hang: hang, settleCluster: settleCluster, spaceAfter: spaceAfter, spaceAfterInStack: spaceAfterInStack,
     stands: stands, isHeading: isHeading, seedFromTokens: seedFromTokens,
-    parseColor: parseColor, hex: hex, contrast: contrast, hue: hue, ink: ink, shade: shade, stage: stage, stageInk: stageInk, palette: palette,
+    parseColor: parseColor, hex: hex, inGamut: inGamut, contrast: contrast, hue: hue, ink: ink, shade: shade, stage: stage, stageInk: stageInk, ownSolid: ownSolid, palette: palette,
     clear: clear, chromaLimit: chromaLimit, follow: follow, derived: derived, seeds: seeds, scope: scope
   };
 });

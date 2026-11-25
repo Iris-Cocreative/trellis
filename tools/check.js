@@ -169,7 +169,7 @@ function checkCss(file, text) {
     const where = `${prop}: ${value}`.slice(0, 110);
     if (inProduct) {
       if (!prop.startsWith('--')) hit('product-layer', file, line, `${where}   (a product layer only sets variables)`);
-      else if (!knobs.has(prop)) hit('product-layer', file, line, `${where}   (not a knob in product.template.css)`);
+      else if (!knobs.has(prop) && !/^--seed-own-(?!.*-(?:ink|solid|tint)$)[a-z][a-z0-9-]*$/.test(prop)) hit('product-layer', file, line, `${where}   (not a knob in product.template.css)`);
       return;
     }
     const bare = value.replace(/var\(\s*--[\w-]+\s*,/g, 'var(');   // a fallback inside var() still counts; keep it

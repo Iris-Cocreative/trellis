@@ -130,8 +130,8 @@ function build(tokens) {
   for (const k of keys(col.seed)) line(`seed-${k}`, oklch(col.seed[k].$value));
   line('color-lift', short(col.lift.$value), 'how much lighter a hue is in the dark theme');
   line('ink-flip', short(col['ink-flip'].$value), 'ink on a fill: white below this lightness, dark above it');
-  line('day-depth', short(col['day-depth'].$value), 'how much darker every ground and edge is by day: 0 is white paper, higher is a beige paper');
-  line('night-lift', short(col['night-lift'].$value), 'how much lighter every ground and edge is at night: 0 is core\'s night, higher is lighter, like dusk');
+  line('day-depth', short(col['day-depth'].$value), 'how much darker every ground and edge is by day: 0 is white paper, higher is a beige paper; never under 0');
+  line('night-lift', short(col['night-lift'].$value), 'how much lighter every ground and edge is at night: 0 is core\'s night, higher is lighter, like dusk, and down to -.025 is a deeper night');
   line('gradient-space', col.gradient.space.$value, 'the space gradients interpolate in');
   line('gradient-turn', n(col.gradient.turn.$value), 'degrees the accent gradient turns its hue');
   out.push('  }', '', '  /* Everything that follows from the seeds, on the root and again on every scope (D96), so a',
@@ -225,6 +225,23 @@ function build(tokens) {
   line('gradient-accent', 'in var(--gradient-space), var(--accent), oklch(from var(--accent) l c calc(h + var(--gradient-turn)))');
   line('gradient-surface', 'in var(--gradient-space), var(--bg-raised), var(--bg-sunken)');
   out.push('  }');
+  // A product's own colors (D117). A property's name can't be made from another,
+  // so core can't give --seed-own-gold roles of its own name on the root. It gives
+  // them where the color is used instead: any element that names a seed as its
+  // --seed has that seed's roles. Nothing is declared where none is used.
+  const solidLo = short(col.own['solid-below'].$value), solidHi = short(col.own['solid-above'].$value);
+  const sd = 'var(--seed, var(--seed-accent))', pale = 'clamp(0, (l - var(--ink-flip)) * 100000, 1)';
+  const solidL = `((1 - ${pale}) * min(l, ${solidLo}) + ${pale} * max(l, ${solidHi}))`;
+  out.push('', '  /* A product\'s own colors (D117): --seed-own-gold and any other a layer names. An element that takes one as its',
+    '     --seed has its roles, worked out as a stage\'s are: a fill, an ink that reads as text in both themes, a tint,',
+    '     and a solid fill (the fill, clear of the ink flip) with the ink that reads on it. No element, no cost. */',
+    '  .u-seed, .tag.cc-seed, .dot.cc-seed {');
+  line('seeded', `light-dark(${sd}, oklch(from ${sd} ${lifted} ${up(lifted)} h))`);
+  line('seeded-ink', `light-dark(oklch(from ${sd} min(l, ${inkDay}) calc(c * min(1, ${inkDay} / max(l, .001))) h), oklch(from ${sd} max(l, ${inkNight}) ${up(`max(l, ${inkNight})`)} h))`);
+  line('seeded-tint', `color-mix(in oklab, var(--seeded) ${n(SG.tint.$value * 100)}%, transparent)`);
+  line('seeded-solid', `oklch(from var(--seeded) calc${solidL} calc(c * min(1, ${solidL} / max(l, .001), (1 - ${solidL}) / max(1 - l, .001))) h)`);
+  line('seeded-solid-ink', 'oklch(from var(--seeded-solid) clamp(.16, (var(--ink-flip) - l) * 1000, 1) calc(clamp(0, (l - var(--ink-flip)) * 1000, 1) * c * .3) h)');
+  out.push('  }');
   // A browser without relative colors gets core's own palette, resolved by
   // math.js: a product's seeds are lost there, its legibility is not.
   const M = require('../math.js'), seed = M.seedFromTokens(tokens);
@@ -234,7 +251,8 @@ function build(tokens) {
     const a = M.hex(light[k]), b = M.hex(dark[k]);
     out.push(`      --${k}: ${a === b ? a : `light-dark(${a}, ${b})`};`);
   }
-  out.push('      --gradient-accent: in oklab, var(--accent), var(--accent);', '      --gradient-surface: in oklab, var(--bg-raised), var(--bg-sunken);', '    }', '  }', '}');
+  out.push('      --gradient-accent: in oklab, var(--accent), var(--accent);', '      --gradient-surface: in oklab, var(--bg-raised), var(--bg-sunken);', '    }',
+    '    .u-seed, .tag.cc-seed, .dot.cc-seed { --seeded: var(--seed, var(--accent)); --seeded-ink: var(--text); --seeded-solid: var(--text); --seeded-solid-ink: var(--bg); }', '  }', '}');
   return out.join('\n');
 }
 

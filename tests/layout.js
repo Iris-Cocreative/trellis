@@ -46,6 +46,11 @@
 //   ring    a ring dot keeps the dot's box, its line a quarter of the dot and
 //           two lines at most, clear inside unless it is given a fill
 //   stages  a stage's dot is its fill, its ring its ink, its tag tinted from it
+//   seeds   a product's own color: its tag, its dot and ring, a part of the app's
+//           own and a button given its variables, in both themes, on a pale, a
+//           deep, a middling, a white and a black one: words in its ink and the
+//           label on its solid fill read at 4.5:1; a disabled button keeps its
+//           look; in forced colors the dot and the ring still draw
 //   prose   a paragraph with two links, with chips, with faces or with a mark
 //           beside its images is text, and an atom in it leaves its lines where
 //           they were; images alone, linked or not, are still a gallery
@@ -837,6 +842,84 @@ const ready = require('./ready');
     host.remove();
     return fails;
   }));
+  // A product's own colors (D117): a scope names them, an element takes one, and
+  // every part of it reads. The button is the documented recipe: the --btn-*
+  // variables, set from the app's own class.
+  {
+    const bad = await page.evaluate(() => {
+      const fails = [], host = document.createElement('div'), sheet = document.createElement('style');
+      sheet.textContent = '#l-seeds * { transition: none !important; } .l-seed-btn:not(:disabled, [aria-disabled="true"]) { --btn-bg: var(--seeded-solid); --btn-border: var(--seeded-solid); --btn-ink: var(--seeded-solid-ink); } .l-seed-part { background: var(--seeded-tint); color: var(--seeded-ink); } .l-seed-two { --first: var(--seeded); } .l-seed-mix { background: linear-gradient(var(--first), var(--seeded)); }';
+      document.head.appendChild(sheet);
+      host.id = 'l-seeds';
+      host.setAttribute('data-product', 'seed-test');
+      const COLORS = { gold: '#c09642', pale: '#fff3c0', deep: '#14104a', mid: 'oklch(.6 .25 330)', band: 'oklch(.585 .02 90)', white: '#ffffff', black: '#000000' };
+      for (const k in COLORS) host.style.setProperty('--seed-own-' + k, COLORS[k]);
+      const row = k => { const s = `style="--seed: var(--seed-own-${k})"`;
+        return `<div data-k="${k}"><span class="tag cc-seed" ${s}><span class="tag-dot"></span><span class="tag-label">n</span></span><span class="tag cc-seed cc-solid" ${s}><span class="tag-label">n</span></span><button class="tag cc-seed" aria-pressed="true" ${s}><span class="tag-label">n</span></button><span class="dot cc-seed" ${s}></span><span class="dot cc-ring cc-seed" ${s}></span><span class="u-seed l-seed-part" ${s}>n</span><button class="button u-seed l-seed-btn" ${s}>n</button><button class="button u-seed l-seed-btn" disabled ${s}>n</button><span class="u-seed" ${s}><i></i></span><button class="button" disabled>n</button><span class="tag cc-outline cc-seed" ${s}><span class="tag-label">n</span></span><button class="tag cc-seed" ${s}><span class="tag-label">n</span></button></div>`; };
+      host.innerHTML = Object.keys(COLORS).map(row).join('') + '<div data-none><span class="tag cc-seed"><span class="tag-label">n</span></span><span class="tag" style="--tag-color: var(--accent)"><span class="tag-label">n</span></span></div>'
+        + '<div class="u-seed" data-round style="--seed: var(--seed-own-gold)"><span class="tag cc-seed"><span class="tag-label">n</span></span><span class="dot cc-seed"></span></div>'
+        + '<div class="u-seed l-seed-two" style="--seed: var(--seed-own-gold)"><div class="u-seed l-seed-mix" style="--seed: var(--seed-own-deep)"></div><i></i></div>'
+        + '<div data-product="seed-inner" style="--seed-own-gold: #2f6db5"><span class="dot cc-seed" style="--seed: var(--seed-own-gold)"></span></div>';
+      document.body.appendChild(host);
+      const cs = e => getComputedStyle(e);
+      const ctx = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+      const px = (c, over) => { ctx.clearRect(0, 0, 1, 1); if (over) { ctx.fillStyle = over; ctx.fillRect(0, 0, 1, 1); } ctx.fillStyle = c; ctx.fillRect(0, 0, 1, 1); return [...ctx.getImageData(0, 0, 1, 1).data]; };
+      const same = (a, b) => px(a).every((v, i) => Math.abs(v - px(b)[i]) <= 1);
+      const lum = p => { const [r, g, b] = p.slice(0, 3).map(v => v / 255).map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4); return .2126 * r + .7152 * g + .0722 * b; };
+      const con = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
+      for (const theme of ['light', 'dark']) {
+        host.setAttribute('data-theme', theme);
+        const role = (v, el) => { const i = el.querySelector('i') || host; i.style.color = `var(${v})`; const c = cs(i).color; i.style.color = ''; return c; };
+        const M = window.TrellisMath, grounds = ['--bg', '--bg-raised', '--bg-raised-2', '--bg-raised-3'].map(v => [v, role(v, host)]);
+        for (const el of host.querySelectorAll('[data-k]')) {
+          const k = el.dataset.k, [tag, solid, pressed, dot, ring, part, btn, off, probe, plainOff, outline, rest] = el.children, at = `seeds: ${k}, ${theme}: `;
+          const [fill, ink, tint, full, label] = ['--seeded', '--seeded-ink', '--seeded-tint', '--seeded-solid', '--seeded-solid-ink'].map(v => role(v, probe));
+          const is = (a, b, what) => { if (!same(a, b)) fails.push(at + `${what}: ${a}, not ${b}`); };
+          is(cs(dot).backgroundColor, fill, 'a dot is its fill');
+          is(cs(ring).borderTopColor, ink, "a ring's line is its ink");
+          is(cs(tag.firstChild).backgroundColor, fill, "a tag's dot is its fill");
+          if (k !== 'white' && k !== 'black') { const p = px(cs(tag).backgroundColor); if (!(p[3] > 20 && p[3] < 60)) fails.push(at + `a tag is a tint of it: ${cs(tag).backgroundColor}`); }
+          is(cs(solid).backgroundColor, full, 'a solid tag is its solid fill');
+          is(cs(solid).color, label, "a solid tag's label is the ink on it");
+          is(cs(pressed).backgroundColor, full, 'a pressed tag is its solid fill');
+          is(cs(btn).backgroundColor, full, 'a button given the recipe is its solid fill');
+          is(cs(btn).color, label, "a button's label is the ink on it");
+          for (const p of ['backgroundColor', 'color', 'borderTopColor']) is(cs(off)[p], cs(plainOff)[p], 'a disabled one keeps its look: ' + p);
+          is(cs(part).color, ink, 'words in its ink');
+          is(cs(part).backgroundColor, tint, 'a part on its tint');
+          if (px(cs(outline).backgroundColor)[3] !== 0) fails.push(at + 'an outline tag has no fill');
+          for (const [g, c] of grounds) { const r = con(px(ink), px(c)); if (!(r >= 4.5)) fails.push(at + `its ink on ${g} is ${r.toFixed(2)}:1`); }
+          for (const [g, c] of grounds.slice(0, 3)) { const r = con(px(ink), px(tint, c)); if (!(r >= 4.5)) fails.push(at + `its ink on its tint on ${g} is ${r.toFixed(2)}:1`); }
+          for (const e of [solid, pressed, btn]) { const r = con(px(cs(e).color), px(cs(e).backgroundColor)); if (!(r >= 4.5)) fails.push(at + `a label on its solid fill (${e.className}) is ${r.toFixed(2)}:1`); }
+          const r = con(px(cs(rest).color), px(cs(rest).backgroundColor, grounds[1][1])); if (!(r >= 4.5)) fails.push(at + `a tag's label on its tint is ${r.toFixed(2)}:1`);
+        }
+        const none = host.querySelector('[data-none]').children, round = host.querySelector('[data-round]').children, gold = host.querySelector('[data-k="gold"]').children;
+        if (theme === 'light' && !same(cs(none[0]).backgroundColor, cs(none[1]).backgroundColor)) fails.push('seeds: a tag that names no color is not the accent by day');
+        if (!same(cs(round[0]).backgroundColor, cs(gold[0]).backgroundColor) || !same(cs(round[1]).backgroundColor, cs(gold[3]).backgroundColor)) fails.push(`seeds: ${theme}: --seed set round a tag and a dot does not reach them`);
+        const deep = role('--seeded', host.querySelector('[data-k="deep"]').children[8]), two = host.querySelector('.l-seed-two');
+        if (!same(role('--first', two), cs(gold[3]).backgroundColor)) fails.push(`seeds: ${theme}: a color taken by a name on a parent is not the parent's`);
+        const mix = cs(two.firstChild).backgroundImage.match(/okl\w+\([^()]*\)|rgba?\([^()]*\)/g) || [];
+        if (mix.length !== 2 || !same(mix[0], cs(gold[3]).backgroundColor) || !same(mix[1], deep)) fails.push(`seeds: ${theme}: two colors on one part: ${cs(two.firstChild).backgroundImage}`);
+        const inner = cs(host.querySelector('[data-product="seed-inner"] > .dot')).backgroundColor;
+        if (same(inner, cs(gold[3]).backgroundColor)) fails.push(`seeds: ${theme}: a scope's own gold does not reach its dot`);
+        if (theme === 'light' && !same(inner, '#2f6db5')) fails.push(`seeds: a scope's own gold is ${inner}, not #2f6db5`);
+      }
+      return fails;
+    });
+    fails.push(...bad);
+    await page.emulateMedia({ forcedColors: 'active' });
+    fails.push(...await page.evaluate(() => {
+      if (!matchMedia('(forced-colors: active)').matches) return [];
+      const fails = [], cs = e => getComputedStyle(e), host = document.getElementById('l-seeds'), i = document.createElement('i');
+      host.appendChild(i); i.style.cssText = 'forced-color-adjust: none; color: Canvas; background: CanvasText';
+      const canvas = cs(i).color, text = cs(i).backgroundColor, [, , , dot, ring] = host.querySelector('[data-k="gold"]').children;
+      if (cs(dot).backgroundColor !== text) fails.push(`seeds: in forced colors a dot is ${cs(dot).backgroundColor}`);
+      if (cs(ring).borderTopColor !== text || cs(ring).backgroundColor !== canvas) fails.push(`seeds: in forced colors a ring is ${cs(ring).borderTopColor} around ${cs(ring).backgroundColor}`);
+      return fails;
+    }));
+    await page.emulateMedia({ forcedColors: 'none' });
+    await page.evaluate(() => document.getElementById('l-seeds').remove());
+  }
   // Prose (D106): a gallery is images and nothing else. A paragraph with two
   // links in it was read as one, and its sentence laid out as a grid.
   fails.push(...await page.evaluate(async () => {

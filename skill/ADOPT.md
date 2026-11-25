@@ -33,7 +33,7 @@ Three checks while sorting:
 
 ## 3. Put the brand into knobs
 
-- Convert the palette to OKLCH. Seeds take their light-theme form; `--seed-accent-night` takes the brand's own night accent where it isn't a plain lift.
+- Convert the palette to OKLCH. Seeds take their light-theme form; `--seed-accent-night` takes the brand's own night accent where it isn't a plain lift. A brand color no seed names is `--seed-own-<name>` (D117).
 - Hit exact brand grounds with the depth and lift knobs: `--day-depth` for paper, `--night-lift` for night. The brand site set `--night-lift: .025` so the night ground lands on the umber its WebGL scenes clear to. Measure the lightness you need and set the knob from it; don't guess.
 - Set families, weights, tracking and the ratio (`--h1-max`, `--body-max`) from the old type scale's top values.
 - Get density from the knobs (`--density-control-h`, `--density-control-fs`), never by restyling a button.
