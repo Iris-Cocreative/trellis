@@ -144,7 +144,9 @@
   @container page (width > 864px) {
     .section.cc-split > .section-head { position: sticky; top: calc(var(--nav-h) + var(--sp-2)); }
   }
-  .section-head .t-eyebrow { color: var(--kind-group); }
+  /* A kind is a fill's color and a line's: as small text it has no floor, and core's group is
+     4.44:1 on the day's page. Toward the ink it is a role's mix that reads; tests/align.js holds it. */
+  .section-head .t-eyebrow, .master .t-label { color: color-mix(in oklab, var(--kind-group) 85%, var(--text)); }
   .muted { color: var(--text-secondary); }
   .faint { color: var(--text-tertiary); }
 
@@ -728,7 +730,6 @@
   /* The band in the other scheme: the scope paints it (core), from one edge of
      the frame to the other. */
   .scheme-band { margin-inline: calc(var(--gutter) * -1); padding: var(--sp-6) var(--gutter); }
-  .scheme-band .t-eyebrow { color: var(--text-secondary); }   /* a kind as small text has no floor; the band's text does */
   .scheme-card { --stack-gap: var(--sp-2); }
   .role-lines { display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(var(--u) * 13), 1fr)); column-gap: var(--sp-1); }
   .role-line { display: flex; align-items: center; gap: var(--sp-h); height: var(--sp-2); min-width: 0; }
@@ -866,7 +867,6 @@
   .org-group  { fill: color-mix(in oklab, var(--kind-group) 34%, var(--surface)); }
   .org-label  { fill: var(--text-secondary); font: var(--fw-label) 11px var(--font-sans); letter-spacing: .02em; }
   .master { --stack-gap: var(--sp-1); border-top: var(--line) solid var(--border-subtle); padding-top: calc(var(--sp-1) - var(--line)); }
-  .master .t-label { color: var(--kind-group); }
 
   .checks { --stack-gap: var(--sp-2); }
   .check { display: grid; grid-template-columns: var(--sp-2) minmax(0, 1fr); column-gap: var(--sp-1); align-items: start; }

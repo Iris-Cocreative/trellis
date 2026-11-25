@@ -7,6 +7,7 @@
 //   keyboard reach: every region that scrolls sideways can be focused, or holds something that can
 //   the specimen's band in the opposite scheme (D96): its blocks are measured with the rest, its roles
 //   are the other theme's, its ground is painted, and its contrast holds
+//   the specimen's eyebrows, and the labels colored like them: 4.5:1 on their grounds in both themes
 // Usage:
 //   node align.js <url> [WxH] [product] [theme] [flags…]
 //   product: neutral, an example's name, or name=<address> (see target.js)
@@ -232,6 +233,35 @@ const { FLOORS } = require('../tools/product');
     const v = window.visualViewport, view = { x: v.offsetLeft, y: v.offsetTop };
     return { fails, low, n, view, ground: mine.bg, spots: spots.map(([x, y], i) => ({ x, y, inside: i < 2, clear: document.elementFromPoint(x, y) === (i < 2 ? band : document.getElementById('top')) })) };
   }, FLOORS);
+  // Small text in a color (an eyebrow, a master's label) reads on the ground under it, in both
+  // themes: the page is put in each for a moment, and the band in the other. A full bleed's
+  // eyebrow is white over a picture, which tests/layout.js reads from the pixels.
+  const small = await page.evaluate(() => {
+    if (!document.getElementById('color')) return null;
+    const root = document.documentElement, band = document.querySelector('[data-scheme-opposite]'), fails = [];
+    const ctx = Object.assign(document.createElement('canvas'), { width: 1, height: 1 }).getContext('2d', { willReadFrequently: true });
+    const px = colors => { ctx.clearRect(0, 0, 1, 1); colors.forEach(c => { ctx.fillStyle = c; ctx.fillRect(0, 0, 1, 1); }); return [...ctx.getImageData(0, 0, 1, 1).data]; };
+    const lum = p => { const f = p.slice(0, 3).map(v => { v /= 255; return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }); return .2126 * f[0] + .7152 * f[1] + .0722 * f[2]; };
+    const was = [root, band].map(e => e && e.getAttribute('data-theme'));
+    const els = [...document.querySelectorAll('#top .t-eyebrow, #top .master .t-label')].filter(e => e.getClientRects().length && !e.closest('.card:has(> .media.cc-fill)'));
+    const heads = document.querySelectorAll('#top .section-head .t-eyebrow').length, masters = document.querySelectorAll('#top .master .t-label').length;
+    let low = 99;
+    for (const theme of ['light', 'dark']) {
+      root.setAttribute('data-theme', theme);
+      if (band) band.setAttribute('data-theme', theme === 'dark' ? 'light' : 'dark');
+      for (const e of els) {
+        const grounds = [];
+        for (let a = e; a; a = a.parentElement) grounds.unshift(getComputedStyle(a).backgroundColor);
+        const g = px(grounds), x = lum(px([...grounds, getComputedStyle(e).color])), y = lum(g), r = (Math.max(x, y) + .05) / (Math.min(x, y) + .05);
+        low = Math.min(low, r);
+        if (g[3] !== 255) fails.push(`"${e.textContent.trim()}" has no ground to read it on`);
+        if (r < 4.5) fails.push(`"${e.textContent.trim()}" is ${r.toFixed(2)}:1 on its ground in the ${theme} theme, under 4.5`);
+      }
+    }
+    [root, band].forEach((e, i) => { if (e) { if (was[i] === null) e.removeAttribute('data-theme'); else e.setAttribute('data-theme', was[i]); } });
+    if (heads < 15 || masters < 3) fails.push(`only ${heads} section eyebrows and ${masters} masters' labels were found`);
+    return { fails, low, n: els.length };
+  });
   // Measure draws over the page, so its pixels say nothing here.
   if (band && band.spots && !flags.includes('measure')) {
     await page.waitForTimeout(100);
@@ -273,10 +303,11 @@ const { FLOORS } = require('../tools/product');
     }));
   r.offProse.push(...again);
   await Promise.race([browser.close(), new Promise(r => setTimeout(r, 5000))]); // WebKit on Windows can hang on close
-  const bad = r.offText.length + r.offBox.length + r.offProse.length + errors.length + r.noReach.length + (r.scrollW > r.vw ? 1 : 0) + (band ? band.fails.length : 0);
+  const bad = r.offText.length + r.offBox.length + r.offProse.length + errors.length + r.noReach.length + (r.scrollW > r.vw ? 1 : 0) + (band ? band.fails.length : 0) + (small ? small.fails.length : 0);
   console.log(`${flags.includes('webkit') ? 'webkit' : 'chromium'} ${size} ${product} ${theme} ${flags.join(' ')} :: u=${r.u} frame=${r.frame} gutter=${r.gutter} ` +
     `text ${r.offText.length}/${r.text} off · boxes ${r.offBox.length}/${r.box} off · prose ${r.offProse.length}/${r.prose} off · scroll ${r.scrollW}/${r.vw} · unreachable ${r.noReach.length}/${r.scrollers} · errors ${errors.length}` +
     (band && band.low ? ` · band ${r.band} blocks, ${band.fails.length} off, text from ${band.low.toFixed(1)}:1` : '') +
+    (small ? ` · eyebrows ${small.n}, from ${small.low.toFixed(1)}:1` : '') +
     (r.calcSize ? '' : ' · (no calc-size: settle.js)'));
   if (process.env.VERBOSE || bad) {
     r.offText.slice(0, 12).forEach(x => console.log('  text  ' + x));
@@ -284,6 +315,7 @@ const { FLOORS } = require('../tools/product');
     r.offProse.slice(0, Number(process.env.SHOW || 12)).forEach(x => console.log('  prose ' + x));
     r.wide.forEach(x => console.log('  wide  ' + x + ' reaches past the screen'));
     if (band) band.fails.slice(0, 12).forEach(x => console.log('  band  ' + x));
+    if (small) small.fails.slice(0, 12).forEach(x => console.log('  small ' + x));
     r.noReach.slice(0, 12).forEach(x => console.log('  reach ' + x + ' scrolls sideways with no way in for a keyboard'));
     errors.slice(0, 5).forEach(x => console.log('  error ' + x));
   }
