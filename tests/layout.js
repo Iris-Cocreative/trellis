@@ -284,7 +284,7 @@ const ready = require('./ready');
       const host = document.createElement('div');
       host.innerHTML = '<div class="tabs cc-seg" id="d84-seg-a"><button class="tab" type="button">A</button></div>'
         + '<div class="tabs cc-seg" id="d84-seg-b" style="--tab-h: var(--size-control-xs); --seg-pad: var(--sp-q)"><button class="tab" type="button">A</button></div>'
-        + '<div class="float options-card" id="d84-opt-a"><button class="options-card-item" type="button">A</button></div>'
+        + '<div class="float options-card" id="d84-opt-a"><p class="t-label options-card-heading">A</p><button class="options-card-item" type="button">A</button></div>'
         + '<div class="float options-card" id="d84-opt-b" style="--option-h: var(--size-control-sm); --option-fs: var(--fs-control-sm); --options-w: calc(var(--u) * 20); --options-max-h: calc(var(--u) * 30)"><button class="options-card-item" type="button">A</button></div>'
         + '<div class="float tooltip" id="d84-tip-a">a</div><div class="float tooltip" id="d84-tip-b" style="--surface: var(--bg-raised); --float-ink: var(--text)">b</div>'
         + '<i id="d84-q" style="display: block; width: var(--sp-q); color: var(--bg)"></i><i id="d84-t" style="color: var(--text)"></i>';
@@ -295,6 +295,10 @@ const ready = require('./ready');
       expect(near(parseFloat(cs('seg-a').paddingTop), u / 2), "a segmented control's ring is not half a cell by default");
       expect(near(parseFloat(cs('seg-b').paddingTop), q), '--seg-pad does not set the ring of a segmented control');
       expect(near(box(el('seg-b')).height, u * 1.5 + q * 2), `a segmented control with 1½-cell tabs and a ¼-cell ring is ${box(el('seg-b')).height}px`);
+      {
+        const hd = el('opt-a').querySelector('.options-card-heading'), air = box(item('opt-a')).top - box(hd).bottom;
+        expect(near(air, u / 2), `an options card's heading is ${air}px above its first item, not half a cell`);
+      }
       expect(near(box(item('opt-a')).height, u * 2.5) && near(box(el('opt-a')).width, u * 16), 'an options card is not 16 cells wide with 2½-cell items by default');
       expect(near(box(item('opt-b')).height, u * 2), '--option-h does not set the height of an item');
       expect(parseFloat(getComputedStyle(item('opt-b')).fontSize) < parseFloat(getComputedStyle(item('opt-a')).fontSize), '--option-fs does not set the type of an item');

@@ -2418,10 +2418,12 @@
   }
   .options-card-item { background: color-mix(in oklab, var(--text) calc(var(--state-on) + var(--state-act)), transparent); }
   .options-card-item .icon.cc-end { margin-inline-start: auto; color: var(--accent); }
-  /* Inside a float everything sums to whole half-cells: heading ¼u + text +
-     ¼u, rule ½u including its line, items 2½u. */
-  /* The heading's capitals sit one cell below the card's edge. */
-  .options-card-heading { padding-inline: var(--sp-h); padding-block-start: calc(var(--sp-1) - var(--float-pad)); margin-block: 0; color: var(--text-tertiary); }
+  /* Inside a float everything sums to whole half-cells: heading 2u + ½u after
+     it, rule ½u including its line, items 2½u. The heading's capitals sit one
+     cell below the card's edge, and its words about one cell above the first
+     item's ground. The air after it is a margin: padding would be rounded into
+     the heading's own whole cells and not show. */
+  .options-card-heading { padding-inline: var(--sp-h); padding-block-start: calc(var(--sp-1) - var(--float-pad)); margin-block: 0 var(--sp-h); color: var(--text-tertiary); }
   .options-card-rule { height: var(--line); margin-block: calc((var(--sp-h) - var(--line)) / 2); background: var(--border-subtle); }
 
   .tooltip {

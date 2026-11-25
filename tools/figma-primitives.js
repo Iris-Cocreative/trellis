@@ -217,8 +217,8 @@ const itemSet = await set('options-card-item', { kind: ['default', 'switch'], st
   const c = component('VERTICAL'); c.name = 'options-card'; c.counterAxisSizingMode = 'FIXED'; c.counterAxisAlignItems = 'MIN';
   bind(c, 'width', 'space/sp-16'); padX(c, 'knob/density-options-pad'); padY(c, 'knob/density-options-pad'); corners(c, 'knob/shape-float');
   fill(c, [paint('bg-raised')]); edge(c, 'border'); lift(c);
-  const hd = row('options-card-heading'); c.appendChild(hd); hd.layoutSizingHorizontal = 'FILL'; padX(hd, 'space/sp-h'); bind(hd, 'paddingTop', 'space/sp-h'); bind(hd, 'paddingBottom', 'space/sp-q');
-  // Its capitals a cell under the card's edge: the card's padding, a half, a quarter.
+  const hd = row('options-card-heading'); c.appendChild(hd); hd.layoutSizingHorizontal = 'FILL'; padX(hd, 'space/sp-h'); bind(hd, 'paddingTop', 'space/sp-h'); bind(hd, 'paddingBottom', 'space/sp-1');
+  // Its capitals a cell under the card's edge (the card's padding, a half, a quarter) and a cell over the first item.
   const hi = row('inset'); hd.appendChild(hi); bind(hi, 'paddingTop', 'space/sp-q'); hi.appendChild(await words('Guides', { style: 'label', ink: 'text-tertiary' }));
   for (const [label, state] of [['Rename', 'rest'], ['Duplicate', 'hover'], ['Sort by name', 'selected'], [null], ['Archive', 'disabled']]) {
     if (!label) { const r = row('options-card-rule', { primaryAxisSizingMode: 'FIXED', counterAxisSizingMode: 'FIXED' }); c.appendChild(r); r.layoutSizingHorizontal = 'FILL'; bind(r, 'height', 'space/sp-h'); const l = figma.createRectangle(); l.name = 'line'; r.appendChild(l); l.layoutGrow = 1; bind(l, 'height', 'space/line'); fill(l, [paint('border-subtle')]); continue; }
