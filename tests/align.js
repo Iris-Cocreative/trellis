@@ -8,6 +8,7 @@
 //   the specimen's band in the opposite scheme (D96): its blocks are measured with the rest, its roles
 //   are the other theme's, its ground is painted, and its contrast holds
 //   the specimen's eyebrows, and the labels colored like them: 4.5:1 on their grounds in both themes
+//   on a Chromium phone, that an SVG image moves no font's metrics (tests/chromium.js): every measure rests on them
 // Usage:
 //   node align.js <url> [WxH] [product] [theme] [flags…]
 //   product: neutral, an example's name, or name=<address> (see target.js)
@@ -22,6 +23,7 @@
 // Exits 1 if anything is off.
 const pw = require(process.env.PLAYWRIGHT || 'playwright');
 const ready = require('./ready');
+const chromium = require('./chromium');
 const target = require('./target');
 const { FLOORS } = require('../tools/product');
 
@@ -32,8 +34,7 @@ const { FLOORS } = require('../tools/product');
   const touch = flags.includes('touch');
   const unitFlag = flags.find(f => /^u\d+$/.test(f));
   const fit = (flags.find(f => /^fit-/.test(f)) || 'fit-auto').slice(4);
-  const browser = flags.includes('webkit') ? await pw.webkit.launch()
-    : await pw.chromium.launch(process.env.CHROME ? { executablePath: process.env.CHROME } : {});
+  const browser = flags.includes('webkit') ? await pw.webkit.launch() : await chromium.launch(pw, touch ? 3 : 1);
   const page = await browser.newPage({ viewport: { width, height: height || 900 }, deviceScaleFactor: touch ? 3 : 1, isMobile: touch, hasTouch: touch });
   const errors = [];
   page.on('pageerror', e => errors.push(String(e)));
@@ -303,6 +304,9 @@ const { FLOORS } = require('../tools/product');
       return res;
     }));
   r.offProse.push(...again);
+  // At 3x every measure above rests on one set of font metrics.
+  const moved = touch && !flags.includes('webkit') ? await chromium.steady(page) : null;
+  if (moved) errors.push(moved);
   await Promise.race([browser.close(), new Promise(r => setTimeout(r, 5000))]); // WebKit on Windows can hang on close
   const bad = r.offText.length + r.offBox.length + r.offProse.length + errors.length + r.noReach.length + (r.scrollW > r.vw ? 1 : 0) + (band ? band.fails.length : 0) + (small ? small.fails.length : 0);
   console.log(`${flags.includes('webkit') ? 'webkit' : 'chromium'} ${size} ${product} ${theme} ${flags.join(' ')} :: u=${r.u} frame=${r.frame} gutter=${r.gutter} ` +

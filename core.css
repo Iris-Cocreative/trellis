@@ -2635,7 +2635,7 @@
     transition: border-color var(--dur-out) var(--ease-in), background-color var(--dur-out) var(--ease-in);
   }
   .input::placeholder { color: var(--text-tertiary); opacity: 1; }
-  @media (hover: hover) { .input:hover:not(:disabled) { --input-border: var(--border-strong); } }
+  @media (hover: hover) { .input:hover:not(:disabled, [aria-invalid="true"]) { --input-border: var(--border-strong); } }   /* an invalid edge stays the alert */
   .input:disabled { --input-bg: var(--bg-sunken); --input-ink: var(--text-tertiary); --input-border: var(--border-subtle); cursor: not-allowed; }
   .input:read-only:not(select, div) { --input-bg: var(--bg-sunken); }
   .input[aria-invalid="true"] { --input-border: var(--alert); }

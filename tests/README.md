@@ -15,6 +15,7 @@ They run in CI on every push and pull request (`.github/workflows/test.yml`), in
 | `matrix.js` | Runs all of the browser tests across the list below. |
 | `package.js` | What an installed consumer gets. It runs `npm pack`, installs the tarball and a pinned esbuild into a clean project in a temporary folder, and from there: the tarball carries every export, both commands and the skill, and nothing of the repository's own; `settle.js`, `float.js` and `presets.js`, imported by their package paths, survive a minified, tree-shaken bundle and set their `window.Trellis` APIs in each engine (a control bundle with the old `sideEffects` list must lose two of them); `trellis-check` counts a raw length and a raw color and exits 1 over its budget; `trellis-product` accepts the template and a layer with a scope, and rejects a layer that sets a property, an unknown knob and an unreadable accent; every installed path, import and command the packaged docs name resolves. Needs npm and the network. Not in the matrix: CI runs it as its own step. |
 | `ready.js` | What they all wait on: the document, then the runtime, then `Trellis.settled()`. `networkidle` doesn't mean parsed. |
+| `chromium.js` | How `align.js` and `layout.js` launch Chromium: unhinted on Linux at 3x (`fonts.conf`), because there an SVG image can give a 3x page a 1x screen's font metrics. `align.js` ends each Chromium phone run by checking that an SVG image moves no font's capitals. See Fonts at 3x on Linux. |
 | `tailwind-fresh.js` | Whether the spike's committed bundle holds today's `core.css`. When it doesn't, `tailwind.js` skips the bundle and the matrix runs the statement order in its place; CI rebuilds the spike first. |
 | `target.js` | Which specimen a test opens: core alone, an example layer, or a layer from outside the repository. |
 
@@ -48,6 +49,16 @@ node tests/perf.js http://127.0.0.1:8765/ webkit
 Run the WebKit cases: Safari is where `calc-size()` is missing and `settle.js` does the rounding, and Chrome's device emulation snaps edges to whole CSS pixels, so it can't see the micro scale.
 
 Tests wait on `ready.js` and on the real transition, never on a guessed delay.
+
+### Fonts at 3x on Linux
+
+Run 45540029963 (2026-11-25, CI) failed once at `393x852 neutral dark touch slow`: text and boxes 0 off, then, with every `details` open, 55 of 103 prose blocks off by the same 0.70px, and the band not where its pixels were expected. Waiting longer would not have ended it. In Ubuntu 24.04 with CI's Playwright and its default font, the same commit failed the same way in 9 of 54 runs (nine at once on six cores), two of them with the band's pixels too, and the heights, taken at every step, say why. Unhinted, it failed in 0 of 54.
+
+- A headline's padding is worked out from `1cap`. In a failed run a font's capitals had two heights: 18.78 and 20px in 25.78px type (so H3s were a cell taller or not), 64.38 and 65.08px in the specimen's 88px word (0.70px). Those are the metrics of a 3x screen, unhinted, and of a 1x screen, hinted. Where style and layout took different ones, the block was off by the difference, and everything after it.
+- Chromium keeps the density it asks for fonts with in one value for the whole renderer process, set whenever a document is laid out (`LayoutView::LayoutRoot`, for Linux and ChromeOS only). An SVG image is a document of its own, laid out at 1x. A font first asked for between that and the page's next layout is hinted. It happens every time when forced: load an SVG image, then ask for a size not asked for yet. A throttled CPU only widens the gap.
+- With hinting off the two are the same, and nothing moves. `--font-render-hinting=none` does not turn it off in Playwright's headless Chromium; fontconfig does.
+
+A reader on Linux or ChromeOS with a screen above 1x can meet it; the source compiles it out everywhere else, and it was not seen on Windows.
 
 ## A product layer from outside the repository
 
