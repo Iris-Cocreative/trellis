@@ -212,6 +212,38 @@ for (const f of PRODUCTS) for (const [label, , seed, themes] of scopesOf(f)) lay
   }
 }
 for (const [, f, seed, themes] of layersToCheck) fails.push(...P.contrast(f, seed, themes));
+// What a control's words keep as the ground under them moves (D115), for core, every
+// layer and every scope: an outline button's and a quiet tag's hovered and pressed, a
+// solid kind's while pressed (3:1: the shared state layer mixes its ink into its fill,
+// as a primary button's does), and the words on a translucent bar, over black and over
+// white, at rest and pressed.
+{
+  const rgb8 = c => [1, 3, 5].map(i => parseInt(M.hex(c).substr(i, 2), 16));
+  const over = (c, share, g) => { const x = rgb8(c), y = rgb8(g); return M.parseColor('#' + x.map((v, i) => ('0' + Math.round(v * share + y[i] * (1 - share)).toString(16)).slice(-2)).join('')); };
+  const PRESS = parseFloat(coreDefaults.get('--state-press')) / 100, HOVER = parseFloat(coreDefaults.get('--state-hover')) / 100;
+  check(PRESS === .12 && HOVER === .06, `the state shares are ${HOVER} and ${PRESS}: the contrast of a hovered and a pressed control is checked at 6% and 12%`);
+  for (const [, label, seed, themes] of layersToCheck) for (const theme of themes || P.THEMES) {
+    const p = M.palette(theme, seed), hold = (ink, ground, floor, what) => { const r = M.contrast(ink, ground); check(r >= floor, `contrast: ${label} ${theme}: ${what} is ${r.toFixed(2)}:1, under ${floor}`); };
+    for (const g of P.GROUNDS) {
+      for (const k of P.OUTLINES) {
+        const ink = M.outlineInk(p[k], theme);
+        for (const s of [HOVER, PRESS]) hold(ink, over(ink, s, p[g]), 4.5, `an outline button's ink from --${k}, ${s === PRESS ? 'pressed' : 'hovered'} on --${g},`);
+        // The tint a context may put in its ground: a tenth (what the README says).
+        for (const s of [0, HOVER]) hold(ink, over(ink, s, over(p[k], .1, p[g])), 4.5, `an outline button's ink from --${k} on a tenth of it${s ? ', hovered' : ''} on --${g},`);
+      }
+      const tint = over(p['text-tertiary'], .14, p[g]);
+      for (const s of [0, HOVER, PRESS]) hold(p['text-secondary'], over(p['text-secondary'], s, tint), 4.5, `a quiet tag's ink on --${g} with ${s * 100}% of it mixed in`);
+    }
+    for (const k of ['ok', 'alert']) { const ink = M.ink(p[k], seed); hold(ink, over(ink, PRESS, p[k]), 3, `the ink of a ${k} button, pressed,`); }
+    for (const g of P.BAR.grounds) for (const behind of [[0, 0, 0], [1, 0, 0]]) {
+      const bar = over(p[g], P.BAR.share, behind), where = `on a bar of ${P.BAR.share * 100}% --${g} over ${behind[0] ? 'white' : 'black'}`;
+      for (const k of P.BAR.inks) hold(p[k], bar, 4.5, `--${k} ${where}`);
+      hold(p['text-secondary'], over(p.text, PRESS, bar), 4.5, `--text-secondary, pressed, ${where}`);
+    }
+  }
+  // The share is the one core.css and the README name.
+  check(read('core.css').includes(`at least ${P.BAR.share * 100}% of --surface`) && readme.includes(`at least ${P.BAR.share * 100}%`), `the least share of a translucent bar's ground is ${P.BAR.share * 100}%: core.css and the README should say so`);
+}
 // A scope that is always dark says so in its selector, and only then is the day skipped (D114).
 {
   // A night scope's colors: a status, as a line, is under its floor by day and over it at night.
@@ -277,6 +309,18 @@ for (const [, f, seed, themes] of layersToCheck) fails.push(...P.contrast(f, see
       check(theme === 'light' || fill[0] <= Math.max(l, M.SEED.color.derive.above + M.SEED.color.lift) + 1e-9, `stages: a seed at lightness ${l.toFixed(2)} is lifted to ${fill[0].toFixed(2)} at night`);
     }
   }
+  // An outline button takes its color from the accent or a status, whatever a product made it (D115).
+  let lowOut = [99], on = 0;
+  for (let l = 0.25; l <= 0.961; l += 0.05) for (let c = 0; c <= 0.321; c += 0.04) for (let h = 0; h < 360; h += 10) {
+    if (!inside([l, c, h])) continue;
+    on++;
+    for (const theme of ['light', 'dark']) {
+      const p = M.palette(theme, M.SEED), ink = M.outlineInk([l, c, h], theme);
+      for (const g of P.GROUNDS) { const r = M.contrast(ink, p[g]); if (r < lowOut[0]) lowOut = [r, theme, g, l, c, h]; }
+    }
+  }
+  check(on > 1500, `outline: only ${on} colors were checked`);
+  check(lowOut[0] >= 4.5, `outline: the ink of an outline button in oklch(${lowOut.slice(3).map(x => +x.toFixed(2)).join(' ')}) is ${lowOut[0].toFixed(2)}:1 on --${lowOut[2]} in ${lowOut[1]}, under 4.5`);
   check(sn > 1500, `stages: only ${sn} seeds were checked`);
   check(lowInk[0] >= 4.5, `stages: the ink of a stage seeded oklch(${lowInk.slice(3).map(x => +x.toFixed(2)).join(' ')}) is ${lowInk[0].toFixed(2)}:1 on --${lowInk[2]} in ${lowInk[1]}, under 4.5`);
   check(far[0] < 0.1, `stages: a stage seeded oklch(${far.slice(2).map(x => +x.toFixed(2)).join(' ')}) leaves sRGB by ${far[0].toFixed(3)} in ${far[1]}`);

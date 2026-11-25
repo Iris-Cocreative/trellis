@@ -28,6 +28,7 @@
     /* ---- Type: the families and weights ---------------------------------- */
     --font-sans: ui-sans-serif, system-ui, sans-serif;   /* body text and controls */
     --font-serif: Georgia, serif;                        /* .t-serif */
+    --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;   /* .t-mono, and code in prose. Name a face Windows has (Consolas) or load one */
     --font-heading: var(--font-sans);                    /* h1 to h6. Follows the sans */
     --fw-body: 400;                                      /* running text */
     --fw-heading: 500;                                   /* h1 to h6 */
@@ -93,6 +94,7 @@
 
     /* ---- Shape and density ----------------------------------------------- */
     --shape-card: var(--r-1h);                           /* a card's corner; media in prose too */
+    --shape-card-dense: var(--r-1);                      /* a card's corner in .cc-dense; its padding still clears it. One cell unless set: it does not follow --shape-card, unless you set it to that */
     --shape-control: var(--r-round);                     /* buttons and segmented tabs */
     --shape-input: var(--r-h);                           /* inputs, selects, textareas */
     --shape-float: var(--r-1);                           /* popovers and options cards */
