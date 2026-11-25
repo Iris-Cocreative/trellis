@@ -69,6 +69,8 @@
 //           words half a cell off the slots, right to left too; the browser's
 //           spinner and clear between them; one ring; a unit level with its
 //           value; the same at 312%
+//   invalid the edge of an invalid input, select, textarea, box with slots and
+//           choice is the alert's under the pointer too, in both themes
 //   ckcard  a whole card that is a choice (D116): every point its label's but
 //           its own controls'; the keyboard; chosen, mixed, invalid, disabled;
 //           the one ring; the inks on a lit card, at three levels, in both
@@ -88,12 +90,13 @@
 // Needs Playwright (PLAYWRIGHT=module path). Exits 1 if anything is off.
 const pw = require(process.env.PLAYWRIGHT || 'playwright');
 const ready = require('./ready');
+const chromium = require('./chromium');
 
 (async () => {
   const [url, engine = 'chromium', size = '1440x900', touchFlag] = process.argv.slice(2);
   if (!url) { console.error('usage: node layout.js <url> [webkit] [WxH] [touch]'); process.exit(2); }
   const [width, height] = size.split('x').map(Number), touch = touchFlag === 'touch';
-  const browser = engine === 'webkit' ? await pw.webkit.launch() : await pw.chromium.launch(process.env.CHROME ? { executablePath: process.env.CHROME } : {});
+  const browser = engine === 'webkit' ? await pw.webkit.launch() : await chromium.launch(pw, touch ? 3 : 1);
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: touch ? 3 : 1, isMobile: touch, hasTouch: touch });
   await page.goto(url, { waitUntil: 'networkidle', timeout: 120000 });
   await ready(page);
@@ -1362,6 +1365,46 @@ const ready = require('./ready');
       return out;
     }, theme));
     await page.evaluate(() => { const t = window.__slots.theme; if (t === null) document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t); document.getElementById('slots-test').remove(); });
+  }
+
+  // An invalid field's edge is the alert's, under the pointer as at rest, in both
+  // themes: an input, a select, a textarea, one with something in its box, and a
+  // choice. A valid one, and one that says aria-invalid="false", still darken.
+  if (!touch) {
+    await page.evaluate(() => {
+      const host = document.createElement('div'); host.id = 'invalid-test'; host.className = 'stack';
+      host.style.cssText = 'position: fixed; inset-block-start: 0; inset-inline-start: 0; z-index: 2147483647; inline-size: calc(var(--u) * 30); padding: var(--sp-2); background: var(--bg)';
+      const bad = 'aria-invalid="true" aria-label="Asked"', sel = '<option>One</option><option>Two</option>';
+      // No transitions: the edge is read where it ends, not on its way (WebKit starts one late after a theme changes).
+      host.innerHTML = `<style>#invalid-test * { transition: none !important; }</style><input class="input" id="iv-input" ${bad}><input class="input cc-sm" id="iv-small" ${bad}><input class="input" id="iv-ro" readonly ${bad}><input class="input" id="iv-off" disabled ${bad}>`
+        + `<select class="input" id="iv-select" ${bad}>${sel}</select><textarea class="input" id="iv-lines" ${bad}></textarea>`
+        + `<div class="input cc-slots" id="iv-slots"><input class="input-control" ${bad}></div><div class="input cc-slots" id="iv-slots-select"><select class="input-control" ${bad}>${sel}</select></div>`
+        + `<label class="choice" id="iv-choice"><input type="checkbox" ${bad}><span class="choice-label">A choice</span></label>`
+        + `<input class="input" id="iv-ok" aria-label="Fine"><input class="input" id="iv-not" aria-invalid="false" aria-label="Fine"><i id="iv-alert" style="color: var(--alert)"></i>`;
+      document.body.appendChild(host);
+      window.__iv = document.documentElement.getAttribute('data-theme');
+    });
+    const edge = async id => page.evaluate(async id => {
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const e = document.getElementById(id), t = e.matches('.choice') ? e.querySelector('input') : e;
+      return { color: getComputedStyle(t).borderTopColor, over: e.matches(':hover'), alert: getComputedStyle(document.getElementById('iv-alert')).color };
+    }, id);
+    const hovers = await page.evaluate(() => matchMedia('(hover: hover)').matches);
+    if (!hovers) fails.push('invalid: this browser says it has no pointer that hovers, so nothing was proved');
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(theme => document.documentElement.setAttribute('data-theme', theme), theme);
+      for (const id of ['iv-input', 'iv-small', 'iv-ro', 'iv-off', 'iv-select', 'iv-lines', 'iv-slots', 'iv-slots-select', 'iv-choice', 'iv-ok', 'iv-not']) {
+        await page.mouse.move(width - 2, height - 2);
+        const rest = await edge(id), b = await page.locator('#' + id).boundingBox();
+        await page.mouse.move(b.x + 10, b.y + b.height / 2);
+        const at = await edge(id);
+        if (rest.over || !at.over) { fails.push(`invalid, ${theme}: the pointer is not on ${id} when it should be, so nothing was proved`); continue; }
+        if (id === 'iv-ok' || id === 'iv-not') { if (at.color === rest.color || rest.color === rest.alert) fails.push(`invalid, ${theme}: ${id} is ${rest.color} and stays so under the pointer, so nothing was proved`); }
+        else if (rest.color !== rest.alert || at.color !== at.alert) fails.push(`invalid, ${theme}: ${id}'s edge is ${rest.color}, and ${at.color} under the pointer, not the alert (${at.alert})`);
+      }
+    }
+    await page.mouse.move(width - 2, height - 2);
+    await page.evaluate(() => { if (window.__iv === null) document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', window.__iv); document.getElementById('invalid-test').remove(); });
   }
 
   // A whole card that is a choice (D116). Every point of the card is its label,

@@ -22,6 +22,7 @@
 // Exits 1 if anything is off.
 const pw = require(process.env.PLAYWRIGHT || 'playwright');
 const ready = require('./ready');
+const chromium = require('./chromium');
 const target = require('./target');
 const { FLOORS } = require('../tools/product');
 
@@ -32,8 +33,7 @@ const { FLOORS } = require('../tools/product');
   const touch = flags.includes('touch');
   const unitFlag = flags.find(f => /^u\d+$/.test(f));
   const fit = (flags.find(f => /^fit-/.test(f)) || 'fit-auto').slice(4);
-  const browser = flags.includes('webkit') ? await pw.webkit.launch()
-    : await pw.chromium.launch(process.env.CHROME ? { executablePath: process.env.CHROME } : {});
+  const browser = flags.includes('webkit') ? await pw.webkit.launch() : await chromium.launch(pw, touch ? 3 : 1);
   const page = await browser.newPage({ viewport: { width, height: height || 900 }, deviceScaleFactor: touch ? 3 : 1, isMobile: touch, hasTouch: touch });
   const errors = [];
   page.on('pageerror', e => errors.push(String(e)));
@@ -303,6 +303,9 @@ const { FLOORS } = require('../tools/product');
       return res;
     }));
   r.offProse.push(...again);
+  // At 3x every measure above rests on one set of font metrics.
+  const moved = touch && !flags.includes('webkit') ? await chromium.steady(page) : null;
+  if (moved) errors.push(moved);
   await Promise.race([browser.close(), new Promise(r => setTimeout(r, 5000))]); // WebKit on Windows can hang on close
   const bad = r.offText.length + r.offBox.length + r.offProse.length + errors.length + r.noReach.length + (r.scrollW > r.vw ? 1 : 0) + (band ? band.fails.length : 0) + (small ? small.fails.length : 0);
   console.log(`${flags.includes('webkit') ? 'webkit' : 'chromium'} ${size} ${product} ${theme} ${flags.join(' ')} :: u=${r.u} frame=${r.frame} gutter=${r.gutter} ` +
