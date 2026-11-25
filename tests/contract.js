@@ -30,7 +30,7 @@ check(api, 'README has no Public API section');
 // declarations' numbers and url()s, which the name pattern already excludes.
 const coreRules = core.replace(/@layer[^{;]*[{;]/g, ' ');
 const classes = new Set((coreRules.match(/\.[a-z][a-z0-9_-]*(?=[\s,.:>+~)\[{])/g) || []).map(c => c.slice(1)));
-const inTicks = (api.match(/`[^`]*`/g) || []).filter(t => !/\.(css|js|json)`$|`window\./.test(t)).join(' ');
+const inTicks = (api.match(/`[^`]*`/g) || []).filter(t => !/\.(css|js|json|md)`$|`window\./.test(t)).join(' ');
 const documented = new Set((inTicks.match(/\.[a-z][a-z0-9_-]*/g) || []).map(c => c.slice(1)));
 for (const c of classes) check(documented.has(c), `.${c} is in core.css but not in the README's Public API`);
 for (const c of documented) check(classes.has(c), `.${c} is in the README's Public API but not in core.css`);
@@ -44,30 +44,18 @@ const layers = (core.match(/@layer\s+([a-z.]+)\s*\{/g) || []).map(l => l.match(/
 for (const l of new Set(layers)) check(api.includes(l.replace('trellis.', '')) || api.includes(l), `layer ${l} is not named in the README's Public API`);
 check(!core.match(/@layer\s+(reset|tokens|theme|base|layout|primitives|product|utilities)\b/), 'a layer in core.css is outside the trellis namespace');
 
-// Products turn knobs.
+// Products turn knobs. The same validator an installed consumer runs
+// (tools/product.js, npx trellis-product): shape, knobs and, below, contrast.
+const P = require('../tools/product.js');
 const EXAMPLES = fs.readdirSync(path.join(dir, 'examples')).filter(f => f.endsWith('.css')).map(f => 'examples/' + f);
 check(EXAMPLES.length >= 2, 'examples/ needs at least two product layers: they are what proves knobs can reshape everything');
 const PRODUCTS = [...EXAMPLES, ...process.argv.slice(2).map(f => path.resolve(f))];
-const setBy = new Map();
 const decl = s => [...s.matchAll(/(--[a-z][a-z0-9-]*)\s*:\s*([^;]+);/g)].map(m => [m[1], m[2].replace(/\s+/g, ' ').trim()]);
-for (const f of PRODUCTS) {
-  const css = stripComments(read(f));
-  const rules = css.match(/[^{}]+\{/g).map(r => r.trim().replace(/\s*\{$/, ''));
-  // One product: a :root[data-product] rule, and any scopes it brings (D96), each
-  // a [data-product] rule, all in @layer trellis.product. Or a file of scopes alone.
-  check(rules.length >= 2 && /^@layer trellis\.product$/.test(rules[0]) && rules.slice(1).every(r => /^(:root)?\[data-product="[a-z-]+"\]$/.test(r))
-    && rules.slice(2).every(r => !r.startsWith(':root')),
-    `${f} must be a :root[data-product] rule and [data-product] scopes in @layer trellis.product; found: ${rules.join(' | ')}`);
-  const body = css.slice(css.indexOf('{', css.indexOf('@layer')) + 1);
-  const notVar = stripComments(body).replace(/(?::root)?\[data-product="[a-z-]+"\]\s*\{/g, '').replace(/--[a-z][a-z0-9-]*\s*:[^;]+;/g, '').replace(/[\s}]/g, '');
-  check(!notVar, `${f} sets something other than a variable: ${notVar.slice(0, 60)}`);
-  for (const [k] of decl(body)) setBy.set(k, f);
-}
+for (const f of PRODUCTS) fails.push(...P.shape(read(f), f).fails);
 
 // The template.
 const tpl = stripComments(read('product.template.css'));
 const knobs = new Map(decl(tpl));
-for (const [k, f] of setBy) check(knobs.has(k), `${f} sets ${k}, which product.template.css doesn't list`);
 const coreDefaults = new Map();
 for (const [k, v] of decl(core)) if (!coreDefaults.has(k)) coreDefaults.set(k, v);
 for (const [k, v] of knobs) {
@@ -99,19 +87,30 @@ for (const line of read('product.template.css').split('\n')) {
   for (const c of fv.collections) for (const x of c.variables) for (const a of [...Object.values(x.aliases || {}), ...Object.values(x.values).map((y) => y && y.alias)].filter(Boolean))
     check(names.has(a), `figma-variables: ${x.name} aliases ${a}, which isn't generated`);
   check(product && product.modes[0] === 'Core', 'figma-variables: the Product collection opens on Core');
-  // The two plugin scripts that write the file parse as the body of an async
+  // The plugin scripts that write the file parse as the body of an async
   // function, as Figma's plugin tool runs them, and every variable the
-  // components name is generated.
+  // components name is generated. The variables travel in parts
+  // (tools/figma-variables.js), and between them write every collection once.
   const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
-  const plugin = execFileSync(process.execPath, [path.join(dir, 'tools', 'figma-variables.js'), '--plugin'], { encoding: 'utf8' });
+  const fvParts = require(path.join(dir, 'tools', 'figma-variables.js')).PARTS;
+  const varScripts = fvParts.map((p) => [`figma-variables --plugin ${p}`, execFileSync(process.execPath, [path.join(dir, 'tools', 'figma-variables.js'), '--plugin', p], { encoding: 'utf8' })]);
+  const written = {};
+  for (const [name, src] of varScripts) {
+    const packed = src.match(/^const PACKED = (.*);$/m);
+    if (packed) for (const c of JSON.parse(packed[1]).collections.filter((c) => c.v)) {
+      check(!written[c.name], `${name} writes ${c.name}, which ${written[c.name]} writes too`); written[c.name] = name;
+      check(c.v.length === fv.collections.find((x) => x.name === c.name).variables.length, `${name} writes ${c.v.length} of ${c.name}'s variables`);
+    }
+  }
+  for (const c of fv.collections) check(written[c.name], `no figma-variables part writes ${c.name}`);
   // The components travel in parts (tools/figma-components.js), each the kit and a body.
   const fc = require(path.join(dir, 'tools', 'figma-components.js'));
-  const scripts = [['figma-variables --plugin', plugin], ...Object.keys(fc.PARTS).map((p) => [`figma-components --plugin ${p}`, fc.script(p)])];
-  for (const [name, src] of scripts) {
+  const compScripts = Object.keys(fc.PARTS).map((p) => [`figma-components --plugin ${p}`, fc.script(p)]);
+  for (const [name, src] of varScripts.concat(compScripts)) {
     try { new AsyncFunction('figma', src); } catch (e) { check(false, `${name} does not parse: ${e.message}`); }
     check(src.length < 50000, `${name} is ${src.length} characters; an agent's Figma tool takes 50,000`);
   }
-  for (const [name, src] of scripts.slice(1)) {
+  for (const [name, src] of compScripts) {
     for (const [, n] of src.matchAll(/'((?:space|size|radius|knob|derived|type|color)\/[a-z0-9/-]+)'/g))
       check(names.has(n), `${name} binds ${n}, which isn't generated`);
     // A role it paints, edges or inks by name is a Color variable.
@@ -128,6 +127,21 @@ for (const f of ['./core.css', './settle.js', './presets.js', './float.js', './p
 }
 for (const f of Object.keys(pkg.exports)) check(!/^\.\/examples\//.test(f), `${f} must not be a package export: a product layer lives with its product`);
 check(pkg.name === '@iris-cocreative/trellis', `package.json's name is ${pkg.name}`);
+// What an installed consumer gets (tests/package.js proves it from the tarball).
+// A runtime that writes window.Trellis is a side effect, or a bundler drops its bare import.
+const shipped = f => (pkg.files || []).includes(f.replace(/^\.\//, ''));
+for (const f of Object.keys(pkg.exports).filter(f => f.endsWith('.js'))) {
+  check(shipped(f), `package.json exports ${f} but its files don't carry it`);
+  const writes = /window\.Trellis\s*=|\(window\.Trellis\s*=/.test(read(f));
+  check(writes === (pkg.sideEffects || []).includes(f), `package.json's sideEffects should ${writes ? '' : 'not '}list ${f}: it ${writes ? 'sets' : "doesn't set"} window.Trellis`);
+}
+for (const [b, f] of Object.entries(pkg.bin || {})) {
+  check(shipped(f), `the ${b} command's ${f} isn't in package.json's files`);
+  check(read(f).startsWith('#!/usr/bin/env node\n'), `${f} needs a #!/usr/bin/env node line to run as ${b}`);
+}
+check(pkg.bin && pkg.bin['trellis-check'] === 'tools/check.js' && pkg.bin['trellis-product'] === 'tools/product.js', 'package.json should install trellis-check and trellis-product');
+for (const f of ['skill/SKILL.md', 'skill/ADOPT.md']) check(shipped(f), `package.json's files don't carry ${f}, which the adoption workflow reads`);
+check(!pkg.dependencies, 'package.json has runtime dependencies; Trellis has none');
 check(fs.existsSync(path.join(dir, 'LICENSE')) && pkg.license === 'MIT', 'the MIT license is missing, or package.json does not name it');
 const version = (readme.match(/\*\*v(\d+\.\d+(?:\.\d+)?)\b/) || [])[1];
 check(version && pkg.version.startsWith(version), `README says v${version}; package.json says ${pkg.version}`);
@@ -167,56 +181,10 @@ check(fromTokens.frame.max === M.SEED.frame.max, "math.js's frame seed is not to
 check(JSON.stringify(fromTokens.color) === JSON.stringify(M.SEED.color), "math.js's color seed is not tokens.json's");
 
 // Contrast. The palette is derived, so a product's seeds decide whether its
-// text can be read: check every layer, in both themes, with the same arithmetic
-// core.css uses. Floors are WCAG AA: 4.5 for text, 3 for a control's color.
-// The faint ink and the borders are decoration and have none.
-const FLOORS = [['text', 'bg', 4.5], ['text', 'bg-raised', 4.5], ['text', 'bg-sunken', 4.5],
-  ['text-secondary', 'bg', 4.5], ['text-secondary', 'bg-raised', 4.5], ['text-secondary', 'bg-sunken', 4.5],
-  ['text-tertiary', 'bg', 4.5], ['text-tertiary', 'bg-raised', 4.5],
-  ['text', 'bg-raised-2', 4.5], ['text-secondary', 'bg-raised-2', 4.5], ['text-tertiary', 'bg-raised-2', 4.5],
-  ['text', 'bg-raised-3', 4.5], ['text-secondary', 'bg-raised-3', 4.5], ['text-tertiary', 'bg-raised-3', 4.5],
-  ['accent-ink', 'accent', 4.5], ['accent', 'bg', 3], ['accent', 'bg-raised', 3],
-  // A status drawn as a line: a ring dot (.dot.cc-ring, D103) is one or two lines of its
-  // color on the page or a surface, so each status holds 3:1 there, as the accent does.
-  ...['ok', 'warn', 'alert'].flatMap(k => ['bg', 'bg-raised', 'bg-raised-2', 'bg-raised-3'].map(g => [k, g, 3])),
-  // A stage's ink is for words and for a ring's line (D107): text, on the page and every raised
-  // level, whatever color the product gave the stage. Its fill has no floor: it may be pale.
-  ...[1, 2, 3, 4, 5, 6, 7].flatMap(n => ['bg', 'bg-raised', 'bg-raised-2', 'bg-raised-3'].map(g => [`stage-${n}-ink`, g, 4.5]))];
-// A file with scopes is checked once per scope too: the root's seeds, then the
-// scope's over them, as M.scope() and core.css both have it (D96).
+// text can be read: check core and every layer, in both themes, with the same
+// arithmetic core.css uses (the floors are tools/product.js's).
 const layersToCheck = [[null, 'core', M.SEED]];
-// Each scope of a layer, the root first: [what to call it, the scope's name or null for the root, its seed].
-function scopesOf(f) {
-  const css = stripComments(read(f)), base = JSON.parse(JSON.stringify(M.SEED));
-  const blocks = [...css.matchAll(/((?::root)?\[data-product="([a-z-]+)"\])\s*\{([^}]*)\}/g)];
-  const seedsOf = body => {
-    const out = {};
-    // A seed a layer sets is that color; one it leaves, or leaves as the
-    // template has it (var(--…)), follows from its accent.
-    for (const [, k, v] of body.matchAll(/--seed-([a-z0-9-]+)\s*:\s*([^;]+);/g)) {
-      if (/^var\(--[a-z0-9-]+\)$/.test(v.trim())) continue;
-      try { out[k] = M.parseColor(v); } catch (e) { fails.push(`${f}: --seed-${k}: ${e.message}`); }
-    }
-    return out;
-  };
-  const rootBlock = blocks.find(b => b[1].startsWith(':root'));
-  const lift = (rootBlock ? rootBlock[3] : '').match(/--color-lift\s*:\s*([\d.]+)/), flip = (rootBlock ? rootBlock[3] : '').match(/--ink-flip\s*:\s*([\d.]+)/);
-  if (lift) base.color.lift = +lift[1];
-  if (flip) base.color.flip = +flip[1];
-  const nightOf = body => { const m = body.match(/--night-lift\s*:\s*([\d.]+)/); return m ? +m[1] : undefined; };
-  const dayOf = body => { const m = body.match(/--day-depth\s*:\s*([\d.]+)/); return m ? +m[1] : undefined; };
-  if (rootBlock && nightOf(rootBlock[3]) !== undefined) base.color.nightLift = nightOf(rootBlock[3]);
-  if (rootBlock && dayOf(rootBlock[3]) !== undefined) base.color.dayDepth = dayOf(rootBlock[3]);
-  const rootSeeds = rootBlock ? seedsOf(rootBlock[3]) : {}, out = [];
-  if (rootBlock) out.push([f, null, M.scope(base, rootSeeds)]);
-  for (const b of blocks.filter(x => x !== rootBlock)) {
-    const sc = M.scope(base, rootSeeds, seedsOf(b[3]));
-    if (nightOf(b[3]) !== undefined) sc.color.nightLift = nightOf(b[3]);
-    if (dayOf(b[3]) !== undefined) sc.color.dayDepth = dayOf(b[3]);
-    out.push([`${f} [data-product="${b[2]}"]`, b[2], sc]);
-  }
-  return out;
-}
+const scopesOf = f => P.scopesOf(read(f), f, fails);
 for (const f of PRODUCTS) for (const [label, , seed] of scopesOf(f)) layersToCheck.push([f, label, seed]);
 // The Figma file's products (tools/figma-variables.js): core and every scope of
 // every layer it reads is a Product mode (D96), and each mode's colors, night,
@@ -238,20 +206,7 @@ for (const f of PRODUCTS) for (const [label, , seed] of scopesOf(f)) layersToChe
     }
   }
 }
-for (const [, f, seed] of layersToCheck) {
-  for (const theme of ['light', 'dark']) {
-    const p = M.palette(theme, seed);
-    for (const [ink, ground, floor] of FLOORS) {
-      const r = M.contrast(p[ink], p[ground]);
-      check(r >= floor, `contrast: ${f} ${theme}: --${ink} on --${ground} is ${r.toFixed(2)}:1, under ${floor}`);
-    }
-    // A solid tag or a badge on a kind or status: ink computed from the fill.
-    for (const k of ['kind-person', 'kind-group', 'kind-event', 'kind-course', 'kind-topic', 'ok', 'warn', 'alert']) {
-      const r = M.contrast(M.ink(p[k], seed), p[k]);
-      check(r >= 4.5, `contrast: ${f} ${theme}: ink on a solid --${k} is ${r.toFixed(2)}:1, under 4.5`);
-    }
-  }
-}
+for (const [, f, seed] of layersToCheck) fails.push(...P.contrast(f, seed));
 // One seed (D90). Whatever accent a product chooses, inside sRGB, the seeds that
 // follow from it carry an ink that reads, in both themes, and those whose ink
 // is white are inside sRGB themselves.

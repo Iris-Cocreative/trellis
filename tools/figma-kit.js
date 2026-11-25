@@ -97,6 +97,7 @@ async function set(name, axes, build, o = {}) {
   const combos = Object.entries(axes).reduce((acc, [k, vs]) => acc.flatMap((a) => vs.map((v) => Object.assign({}, a, { [k]: v }))), [{}]);
   const comps = [];
   for (const p of combos) {
+    if (o.skip && o.skip(p)) continue;   // a pair the code has no such thing as (a radio's mixed)
     const c = await build(p);
     c.name = Object.entries(p).map(([k, v]) => `${k}=${v}`).join(', ');
     comps.push(c);

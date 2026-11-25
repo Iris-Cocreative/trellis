@@ -85,13 +85,18 @@ Mock up in HTML, on the real thing: a page that loads the project's `core.css`, 
 
 ## Check your work
 
+Where the project installs Trellis as a package:
+
 ```bash
-node <trellis>/tools/check.js <the app's source folder>              # counts, per file
-node <trellis>/tools/check.js <folder> --show restyled                # list one kind
-node <trellis>/tools/check.js <folder> --budget check.budget.json     # fails if a count rose
+npx trellis-check <the app's source folder>                # counts, per file
+npx trellis-check <folder> --show restyled                 # list one kind
+npx trellis-check <folder> --budget check.budget.json      # fails if a count rose
+npx trellis-product <product layer file>                   # knobs only, and contrast
 ```
 
-It also counts a modifier without its base (`--show bare-modifiers`). If the project has a budget file, run the third form before you finish: your change must not raise any count, and lowering one is part of the job. After lowering, rewrite the budget with `--write`. `node <trellis>/tests/contract.js <product layer file>` checks a product layer.
+Where it pins a copy or sits beside the repository, the same files by path: `node <trellis>/tools/check.js …` and `node <trellis>/tools/product.js <product layer file>`, with `core.css` and `product.template.css` one folder above `tools/`. In an installed package `<trellis>` is `node_modules/@iris-cocreative/trellis`.
+
+It also counts a modifier without its base (`--show bare-modifiers`). If the project has a budget file, run the third form before you finish: your change must not raise any count, and lowering one is part of the job. After lowering, rewrite the budget with `--write`. The product check exits 1 on a layer that sets anything but the template's knobs, or whose text falls under its contrast floor on any scope.
 
 ## Moving an existing site onto Trellis
 
@@ -99,10 +104,10 @@ Read `ADOPT.md` beside this file. It covers taking stock, sorting each part by i
 
 ## Starting a project on Trellis
 
-1. Pin a copy: `vendor/trellis/` with `core.css`, `settle.js` (and `float.js` or `presets.js` if it uses them) and a `SOURCE.txt` naming the commit or tag.
+1. Install it pinned to a commit (`npm install github:Iris-Cocreative/trellis#<commit>`), or pin a copy: `vendor/trellis/` with `core.css`, `settle.js` (and `float.js` or `presets.js` if it uses them), `product.template.css`, `tools/check.js`, `tools/product.js` and `math.js` for the checks, and a `SOURCE.txt` naming the commit or tag.
 2. Load, in order: `core.css`, the product layer, the app's CSS; then `settle.js` once. Beside Tailwind, state `@layer theme, base, trellis, components, utilities;` first, and add `@source not inline("list-item outline snap-x");` after `@import "tailwindcss"` (D110). On a Trellis surface, Tailwind lengths name cells (`p-(--sp-2)`), never its rem scale.
 3. Copy `product.template.css` to the project's own product file, keep the knobs you change, put `data-product` on `<html>`.
-4. Write the budget (`--budget check.budget.json --write`) on day one, while it is all zeros.
+4. Write the budget (`npx trellis-check <src> --budget check.budget.json --write`) on day one, while it is all zeros.
 5. Put this in the project's `CLAUDE.md`, so every session sees it:
 
-   > This project is built on Trellis. Before writing or changing any CSS, markup or mockup, use the `trellis` skill. Use Trellis primitives and tokens, no raw values, and run `tools/check.js` with the budget before finishing.
+   > This project is built on Trellis. Before writing or changing any CSS, markup or mockup, use the `trellis` skill. Use Trellis primitives and tokens, no raw values, and run `npx trellis-check` with the budget before finishing.

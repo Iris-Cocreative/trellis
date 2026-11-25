@@ -37,6 +37,11 @@ jobs:
           npx --prefix "$RUNNER_TEMP/pw" playwright install --with-deps chromium webkit
           echo "PLAYWRIGHT=$RUNNER_TEMP/pw/node_modules/playwright" >> "$GITHUB_ENV"
 
+      # npm pack, installed into a clean consumer: the runtimes survive a production
+      # bundle, and the documented checks run from the installed package.
+      - name: Check the package as a consumer installs it
+        run: node tests/package.js chromium webkit
+
       - name: Serve the repository
         run: |
           python3 -m http.server 8765 --bind 127.0.0.1 &

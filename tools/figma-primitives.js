@@ -29,7 +29,7 @@ await set('button', { kind: Object.keys(KINDS), size: Object.keys(SIZES), state:
   c.appendChild(await words('Button', { fs: SIZES[p.size][1], ink, family: 'type/font-button', weight: 'type/fw-button' }));
   return c;
 }, { text: ['label', 'Button'], caption: 'button · kind × size × state',
-  description: 'Trellis .button. <button class="button cc-primary cc-sm">Save</button>. Height, padding and corner follow the product (--density-control-h, --shape-control). Its family and weight follow the product (--font-button, --fw-button); its case and spacing (--button-case, --button-tracking) are for the code alone. Hover is 6% of its ink over its fill, press 12%; disabled is :disabled or aria-disabled. On touch the hit area is 44pt whatever it draws.' });
+  description: 'Trellis .button. <button class="button cc-primary cc-sm">Save</button>. Height, padding and corner follow the product (--density-control-h, --shape-control). Its family and weight follow the product (--font-button, --fw-button); its case and spacing (--button-case, --button-tracking) are for the code alone. Hover is 6% of its ink over its fill, press 12%; disabled is :disabled or aria-disabled. .cc-block fills its row: set an instance\'s width to Fill. On touch the hit area is 44pt whatever it draws.' });
 
 await set('button icon-button', { kind: Object.keys(KINDS), size: Object.keys(SIZES) }, async (p) => {
   const c = component(), ink = buttonFace(c, Object.assign({ state: 'rest' }, p));
@@ -49,7 +49,7 @@ await set('tag', { kind: Object.keys(TAG_KINDS), emphasis: ['default', 'cc-outli
   c.appendChild(await words('Tag', { fs, ink: solid ? 'on-' + hue : 'text' }));
   return c;
 }, { text: ['label', 'Tag'], caption: 'tag · kind × emphasis × size', width: 1600,
-  description: 'Trellis .tag, the archetype: a height, a corner, padding equal to the corner, an edge and a tint mixed from one kind color. <span class="tag cc-person cc-solid">. .cc-stage-1 to 7 take a step of a process (D107). A link that is the current one, a.tag[aria-current="page"], draws solid (D101). A product sets its corner, height and size (--tag-r-fixed, --tag-r-ratio, --tag-default-h); its case and tracking (--tag-case, Quarry\'s uppercase) are the code\'s alone.' });
+  description: 'Trellis .tag, the archetype: a height, a corner, padding equal to the corner, an edge and a tint mixed from one kind color. <span class="tag cc-person cc-solid">. .cc-stage-1 to 7 take a step of a process (D107). A link that is the current one, a.tag[aria-current="page"], draws solid (D101). A product sets its corner, height and size (--tag-r-fixed, --tag-r-ratio, --tag-default-h); its case and tracking (--tag-case, Quarry\'s uppercase) are the code\'s alone. What isn\'t here yet takes --tag-edge-style: dashed: dash an instance\'s stroke (4, 2).' });
 
 // ---- avatar -----------------------------------------------------------------
 const AV = { 'cc-xs': [1, 'space/sp-1'], default: [2, 'space/sp-2'], 'cc-md': [3, 'space/sp-3'], 'cc-lg': [4, 'space/sp-4'], 'cc-xl': [6, 'space/sp-6'], 'cc-xxl': [8, 'space/sp-8'], 'cc-hero': [12, 'space/sp-12'] };
@@ -92,22 +92,49 @@ const dotSet = await set('dot', { kind: Object.keys(DOT), fill: ['default', 'cc-
 }, { caption: 'dot · kind × fill', width: 900, description: 'Trellis .dot: the smallest mark of a state. One that carries meaning alone takes role="img" and a label. .cc-ring is the dot not yet filled: a line a quarter of the dot, one to two lines (--dot-ring), clear inside (--dot-fill); on a rail set --dot-fill: var(--surface). .cc-stage-1 to 7 fill with a stage and ring with its ink.' });
 
 // ---- switch -----------------------------------------------------------------
-const track = (on, off) => {
+// mid: aria-checked="mixed", the thumb half way on the off fill (D109).
+const track = (on, off, mid) => {
   const t = row('track', { primaryAxisSizingMode: 'FIXED', counterAxisSizingMode: 'FIXED' });
   bind(t, 'width', 'space/sp-3'); bind(t, 'height', 'space/sp-1h'); corners(t, 'radius/r-round'); padX(t, 'space/sp-q');
-  t.primaryAxisAlignItems = on ? 'MAX' : 'MIN';
+  t.primaryAxisAlignItems = mid ? 'CENTER' : on ? 'MAX' : 'MIN';
   fill(t, off ? [paint('text', 0.1)] : on ? [paint('accent')] : [paint('text', 0.32)]);
   const k = figma.createEllipse(); k.name = 'thumb'; t.appendChild(k);
   bind(k, 'width', 'space/sp-1'); bind(k, 'height', 'space/sp-1');
   fill(k, [off ? paint('bg-sunken') : on ? paint('accent-ink') : { type: 'SOLID', color: { r: 1, g: 1, b: 1 } }]);
   return t;
 };
-await set('switch', { checked: ['false', 'true'], state: ['rest', 'disabled'] }, async (p) => {
+await set('switch', { checked: ['false', 'true', 'mixed'], state: ['rest', 'disabled'] }, async (p) => {
   const c = component(); bind(c, 'minHeight', 'size/size-control-sm'); bind(c, 'itemSpacing', 'space/sp-h');
-  c.appendChild(track(p.checked === 'true', p.state === 'disabled'));
+  c.appendChild(track(p.checked === 'true', p.state === 'disabled', p.checked === 'mixed'));
   c.appendChild(await words('Switch', { fs: 'type/control/fs-control', ink: p.state === 'disabled' ? 'text-faint' : 'text' }));
   return c;
-}, { text: ['label', 'Switch'], caption: 'switch · checked × state', width: 600, description: 'Trellis .switch: on or off, now. <button class="switch" role="switch" aria-checked="true">Label</button>. The track 3 × 1½ cells, the thumb a cell.' });
+}, { text: ['label', 'Switch'], caption: 'switch · checked × state', width: 900, description: 'Trellis .switch, the choice archetype\'s third box (D109): on or off, now. <button class="switch" role="switch" aria-checked="true">Label</button>, or label.switch > input[role=switch].u-sr-only + .switch-label. The track 3 × 1½ cells, the thumb a cell. aria-checked="mixed" holds the thumb half way on the off fill, for a setting over a selection that differs; a role=switch is read as off then, so its label says so.' });
+
+// ---- choice: checkbox and radio (D109) ----------------------------------------
+const CHOICE = { 'cc-sm': ['space/sp-1', 'type/control/fs-control-sm', 'size/size-control-sm'], default: ['space/sp-1h', 'type/control/fs-control', 'size/size-control-sm'], 'cc-lg': ['space/sp-2', 'type/control/fs-control-lg', 'size/size-control-lg'] };
+// A mark in the box, scaled with it: the check (the code's clip path, in 18ths), a bar, a dot a third of the radio.
+const CHECK = 'M 5.1 8.4 L 3.6 10.6 L 9 14.4 L 14.4 5.3 L 12.2 3.6 L 8.2 10.3 Z';
+await set('choice', { kind: ['checkbox', 'radio'], checked: ['false', 'true', 'mixed'], state: ['rest', 'invalid', 'disabled'], size: Object.keys(CHOICE) }, async (p) => {
+  const c = component(), [box, fs, h] = CHOICE[p.size], on = p.checked !== 'false', off = p.state === 'disabled';
+  bind(c, 'minHeight', h); bind(c, 'itemSpacing', 'space/sp-h');
+  const b = figma.createFrame(); b.name = 'input'; b.resize(18, 18); b.clipsContent = false; c.appendChild(b);
+  corners(b, p.kind === 'radio' ? 'radius/r-round' : 'radius/r-q');
+  fill(b, off ? [paint(on ? 'text' : 'bg-sunken', on ? 0.2 : 1)] : on ? [paint('accent')] : []);
+  if (!(off && on)) edge(b, off ? 'text' : p.state === 'invalid' ? 'alert' : on ? 'accent' : 'text-tertiary', off ? 0.2 : 1);
+  if (on) {
+    const ink = off ? 'bg' : 'accent-ink';
+    const m = p.kind === 'radio' ? figma.createEllipse() : p.checked === 'mixed' ? figma.createRectangle() : figma.createVector();
+    m.name = 'mark'; b.appendChild(m);
+    if (m.type === 'VECTOR') { m.vectorPaths = [{ windingRule: 'NONZERO', data: CHECK }]; m.resize(10.8, 10.8); m.x = m.y = 3.6; }
+    else if (m.type === 'ELLIPSE') { m.resize(6, 6); m.x = m.y = 6; } else { m.resize(9, 2); m.x = 4.5; m.y = 8; }
+    fill(m, [paint(ink)]); stroke(m, []);
+    m.constraints = m.type === 'RECTANGLE' ? { horizontal: 'SCALE', vertical: 'CENTER' } : { horizontal: 'SCALE', vertical: 'SCALE' };
+  }
+  bind(b, 'width', box); bind(b, 'height', box);   // after the mark, drawn on an 18 box, so it scales with the box
+  c.appendChild(await words('Choice', { fs, ink: off ? 'text-faint' : 'text', name: 'choice-label' }));
+  return c;
+}, { skip: (p) => p.kind === 'radio' && p.checked === 'mixed', text: ['choice-label', 'Choice'], caption: 'choice · kind × checked × state × size', width: 1600,
+  description: 'Trellis .choice (D109): label.choice > input[type=checkbox|radio] + .choice-label. The row two cells (.cc-lg three), the box on half cells a half cell before its words: a cell and a half (.cc-sm one, .cc-lg two), a quarter-cell corner, a radio the same circle. Checked fills with --choice-on and marks in --choice-ink; mixed is the checkbox\'s indeterminate property, set from script, drawn as a bar; invalid (aria-invalid, :user-invalid) takes the alert edge; disabled quiets the box and the words. Hover and press are the shared state layer on the box. On touch the row\'s hit area is at least 44pt. With no words, label.choice > input[aria-label].' });
 
 // ---- range ------------------------------------------------------------------
 await set('range', { kind: ['default', 'cc-zone'] }, async (p) => {

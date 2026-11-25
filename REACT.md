@@ -15,7 +15,14 @@ import '@iris-cocreative/trellis/core.css';
 import './product.css';   // the product layer: the app's own file, copied from product.template.css
 ```
 
-The package is `@iris-cocreative/trellis`, and it exports `core.css`, `settle.js` and `product.template.css`.
+The package is `@iris-cocreative/trellis`, and it exports `core.css`, `settle.js`, `float.js`, `presets.js`, `math.js`, `tokens.json`, `product.template.css` and `tools/product.js`. The three runtimes are declared side effects, so a production bundle keeps a bare `import '@iris-cocreative/trellis/float.js'`.
+
+It also installs the two checks, for CI or a pre-commit hook:
+
+```bash
+npx trellis-check app components --budget check.budget.json   # the app's source; exits 1 if a count rose
+npx trellis-product app/product.css                            # the product layer; exits 1 if it fails
+```
 
 ## The rules
 
