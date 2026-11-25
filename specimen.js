@@ -194,6 +194,14 @@
     var r = e.target.closest('button.chat-reaction');
     if (r) r.setAttribute('aria-pressed', String(r.getAttribute('aria-pressed') !== 'true'));
   });
+  // A field's own button: clear a search, show a password.
+  document.addEventListener('click', function (e) {
+    var clear = e.target.closest('[data-demo-clear]'), show = e.target.closest('[data-demo-show]'), b = clear || show;
+    if (!b) return;
+    var input = b.closest('.input').querySelector('.input-control');
+    if (clear) { input.value = ''; input.focus(); }
+    else { var on = input.type === 'password'; input.type = on ? 'text' : 'password'; b.setAttribute('aria-pressed', String(on)); }
+  });
   document.querySelectorAll('[data-demo-composer]').forEach(function (form) {
     var input = form.querySelector('.composer-input');
     form.addEventListener('submit', function (e) { e.preventDefault(); input.value = ''; if (window.Trellis && Trellis.composer) Trellis.composer(input); });

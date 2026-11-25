@@ -1587,8 +1587,8 @@
   .card-link:focus-visible { outline: none; }
   .card-link:focus-visible::before { outline: calc(var(--line) * 2) solid var(--focus); outline-offset: var(--line); }
   .list-link::before { z-index: 1; }
-  :where(.card:has(.card-link), .list-item:has(.list-link)) { isolation: isolate; }
-  :where(.card:has(.card-link), .list-item:has(.list-link)) :where(a[href], button, input, select, textarea, summary, label, [tabindex]:not([tabindex="-1"])):where(:not(.card-link, .list-link)) { position: relative; z-index: 2; }
+  :where(.card:has(.card-link, .card-choice), .list-item:has(.list-link)) { isolation: isolate; }
+  :where(.card:has(.card-link, .card-choice), .list-item:has(.list-link)) :where(a[href], button, input, select, textarea, summary, label, .cc-slots, [tabindex]:not([tabindex="-1"])):where(:not(.card-link, .list-link, .card-choice, .input-control)) { position: relative; z-index: 2; }
 
   /* A frame an image fills by cover: .media > img (or video, picture). The
      frame is sized in cells, --media-w by --media-h (no width fills its
@@ -1915,6 +1915,68 @@
   @media (forced-colors: active) {
     .prose :where(li > input[type="checkbox"], li > label > input[type="checkbox"]):not(.choice > *) { forced-color-adjust: none; border-color: CanvasText; background: Canvas; color: HighlightText; }
     .prose :where(li > input[type="checkbox"], li > label > input[type="checkbox"]):not(.choice > *):checked { border-color: Highlight; background: Highlight; }
+  }
+
+  /* A whole card that is a choice (D116). The card's title is its choice,
+     label.choice.card-choice, whose ::before covers the card (the label's
+     nearest positioned ancestor), so a press anywhere on the card is a press
+     on the label and the native input does the rest: no script, and nothing
+     wrapped round the card's other controls, which are raised above the cover
+     as a .card-link card's are (D108). Chosen, the card lights: an edge two
+     lines thick (--card-choice-edge) and a wash under its words
+     (--card-choice-fill); mixed lights the edge alone; --card-choice-glow is
+     a shadow a product may add. Invalid turns the edge to the alert, from the
+     input or its radiogroup. Disabled sinks the ground. Hover and press are
+     the shared state layer on the cover, and the one focus ring is drawn round
+     the card. The choice is the card: a .card-link in it is a plain link, with
+     its own click and ring and no cover. Markup: .card > label.choice.card-choice
+     > input + .choice-label; what describes it, an aria-describedby. */
+  .card-choice {
+    --card-choice-edge: var(--choice-on);
+    --card-choice-fill: color-mix(in oklab, var(--choice-on) 8%, transparent);
+    --card-choice-glow: none;
+    --card-choice-line: 0px;
+    --card-choice-draw: transparent;
+    --card-choice-ground: transparent;
+    --card-choice-shadow: none;
+    position: static;   /* the cover is the card's, not the row's */
+    display: flex;
+  }
+  .card-choice::before {
+    content: ""; position: absolute; z-index: 1;
+    inset: 0 calc(var(--line) * -1) calc(var(--line) * -1) 0;   /* the card's own edge, plane on plane */
+    border: var(--card-choice-line) solid var(--card-choice-draw);
+    border-radius: var(--card-radius, 0px);
+    background: color-mix(in oklab, var(--text) var(--state-act), transparent);
+  }
+  .card-choice::after {
+    content: ""; position: absolute; z-index: -1; inset: 0;   /* over the card's ground, under what it holds */
+    border-radius: var(--card-radius, 0px);
+    background: var(--card-choice-ground);
+    box-shadow: var(--card-choice-shadow);
+    transition: background-color var(--dur-out) var(--ease-in);
+  }
+  .card-choice:where(:has(> input:is(:checked, [type="checkbox"]:indeterminate))) { --card-choice-line: calc(var(--line) * 2); --card-choice-draw: var(--card-choice-edge); }
+  .card-choice:where(:has(> input:checked:not([type="checkbox"]:indeterminate))) { --card-choice-ground: var(--card-choice-fill); --card-choice-shadow: var(--card-choice-glow); }
+  [role="radiogroup"][aria-invalid="true"] .card-choice > input:not(:disabled) { --choice-edge: var(--alert); }
+  .card-choice:where(:has(> input:is([aria-invalid="true"], :user-invalid)), [role="radiogroup"][aria-invalid="true"] *):where(:not(:has(> input:disabled))) { --card-choice-line: calc(var(--line) * 2); --card-choice-draw: var(--alert); }
+  .card-choice:where(:has(> input:disabled)) { --card-choice-draw: color-mix(in oklab, var(--text) 20%, transparent); --card-choice-ground: var(--bg-sunken); --card-choice-shadow: none; }
+  /* The wash takes contrast from the third ink, so a lit card that holds no
+     card reads it as the second. */
+  .card:has(.card-choice > input:checked:not(:disabled)):not(:has(.card)) { --text-tertiary: var(--text-secondary); }
+  .card-choice > input:focus-visible { outline: none; }
+  .card-choice:has(> input:focus-visible)::before { outline: calc(var(--line) * 2) solid var(--focus); outline-offset: var(--line); }
+  @media (hover: hover) { .card-choice:hover:not(:has(> input:disabled))::before { --state-act: var(--state-hover); } }
+  .card-choice:active:not(:has(> input:disabled))::before { --state-act: var(--state-press); }
+  .card:has(.card-choice):not(:has(.card)) .card-link { position: relative; z-index: 2; text-decoration: underline; }
+  .card:has(.card-choice):not(:has(.card)) .card-link::before { content: none; }
+  .card:has(.card-choice):not(:has(.card)) .card-link:focus-visible { outline: calc(var(--line) * 2) solid var(--focus); }
+  /* A card of one line and little padding is still the touch target tall. */
+  @media (pointer: coarse) { .card-choice { --choice-row: max(var(--size-control-sm), round(up, calc(var(--hit-min) - var(--card-inset-block, 0px) * 2), var(--u))); } }
+  @media (forced-colors: active) {
+    .card-choice:where(:has(> input:is(:checked, [type="checkbox"]:indeterminate))) { --card-choice-draw: Highlight; }
+    .card-choice:where(:has(> input:is([aria-invalid="true"], :user-invalid)), [role="radiogroup"][aria-invalid="true"] *):where(:not(:has(> input:disabled))) { --card-choice-draw: Mark; }
+    .card-choice:where(:has(> input:disabled)) { --card-choice-draw: GrayText; color: GrayText; }
   }
 
   /* SLIDER. A value along a line: an input[type=range] on the cells. The row
@@ -2467,7 +2529,7 @@
   .field-hint { color: var(--text-tertiary); }
   .field-label, .field-hint { padding-inline-start: var(--field-inset); }
   .cc-dense .field, .field:has(> .input.cc-sm) { --field-inset: var(--sp-h); }
-  .field:has(.input[aria-invalid="true"]) .field-hint { color: var(--alert); }
+  .field:has(:is(.input, .input-control)[aria-invalid="true"]) .field-hint { color: var(--alert); }
   .input {
     --input-h: var(--density-control-h);
     --input-fs: var(--density-control-fs);
@@ -2495,7 +2557,7 @@
   .input::placeholder { color: var(--text-tertiary); opacity: 1; }
   @media (hover: hover) { .input:hover:not(:disabled) { --input-border: var(--border-strong); } }
   .input:disabled { --input-bg: var(--bg-sunken); --input-ink: var(--text-tertiary); --input-border: var(--border-subtle); cursor: not-allowed; }
-  .input:read-only:not(select) { --input-bg: var(--bg-sunken); }
+  .input:read-only:not(select, div) { --input-bg: var(--bg-sunken); }
   .input[aria-invalid="true"] { --input-border: var(--alert); }
   .input.cc-sm { --input-h: var(--size-control-sm); --input-fs: var(--fs-control-sm); --input-pad: var(--sp-h); }
   .input.cc-lg { --input-h: var(--size-control-xl); --input-fs: var(--fs-control-lg); }
@@ -2513,7 +2575,7 @@
     field-sizing: content;
   }
   /* A chevron drawn from two gradients, so it follows the ink in both themes. */
-  select.input {
+  select:is(.input, .input-control) {
     appearance: none; -webkit-appearance: none;
     --chevron: calc(var(--sp-q) + var(--line) * 2);
     --chevron-color: currentColor;
@@ -2527,6 +2589,82 @@
     background-repeat: no-repeat;
     cursor: pointer;
   }
+  [dir="rtl"] select:is(.input, .input-control) { background-position: left var(--sp-1) center, left calc(var(--sp-1) + var(--chevron)) center; }
+  /* A field with something in its box (D116): a unit, an icon, a button that
+     shows a password or clears a search. The box is a div.input.cc-slots,
+     which draws what an input draws (its height, its edge, its ground, its
+     corner, its sizes and every context that sets them) and holds a bare
+     .input-control, an input or a select. What comes before it stands at the
+     box's start and what comes after at its end: an .icon or an .input-unit,
+     which are drawn and nothing more, or a .button.icon-button, which is its
+     own control. The box takes the one focus ring and the invalid, disabled
+     and read-only states from its control. The control's own box runs on
+     under the slots to the box's edges (padding to its words, a negative
+     margin back out), so a click on a unit or an icon is a click on the field
+     and a browser's autofill fills the whole box; its words, a number's
+     spinner and a search's clear button stay between the slots. A slot's
+     width is only how far it runs, so a long unit moves the words and never
+     meets them. A select takes a start slot; its end is its chevron. A
+     textarea takes none: controls round lines of text are the composer.
+     Markup: .field > label.field-label + .input.cc-slots > .icon or .input-unit
+     or .button.icon-button, .input-control, then the same at the end. */
+  .input.cc-slots {
+    --input-unit: 4em;   /* how far the control runs under a unit: as long as the unit, or more */
+    --input-slot-ink: var(--text-secondary);
+    --input-inset: calc(var(--input-pad) - var(--line));
+    --input-slot: calc(max(var(--input-h), var(--input-hit)) - var(--sp-h));
+    display: flex; align-items: center; gap: var(--sp-h);
+    overflow: clip; isolation: isolate;
+    cursor: text;
+  }
+  .input.cc-slots > :not(.input-control) { flex: none; z-index: 1; }
+  .input.cc-slots > :is(.icon, .input-unit) { color: var(--input-slot-ink); pointer-events: none; }
+  .input-unit { max-inline-size: 50%; overflow-x: clip; white-space: nowrap; text-overflow: ellipsis; }
+  .input.cc-slots > .button {
+    --btn-h: var(--input-slot); --btn-fs: var(--fs-control-sm);
+    --btn-radius: max(var(--r-q), calc(var(--input-radius) - var(--sp-q)));
+    max-block-size: 100%;
+    outline-offset: calc(var(--line) * -2);   /* the box clips, so its ring is inside it */
+  }
+  .input.cc-slots > .button:first-child { margin-inline-start: calc(var(--sp-q) - var(--input-pad)); }
+  .input.cc-slots > .button:last-child { margin-inline-end: calc(var(--sp-q) - var(--input-pad)); }
+  .input-control {
+    --control-start: var(--input-inset);
+    --control-end: var(--input-inset);
+    -webkit-appearance: none; appearance: none;
+    flex: 1 1 0; align-self: stretch;
+    min-inline-size: 0;
+    margin-block: 0;
+    margin-inline: calc(var(--control-start) * -1) calc(var(--control-end) * -1);
+    padding-block: 0;
+    padding-inline: var(--control-start) var(--control-end);
+    border: 0; border-radius: 0;
+    background-color: transparent;
+    color: inherit;
+  }
+  .icon + .input-control { --control-start: calc(var(--input-inset) + var(--size-icon) + var(--sp-h)); }
+  .input-control:has(+ .icon) { --control-end: calc(var(--input-inset) + var(--size-icon) + var(--sp-h)); }
+  .input-unit + .input-control { --control-start: calc(var(--input-inset) + var(--input-unit) + var(--sp-h)); }
+  .input-control:has(+ .input-unit) { --control-end: calc(var(--input-inset) + var(--input-unit) + var(--sp-h)); }
+  .button + .input-control { --control-start: calc(var(--sp-q) - var(--line) + var(--input-slot) + var(--sp-h)); }
+  .input-control:has(+ .button) { --control-end: calc(var(--sp-q) - var(--line) + var(--input-slot) + var(--sp-h)); }
+  .input-control:has(+ .button:not(.icon-button)), .input-control:has(+ * + *) { --control-end: calc(var(--input-inset) + var(--input-slot) + var(--input-unit)); }
+  .button:not(.icon-button) + .input-control, * + * + .input-control { --control-start: calc(var(--input-inset) + var(--input-slot) + var(--input-unit)); }
+  .input-control::placeholder { color: var(--text-tertiary); opacity: 1; }
+  .input-control:focus-visible { outline: none; }
+  .input.cc-slots:has(> .input-control:focus-visible) { outline: calc(var(--line) * 2) solid var(--focus); outline-offset: var(--line); }
+  .input.cc-slots:has(> .input-control:read-only:not(select)) { --input-bg: var(--bg-sunken); }
+  .input.cc-slots:has(> .input-control[aria-invalid="true"]) { --input-border: var(--alert); }
+  .input.cc-slots:has(> .input-control:disabled) { --input-bg: var(--bg-sunken); --input-ink: var(--text-tertiary); --input-slot-ink: var(--text-tertiary); --input-border: var(--border-subtle); cursor: not-allowed; }
+  .input-control:disabled { cursor: not-allowed; }
+  /* A button of the app's at the end is the one that clears or shows: the
+     browser's own (a search's clear, Edge's reveal) goes. */
+  .input-control[type="search"]::-webkit-search-decoration { -webkit-appearance: none; }
+  .input-control:has(+ .button)::-webkit-search-cancel-button { display: none; }
+  .input-control:has(+ .button)::-ms-reveal { display: none; }
+  .input-control:has(+ .button)::-ms-clear { display: none; }
+  @media (forced-colors: active) { .input.cc-slots:has(> .input-control:disabled) { border-color: GrayText; } }
+
   /* Composer: one box for writing a message. Leading controls (attach), the
      text, trailing controls (emoji), then the send button, all inside one edge
      on the raised ground. The text grows a line at a time up to --composer-max,

@@ -59,6 +59,15 @@
 //           take its corners; on a full bleed, in both themes, a control with
 //           no fill of its own reads on the scrim, at rest, hovered, pressed
 //           and focused, and one with a fill, or on a surface, is untouched
+//   slots   a field with something in its box (D116): the box is the input's in
+//           every state; every point of it is the control but a button's own;
+//           words half a cell off the slots, right to left too; the browser's
+//           spinner and clear between them; one ring; a unit level with its
+//           value; the same at 312%
+//   ckcard  a whole card that is a choice (D116): every point its label's but
+//           its own controls'; the keyboard; chosen, mixed, invalid, disabled;
+//           the one ring; the inks on a lit card, at three levels, in both
+//           themes; forced colors; whole cells at 312%
 //   tile    a member tile's cluster is no wider than its tile
 //   gaps    a shell keeps a column for an aside only when it has one; the
 //           column's brand is not in the tab bar; prose in a bubble that
@@ -1104,6 +1113,303 @@ const ready = require('./ready');
   }
   await page.evaluate(() => document.getElementById('choice-test').remove());
 
+  // Something in a field's box (D116). The box is the input it stands in for:
+  // the same height, edge, ground, corner and ink, at rest and in each state.
+  // Its control reaches every part of the box but a button, so a click on an
+  // icon or a unit is a click on the field and autofill fills the box; its
+  // words stay half a cell off the slots, from both sides and right to left,
+  // a long unit too. A button keeps its click, its target and its own ring;
+  // the box takes the one ring of its control. A unit's capitals are level
+  // with the value's, read from a screenshot. A number's spinner and a
+  // search's own clear button stay between the slots, and the browser's clear
+  // goes when the app brings a button.
+  {
+    await page.evaluate(() => {
+      const host = document.createElement('div'); host.id = 'slots-test'; host.className = 'stack';
+      host.style.cssText = 'position: absolute; inset-block-start: 0; inset-inline-start: 0; z-index: 2147483647; inline-size: calc(var(--u) * 30); padding: var(--sp-2); background: var(--bg)';
+      const icon = '<svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7h10"/></svg>';
+      const btn = (k = '') => `<button class="button icon-button cc-ghost" type="button" aria-label="Act"${k}>${icon}</button>`, unit = t => `<span class="input-unit" aria-hidden="true">${t}</span>`;
+      const box = (id, start, attrs, end, cls = '') => `<div class="input cc-slots ${cls}" id="${id}">${start}<input class="input-control" aria-label="${id}" ${attrs}>${end}</div>`;
+      const pair = (id, cls, attrs) => `<input class="input ${cls}" id="${id}-plain" aria-label="${id}" ${attrs}>` + box(id, icon, attrs, '', cls);
+      const sel = '<option>One</option><option>Two</option>';
+      const all = p => box(p + 'icon', icon, 'value="Words"', '') + box(p + 'unit', unit('H'), 'value="H"', unit('a month')) + box(p + 'long', unit('https://'), 'value="Words"', unit('USD'))
+        + box(p + 'search', icon, 'type="search" value="Words"', btn()) + box(p + 'lead', btn(), 'value="Words"', '') + box(p + 'two', icon, 'value="Words"', unit('%') + btn())
+        + box(p + 'text', '', 'value="Words"', '<button class="button cc-ghost" type="button"><span class="button-label">Show it</span></button>');
+      host.innerHTML = pair('sl-rest', '', 'value="Words"') + pair('sl-sm', 'cc-sm', 'value="Words"') + pair('sl-lg', 'cc-lg', 'value="Words"')
+        + pair('sl-off', '', 'value="Words" disabled') + pair('sl-ro', '', 'value="Words" readonly') + pair('sl-bad', '', 'value="Words" aria-invalid="true"') + `<div class="field">${box('sl-asked', icon, 'value="Words" aria-invalid="true"', '')}<p class="field-hint t-xs" id="sl-hint">A hint</p></div><div class="input cc-slots" id="sl-cut" style="--input-unit: 20em">${unit('https://a-long-address.example.org/with/a/path/of/its/own/')}<input class="input-control" aria-label="Cut" value="Words"></div>`
+        + `<select class="input" id="sl-sel-plain" aria-label="Plain">${sel}</select><div class="input cc-slots" id="sl-sel">${icon}<select class="input-control" aria-label="Sel">${sel}</select></div>`
+        + `<div class="cc-dense stack">${pair('sl-dense', '', 'value="Words"')}</div>`
+        + box('sl-num', unit('$'), 'type="number" value="25"', unit('a month')) + box('sl-find', icon, 'type="search" value="Words"', '') + all('sl-')
+        + box('sl-sm-btn', icon, 'value="Words"', btn(), 'cc-sm') + box('sl-lg-btn', icon, 'value="Words"', btn(), 'cc-lg')
+        + `<div dir="rtl" class="stack">${all('rtl-')}<select class="input" id="rtl-sel-plain" aria-label="Plain">${sel}</select><div class="input cc-slots" id="rtl-sel">${icon}<select class="input-control" aria-label="Sel">${sel}</select></div></div>`
+        + `<article class="card stack" id="sl-card"><p class="t-h6"><a class="card-link" href="#slots-test">A card that links</a></p>${box('sl-inlink', icon, 'value="Words"', btn())}</article>`;
+      document.body.appendChild(host);
+      window.__slots = {
+        px: (...cs) => { const c = Object.assign(document.createElement('canvas'), { width: 1, height: 1 }), g = c.getContext('2d', { willReadFrequently: true }); cs.forEach(v => { g.fillStyle = v; g.fillRect(0, 0, 1, 1); }); return [...g.getImageData(0, 0, 1, 1).data]; },
+        ratio: (a, b) => { const l = p => { const f = p.slice(0, 3).map(v => { v /= 255; return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }); return .2126 * f[0] + .7152 * f[1] + .0722 * f[2]; }; const x = l(a), y = l(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); },
+        still: () => Promise.all(document.getAnimations().filter(a => a.effect && a.effect.target && a.effect.target.closest && a.effect.target.closest('#slots-test, #card-choice-test')).map(a => a.finished.catch(() => {}))),
+        theme: document.documentElement.getAttribute('data-theme'),
+      };
+      scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    });
+    await page.evaluate(async () => { await Trellis.settled(); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); await window.__slots.still(); });
+    fails.push(...await page.evaluate(() => {
+      const fails = [], u = Trellis.cell(), $ = id => document.getElementById(id), r = e => e.getBoundingClientRect(), near = (a, b, t = .6) => Math.abs(a - b) < t, say = m => fails.push('field slots: ' + m);
+      const coarse = matchMedia('(pointer: coarse)').matches, hit = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hit-min')) || 44;
+      for (const id of ['sl-rest', 'sl-sm', 'sl-lg', 'sl-off', 'sl-ro', 'sl-bad', 'sl-sel', 'sl-dense']) {
+        const b = $(id), p = $(id + '-plain'), bs = getComputedStyle(b), ps = getComputedStyle(p), c = getComputedStyle(b.querySelector('.input-control'));
+        if (!near(r(b).height, r(p).height, .1) || !near(r(b).width, r(p).width, .1)) say(`${id} is ${r(b).width.toFixed(2)} by ${r(b).height.toFixed(2)}, the plain input ${r(p).width.toFixed(2)} by ${r(p).height.toFixed(2)}`);
+        for (const k of ['borderTopColor', 'borderTopWidth', 'borderTopLeftRadius', 'backgroundColor', 'fontSize', 'marginBlockEnd', 'cursor']) if (bs[k] !== ps[k] && !(k === 'cursor' && ['sl-rest', 'sl-sm', 'sl-lg', 'sl-ro', 'sl-bad', 'sl-sel', 'sl-dense'].includes(id))) say(`${id}'s ${k} is ${bs[k]}, the plain input's ${ps[k]}`);
+        for (const k of ['color', 'fontSize', 'fontFamily', 'lineHeight']) if (c[k] !== ps[k]) say(`${id}'s words' ${k} is ${c[k]}, the plain input's ${ps[k]}`);
+        if (!/^(transparent|rgba\(0, 0, 0, 0\))$/.test(c.backgroundColor) || parseFloat(c.borderTopWidth)) say(`${id}'s control draws a box of its own`);
+      }
+      const alert = (() => { const i = document.createElement('i'); i.style.color = 'var(--alert)'; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c; })();
+      if (getComputedStyle($('sl-bad')).borderTopColor !== alert || getComputedStyle($('sl-hint')).color !== alert) say('an invalid control does not turn its box and its hint to the alert');
+      if (getComputedStyle($('sl-off')).borderTopColor === getComputedStyle($('sl-rest')).borderTopColor || getComputedStyle($('sl-ro')).backgroundColor === getComputedStyle($('sl-rest')).backgroundColor) say('disabled or read-only is drawn as at rest, so nothing was proved');
+      const bg = e => getComputedStyle(e).backgroundPositionX;
+      if (bg($('sl-sel').querySelector('select')) !== bg($('sl-sel-plain'))) say(`a select's chevron is at ${bg($('sl-sel').querySelector('select'))}, a plain one's at ${bg($('sl-sel-plain'))}`);
+      for (const s of [$('rtl-sel-plain'), $('rtl-sel').querySelector('select')]) if (/right|100%/.test(bg(s))) say(`right to left, a select's chevron is at ${bg(s)}, over its words`);
+      const ends = s => parseFloat(getComputedStyle(s).paddingLeft);
+      if (parseFloat(getComputedStyle($('sl-sel').querySelector('select')).paddingRight) < 2.5 * u) say('a select in a box keeps no room for its chevron');
+      if (ends($('rtl-sel').querySelector('select')) < 2.5 * u || ends($('rtl-sel-plain')) < 2.5 * u) say('right to left, a select keeps no room for its chevron');
+      for (const b of document.querySelectorAll('#slots-test .cc-slots')) {
+        const id = b.id, c = b.querySelector('.input-control'), cs = getComputedStyle(c), rb = r(b), rc = r(c), line = parseFloat(getComputedStyle(b).borderTopWidth), rtl = cs.direction === 'rtl';
+        const isSel = c.matches('select');
+        if (rc.left > rb.left + line + .6 || rc.right < rb.right - line - .6 || rc.top > rb.top + line + .6 || rc.bottom < rb.bottom - line - .6) say(`${id}'s control (${rc.left.toFixed(1)} to ${rc.right.toFixed(1)}) does not reach its box's edges (${rb.left.toFixed(1)} to ${rb.right.toFixed(1)})`);
+        // The words' room, and the slots on either side of it.
+        const room = [rc.left + parseFloat(cs.paddingLeft), rc.right - parseFloat(cs.paddingRight)];
+        if (room[1] - room[0] < 4 * u) say(`${id} leaves ${(room[1] - room[0]).toFixed(1)}px for its words`);
+        for (const s of b.children) {
+          if (s === c) continue;
+          const rs = r(s), before = (s.compareDocumentPosition(c) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0, left = before !== rtl;
+          const gap = left ? room[0] - rs.right : rs.left - room[1];
+          if (gap < u / 2 - .6) say(`${id}: "${s.textContent || s.tagName}" is ${gap.toFixed(2)}px from the words, not half a cell`);
+          if (rs.left < rb.left || rs.right > rb.right || rs.top < rb.top - .1 || rs.bottom > rb.bottom + .1) say(`${id}: "${s.textContent || s.tagName}" leaves the box`);
+          if (!near(rs.top + rs.height / 2, rb.top + rb.height / 2, .6)) say(`${id}: "${s.textContent || s.tagName}" is ${(rs.top + rs.height / 2 - rb.top - rb.height / 2).toFixed(2)}px off the box's middle`);
+          const outer = s === b.firstElementChild || s === b.lastElementChild, edge = left ? rs.left - rb.left : rb.right - rs.right, pad = parseFloat(getComputedStyle(b).paddingLeft) + line;
+          if (outer && !near(edge, s.matches('.button') ? u / 4 : pad, 1)) say(`${id}: "${s.textContent || s.tagName}" is ${edge.toFixed(2)}px from the box's edge`);
+          if (!s.matches('.button') && getComputedStyle(s).pointerEvents !== 'none') say(`${id}: "${s.textContent || s.tagName}" takes clicks`);
+        }
+        // Every point of the box is the control, or a button's own.
+        b.scrollIntoView({ block: 'center', behavior: 'instant' });
+        const v = r(b), y = v.top + v.height / 2;
+        for (let x = v.left + 2; x < v.right - 1; x += 3) {
+          const at = document.elementFromPoint(x, y), own = at && at.closest('.button');
+          if (at !== c && !(own && own.parentElement === b)) { say(`${id}: a click ${(x - v.left).toFixed(0)}px in goes to ${at ? at.tagName + '.' + at.className : 'nothing'}, not the control`); break; }
+        }
+        for (const k of b.querySelectorAll('.button')) {
+          const q = r(k), cx = q.left + q.width / 2, cy = q.top + q.height / 2, t = coarse ? hit / 2 - 1 : Math.min(q.width, q.height) / 2 - 1;
+          for (const [x, y] of [[cx, cy], [cx - t, cy], [cx + t, cy], [cx, cy - t], [cx, cy + t]]) { const at = document.elementFromPoint(x, y); if (!at || at.closest('.button') !== k) say(`${id}: a press ${(x - cx).toFixed(0)},${(y - cy).toFixed(0)} from its button's middle misses it`); }
+        }
+        if (isSel && rc.left < rb.left - 1.5) say(`${id}: a select's box starts ${(rb.left - rc.left).toFixed(1)}px before its field's, so its list would open off it`);
+      }
+      return fails;
+    }));
+    // Clicks: on an icon, a unit, and the box's own padding, then on a button.
+    const spot = (id, part) => page.evaluate(async ([id, part]) => { const b = document.getElementById(id); b.scrollIntoView({ block: 'center', behavior: 'instant' }); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); const e = part ? b.querySelector(part) : b, q = e.getBoundingClientRect(); return part ? { x: q.left + q.width / 2, y: q.top + q.height / 2 } : { x: q.left + 4, y: q.top + q.height / 2 }; }, [id, part]);
+    for (const [id, part] of [['sl-icon', '.icon'], ['sl-unit', '.input-unit'], ['sl-unit', '.input-unit:last-child'], ['sl-long', '.input-unit'], ['rtl-unit', '.input-unit'], ['sl-inlink', '.icon'], ['sl-icon', '']]) {
+      await page.evaluate(() => document.activeElement.blur());
+      const p = await spot(id, part);
+      await (touch ? page.touchscreen.tap(p.x, p.y) : page.mouse.click(p.x, p.y));
+      const at = await page.evaluate(id => document.activeElement === document.querySelector(`#${id} .input-control`), id);
+      if (!at) fails.push(`field slots: a press on ${id}'s ${part || 'padding'} does not focus its control`);
+    }
+    for (const id of ['sl-search', 'sl-inlink']) {
+      await page.evaluate(id => { document.activeElement.blur(); window.__acted = 0; document.querySelector(`#${id} .button`).addEventListener('click', () => window.__acted++); }, id);
+      const p = await spot(id, '.button');
+      await (touch ? page.touchscreen.tap(p.x, p.y) : page.mouse.click(p.x, p.y));
+      if (await page.evaluate(() => window.__acted) !== 1) fails.push(`field slots: a press on ${id}'s button is not its own`);
+      if (await page.evaluate(id => document.activeElement === document.querySelector(`#${id} .input-control`), id)) fails.push(`field slots: a press on ${id}'s button went to the field`);
+    }
+    // The browser's own parts: a spinner steps and a search clears, inside the slots.
+    if (!touch) {
+      const inside = async (id, dx, dy) => { const p = await page.evaluate(async id => { const c = document.querySelector(`#${id} .input-control`); c.scrollIntoView({ block: 'center', behavior: 'instant' }); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); const q = c.getBoundingClientRect(); return { x: q.right - parseFloat(getComputedStyle(c).paddingRight), y: q.top + q.height / 2 }; }, id); await page.mouse.move(p.x - 40, p.y); await page.mouse.move(p.x - dx, p.y + dy); await page.mouse.click(p.x - dx, p.y + dy); return page.evaluate(id => document.querySelector(`#${id} .input-control`).value, id); };
+      const num = await inside('sl-num', 6, -4);
+      if (num !== '26') fails.push(`field slots: a number's spinner is not at the end of its words' room (a press there left ${num})`);
+      await page.focus('#sl-find .input-control');
+      const found = await inside('sl-find', 7, 0);
+      if (found !== '') fails.push(`field slots: a search's own clear button is not at the end of its words' room (a press there left "${found}")`);
+      await page.focus('#sl-search .input-control');
+      const kept = await inside('sl-search', 7, 0);
+      if (kept !== 'Words') fails.push("field slots: the browser's clear button is still there beside the app's");
+    }
+    // One ring: the box's for its control, the button's own for a button, drawn inside the box that would cut it.
+    await page.focus('#sl-search .input-control'); await page.keyboard.press('End');
+    fails.push(...await page.evaluate(() => {
+      const fails = [], b = document.getElementById('sl-search'), c = b.querySelector('.input-control'), bs = getComputedStyle(b), i = document.createElement('i');
+      i.style.color = 'var(--focus)'; b.parentElement.appendChild(i); const want = getComputedStyle(i).color; i.remove();
+      if (bs.outlineStyle !== 'solid' || bs.outlineColor !== want || !(parseFloat(bs.outlineWidth) > 0)) fails.push(`field slots: focused, the box's ring is ${bs.outlineStyle} ${bs.outlineColor}, not ${want}`);
+      if (getComputedStyle(c).outlineStyle !== 'none') fails.push('field slots: the control draws a ring inside the box');
+      const k = b.querySelector('.button'); k.focus();
+      const ks = getComputedStyle(k), q = k.getBoundingClientRect(), rb = b.getBoundingClientRect(), line = parseFloat(bs.borderTopWidth), out = parseFloat(ks.outlineOffset) + parseFloat(ks.outlineWidth);
+      // A phone's WebKit does not show a button focused by script as focused; every other run does.
+      if (ks.outlineStyle !== 'solid' && k.matches(':focus-visible')) fails.push('field slots: a focused button in the box has no ring');
+      if (!k.matches(':focus-visible') && !matchMedia('(pointer: coarse)').matches) fails.push('field slots: a button in the box took no visible focus');
+      if (getComputedStyle(b).outlineStyle !== 'none') fails.push("field slots: the box takes its button's ring as well");
+      if (q.right + out > rb.right - line + .1 || q.top - out < rb.top + line - .1) fails.push("field slots: the box cuts its button's ring");
+      document.activeElement.blur();
+      return fails;
+    }));
+    // Level capitals: the unit's and the value's, from the pixels.
+    {
+      await spot('sl-unit', '');
+      await page.mouse.move(width - 2, height - 2);
+      const png = (await page.locator('#sl-unit').screenshot()).toString('base64');
+      const lines = await page.evaluate(async png => {
+        const b = document.getElementById('sl-unit'), c = b.querySelector('.input-control'), rb = b.getBoundingClientRect(), un = b.querySelector('.input-unit').getBoundingClientRect(), x0 = c.getBoundingClientRect().left + parseFloat(getComputedStyle(c).paddingLeft);
+        const img = new Image(); img.src = 'data:image/png;base64,' + png; await img.decode();
+        const k = img.width / rb.width, v = Object.assign(document.createElement('canvas'), { width: img.width, height: img.height }), g = v.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0);
+        const ink = (from, to) => { const x = Math.round((from - rb.left) * k), w = Math.round((to - from) * k), y = Math.round(4 * k), h = img.height - 2 * y, d = g.getImageData(x, y, w, h).data, bg = d[0] + d[1] + d[2], rows = []; for (let j = 0; j < h; j++) { let n = 0; for (let i = 0; i < w; i++) { const q = (j * w + i) * 4; n = Math.max(n, Math.abs(d[q] + d[q + 1] + d[q + 2] - bg)); } if (n > 120) rows.push(j); } return rows.length ? [rows[0], rows[rows.length - 1]] : null; };
+        return { unit: ink(un.left, un.right), value: ink(x0, x0 + un.width + 2), k };
+      }, png);
+      if (!lines.unit || !lines.value) fails.push('field slots: no ink found in the unit or the value');
+      else if (Math.abs(lines.unit[0] - lines.value[0]) > lines.k || Math.abs(lines.unit[1] - lines.value[1]) > lines.k) fails.push(`field slots: a unit's capitals stand at ${lines.unit}, its value's at ${lines.value}`);
+    }
+    // What a slot says can be read, in both themes.
+    for (const theme of ['light', 'dark']) fails.push(...await page.evaluate(async theme => {
+      document.documentElement.setAttribute('data-theme', theme); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); await window.__slots.still();
+      const { px, ratio } = window.__slots, out = [];
+      for (const s of document.querySelectorAll('#sl-unit .input-unit, #sl-icon > .icon, #sl-search .button, #sl-bad > .icon, #sl-ro > .icon')) { const g = px(getComputedStyle(s.closest('.cc-slots')).backgroundColor), q = ratio(px(getComputedStyle(s).color), g); if (q < 4.5) out.push(`field slots, ${theme}: ${s.parentElement.id}'s ${s.tagName} is ${q.toFixed(2)}:1 on its box`); }
+      return out;
+    }, theme));
+    await page.evaluate(() => { const t = window.__slots.theme; if (t === null) document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t); document.getElementById('slots-test').remove(); });
+  }
+
+  // A whole card that is a choice (D116). Every point of the card is its label,
+  // corners included, so a press anywhere chooses it, but its own field, button
+  // and link keep theirs; a .card-link in it has no cover. The native input
+  // does the rest: Space, a radio group's arrows from card to card, disabled.
+  // Chosen, the card has an edge of two lines and a wash under its words; mixed
+  // the edge alone; invalid, from the input or its group, the alert's. The one
+  // ring is round the card. The inks on a lit card read, at all three levels,
+  // in both themes. In forced colors chosen is not told by the wash.
+  {
+    await page.evaluate(() => {
+      const host = document.createElement('div'); host.id = 'card-choice-test'; host.className = 'stack';
+      host.style.cssText = 'position: absolute; inset-block-start: 0; inset-inline-start: 0; z-index: 2147483647; inline-size: min(100vw, calc(var(--u) * 60)); padding: var(--sp-2); background: var(--bg)';
+      const card = (id, attrs, rest = '', cls = '', style = '') => `<article class="card stack u-gap-1 ${cls}" id="${id}" style="${style}"><label class="choice card-choice"><input ${attrs}><span class="choice-label cap-center">Title</span></label><p class="t-sm">What it is, in a line of words.</p>${rest}</article>`;
+      const field = '<div class="field"><label class="field-label t-label" for="ck-gift">Gift</label><div class="input cc-slots"><span class="input-unit">$</span><input class="input-control" id="ck-gift"></div></div>';
+      host.innerHTML = `<div class="cols" style="--cols: 2" role="radiogroup" aria-label="Ways">${card('ck-a', 'type="radio" name="ck" checked')}${card('ck-c', 'type="radio" name="ck" disabled')}${card('ck-b', 'type="radio" name="ck"', field + '<div class="cluster"><button class="button cc-sm" type="button" id="ck-btn"><span class="button-label">Act</span></button><a class="tag cc-sm" href="#card-choice-test" id="ck-tag"><span class="tag-label">Tag</span></a></div><p class="t-xs"><a class="card-link" href="#card-choice-test" id="ck-link">More about it</a></p>')}</div>`
+        + `<div class="cols" style="--cols: 3">${card('ck-off', 'type="checkbox"')}${card('ck-on', 'type="checkbox" checked')}${card('ck-mixed', 'type="checkbox"')}${card('ck-bad', 'type="checkbox" aria-invalid="true"')}${card('ck-dis', 'type="checkbox" disabled')}${card('ck-dison', 'type="checkbox" checked disabled')}</div>`
+        + `<div class="cols" style="--cols: 2" role="radiogroup" aria-label="Asked" aria-invalid="true">${card('ck-g1', 'type="radio" name="ckg"')}${card('ck-g2', 'type="radio" name="ckg" disabled')}</div>`
+        + `<article class="card" id="ck-hid"><label class="choice card-choice"><input class="u-sr-only" type="radio" name="ckh"><span class="choice-label">A tile says it</span></label></article>`
+        + `<article class="card" id="ck-tiny" style="--card-pad: 0px"><label class="choice card-choice"><input type="checkbox"><span class="choice-label">Tiny</span></label></article>`
+        + `<article class="card" id="ck-glow"><label class="choice card-choice" style="--card-choice-glow: 0 0 9px var(--ok); --card-choice-fill: var(--bg-hover); --card-choice-edge: var(--warn)"><input type="checkbox" checked><span class="choice-label">A product's own light</span></label></article>`
+        + `<article class="card" id="ck-l1"><div class="stack">${card('ck-l2', 'type="checkbox" checked')}<article class="card"><div class="stack">${card('ck-l3', 'type="checkbox" checked')}</div></article></div></article>`
+        + `<div class="cluster" id="ck-ref"><i id="ck-accent" style="color: var(--choice-on, var(--accent))"></i><i id="ck-alert" style="color: var(--alert)"></i><i id="ck-focus" style="color: var(--focus)"></i><i id="ck-warn" style="color: var(--warn)"></i></div>`;
+      document.body.appendChild(host);
+      host.querySelector('#ck-mixed input').indeterminate = true;
+      scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    });
+    await page.evaluate(async () => { await Trellis.settled(); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); await window.__slots.still(); });
+    fails.push(...await page.evaluate(() => {
+      const fails = [], u = Trellis.cell(), $ = id => document.getElementById(id), r = e => e.getBoundingClientRect(), say = m => fails.push('card choice: ' + m);
+      const ref = id => getComputedStyle($(id)).color, lab = id => $(id).querySelector('.card-choice'), be = id => getComputedStyle(lab(id), '::before'), af = id => getComputedStyle(lab(id), '::after');
+      const clear = v => /^(transparent|rgba\(0, 0, 0, 0\))$/.test(v), line = parseFloat(getComputedStyle($('ck-a'), '::after').borderTopWidth);
+      // The cover is the card's box.
+      for (const c of document.querySelectorAll('#card-choice-test .card:has(> .card-choice)')) {
+        const l = c.querySelector('.card-choice'), b = getComputedStyle(l, '::before'), a = getComputedStyle(l, '::after'), edge = getComputedStyle(c, '::after');
+        if (l.offsetParent !== c || b.position !== 'absolute' || [b.top, b.right, b.bottom, b.left].join() !== [edge.top, edge.right, edge.bottom, edge.left].join()) say(`${c.id}'s cover is not its card's edge (${[b.top, b.right, b.bottom, b.left]} against ${[edge.top, edge.right, edge.bottom, edge.left]})`);
+        if (b.borderTopLeftRadius !== getComputedStyle(c).borderTopLeftRadius || a.borderTopLeftRadius !== b.borderTopLeftRadius) say(`${c.id}'s cover does not take its card's corner`);
+        if (a.zIndex !== '-1' || getComputedStyle(c).isolation !== 'isolate' || getComputedStyle(l).zIndex !== 'auto') say(`${c.id}'s wash is not under its words`);
+        if (!(Math.abs(r(c).height / u - Math.round(r(c).height / u)) < .05)) say(`${c.id} is ${(r(c).height / u).toFixed(2)} cells tall`);
+      }
+      const lit = (id, edge, ground) => { const b = be(id), w = parseFloat(b.borderTopWidth); if (edge ? (w < 2 * line - .6 || w <= line || b.borderTopColor !== edge) : w > 0) say(`${id}'s edge is ${b.borderTopWidth} ${b.borderTopColor}${edge ? ', not two lines of ' + edge : ', and it is not chosen'}`); if (clear(af(id).backgroundColor) === ground) say(`${id}'s ground is ${af(id).backgroundColor}`); };
+      lit('ck-a', ref('ck-accent'), true); lit('ck-b', '', false); lit('ck-off', '', false); lit('ck-on', ref('ck-accent'), true); lit('ck-mixed', ref('ck-accent'), false);
+      lit('ck-bad', ref('ck-alert'), false); lit('ck-g1', ref('ck-alert'), false); lit('ck-hid', '', false); lit('ck-glow', ref('ck-warn'), true);
+      if (getComputedStyle($('ck-g1').querySelector('input')).borderTopColor !== ref('ck-alert')) say("an invalid group's radio keeps its own edge");
+      lit('ck-g2', '', true);   // disabled: sunk, and not lit by its group
+      if (af('ck-a').boxShadow !== 'none' || af('ck-glow').boxShadow === 'none') say(`the glow is ${af('ck-a').boxShadow} unset and ${af('ck-glow').boxShadow} set`);
+      for (const id of ['ck-dis', 'ck-dison', 'ck-c']) if (clear(af(id).backgroundColor) || be(id).borderTopColor === ref('ck-accent') || getComputedStyle(lab(id)).cursor !== 'not-allowed') say(`${id}, disabled, is not quieted`);
+      // The chosen card's third ink is the second, and no other card's is.
+      const ink = (id, v) => { const i = document.createElement('i'); i.style.color = `var(${v})`; $(id).appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c; };
+      if (ink('ck-on', '--text-tertiary') !== ink('ck-on', '--text-secondary') || ink('ck-off', '--text-tertiary') === ink('ck-off', '--text-secondary') || ink('ck-l1', '--text-tertiary') !== ink('ck-off', '--text-tertiary')) say("a lit card's third ink is not the second, or another card's is");
+      // What is under each point.
+      const at = (x, y) => document.elementFromPoint(x, y), mid = e => { const b = r(e); return [(b.left + b.right) / 2, (b.top + b.bottom) / 2]; };
+      for (const id of ['ck-a', 'ck-b', 'ck-off', 'ck-l3', 'ck-hid']) {
+        $(id).scrollIntoView({ block: 'center', behavior: 'instant' });
+        const b = r($(id)), k = Math.ceil(parseFloat(getComputedStyle($(id)).borderTopLeftRadius) / 3) + 1, pts = [[b.left + k, b.top + k], [b.right - k, b.top + k], [b.left + k, b.bottom - k], [b.right - k, b.bottom - k], [b.left + b.width / 2, b.top + 3]];
+        if ($(id).querySelector('p')) pts.push(mid($(id).querySelector('p')));
+        const off = pts.filter(([x, y]) => { const e = at(x, y); return !e || e.closest('.card-choice') !== lab(id); }).length;
+        if (off) say(`${off} of ${pts.length} points on ${id} are not its choice`);
+      }
+      $('ck-b').scrollIntoView({ block: 'center', behavior: 'instant' });
+      for (const id of ['ck-btn', 'ck-tag', 'ck-link', 'ck-gift']) { const e = at(...mid($(id))); if (!e || e.closest('a, button, input') !== $(id)) say(`${id} is under the cover`); }
+      if (getComputedStyle($('ck-link'), '::before').content !== 'none') say('a .card-link in a choice card still covers it');
+      // Nothing interactive in a label but its own input, here and in the specimen.
+      const held = [...document.querySelectorAll('.card-choice')].filter(l => l.querySelectorAll('a, button, select, textarea, input, [tabindex]').length !== 1);
+      if (held.length) say(`${held.length} labels hold more than their input`);
+      if (matchMedia('(pointer: coarse)').matches && r($('ck-tiny')).height < 44) say(`a card with no padding is ${r($('ck-tiny')).height.toFixed(1)}px tall on a touch screen`);
+      return fails;
+    }));
+    const on = id => page.evaluate(id => document.querySelector(`#${id} input`).checked, id);
+    const press = async (id, sel) => { const p = await page.evaluate(async ([id, sel]) => { const c = document.getElementById(id), e = sel ? c.querySelector(sel) : c; e.scrollIntoView({ block: 'center', behavior: 'instant' }); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); const b = e.getBoundingClientRect(); return sel ? { x: b.left + b.width / 2, y: b.top + b.height / 2 } : { x: b.right - 14, y: b.bottom - 14 }; }, [id, sel]); await (touch ? page.touchscreen.tap(p.x, p.y) : page.mouse.click(p.x, p.y)); };
+    await page.evaluate(() => { window.__ck = []; document.getElementById('card-choice-test').addEventListener('click', e => { const a = e.target.closest('a, button'); if (a) { window.__ck.push(a.id); if (a.matches('a')) e.preventDefault(); } }); });
+    for (const s of ['#ck-btn', '#ck-tag', '#ck-link', '#ck-gift']) { await press('ck-b', s); if (await on('ck-b')) { fails.push(`card choice: a press on ${s} chose the card`); break; } }
+    const own = await page.evaluate(() => window.__ck.join(' ') + ' ' + document.activeElement.id);
+    if (own !== 'ck-btn ck-tag ck-link ck-gift') fails.push(`card choice: presses on the card's own button, tag, link and field went to "${own}"`);
+    await press('ck-b'); if (!(await on('ck-b')) || await on('ck-a')) fails.push("card choice: a press on a card's corner does not choose it");
+    await press('ck-a', 'p'); if (!(await on('ck-a'))) fails.push("card choice: a press on a card's words does not choose it");
+    await press('ck-c'); if (await on('ck-c')) fails.push('card choice: a disabled card was chosen');
+    await press('ck-off', 'p'); if (!(await on('ck-off'))) fails.push('card choice: a press on a checkbox card does not check it');
+    await press('ck-off', 'p'); if (await on('ck-off')) fails.push('card choice: a second press does not uncheck it');
+    await press('ck-mixed', 'p'); if (!(await on('ck-mixed')) || await page.evaluate(() => document.querySelector('#ck-mixed input').indeterminate)) fails.push('card choice: a press on a mixed card does not check it');
+    await press('ck-hid'); if (!(await on('ck-hid'))) fails.push('card choice: a card whose input is visually hidden does not take a press');
+    if (!touch) {
+      const wash = id => page.evaluate(id => { const m = getComputedStyle(document.querySelector(`#${id} .card-choice`), '::before').backgroundColor; return m; }, id);
+      const over = async (id, sel = 'p') => { const p = await page.evaluate(async ([id, sel]) => { const e = document.getElementById(id).querySelector(sel); e.scrollIntoView({ block: 'center', behavior: 'instant' }); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); const b = e.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; }, [id, sel]); await page.mouse.move(p.x, p.y); };
+      await page.mouse.move(width - 2, height - 2);
+      const rest = await wash('ck-off'), hovers = await page.evaluate(() => matchMedia('(hover: hover)').matches);
+      await over('ck-off'); const hov = await wash('ck-off');
+      await page.mouse.down(); const down = await wash('ck-off');
+      await page.mouse.move(width - 2, height - 2); await page.mouse.up();
+      if (hovers && hov === rest) fails.push(`card choice: a hovered card is drawn as at rest (${rest})`);
+      if (down === rest || down === hov) fails.push(`card choice: a pressed card is ${down}, hovered ${hov}, at rest ${rest}`);
+      await over('ck-dis'); if (await wash('ck-dis') !== rest) fails.push('card choice: a disabled card hovers');
+      await over('ck-b', '#ck-btn'); if (await wash('ck-b') !== rest) fails.push("card choice: a hover on the card's button lights the card");
+    }
+    // The keyboard: the group's arrows go card to card, past the disabled one; Space; the ring round the card.
+    await page.focus('#ck-a input'); await page.keyboard.press('ArrowDown');
+    if (!(await on('ck-b')) || await on('ck-c')) fails.push('card choice: an arrow does not move to the next card, past the disabled one');
+    // WebKit does not count a radio reached by an arrow as :focus-visible at once; focused afresh it is.
+    await page.evaluate(() => document.activeElement.blur()); await page.focus('#ck-b input');
+    const ring = await page.evaluate(() => { const i = document.querySelector('#ck-b input'), b = getComputedStyle(i.closest('label'), '::before'); return { at: document.activeElement === i, own: getComputedStyle(i).outlineStyle, style: b.outlineStyle, color: b.outlineColor, want: getComputedStyle(document.getElementById('ck-focus')).color, a: getComputedStyle(document.querySelector('#ck-a .card-choice'), '::before').outlineStyle }; });
+    if (!ring.at || ring.own !== 'none' || ring.style !== 'solid' || ring.color !== ring.want || ring.a !== 'none') fails.push(`card choice: the ring is not round the focused card alone (${JSON.stringify(ring)})`);
+    await page.keyboard.press('ArrowUp');
+    if (!(await on('ck-a')) || await on('ck-c')) fails.push('card choice: an arrow does not move back, past the disabled card');
+    await page.focus('#ck-off input'); await page.keyboard.press('Space');
+    if (!(await on('ck-off'))) fails.push('card choice: Space does not check a card');
+    await page.focus('#ck-hid input'); await page.keyboard.press('Shift');
+    if (await page.evaluate(() => getComputedStyle(document.querySelector('#ck-hid .card-choice'), '::before').outlineStyle) !== 'solid') fails.push('card choice: a card whose input is visually hidden draws no ring');
+    await page.focus('#ck-link');
+    if (await page.evaluate(() => getComputedStyle(document.getElementById('ck-link')).outlineStyle) !== 'solid') fails.push('card choice: the link in a choice card draws no ring');
+    await page.evaluate(() => document.activeElement.blur());
+    for (const theme of ['light', 'dark']) fails.push(...await page.evaluate(async theme => {
+      document.documentElement.setAttribute('data-theme', theme); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); await window.__slots.still();
+      const { px, ratio } = window.__slots, out = [];
+      for (const id of ['ck-on', 'ck-l2', 'ck-l3']) {
+        const c = document.getElementById(id), l = c.querySelector('.card-choice'), g = px(getComputedStyle(c).backgroundColor, getComputedStyle(l, '::after').backgroundColor), plain = px(getComputedStyle(c).backgroundColor);
+        if (String(g) === String(plain)) out.push(`card choice, ${theme}: ${id} is not lit, so nothing was proved`);
+        for (const v of ['--text', '--text-secondary', '--text-tertiary']) { const i = document.createElement('i'); i.style.color = `var(${v})`; c.appendChild(i); const q = ratio(px(getComputedStyle(i).color), g); i.remove(); if (q < 4.5) out.push(`card choice, ${theme}: ${v} on ${id}, lit, is ${q.toFixed(2)}:1`); }
+        const e = ratio(px(getComputedStyle(l, '::before').borderTopColor), plain); if (e < 3) out.push(`card choice, ${theme}: ${id}'s edge is ${e.toFixed(2)}:1 on its ground`);
+      }
+      return out;
+    }, theme));
+    if (engine === 'chromium') {
+      await page.emulateMedia({ forcedColors: 'active' });
+      fails.push(...await page.evaluate(async () => {
+        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); await window.__slots.still();
+        const fails = [], be = id => getComputedStyle(document.querySelector(`#${id} .card-choice`), '::before'), sys = v => { const i = document.createElement('i'); i.style.color = v; i.style.forcedColorAdjust = 'none'; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c; };
+        if (be('ck-on').borderTopColor !== sys('Highlight') || !(parseFloat(be('ck-on').borderTopWidth) > 1)) fails.push(`card choice, forced colors: a chosen card's edge is ${be('ck-on').borderTopWidth} ${be('ck-on').borderTopColor}`);
+        if (parseFloat(be('ck-off').borderTopWidth) && !document.querySelector('#ck-off input').checked) fails.push('card choice, forced colors: an unchosen card has an edge of its own');
+        if (be('ck-dison').borderTopColor !== sys('GrayText')) fails.push(`card choice, forced colors: a disabled card's edge is ${be('ck-dison').borderTopColor}`);
+        return fails;
+      }));
+      await page.emulateMedia({ forcedColors: 'none' });
+    }
+    await page.evaluate(() => { const t = window.__slots.theme; if (t === null) document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t); document.getElementById('card-choice-test').remove(); delete window.__slots; });
+  }
+
   // A backdrop click closes a modal through the runtime, but only when the press
   // began on the backdrop too: a press inside the card let go outside it (selecting
   // text) keeps it open, and data-trellis-stay keeps it open whatever is clicked.
@@ -1467,6 +1773,36 @@ const ready = require('./ready');
       if (!menu.matches(':popover-open')) fails.push('312%: the Roles menu did not open');
       else check(menu, 'the Roles menu');
       if (root.scrollWidth > vw + 1) fails.push(`312%: the page scrolls sideways (${root.scrollWidth} of ${vw})`);
+      return fails;
+    }));
+    // A field's slots and a card's choice (D116): the box is as tall as a plain
+    // input, its slots stay inside it and off the words, and the words keep
+    // room; a card that is a choice is whole cells tall.
+    fails.push(...await ax.evaluate(async () => {
+      const fails = [], u = Trellis.cell(), host = document.createElement('div'), icon = '<svg class="icon" viewBox="0 0 14 14"><path d="M2 7h10"/></svg>';
+      const btn = `<button class="button icon-button cc-ghost" type="button" aria-label="Act">${icon}</button>`, unit = t => `<span class="input-unit">${t}</span>`;
+      host.className = 'stack'; host.style.cssText = 'position: absolute; inset-block-start: 0; inset-inline-start: 0; inline-size: min(100vw, calc(var(--u) * 26)); padding: var(--sp-1)';
+      host.innerHTML = ['', 'cc-sm', 'cc-lg'].map(k => `<input class="input ${k}" value="Words"><div class="input cc-slots ${k}">${icon}<input class="input-control" value="Words">${btn}</div><div class="input cc-slots ${k}">${unit('https://')}<input class="input-control" value="25"></div><div class="input cc-slots ${k}">${unit('$')}<input class="input-control" type="number" value="25">${unit('a month')}</div>`).join('')
+        + '<article class="card stack u-gap-1"><label class="choice card-choice"><input type="radio"><span class="choice-label cap-center">A title long enough to wrap here</span></label><p class="t-sm">What it is.</p></article>';
+      document.body.appendChild(host); await Trellis.settled(); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); await Trellis.settled();
+      const r = e => e.getBoundingClientRect(); let plain = 0;
+      for (const b of host.querySelectorAll('.input')) {
+        if (!b.matches('.cc-slots')) { plain = r(b).height; continue; }
+        const c = b.querySelector('.input-control'), cs = getComputedStyle(c), rb = r(b), room = [r(c).left + parseFloat(cs.paddingLeft), r(c).right - parseFloat(cs.paddingRight)], name = `312%: a "${b.className}" of "${b.textContent}"`;
+        if (Math.abs(rb.height - plain) > .1) fails.push(`${name} is ${rb.height.toFixed(1)}px tall, a plain input ${plain.toFixed(1)}px`);
+        if (b.querySelectorAll('.input-unit').length < 2 && room[1] - room[0] < 4 * u) fails.push(`${name} leaves ${(room[1] - room[0]).toFixed(1)}px for its words`);
+        for (const s of b.children) {
+          if (s === c) continue;
+          const rs = r(s), gap = rs.left < room[0] ? room[0] - rs.right : rs.left - room[1];
+          if (gap < u / 2 - .6) fails.push(`${name}: "${s.textContent}" is ${gap.toFixed(1)}px from the words`);
+          if (rs.top < rb.top - .5 || rs.bottom > rb.bottom + .5 || rs.left < rb.left - .5 || rs.right > rb.right + .5) fails.push(`${name}: "${s.textContent}" leaves the box`);
+        }
+      }
+      const card = host.querySelector('.card'), h = r(card).height / u, l = card.querySelector('.choice-label');
+      if (!l.hasAttribute('data-trellis-wrap')) fails.push('312%: the choice card did not wrap its title, so nothing was proved');
+      if (Math.abs(h - Math.round(h)) > .05) fails.push(`312%: a choice card is ${h.toFixed(2)} cells tall`);
+      if (r(l).right > r(card).right + .5 || host.scrollWidth > host.clientWidth + 1) fails.push('312%: a choice card or a field runs out of its column');
+      host.remove();
       return fails;
     }));
     await ax.close();

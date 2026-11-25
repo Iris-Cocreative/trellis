@@ -212,6 +212,26 @@ for (const f of PRODUCTS) for (const [label, , seed, themes] of scopesOf(f)) lay
   }
 }
 for (const [, f, seed, themes] of layersToCheck) fails.push(...P.contrast(f, seed, themes));
+
+// A card that is a choice, chosen (D116): 8% of the accent over its ground, and
+// its third ink read as the second. Text and the second ink hold on it at every
+// level, in core and every layer and scope, and for any accent.
+const RGB = c => { const h = M.hex(c); return [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); };
+const LUM = a => { const f = a.map(v => { v /= 255; return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }); return .2126 * f[0] + .7152 * f[1] + .0722 * f[2]; };
+const wash = (core.match(/--card-choice-fill:\s*color-mix\(in oklab, var\(--choice-on\) (\d+)%, transparent\)/) || [])[1];
+check(wash, "--card-choice-fill is not a share of --choice-on, so its contrast was not checked");
+check(/\.card:has\(\.card-choice > input:checked:not\(:disabled\)\):not\(:has\(\.card\)\) \{ --text-tertiary: var\(--text-secondary\); \}/.test(core), "a lit card's third ink is not its second");
+const lit = (label, seed, themes = ['light', 'dark']) => {
+  for (const theme of themes) {
+    const p = M.palette(theme, seed);
+    for (const g of ['bg-raised', 'bg-raised-2', 'bg-raised-3']) for (const ink of ['text', 'text-secondary']) {
+      const on = RGB(p.accent), under = RGB(p[g]), ground = on.map((v, i) => v * wash / 100 + under[i] * (1 - wash / 100)), x = LUM(RGB(p[ink])), y = LUM(ground), q = (Math.max(x, y) + .05) / (Math.min(x, y) + .05);
+      check(q >= 4.5, `contrast: ${label} ${theme}: --${ink} on a chosen card on --${g} is ${q.toFixed(2)}:1, under 4.5`);
+    }
+  }
+};
+for (const [, f, seed, themes] of layersToCheck) lit(f, seed, themes);
+for (let h = 0; h < 360; h += 30) for (const l of [.35, .55, .75, .95]) lit(`an accent of ${l} .2 ${h}`, M.scope(M.SEED, { accent: [l, .2, h] }));
 // A scope that is always dark says so in its selector, and only then is the day skipped (D114).
 {
   // A night scope's colors: a status, as a line, is under its floor by day and over it at night.

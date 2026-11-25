@@ -106,7 +106,8 @@ const { FLOORS } = require('../tools/product');
       // Inside a cluster things keep the cluster's own half-cell rhythm; the cluster itself is checked.
       if (e.parentElement && e.parentElement.closest('.cluster')) continue;
       // So do a pair, a message's meta (a name and a time on one baseline) and the parts a message carries (a quote, a file, a link, reactions): the block is checked.
-      if (e.parentElement && e.parentElement.closest('.pair,.chat-quote,.chat-link,.chat-file,.chat-reactions,.composer,.chat-item-meta')) continue;
+      if (e.parentElement && e.parentElement.closest('.pair,.chat-quote,.chat-link,.chat-file,.chat-reactions,.composer,.cc-slots,.chat-item-meta')) continue;
+      // What is in a field's box (D116) is centered in it, and its control runs on under it: the box is checked.
       // A continuing message's hover time sits on its text's baseline; its actions float over the run gap.
       if (e.closest('.chat-item-time,.chat-item-actions')) continue;
       // A dense row is one thing: its edges are on lines, its contents keep a half-cell rhythm.
