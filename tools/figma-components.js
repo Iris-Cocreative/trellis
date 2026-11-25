@@ -9,7 +9,7 @@
    what it made, and sealed so it runs only as it was printed (figma-sealed.js):
 
      node tools/figma-components.js --plugin icons        Phosphor's icons, each
-          the other parts use a component, in the section Icons
+          the other parts use a component, in the section Icons, updated in place
      node tools/figma-components.js --plugin primitives   the first controls, each a
           component set named by its class chain, its variants the modifiers
           (`button` with kind=cc-ghost, size=cc-sm is class="button cc-ghost
@@ -24,13 +24,15 @@
           tile, a skeleton, a media frame, a covered card and row, the shell
           and its navigation
      node tools/figma-components.js --plugin screens      the section Screens
+     node tools/figma-components.js --plugin settle       what can only be placed
+          once the layout has settled, after the others
      node tools/figma-components.js                       each part's length
 
-   Run them in that order, and all whenever the code changes: the first
-   removes every section, and each of the others builds its own again (and
-   removes those made of it, so run the ones below it). Only those sections are touched:
-   a designer's own frames elsewhere on the page are left alone, though an
-   instance of a component they rebuilt is detached from it. */
+   Run them in that order. The icons are updated in place; the primitives
+   remove every section after them, and each of the others builds its own again
+   (and removes those made of it, so run the ones below it). Only those sections
+   are touched: a designer's own frames elsewhere on the page are left alone,
+   though an instance of a component they rebuilt is detached from it. */
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -42,13 +44,15 @@ const PARTS = {
   surfaces: ['figma-built.js', 'figma-surfaces.js'],
   thread: ['figma-built.js', 'figma-photo.js', 'figma-thread.js'],
   templates: ['figma-built.js', 'figma-photo.js', 'figma-templates.js'],
-  screens: ['figma-built.js', 'figma-screens.js']
+  screens: ['figma-built.js', 'figma-screens.js'],
+  settle: ['figma-settle.js']
 };
 const read = (f) => bare(fs.readFileSync(path.join(__dirname, f), 'utf8'));
 // The icons the other parts name are the ones the icons part makes.
 const used = () => [...new Set(['figma-kit.js', ...Object.entries(PARTS).filter(([p]) => p !== 'icons').flatMap(([, f]) => f)].flatMap((f) => [...read(f).matchAll(/'(ph-[a-z-]+)'/g)].map((m) => m[1])))].sort();
 const phosphor = () => { const P = require('./figma-phosphor.js'); return [P.icons(used()), P.notice()]; };
 const script = (part) => {
+  if (part === 'settle') return seal('figma-components --plugin settle', read('figma-settle.js'));
   let body = `${read('figma-kit.js')}\ntry {\n${PARTS[part].map(read).join('')}\n} catch (e) {\nfor (const n of page.children.slice()) if (!before.has(n.id)) n.remove();\nthrow e;\n}\n`;
   if (part === 'icons') { const [icons, notice] = phosphor(); body = body.replace('/*ICONS*/null', () => '[\n' + icons.map((x) => JSON.stringify(x)).join(',\n') + '\n]').replace('/*NOTICE*/null', () => JSON.stringify(notice)); }
   return seal('figma-components --plugin ' + part, body);

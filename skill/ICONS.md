@@ -160,4 +160,4 @@ And by weight, at the same size:
 
 ## Not yet
 
-Animated icons. Figma's set (`docs/figma/README.md`).
+Animated icons. In Figma, bold, fill and duotone (`docs/figma/README.md`).

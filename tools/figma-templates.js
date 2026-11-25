@@ -202,7 +202,7 @@ async function shell(p) {
   foot.appendChild(await words('The small print · Privacy · Terms', { style: 'xs', ink: 'text-tertiary' }));
   const grow = (n) => { n.layoutGrow = 1; };
   // Over the page, which has scrolled under it.
-  const over = () => { c.appendChild(nav); nav.layoutPositioning = 'ABSOLUTE'; nav.x = nav.y = 0; nav.resize(c.width, nav.height); nav.constraints = { horizontal: 'STRETCH', vertical: 'MIN' }; };
+  const over = () => { c.appendChild(nav); nav.layoutPositioning = 'ABSOLUTE'; nav.x = nav.y = 0; nav.resize(c.width, nav.height); bind(nav, 'height', 'space/sp-4'); nav.constraints = { horizontal: 'STRETCH', vertical: 'MIN' }; };
   if (narrow) {
     if (top && !clear) c.appendChild(nav);
     for (const n of [main, aside, foot]) { c.appendChild(n); n.layoutSizingHorizontal = 'FILL'; }

@@ -59,17 +59,18 @@ const lift = (node) => {
 };
 const row = (name, props = {}) => {
   const f = figma.createAutoLayout('HORIZONTAL', { name });
-  fill(f, []); f.counterAxisAlignItems = 'CENTER'; f.clipsContent = false;
+  fill(f, []); f.counterAxisAlignItems = 'CENTER'; f.clipsContent = false; f.strokesIncludedInLayout = false;
   return Object.assign(f, props);
 };
+// An edge is drawn and takes no room: core takes a border's line out of the padding, or draws it as a shadow.
 // A frame that holds text never clips: trimmed to the baseline, a descender hangs below its box.
-const col = (name, props = {}) => { const f = figma.createAutoLayout('VERTICAL', { name }); fill(f, []); f.clipsContent = false; return Object.assign(f, props); };
+const col = (name, props = {}) => { const f = figma.createAutoLayout('VERTICAL', { name }); fill(f, []); f.clipsContent = false; f.strokesIncludedInLayout = false; return Object.assign(f, props); };
 // resize() fixes both axes; a box that holds text hugs its height again.
 const width = (node, w) => { node.resize(w, node.height); if (node.layoutMode === 'VERTICAL') node.primaryAxisSizingMode = 'AUTO'; else node.counterAxisSizingMode = 'AUTO'; };
 const component = (dir = 'HORIZONTAL') => {
   const c = figma.createComponent();
   c.layoutMode = dir; c.primaryAxisSizingMode = 'AUTO'; c.counterAxisSizingMode = 'AUTO';
-  c.counterAxisAlignItems = 'CENTER'; fill(c, []);
+  c.counterAxisAlignItems = 'CENTER'; fill(c, []); c.strokesIncludedInLayout = false;
   return c;
 };
 const fixedHeight = (node, name) => { if (node.layoutMode === 'HORIZONTAL') node.counterAxisSizingMode = 'FIXED'; else node.primaryAxisSizingMode = 'FIXED'; bind(node, 'height', name); };
