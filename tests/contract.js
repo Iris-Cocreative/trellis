@@ -117,6 +117,9 @@ for (const line of read('product.template.css').split('\n')) {
     for (const m of src.matchAll(/(?:paint|edge|side|glyph)\('([a-z][a-z0-9-]*)'|ink: '([a-z][a-z0-9-]*)'/g))
       check(names.has('color/' + (m[1] || m[2])), `${name} paints ${m[1] || m[2]}, which isn't a Color variable`);
   }
+  // Each part runs, in order, against a stand-in for Figma's API: a part that throws, or
+  // asks for a component no part before it builds, fails here (tools/figma-inventory.js).
+  try { execFileSync(process.execPath, [path.join(dir, 'tools', 'figma-inventory.js')], { encoding: 'utf8', stdio: 'pipe' }); } catch (e) { check(false, String(e.stderr || e.message).trim()); }
 }
 
 // Package.

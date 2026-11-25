@@ -112,6 +112,8 @@ if (F) {
     s.setBoundVariable('fontWeight', byName['type/' + w]);
     s.setBoundVariable('fontSize', byName[`type/${role}/size`]);
     s.setBoundVariable('lineHeight', byName[`type/${role}/line`]);
+    s.textCase = label && F.tracking.upper ? 'UPPER' : 'ORIGINAL';
+    s.letterSpacing = { unit: 'PERCENT', value: heading ? F.tracking.heading : label ? F.tracking.label : 0 };
     s.description = `Trellis .t-${role}: its size and line follow the frame's Type mode (Phone or Wide) and Product mode.`;
     report.styles.push(name);
   }

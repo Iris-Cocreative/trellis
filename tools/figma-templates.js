@@ -1,63 +1,12 @@
-/* Trellis · figma-templates · the second part of the components script
+/* Trellis · figma-templates · the components built from primitives
    Run as `node tools/figma-components.js --plugin templates`, after the
-   primitives part, which it is made of. The components built from primitives
-   (a bubble and a reaction, a grouped list, a member tile, a skeleton, a
-   media frame, a covered card and a covered row, D108, the shell and its
-   navigation, D80) in the section Templates, then the Screens: one settings
-   card in each product, wide and light, phone and dark, a page of scopes
-   (D96), the shell in two products, and a page of events with covered cards,
-   covered rows and choices (D108, D109). It removes and builds both sections
-   again. */
-
-// ---- Start clean ------------------------------------------------------------
-const C = page.children.find((n) => n.name === 'Components');
-if (!C) throw new Error('no Components section: run figma-components --plugin primitives first');
-for (const n of page.children.slice()) if (['Templates', 'Screens'].includes(n.name)) n.remove();
-const got = (name) => C.findOne((n) => (n.type === 'COMPONENT_SET' || n.type === 'COMPONENT') && n.name === name);
-const [btnSet, iconSet, tagSet, avatarSet, listSet, itemSet, chatSet, composerSet, fieldSet] =
-  ['button', 'button icon-button', 'tag', 'avatar', 'list-item', 'options-card-item', 'chat-item cc-flat', 'composer', 'field'].map(got);
-const av = (size, ring = 'cc-plain') => variant(avatarSet, { kind: 'default', ring, size }).createInstance();
-const inst = (s, props, key, v) => { const i = variant(s, props).createInstance(); if (key) label(i, key, v); return i; };
-const btn = (kind, size, text) => inst(btnSet, { kind, size, state: 'rest' }, 'label', text);
-const icon = () => inst(iconSet, { kind: 'cc-ghost', size: 'cc-sm' });
-// Corners bound to one variable, but those a mark squares (D85).
-const RADII = ['topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'];
-const cornersBut = (node, name, square = []) => RADII.forEach((f) => { if (!square.includes(f)) bind(node, f, name); });
-// A line on one side: a current link's mark, a bar's rule.
-const side = (node, role, s, w) => { stroke(node, [paint(role)]); node.strokeAlign = 'INSIDE'; for (const x of ['Top', 'Bottom', 'Left', 'Right']) node[`stroke${x}Weight`] = x === s ? w : 0; };
+   primitives: a grouped list, a row swiped open, a stack of faces, a member
+   tile, a skeleton, prose, a media frame, a covered card and a covered row
+   (D108), the shell and its navigation (D80), in the section Templates, which
+   it removes and builds again, with the Screens, which are made of it. */
+clear(['Templates', 'Screens']);
 host.name = 'templates';
-
-// ---- chat-item: the bubble and its knobs (D99) ----------------------------------
-const bubbleSet = await set('chat-item', { from: ['default', 'cc-own'], run: ['first', 'cc-cont'] }, async (p) => {
-  const c = component(), own = p.from === 'cc-own', cont = p.run === 'cc-cont';
-  c.counterAxisAlignItems = 'MIN'; c.primaryAxisSizingMode = 'FIXED'; width(c, 560); bind(c, 'itemSpacing', 'space/sp-1');
-  if (own) c.primaryAxisAlignItems = 'MAX';
-  else { const a = av('default'); c.appendChild(a); a.opacity = cont ? 0 : 1; }
-  const body = col('chat-item-body', { counterAxisAlignItems: own ? 'MAX' : 'MIN' }); c.appendChild(body);
-  bind(body, 'itemSpacing', 'space/sp-1'); bind(body, 'maxWidth', 'size/chat-measure');
-  const bub = row('chat-item-bubble'); padX(bub, 'space/sp-1'); padY(bub, 'space/sp-1');
-  cornersBut(bub, 'knob/shape-card', [own ? 'bottomRightRadius' : 'bottomLeftRadius']);
-  bind(bub, own ? 'bottomRightRadius' : 'bottomLeftRadius', 'radius/r-q');
-  fill(bub, [paint(own ? 'chat-own-bg' : 'bg-raised')]); if (!own) edge(bub, 'chat-bubble-edge');
-  bub.appendChild(await words(own ? (cont ? 'And one more.' : 'See you at ten.') : cont ? 'The run goes on, a cell under it.' : 'A bubble hangs its text from a cell.', { style: 'body', ink: own ? 'chat-own-ink' : 'text', name: 'text' }));
-  body.appendChild(bub);
-  if (own || !cont) {
-    const meta = row('chat-item-meta', { counterAxisAlignItems: 'BASELINE' }); bind(meta, 'itemSpacing', 'space/sp-h');
-    if (!own) meta.appendChild(await words('Ada', { style: 'xs', ink: 'text-tertiary', name: 'name' }));
-    meta.appendChild(await words('9:41', { style: 'xs', ink: 'text-tertiary', name: 'time' }));
-    if (own) body.appendChild(meta); else body.insertChild(0, meta);
-  }
-  return c;
-}, { caption: 'chat-item · from × run', width: 1200, description: 'Trellis .chat-item in a bubble thread: .avatar + .chat-item-body > .chat-item-meta + .chat-item-bubble. The bubble pads a cell, at most --chat-measure (40 cells) wide, its corner --shape-card and the speaker\'s bottom corner --chat-tail (a quarter cell). Others\' bubbles take the raised ground and the product\'s --chat-bubble-edge; your own (.cc-own) sits at the row\'s end with no avatar, in --chat-own-bg and --chat-own-ink, its meta under it. .cc-cont continues a run a cell apart: the avatar keeps its place, unseen, and the meta shows once.' });
-
-await set('chat-reaction', { mine: ['false', 'true'] }, async (p) => {
-  const c = component(), on = p.mine === 'true';
-  fixedHeight(c, 'size/size-control-sm'); padX(c, 'space/sp-h'); bind(c, 'itemSpacing', 'space/sp-q'); corners(c, 'radius/r-round');
-  fill(c, on ? [paint('bg'), paint('accent', 0.16)] : [paint('bg')]); edge(c, on ? 'accent' : 'border-subtle', on ? 0.6 : 1);
-  c.appendChild(await words('👍', { fs: 'type/control/fs-control-lg', ink: 'text', name: 'emoji' }));
-  c.appendChild(await words('3', { fs: 'type/control/fs-control-sm', ink: on ? 'text' : 'text-secondary', name: 'count' }));
-  return c;
-}, { text: ['count', '3'], caption: 'chat-reaction · mine', width: 400, description: 'Trellis .chat-reactions > .chat-reaction > .chat-reaction-emoji: a pill a control tall. Yours (.cc-mine, or aria-pressed="true") is the accent at 16% over the surface, its edge the accent at 60%.' });
+const listSet = got('list-item');
 
 // ---- list cc-group: rows on one surface, hairlines from the text ------------
 const TEXT_AT = { none: 'space/sp-1', dot: 'space/sp-3', face: 'space/sp-3' };
@@ -75,6 +24,50 @@ const groupSet = await set('list cc-group', { mark: Object.keys(TEXT_AT) }, asyn
   }
   return c;
 }, { caption: 'list cc-group · mark', width: 1200, description: 'Trellis .list.cc-group: the rows share one surface, with a card\'s ground, edge and corner (a level-1 surface; a level 2 in a card). The hairline between rows (--list-rule, one device pixel) starts at the row\'s text, past its mark, and runs to the surface\'s edge; it adds no height.' });
+
+{
+  // A row slid toward its start, its actions at its end (the swipe preset).
+  const c = component(); c.name = 'list-item[data-trellis-swipe]'; c.primaryAxisSizingMode = 'FIXED'; width(c, 360); c.clipsContent = true; c.primaryAxisAlignItems = 'MAX'; c.counterAxisAlignItems = 'MAX';
+  const r = inst(listSet, { mark: 'face', unread: 'true', state: 'rest' }, 'title', 'Study circle'); c.appendChild(r); r.resize(360, r.height);
+  const a = row('list-actions'); c.appendChild(a); a.layoutSizingVertical = 'FILL';
+  for (const [k, t] of [['cc-ghost', 'Archive'], ['cc-primary', 'Reply']]) { const b = btn(k, 'default', t); a.appendChild(b); b.layoutSizingVertical = 'FILL'; for (const f of RADII) b[f] = 0; }
+  c.description = 'Trellis .list-item[data-trellis-swipe] > … + .list-actions: on touch a row slides toward its start to show its actions, buttons as tall as the row with square corners, clipped at its end until then. Drawn open; the slide is presets.js.';
+  // Faces in a row, each a half cell over the one before it, parted by the surface.
+  const st = row('avatar-stack'), s = figma.createComponentFromNode(st); s.itemSpacing = -6; s.clipsContent = false;
+  for (const kind of ['default', 'default', 'cc-group']) { const x = av('default', 'cc-plain', kind); s.appendChild(x); stroke(x, [paint('bg')]); x.strokeAlign = 'OUTSIDE'; x.strokeWeight = 2; }
+  const more = row('avatar-more', { primaryAxisAlignItems: 'CENTER', counterAxisSizingMode: 'FIXED' }); s.appendChild(more); bind(more, 'minWidth', 'space/sp-2'); bind(more, 'height', 'space/sp-2'); padX(more, 'space/sp-q'); corners(more, 'radius/r-round');
+  fill(more, [paint('bg-sunken')]); edge(more, 'border'); more.appendChild(await words('+9', { fs: 'type/control/fs-control-xs', ink: 'text-secondary', name: 'count' }));
+  s.description = 'Trellis .avatar-stack > .avatar… + .avatar-more: faces in a row, each a half cell over the one before and parted from it by two lines of the surface (--av-knock); the rest as a count. The overlap and the knock are numbers at the wide screen.';
+  // Someone's presence, on the face's edge.
+  const d = row('avatar with avatar-dot'), dc = figma.createComponentFromNode(d); dc.clipsContent = false; dc.appendChild(av('cc-md'));
+  const e = figma.createEllipse(); e.name = 'avatar-dot'; dc.appendChild(e); e.layoutPositioning = 'ABSOLUTE'; e.resize(6, 6); e.x = e.y = dc.width - 36 * 0.1464 - 3; e.constraints = { horizontal: 'MAX', vertical: 'MAX' };   // held from the far edges, so it keeps its place as the face takes the wide size
+  bind(e, 'width', 'space/sp-h'); bind(e, 'height', 'space/sp-h'); fill(e, [paint('ok')]); stroke(e, [paint('bg')]); e.strokeAlign = 'OUTSIDE'; e.strokeWeight = 2;
+  dc.description = 'Trellis .avatar > .avatar-dot: presence, a half cell on the face\'s edge at 45 degrees, parted from it by two lines of the surface. Drawn on the three-cell face.';
+  const block = col('rows block', { itemSpacing: 12 }); host.appendChild(block);
+  block.appendChild(await words('list-item[data-trellis-swipe] · avatar-stack · avatar with avatar-dot', { style: 'label', ink: 'text-tertiary', name: 'caption' }));
+  const l = row('rows row', { itemSpacing: 48 }); block.appendChild(l); for (const x of [c, s, dc]) l.appendChild(x);
+  made.push(c.name, 'avatar-stack', 'avatar with avatar-dot');
+}
+
+// ---- prose: a post's bare tags, each in its role --------------------------------
+{
+  const c = component('VERTICAL'); c.name = 'prose'; c.counterAxisAlignItems = 'MIN'; width(c, 480); bind(c, 'itemSpacing', 'space/sp-2');
+  const para = async (t, style, into = c, ink) => { const x = await words(t, { style, ink, name: style }); into.appendChild(x); wrap(x); return x; };
+  await para('The trial bed in June', 'h3');
+  await para('Content arrives from editors and Markdown as bare tags. Each one takes its role, and every block stands two cells from the next.', 'body');
+  const h = row('h4'); c.appendChild(h); h.layoutSizingHorizontal = 'FILL'; bind(h, 'paddingTop', 'space/sp-1'); await para('What to bring', 'h4', h);
+  const ul = col('ul'); c.appendChild(ul); ul.layoutSizingHorizontal = 'FILL'; bind(ul, 'itemSpacing', 'space/sp-1');
+  for (const t of ['Seed from at least six plants of each kind, dried for two weeks.', 'A jar with a label.']) {
+    const li = row('li', { counterAxisAlignItems: 'BASELINE' }); ul.appendChild(li); li.layoutSizingHorizontal = 'FILL';
+    const m = row('::marker', { primaryAxisSizingMode: 'FIXED', primaryAxisAlignItems: 'CENTER' }); li.appendChild(m); bind(m, 'width', 'space/sp-2'); m.appendChild(await words('•', { style: 'body', ink: 'text-tertiary', name: 'marker' }));
+    await para(t, 'body', li);
+  }
+  const q = row('blockquote'); c.appendChild(q); q.layoutSizingHorizontal = 'FILL'; bind(q, 'paddingLeft', 'space/sp-2'); side(q, 'border-strong', 'Left', 1);
+  await para('Everyone who saves seed was once handed some.', 'lg', q);
+  c.description = 'Trellis .prose: bare tags from an editor or Markdown, each in its role (README, Prose, has the map). Blocks stand two cells apart (--stack-gap), a list\'s items one (--prose-inner-gap), markers in a two-cell margin; a heading keeps more space before it than after; a quotation is the next size up after a line. Code, tables, figures, galleries and task lists are the code\'s: set them with the text styles.';
+  const block = col('prose block', { itemSpacing: 12 }); host.appendChild(block);
+  block.appendChild(await words('prose', { style: 'label', ink: 'text-tertiary', name: 'caption' })); block.appendChild(c); made.push('prose');
+}
 
 // ---- member-tile, skeleton --------------------------------------------------
 await set('member-tile', { layout: ['default', 'cc-row'] }, async (p) => {
@@ -101,38 +94,6 @@ await set('skeleton', { kind: ['default', 'cc-block'] }, async (p) => {
 }, { caption: 'skeleton · kind', width: 700, description: 'Trellis .skeleton: a surface\'s real structure, shimmering, while its data is on its way. A text slot keeps its role and its placeholder copy, unseen, so it settles to the same cells. Anything that draws itself (a button, an avatar, an icon) becomes a .cc-block, sized in cells (--skel-w, --skel-h). The shimmer runs from the ink at 8% to 16%; the file draws the 8%.' });
 
 // ---- media, a covered card, a covered row (D108) ----------------------------
-// A stand-in photograph, since the sandbox can't fetch: a PNG drawn here (a
-// sky, a sun high in it, hills), stored without compression.
-function png(w, h, px) {
-  const raw = [];
-  for (let y = 0; y < h; y++) { raw.push(0); for (let x = 0; x < w; x++) raw.push(...px(x / w, y / h)); }
-  const T = []; for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; T.push(c >>> 0); }
-  const crc = (b) => { let c = ~0; for (const x of b) c = T[(c ^ x) & 255] ^ (c >>> 8); return ~c >>> 0; };
-  const u32 = (n) => [n >>> 24, (n >>> 16) & 255, (n >>> 8) & 255, n & 255];
-  const chunk = (t, d) => { const b = [...t].map((ch) => ch.charCodeAt(0)).concat(d); return u32(d.length).concat(b, u32(crc(b))); };
-  let a = 1, b = 0; for (const x of raw) { a = (a + x) % 65521; b = (b + a) % 65521; }
-  const z = [0x78, 1];
-  for (let i = 0; i < raw.length; i += 65535) { const n = Math.min(65535, raw.length - i); z.push(i + n >= raw.length ? 1 : 0, n & 255, n >> 8, ~n & 255, (~n >> 8) & 255); for (let j = i; j < i + n; j++) z.push(raw[j]); }
-  return new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, ...chunk('IHDR', [...u32(w), ...u32(h), 8, 2, 0, 0, 0]), ...chunk('IDAT', z.concat(u32(((b << 16) | a) >>> 0))), ...chunk('IEND', [])]);
-}
-const mix = (p, q, t) => p.map((x, i) => Math.round(x + (q[i] - x) * Math.min(1, Math.max(0, t))));
-const IW = 120, IH = 100;   // squarer than a banner, so a focal point shows
-const IMG = figma.createImage(png(IW, IH, (u, v) => {
-  if (v > 0.66 + 0.06 * Math.sin(u * 7 + 1)) return mix([92, 124, 82], [42, 66, 48], (v - 0.62) * 3);
-  if (v > 0.54 + 0.05 * Math.sin(u * 4)) return mix([122, 142, 150], [98, 116, 120], (v - 0.5) * 5);
-  if (Math.hypot((u - 0.68) * 1.6, v - 0.22) < 0.09) return [252, 230, 176];
-  return mix([140, 176, 210], [244, 204, 164], v / 0.56);
-})).hash;
-// The image by cover at its focal point (--media-focus). The middle is Figma's
-// own fill, which follows a resize; any other is a crop, worked out for the
-// frame's size at the wide screen, and stretches if the frame is resized.
-const photo = (w, h, focus = [0.5, 0.5]) => {
-  if (focus[0] === 0.5 && focus[1] === 0.5) return { type: 'IMAGE', scaleMode: 'FILL', imageHash: IMG };
-  const sw = Math.min(1, (w / h) / (IW / IH)), sh = Math.min(1, (IW / IH) / (w / h));
-  return { type: 'IMAGE', scaleMode: 'CROP', imageHash: IMG, imageTransform: [[sw, 0, (1 - sw) * focus[0]], [0, sh, (1 - sh) * focus[1]]] };
-};
-// A full bleed's scrim, to 80% black at its foot (a gradient's stops can't bind).
-const SCRIM = { type: 'GRADIENT_LINEAR', gradientTransform: [[0, 1, 0], [-1, 0, 1]], gradientStops: [{ position: 0.3, color: { r: 0, g: 0, b: 0, a: 0 } }, { position: 1, color: { r: 0, g: 0, b: 0, a: 0.8 } }] };
 const FOCUS = { '50% 50%': [0.5, 0.5], '50% 25%': [0.5, 0.25] };
 await set('media', { kind: ['default', 'cc-round'], focus: Object.keys(FOCUS), fill: ['image', 'empty'] }, async (p) => {
   const c = component(), round = p.kind === 'cc-round', w = round ? 144 : 240;
@@ -284,114 +245,4 @@ await set('crumbs', { width: ['default', 'narrow'] }, async (p) => {
   const r = row('nav row', { itemSpacing: 48, counterAxisAlignItems: 'MIN' }); block.appendChild(r); r.appendChild(c); r.appendChild(k); made.push('outline', 'skip-link');
 }
 
-// ---- Lay out ----------------------------------------------------------------
-const tpl = figma.createSection(); tpl.name = 'Templates'; page.appendChild(tpl);
-fill(host, [paint('bg')]); tpl.appendChild(host); host.x = 0; host.y = 0;
-host.setExplicitVariableModeForCollection(COL.Space, COL.Space.modes.find((m) => m.name === 'Wide').modeId);
-host.setExplicitVariableModeForCollection(COL.Type, COL.Type.modes.find((m) => m.name === 'Wide').modeId);
-tpl.resizeWithoutConstraints(host.width, host.height);
-
-// ---- Screens: one settings card, in each product at two screens and themes -----
-const item = (t, on) => inst(itemSet, { kind: 'switch', state: on ? 'selected' : 'rest' }, 'label', t);
-async function settings(title, width, modes) {
-  const f = col(title); f.resize(width, 400); f.counterAxisSizingMode = 'FIXED'; f.primaryAxisSizingMode = 'AUTO'; fill(f, [paint('bg')]);
-  padX(f, 'space/sp-2'); padY(f, 'space/sp-4');
-  for (const [colName, modeName] of Object.entries(modes)) f.setExplicitVariableModeForCollection(COL[colName], COL[colName].modes.find((m) => m.name === modeName).modeId);
-  const card = col('card'); f.appendChild(card); card.layoutSizingHorizontal = 'FILL';
-  fill(card, [paint('bg-raised')]); edge(card, 'border-subtle'); corners(card, 'knob/shape-card');
-  padX(card, 'knob/density-card-pad-inline'); padY(card, 'knob/density-card-pad-block'); bind(card, 'itemSpacing', 'space/sp-2');
-  const head = col('section-head'); card.appendChild(head); head.layoutSizingHorizontal = 'FILL'; bind(head, 'itemSpacing', 'space/sp-1');
-  head.appendChild(await words('Settings', { style: 'eyebrow', ink: 'text-tertiary' }));
-  head.appendChild(await words('Notifications', { style: 'h4' }));
-  const lede = await words('Choose what reaches you, and when. Nothing here is sent until you save.', { style: 'sm', ink: 'text-secondary' });
-  head.appendChild(lede); lede.layoutSizingHorizontal = 'FILL'; lede.textAutoResize = 'HEIGHT';
-  card.appendChild(got('tabs cc-seg').createInstance());
-  const opts = col('options'); card.appendChild(opts); opts.layoutSizingHorizontal = 'FILL'; bind(opts, 'itemSpacing', 'space/sp-q');
-  for (const [l, on] of [['Mentions', true], ['Replies to me', true], ['A weekly digest', false]]) { const i = item(l, on); opts.appendChild(i); i.layoutSizingHorizontal = 'FILL'; }
-  const tagsRow = row('cluster'); card.appendChild(tagsRow); bind(tagsRow, 'itemSpacing', 'space/sp-h');
-  for (const [l, k, e] of [['People', 'cc-person', 'default'], ['Events', 'cc-event', 'default'], ['Urgent', 'cc-alert', 'cc-solid']]) {
-    const t = variant(tagSet, { kind: k, emphasis: e, size: 'default' }).createInstance(); tagsRow.appendChild(t);
-    t.setProperties({ [Object.keys(t.componentProperties).find((x) => x.startsWith('label'))]: l });
-  }
-  const fld = variant(fieldSet, { state: 'rest' }).createInstance(); card.appendChild(fld); fld.layoutSizingHorizontal = 'FILL';
-  const actions = row('cluster'); card.appendChild(actions); bind(actions, 'itemSpacing', 'space/sp-1');
-  for (const [l, k] of [['Save', 'cc-primary'], ['Cancel', 'default']]) {
-    const b = variant(btnSet, { kind: k, size: 'default', state: 'rest' }).createInstance(); actions.appendChild(b);
-    b.setProperties({ [Object.keys(b.componentProperties).find((x) => x.startsWith('label'))]: l });
-  }
-  return f;
-}
-const screens = figma.createSection(); screens.name = 'Screens'; page.appendChild(screens);
-const shown = [];
-let x = 0;
-for (const [p, s, c] of [['Core', 'Wide', 'Light'], ['Core', 'Phone', 'Dark'], ['Quarry', 'Wide', 'Light'], ['Quarry', 'Phone', 'Dark'], ['Almanac', 'Wide', 'Light'], ['Almanac', 'Phone', 'Dark']]) {
-  const f = await settings(`Settings · ${p} · ${s} · ${c}`, s === 'Wide' ? 480 : 393, { Product: p, Space: s, Type: s, Color: c });
-  screens.appendChild(f); f.x = x; f.y = 0; x += f.width + 80; shown.push(f.id);
-}
-// Scopes (D96): a product nested in a product is an inner frame with its own
-// Product mode, and a mood (data-theme) the same frame in the Dark Color mode.
-const modeOf = (f, modes) => { for (const [k, m] of Object.entries(modes)) f.setExplicitVariableModeForCollection(COL[k], COL[k].modes.find((x) => x.name === m).modeId); };
-async function scopeCard(name, scope, dark) {
-  const card = col(`[data-product="${scope}"]`); modeOf(card, Object.assign({ Product: 'Grove › ' + name }, dark ? { Color: 'Dark' } : {}));
-  fill(card, [paint('bg-raised')]); edge(card, 'border-subtle'); corners(card, 'knob/shape-card');
-  padX(card, 'knob/density-card-pad-inline'); padY(card, 'knob/density-card-pad-block'); bind(card, 'itemSpacing', 'space/sp-2');
-  const head = col('section-head'); card.appendChild(head); head.layoutSizingHorizontal = 'FILL'; bind(head, 'itemSpacing', 'space/sp-1');
-  head.appendChild(await words(dark ? 'A scope, at night' : 'A scope', { style: 'eyebrow', ink: 'text-tertiary' }));
-  head.appendChild(await words(name, { style: 'h3' }));
-  const list = col('list'); card.appendChild(list); list.layoutSizingHorizontal = 'FILL';
-  for (const [t, m, u] of [['Morning sit', 'dot', 'true'], ['Study circle', 'face', 'false']]) { const i = variant(listSet, { mark: m, unread: u, state: 'rest' }).createInstance(); list.appendChild(i); i.layoutSizingHorizontal = 'FILL'; label(i, 'title', t); }
-  const b = variant(btnSet, { kind: 'cc-primary', size: 'default', state: 'rest' }).createInstance(); card.appendChild(b); label(b, 'label', 'Join');
-  return card;
-}
-const eco = col('Grove · Wide · Light · scopes'); width(eco, 1200); eco.counterAxisSizingMode = 'FIXED'; fill(eco, [paint('bg')]);
-modeOf(eco, { Product: 'Grove', Space: 'Wide', Type: 'Wide', Color: 'Light' });
-padX(eco, 'space/sp-4'); padY(eco, 'space/sp-4'); bind(eco, 'itemSpacing', 'space/sp-3');
-eco.appendChild(await words('One ecosystem', { style: 'h2' }));
-const arch = row('archways', { counterAxisAlignItems: 'MIN' }); eco.appendChild(arch); arch.layoutSizingHorizontal = 'FILL'; bind(arch, 'itemSpacing', 'space/sp-2');
-for (const [n, s, d] of [['Studio', 'studio', false], ['Lodge', 'lodge', true], ['Lantern', 'lantern', false]]) { const k = await scopeCard(n, s, d); arch.appendChild(k); k.layoutGrow = 1; }
-const threads = row('threads', { counterAxisAlignItems: 'MIN' }); eco.appendChild(threads); bind(threads, 'itemSpacing', 'space/sp-4');
-const talk = col('chat-thread cc-flat'); threads.appendChild(talk); width(talk, 520); bind(talk, 'itemSpacing', 'space/sp-q');
-for (const v of [{ run: 'first', state: 'rest' }, { run: 'cc-cont', state: 'hover' }]) { const i = variant(chatSet, v).createInstance(); talk.appendChild(i); i.layoutSizingHorizontal = 'FILL'; }
-const cmp = variant(composerSet, { state: 'ready' }).createInstance(); talk.appendChild(cmp); cmp.layoutSizingHorizontal = 'FILL';
-// A bubble thread: others' run, then your own.
-const bub = col('chat-thread'); threads.appendChild(bub); width(bub, 520); bind(bub, 'itemSpacing', 'space/sp-1');
-for (const [from, run] of [['default', 'first'], ['default', 'cc-cont'], ['cc-own', 'first']]) { const i = variant(bubbleSet, { from, run }).createInstance(); bub.appendChild(i); i.layoutSizingHorizontal = 'FILL'; }
-const rowH = Math.max(...screens.children.map((n) => n.height));
-screens.appendChild(eco); eco.x = 0; eco.y = rowH + 80; shown.push(eco.id);
-// The shell (D80), in two products: across the top, wide and light; a tab bar, on a phone at night.
-let sx = 0, sy = eco.y + eco.height + 80;
-for (const [p, s, c, top] of [['Quarry', 'Wide', 'Light', 'cc-top'], ['Almanac', 'Phone', 'Dark', 'default'], ['Core', 'Phone', 'Light', 'cc-top']]) {
-  const f = col(`Shell · ${p} · ${s} · ${c}`); modeOf(f, { Product: p, Space: s, Type: s, Color: c });
-  f.appendChild(variant(shellSet, { top, width: s === 'Wide' ? 'wide' : 'narrow' }).createInstance());
-  screens.appendChild(f); f.x = sx; f.y = sy; sx += f.width + 80; shown.push(f.id);
-}
-// Covered cards, covered rows and choices (D108, D109), in one product: a page of events.
-const ev = col('Events · Almanac · Wide · Light'); width(ev, 1200); ev.counterAxisSizingMode = 'FIXED'; fill(ev, [paint('bg')]);
-modeOf(ev, { Product: 'Almanac', Space: 'Wide', Type: 'Wide', Color: 'Light' });
-padX(ev, 'space/sp-4'); padY(ev, 'space/sp-4'); bind(ev, 'itemSpacing', 'space/sp-3');
-const eh = col('section-head'); bind(eh, 'itemSpacing', 'space/sp-1'); ev.appendChild(eh);
-eh.appendChild(await words('This month', { style: 'eyebrow', ink: 'text-tertiary' })); eh.appendChild(await words('Events', { style: 'h2' }));
-const grid = row('grid cc-fill', { counterAxisAlignItems: 'MIN' }); ev.appendChild(grid); grid.layoutSizingHorizontal = 'FILL'; bind(grid, 'itemSpacing', 'space/sp-2');
-for (const [m, s] of [['cc-bleed', 'rest'], ['cc-fill', 'hover'], ['default', 'rest']]) { const i = variant(coverSet, { media: m, state: s }).createInstance(); grid.appendChild(i); i.layoutGrow = 1; }
-const lower = row('columns', { counterAxisAlignItems: 'MIN' }); ev.appendChild(lower); lower.layoutSizingHorizontal = 'FILL'; bind(lower, 'itemSpacing', 'space/sp-2');
-const left = col('column'); lower.appendChild(left); left.layoutGrow = 1; bind(left, 'itemSpacing', 'space/sp-2');
-const strip = variant(coverSet, { media: 'cc-bleed-start', state: 'selected' }).createInstance(); left.appendChild(strip); strip.layoutSizingHorizontal = 'FILL';
-const rows = col('list'); left.appendChild(rows); rows.layoutSizingHorizontal = 'FILL';
-for (const s of ['rest', 'hover', 'rest']) { const i = variant(linkRowSet, { state: s }).createInstance(); rows.appendChild(i); i.layoutSizingHorizontal = 'FILL'; }
-// A card of choices: a mixed parent over its children, a radio group, a draft tag, a block button.
-const prefs = col('card'); lower.appendChild(prefs); width(prefs, 400); fill(prefs, [paint('bg-raised')]); edge(prefs, 'border-subtle'); corners(prefs, 'knob/shape-card');
-padX(prefs, 'knob/density-card-pad-inline'); padY(prefs, 'knob/density-card-pad-block'); bind(prefs, 'itemSpacing', 'space/sp-2');
-const ph = row('section-head', { primaryAxisAlignItems: 'SPACE_BETWEEN' }); prefs.appendChild(ph); ph.layoutSizingHorizontal = 'FILL';
-ph.appendChild(await words('Reminders', { style: 'h4' }));
-const draft = inst(tagSet, { kind: 'default', emphasis: 'cc-outline', size: 'cc-sm' }, 'label', 'Draft'); ph.appendChild(draft); draft.dashPattern = [4, 2];
-const choiceSet = got('choice'), pick = (kind, checked, t, indent) => { const i = inst(choiceSet, { kind, checked, state: 'rest', size: 'default' }, 'choice-label', t); if (indent) { const w = row('nested'); bind(w, 'paddingLeft', 'space/sp-2'); w.appendChild(i); return w; } return i; };
-const checks = col('fieldset'); prefs.appendChild(checks);
-for (const [c, t, n] of [['mixed', 'Every event', false], ['true', 'A day before', true], ['false', 'An hour before', true]]) checks.appendChild(pick('checkbox', c, t, n));
-const radios = col('fieldset'); prefs.appendChild(radios);
-for (const [c, t] of [['false', 'By email'], ['true', 'By text message']]) radios.appendChild(pick('radio', c, t));
-const save = btn('cc-primary', 'default', 'Save reminders'); prefs.appendChild(save); save.layoutSizingHorizontal = 'FILL';
-const ey = sy + Math.max(...shown.slice(-3).map((id) => screens.findOne((n) => n.id === id).height)) + 80;
-screens.appendChild(ev); ev.x = 0; ev.y = ey; shown.push(ev.id);
-screens.resizeWithoutConstraints(Math.max(x - 80, eco.width, sx - 80, ev.width), ey + ev.height);
-C.x = 0; C.y = 0; tpl.x = 0; tpl.y = C.height + 200; screens.x = 0; screens.y = tpl.y + tpl.height + 200;
-return { components: made, templatesSection: tpl.id, screensSection: screens.id, screens: shown, size: [Math.round(tpl.width), Math.round(tpl.height)] };
+return Object.assign({ components: made }, section('Templates'));

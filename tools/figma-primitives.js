@@ -2,11 +2,11 @@
    Run as `node tools/figma-components.js --plugin primitives`, which puts the
    kit (tools/figma-kit.js) before it. Every primitive as a component set named
    by its class chain, in the section Components, which it removes and builds
-   again; Templates and Screens are removed too, since they are made of these:
-   run the templates part after it. */
+   again; Thread, Templates and Screens are removed too, since they are made of
+   these: run the other parts after it. */
 
 // ---- Start clean ------------------------------------------------------------
-for (const n of page.children.slice()) if (['Components', 'Templates', 'Screens', 'Settings · Wide · Light', 'Settings · Phone · Dark'].includes(n.name)) n.remove();
+clear(SECTIONS);
 
 // ---- button -----------------------------------------------------------------
 const SIZES = { default: ['knob/density-control-h', 'knob/density-control-fs', 'derived/control-pad'], 'cc-sm': ['size/size-control-sm', 'type/control/fs-control-sm', 'space/sp-1'],
@@ -46,10 +46,12 @@ await set('tag', { kind: Object.keys(TAG_KINDS), emphasis: ['default', 'cc-outli
   fixedHeight(c, h); padX(c, pad); corners(c, 'knob/tag-radius'); bind(c, 'itemSpacing', gap);
   fill(c, solid ? [paint(hue)] : p.emphasis === 'cc-outline' ? [] : [paint(hue, 0.14)]);
   edge(c, hue, solid ? 1 : 0.42);
+  const d = figma.createEllipse(); d.name = 'tag-dot'; c.appendChild(d); bind(d, 'width', 'space/sp-h'); bind(d, 'height', 'space/sp-h'); fill(d, [paint(solid ? 'on-' + hue : hue)]);
   c.appendChild(await words('Tag', { fs, ink: solid ? 'on-' + hue : 'text' }));
+  const x = glyph(solid ? 'on-' + hue : 'text', 'M 4 4 L 14 14 M 14 4 L 4 14'); x.name = 'tag-remove'; c.appendChild(x); x.opacity = 0.7; x.children[0].strokeWeight = 0.9; bind(x, 'width', 'size/size-icon-sm'); bind(x, 'height', 'size/size-icon-sm');
   return c;
-}, { text: ['label', 'Tag'], caption: 'tag · kind × emphasis × size', width: 1600,
-  description: 'Trellis .tag, the archetype: a height, a corner, padding equal to the corner, an edge and a tint mixed from one kind color. <span class="tag cc-person cc-solid">. .cc-stage-1 to 7 take a step of a process (D107). A link that is the current one, a.tag[aria-current="page"], draws solid (D101). A product sets its corner, height and size (--tag-r-fixed, --tag-r-ratio, --tag-default-h); its case and tracking (--tag-case, Quarry\'s uppercase) are the code\'s alone. What isn\'t here yet takes --tag-edge-style: dashed: dash an instance\'s stroke (4, 2).' });
+}, { text: ['label', 'Tag'], parts: [['tag-dot', false], ['tag-remove', false]], caption: 'tag · kind × emphasis × size', width: 1600,
+  description: 'Trellis .tag, the archetype: a height, a corner, padding equal to the corner, an edge and a tint mixed from one kind color. <span class="tag cc-person cc-solid">. .cc-stage-1 to 7 take a step of a process (D107). A link that is the current one, a.tag[aria-current="page"], draws solid (D101). A product sets its corner, height and size (--tag-r-fixed, --tag-r-ratio, --tag-default-h); its case and tracking (--tag-case, Quarry\'s uppercase) are the code\'s alone. What isn\'t here yet takes --tag-edge-style: dashed: dash an instance\'s stroke (4, 2). Properties show .tag-dot (the kind\'s color before the words) and .tag-remove (a button at the end: the code pulls its box into the tag\'s padding, the file draws the mark alone).' });
 
 // ---- avatar -----------------------------------------------------------------
 const AV = { 'cc-xs': [1, 'space/sp-1'], default: [2, 'space/sp-2'], 'cc-md': [3, 'space/sp-3'], 'cc-lg': [4, 'space/sp-4'], 'cc-xl': [6, 'space/sp-6'], 'cc-xxl': [8, 'space/sp-8'], 'cc-hero': [12, 'space/sp-12'] };
@@ -152,20 +154,24 @@ await set('range', { kind: ['default', 'cc-zone'] }, async (p) => {
 
 // ---- input, field -----------------------------------------------------------
 const IN_SIZES = { default: ['knob/density-control-h', 'knob/density-control-fs', 'space/sp-1'], 'cc-sm': ['size/size-control-sm', 'type/control/fs-control-sm', 'space/sp-h'], 'cc-lg': ['size/size-control-xl', 'type/control/fs-control-lg', 'space/sp-1'] };
-const inputSet = await set('input', { state: ['rest', 'invalid', 'disabled', 'read-only'], size: Object.keys(IN_SIZES) }, async (p) => {
-  const c = component(), [h, fs, pad] = IN_SIZES[p.size], quiet = p.state === 'disabled' || p.state === 'read-only';
-  c.primaryAxisSizingMode = 'FIXED'; c.resize(240, 36); fixedHeight(c, h); padX(c, pad); corners(c, 'knob/shape-input');
+const inputSet = await set('input', { element: ['input', 'select', 'textarea'], state: ['rest', 'invalid', 'disabled', 'read-only'], size: Object.keys(IN_SIZES) }, async (p) => {
+  const c = component(), [h, fs, pad] = IN_SIZES[p.size], quiet = p.state === 'disabled' || p.state === 'read-only', area = p.element === 'textarea';
+  c.primaryAxisSizingMode = 'FIXED'; c.resize(240, 36); padX(c, pad); corners(c, 'knob/shape-input');
+  if (area) { c.counterAxisSizingMode = 'AUTO'; c.counterAxisAlignItems = 'MIN'; padY(c, 'space/sp-h'); bind(c, 'minHeight', 'size/textarea-h'); } else fixedHeight(c, h);
   fill(c, [paint(quiet ? 'bg-sunken' : 'bg-raised')]);
   edge(c, p.state === 'invalid' ? 'alert' : p.state === 'disabled' ? 'border-subtle' : 'border');
   const t = await words('Placeholder', { fs, weight: 'type/fw-body', ink: p.state === 'disabled' ? 'text-tertiary' : 'text-tertiary', name: 'value' });
-  c.appendChild(t); t.layoutGrow = 1; t.textAutoResize = 'HEIGHT';
+  // A textarea's lines are two cells, its words on each line's middle.
+  if (area) { const l = row('line'); c.appendChild(l); bind(l, 'minHeight', 'space/sp-2'); l.layoutGrow = 1; l.appendChild(t); } else c.appendChild(t);
+  t.layoutGrow = 1; t.textAutoResize = 'HEIGHT';
+  if (p.element === 'select') { const v = figma.createVector(); v.name = 'chevron'; v.vectorPaths = [{ windingRule: 'NONZERO', data: 'M 0 0 L 10 0 L 5 5 Z' }]; stroke(v, []); fill(v, [paint(p.state === 'disabled' ? 'text-tertiary' : 'text')]); c.appendChild(v); bind(c, 'itemSpacing', 'space/sp-1'); bind(c, 'paddingRight', 'space/sp-1'); }
   return c;
-}, { text: ['value', 'Placeholder'], caption: 'input · state × size', description: 'Trellis .input: one box for input, select and textarea, at the product\'s control height (--density-control-h, --shape-input). invalid is aria-invalid="true". On touch the code makes it 44pt and 16px type, or iOS zooms.' });
+}, { skip: (p) => p.element === 'select' && p.state === 'read-only', text: ['value', 'Placeholder'], caption: 'input · element × state × size', description: 'Trellis .input: one box for input, select and textarea, at the product\'s control height (--density-control-h, --shape-input). A select draws a chevron a cell from its end; a textarea is three lines of two cells (--input-rows) and grows with its text. invalid is aria-invalid="true". On touch the code makes it 44pt and 16px type, or iOS zooms.' });
 
 await set('field', { state: ['rest', 'invalid'] }, async (p) => {
   const c = component('VERTICAL'); c.counterAxisAlignItems = 'MIN'; bind(c, 'itemSpacing', 'space/sp-1');
   const lab = await words('Label', { style: 'label', ink: 'text-secondary', name: 'label' }); c.appendChild(lab);
-  const box = variant(inputSet, { state: p.state === 'invalid' ? 'invalid' : 'rest', size: 'default' }).createInstance(); c.appendChild(box);
+  const box = variant(inputSet, { element: 'input', state: p.state === 'invalid' ? 'invalid' : 'rest', size: 'default' }).createInstance(); c.appendChild(box);
   const hint = await words('A hint, or what went wrong', { style: 'xs', ink: p.state === 'invalid' ? 'alert' : 'text-tertiary', name: 'hint' }); c.appendChild(hint);
   for (const t of [lab, hint]) { const w = row('inset'); bind(w, 'paddingLeft', 'space/sp-1'); c.insertChild(c.children.indexOf(t), w); w.appendChild(t); }
   return c;
@@ -211,11 +217,15 @@ const itemSet = await set('options-card-item', { kind: ['default', 'switch'], st
   const c = component('VERTICAL'); c.name = 'options-card'; c.counterAxisSizingMode = 'FIXED'; c.counterAxisAlignItems = 'MIN';
   bind(c, 'width', 'space/sp-16'); padX(c, 'knob/density-options-pad'); padY(c, 'knob/density-options-pad'); corners(c, 'knob/shape-float');
   fill(c, [paint('bg-raised')]); edge(c, 'border'); lift(c);
-  for (const [label, state] of [['Rename', 'rest'], ['Duplicate', 'hover'], ['Sort by name', 'selected'], ['Archive', 'disabled']]) {
+  const hd = row('options-card-heading'); c.appendChild(hd); hd.layoutSizingHorizontal = 'FILL'; padX(hd, 'space/sp-h'); bind(hd, 'paddingTop', 'space/sp-h'); bind(hd, 'paddingBottom', 'space/sp-q');
+  // Its capitals a cell under the card's edge: the card's padding, a half, a quarter.
+  const hi = row('inset'); hd.appendChild(hi); bind(hi, 'paddingTop', 'space/sp-q'); hi.appendChild(await words('Guides', { style: 'label', ink: 'text-tertiary' }));
+  for (const [label, state] of [['Rename', 'rest'], ['Duplicate', 'hover'], ['Sort by name', 'selected'], [null], ['Archive', 'disabled']]) {
+    if (!label) { const r = row('options-card-rule', { primaryAxisSizingMode: 'FIXED', counterAxisSizingMode: 'FIXED' }); c.appendChild(r); r.layoutSizingHorizontal = 'FILL'; bind(r, 'height', 'space/sp-h'); const l = figma.createRectangle(); l.name = 'line'; r.appendChild(l); l.layoutGrow = 1; bind(l, 'height', 'space/line'); fill(l, [paint('border-subtle')]); continue; }
     const i = variant(itemSet, { kind: 'default', state }).createInstance(); c.appendChild(i); i.layoutSizingHorizontal = 'FILL';
     i.setProperties({ [Object.keys(i.componentProperties).find((k) => k.startsWith('label'))]: label });
   }
-  c.description = 'Trellis .float.options-card: 16 cells wide, items 2½ cells (--density-option-h), padding --density-options-pad, corner --shape-float, item corners concentric. Opened as a popover by its anchor; drawn here where it would open.';
+  c.description = 'Trellis .float.options-card: 16 cells wide, items 2½ cells (--density-option-h), padding --density-options-pad, corner --shape-float, item corners concentric; .options-card-heading names a group, .options-card-rule parts two. Opened as a popover by its anchor; drawn here where it would open.';
   const tip = component(); tip.name = 'tooltip'; padX(tip, 'space/sp-h'); padY(tip, 'space/sp-q'); corners(tip, 'radius/r-q'); fill(tip, [paint('text')]); lift(tip);
   const tt = await words('A tooltip', { fs: 'type/control/fs-control-sm', weight: 'type/fw-body', ink: 'bg', name: 'label' }); tip.appendChild(tt);
   tip.description = 'Trellis .float.tooltip: the page\'s ink as its ground, the page as its ink.';
@@ -225,7 +235,7 @@ const itemSet = await set('options-card-item', { kind: ['default', 'switch'], st
   r.appendChild(c); r.appendChild(tip); made.push('options-card', 'tooltip');
 }
 
-// ---- list-item, composer, chat-item cc-flat (D99, D104) --------------------
+// ---- list-item, composer (D99, D104) -------------------------------------------
 const listSet = await set('list-item', { mark: ['none', 'dot', 'face'], unread: ['false', 'true'], state: ['rest', 'selected'] }, async (p) => {
   const c = component(); c.counterAxisAlignItems = 'MIN'; c.primaryAxisSizingMode = 'FIXED'; width(c, 320);
   padY(c, 'space/sp-1'); padX(c, 'space/sp-1'); bind(c, 'itemSpacing', 'space/sp-1');
@@ -248,7 +258,7 @@ const listSet = await set('list-item', { mark: ['none', 'dot', 'face'], unread: 
 }, { text: ['title', 'A row\'s title'], caption: 'list-item · mark × unread × state', width: 1100,
   description: 'Trellis .list > .list-item: a leading .list-mark, .list-body (.list-title, .list-sub), .list-end. A mark sits on the first line\'s capitals (D104), here by centering it on a one-line title: wrap the title and the code keeps it on the first line, the file does not. .cc-unread weighs the title, inks the line under it and shows a .dot.cc-accent. Selected is aria-current on the row. The list draws a hairline between rows that stops at the text\'s edges; a row here has none.' });
 
-const composerSet = await set('composer', { state: ['empty', 'ready'] }, async (p) => {
+await set('composer', { state: ['empty', 'ready'] }, async (p) => {
   const c = component(), ready = p.state === 'ready'; c.counterAxisAlignItems = 'MAX'; c.primaryAxisSizingMode = 'FIXED'; width(c, 360);
   padX(c, 'space/sp-q'); padY(c, 'space/sp-q'); bind(c, 'itemSpacing', 'space/sp-q'); corners(c, 'knob/shape-input');
   fill(c, [paint('bg-raised')]); edge(c, 'border');
@@ -264,26 +274,6 @@ const composerSet = await set('composer', { state: ['empty', 'ready'] }, async (
   c.appendChild(btn(ready ? 'accent-ink' : 'text-tertiary', ready ? 'accent' : 'bg-hover', 'M 9 15 L 9 3 M 4 8 L 9 3 L 14 8'));
   return c;
 }, { caption: 'composer · state', width: 900, description: 'Trellis .composer: one box, .composer-input (a textarea that grows a line at a time to --composer-max) between icon buttons, .composer-send last, which wakes with text. Three cells for one line. It takes the focus ring. In a .field its hint starts at the text.' });
-
-const chatSet = await set('chat-item cc-flat', { run: ['first', 'cc-cont'], state: ['rest', 'hover'] }, async (p) => {
-  const c = component(), cont = p.run === 'cc-cont'; c.counterAxisAlignItems = cont ? 'BASELINE' : 'MIN'; c.primaryAxisSizingMode = 'FIXED'; width(c, 420);
-  padY(c, 'space/sp-h'); padX(c, 'space/sp-1'); bind(c, 'itemSpacing', 'space/sp-1'); corners(c, 'radius/r-h');
-  fill(c, p.state === 'hover' ? [paint('text', share.hover)] : []);
-  if (!cont) c.appendChild(variant(avatarSet, { kind: 'default', ring: 'cc-plain', size: 'cc-md' }).createInstance());
-  else {
-    const time = row('chat-item-time', { primaryAxisSizingMode: 'FIXED', primaryAxisAlignItems: 'CENTER' }); bind(time, 'width', 'space/sp-3'); c.appendChild(time);
-    const w = await words('9:41', { style: 'xs', ink: 'text-tertiary', name: 'time' }); time.appendChild(w); w.visible = p.state === 'hover';
-  }
-  const body = col('chat-item-body'); c.appendChild(body); body.layoutGrow = 1; bind(body, 'itemSpacing', 'space/sp-1');
-  if (!cont) {
-    const meta = row('chat-item-meta', { counterAxisAlignItems: 'BASELINE' }); bind(meta, 'itemSpacing', 'space/sp-h'); body.appendChild(meta);
-    meta.appendChild(await words('Ada', { fs: 'type/sm/size', weight: 'type/fw-strong', ink: 'text', name: 'name' }));
-    meta.appendChild(await words('9:41', { style: 'xs', ink: 'text-tertiary', name: 'time' }));
-  }
-  const t = await words(cont ? 'And a second message in the same run.' : 'A flat thread: everyone at the start, no bubble.', { style: 'body', name: 'text' });
-  body.appendChild(t); t.layoutSizingHorizontal = 'FILL'; t.textAutoResize = 'HEIGHT';
-  return c;
-}, { caption: 'chat-item cc-flat · run × state', width: 1000, description: 'Trellis .chat-thread.cc-flat > .chat-item: a three-cell plain face, the name strong and the time on one baseline, the text at full measure. .cc-cont continues a run a cell apart and keeps the face\'s column for its own time, shown on hover. The row\'s hover fill is drawn half the run gap out each way, so a run\'s rows meet. Bubbles, quotes, files, links, reactions, dividers and typing are the code\'s for now.' });
 
 // ---- card -------------------------------------------------------------------
 const LEVEL = { 1: ['bg-raised', 'knob/shape-card', 'knob/density-card-pad-inline', 'knob/density-card-pad-block'], 2: ['bg-raised-2', 'derived/card-nest-r', 'space/sp-1', 'space/sp-1'], 3: ['bg-raised-3', 'derived/card-nest-r2', 'space/sp-1', 'space/sp-1'] };
@@ -301,9 +291,8 @@ const cardSet = await set('card', { level: ['1', '2', '3'] }, async (p) => {
 // ---- modal ------------------------------------------------------------------
 const btnSet = figma.root.findOne((n) => n.type === 'COMPONENT_SET' && n.name === 'button');
 const iconSet = figma.root.findOne((n) => n.type === 'COMPONENT_SET' && n.name === 'button icon-button');
-{
-  const m = component('VERTICAL'); m.name = 'modal'; m.counterAxisSizingMode = 'FIXED'; m.counterAxisAlignItems = 'MIN'; m.resize(420, 200);
-  fill(m, [paint('bg-raised')]); corners(m, 'knob/shape-card'); edge(m, 'border'); lift(m);
+const dialog = async (m) => {
+  m.counterAxisAlignItems = 'MIN'; fill(m, [paint('bg-raised')]); edge(m, 'border'); lift(m);
   const head = row('modal-header', { counterAxisAlignItems: 'MIN', primaryAxisAlignItems: 'SPACE_BETWEEN' }); m.appendChild(head); head.layoutSizingHorizontal = 'FILL';
   padX(head, 'space/sp-2'); bind(head, 'paddingTop', 'space/sp-2'); bind(head, 'paddingBottom', 'space/sp-1');
   head.appendChild(await words('Dialog title', { style: 'h4', name: 'title' }));
@@ -315,17 +304,27 @@ const iconSet = figma.root.findOne((n) => n.type === 'COMPONENT_SET' && n.name =
   padX(foot, 'space/sp-2'); bind(foot, 'paddingBottom', 'space/sp-2'); bind(foot, 'paddingTop', 'space/sp-1'); bind(foot, 'itemSpacing', 'space/sp-h');
   foot.appendChild(variant(btnSet, { kind: 'default', size: 'default', state: 'rest' }).createInstance());
   foot.appendChild(variant(btnSet, { kind: 'cc-primary', size: 'default', state: 'rest' }).createInstance());
+  return body;
+};
+{
+  const m = component('VERTICAL'); m.name = 'modal'; m.resize(420, 200); m.primaryAxisSizingMode = 'AUTO'; m.counterAxisSizingMode = 'FIXED'; corners(m, 'knob/shape-card');
+  await dialog(m);
   m.description = 'Trellis .modal on the native <dialog>: .modal > .modal-inner > .modal-header / -body / -footer, padding two cells (--modal-pad), corner --shape-card. On a screen under 48rem a centered modal is a bottom tray (.cc-tray.cc-bottom).';
   const block = col('modal block', { itemSpacing: 12 }); host.appendChild(block);
   block.appendChild(await words('modal', { style: 'label', ink: 'text-tertiary', name: 'caption' }));
   block.appendChild(m); made.push('modal');
 }
+// A tray: flush to a side of the screen, the corners away from it round.
+await set('modal cc-tray', { side: ['cc-left', 'cc-right', 'cc-bottom'] }, async (p) => {
+  const m = component('VERTICAL'), up = p.side === 'cc-bottom';
+  if (up) {
+    m.resize(393, 200); m.primaryAxisSizingMode = 'AUTO'; m.counterAxisSizingMode = 'FIXED';
+    const g = row('modal-grabber', { primaryAxisAlignItems: 'CENTER', counterAxisSizingMode: 'FIXED' }); m.appendChild(g); g.layoutSizingHorizontal = 'FILL'; bind(g, 'height', 'space/sp-1');
+    const pill = figma.createRectangle(); pill.name = 'pill'; g.appendChild(pill); bind(pill, 'width', 'space/sp-3'); bind(pill, 'height', 'space/sp-q'); corners(pill, 'radius/r-round'); fill(pill, [paint('text', 0.24)]);
+  } else { m.resize(384, 480); m.primaryAxisSizingMode = 'FIXED'; m.counterAxisSizingMode = 'FIXED'; bind(m, 'width', 'size/tray-w'); }
+  for (const f of { 'cc-left': ['topRightRadius', 'bottomRightRadius'], 'cc-right': ['topLeftRadius', 'bottomLeftRadius'], 'cc-bottom': ['topLeftRadius', 'topRightRadius'] }[p.side]) bind(m, f, 'knob/shape-card');
+  const body = await dialog(m); if (!up) body.layoutGrow = 1;
+  return m;
+}, { caption: 'modal cc-tray · side', width: 1300, description: 'Trellis .modal.cc-tray with .cc-left (the default), .cc-right or .cc-bottom: flush to its side of the screen, the corners away from it round; a side tray is 32 cells wide (--tray-w), two cells clear at each end (--tray-margin), its body scrolling and its footer at the end. A bottom tray draws the .modal-grabber, a cell tall. .cc-top is a bottom tray turned over, without the grabber.' });
 
-// ---- Lay out ----------------------------------------------------------------
-const comps = figma.createSection(); comps.name = 'Components'; page.appendChild(comps);
-fill(host, [paint('bg')]);
-comps.appendChild(host); host.x = 0; host.y = 0;
-host.setExplicitVariableModeForCollection(COL.Space, COL.Space.modes.find((m) => m.name === 'Wide').modeId);
-host.setExplicitVariableModeForCollection(COL.Type, COL.Type.modes.find((m) => m.name === 'Wide').modeId);
-comps.resizeWithoutConstraints(host.width, host.height);
-return { components: made, componentsSection: comps.id, size: [Math.round(comps.width), Math.round(comps.height)] };
+return Object.assign({ components: made }, section('Components'));

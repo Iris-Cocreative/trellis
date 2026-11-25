@@ -1,10 +1,9 @@
-/* Trellis · figma-kit · what both component scripts share
+/* Trellis · figma-kit · what every component script shares
    Not run on its own: `node tools/figma-components.js --plugin <part>` prints
-   this, then the part (tools/figma-primitives.js or tools/figma-templates.js),
-   wrapped so a run that fails takes back what it made. It reads the variables
+   this, then the part, wrapped so a run that fails takes back what it made. It reads the variables
    by name (tools/figma-variables.js --plugin writes them), loads every family a
-   product names, and holds the helpers: paint, bind, a component set from its
-   variants. Top-level await and return, as an agent's Figma tool runs it. */
+   product names, and holds the helpers: the sections, paint, bind, a component
+   set from its variants. Top-level await and return, as an agent's Figma tool runs it. */
 const V = {};
 for (const x of await figma.variables.getLocalVariablesAsync()) V[x.name] = x;
 const need = (n) => { if (!V[n]) throw new Error(`no variable ${n}: run figma-variables --plugin first`); return V[n]; };
@@ -28,6 +27,14 @@ await figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
 // A run that fails takes back what it made, so the next one starts clean.
 const page = figma.root.children[0];
 const before = new Set(page.children.map((n) => n.id));
+// The sections the parts own, one above another in the order they are built.
+// A part removes its own and those made of it, sections by name and nothing else.
+const SECTIONS = ['Components', 'Thread', 'Templates', 'Screens'];
+const owned = (name) => page.children.find((n) => n.type === 'SECTION' && n.name === name);
+const clear = (names) => { for (const n of page.children.slice()) if (n.type === 'SECTION' && names.includes(n.name)) n.remove(); };
+// Each fitted to its frame again: a frame can settle a little taller after the part that built it.
+const stacked = () => { let y = 0; for (const n of SECTIONS) { const s = owned(n); if (!s) continue; if (s.children.length === 1) s.resizeWithoutConstraints(s.children[0].width, s.children[0].height); s.x = 0; s.y = y; y += s.height + 200; } };
+const modeOf = (f, modes) => { for (const [k, m] of Object.entries(modes)) f.setExplicitVariableModeForCollection(COL[k], COL[k].modes.find((x) => x.name === m).modeId); };
 
 // ---- Helpers ----------------------------------------------------------------
 // A role, or a role at a share (a hover's 6%, a tag's 14%): a share is its
@@ -81,17 +88,20 @@ async function words(chars, o) {
   fill(t, [paint(o.ink || 'text')]);
   return t;
 }
+// A stroke on an 18 box, where its path says (a vector's own origin is its path's top left).
+const at = (d) => { const n = d.match(/[\d.]+/g).map(Number); return [0, 1].map((k) => Math.min(...n.filter((_, i) => i % 2 === k))); };
 const glyph = (ink, d = 'M 9 3 L 9 15 M 3 9 L 15 9') => {
   const box = figma.createFrame(); box.name = 'icon'; fill(box, []); box.resize(18, 18); box.clipsContent = false;
   const v = figma.createVector(); v.vectorPaths = [{ windingRule: 'NONE', data: d }];
-  stroke(v, [paint(ink)]); v.strokeWeight = 1.5; v.strokeCap = 'ROUND'; v.resize(18, 18);
-  v.constraints = { horizontal: 'SCALE', vertical: 'SCALE' };
-  box.appendChild(v); bind(box, 'width', 'size/size-icon-md'); bind(box, 'height', 'size/size-icon-md');
+  stroke(v, [paint(ink)]); v.strokeWeight = 1.5; v.strokeCap = 'ROUND';
+  box.appendChild(v); [v.x, v.y] = at(d); v.constraints = { horizontal: 'SCALE', vertical: 'SCALE' };
+  bind(box, 'width', 'size/size-icon-md'); bind(box, 'height', 'size/size-icon-md');
   return box;
 };
 
 // A component set from a list of variants, laid out in rows by its first property.
 const host = col('primitives', { itemSpacing: 48, paddingLeft: 48, paddingRight: 48, paddingTop: 48, paddingBottom: 48 });
+modeOf(host, { Space: 'Wide', Type: 'Wide' });
 const made = [];
 async function set(name, axes, build, o = {}) {
   const combos = Object.entries(axes).reduce((acc, [k, vs]) => acc.flatMap((a) => vs.map((v) => Object.assign({}, a, { [k]: v }))), [{}]);
@@ -120,8 +130,20 @@ async function set(name, axes, build, o = {}) {
     const key = s.addComponentProperty(o.text[0], 'TEXT', o.text[1]);
     for (const c of s.children) for (const t of c.findAll((n) => n.type === 'TEXT' && n.name === o.text[0])) t.componentPropertyReferences = { characters: key };
   }
+  // A part a property shows or hides, by its layer's name.
+  for (const [n, on] of o.parts || []) {
+    const key = s.addComponentProperty(n, 'BOOLEAN', on);
+    for (const c of s.children) for (const x of c.findAll((m) => m.name === n && m.id[0] !== 'I')) { x.visible = on; x.componentPropertyReferences = Object.assign({}, x.componentPropertyReferences, { visible: key }); }
+  }
   made.push(name);
   return s;
+}
+// What this part made, laid out in its section.
+function section(name) {
+  const s = figma.createSection(); s.name = name; page.appendChild(s);
+  fill(host, [paint('bg')]); s.appendChild(host); host.x = 0; host.y = 0;
+  s.resizeWithoutConstraints(host.width, host.height); stacked();
+  return { section: s.id, size: [Math.round(s.width), Math.round(s.height)] };
 }
 const variant = (s, props) => s.children.find((c) => c.name === Object.entries(props).map(([k, v]) => `${k}=${v}`).join(', '));
 const share = { rest: 0, hover: 0.06, press: 0.12, selected: 0.10 };

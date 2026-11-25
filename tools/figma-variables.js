@@ -87,10 +87,12 @@ space.push(v('derived/dot-ring', vals((m) => Math.min(2, Math.max(1, CELL[m] * 0
 for (const k of keys(tokens.size.control)) space.push(v('size/size-control-' + k, vals((m) => CELL[m] * tokens.size.control[k].$value), ['WIDTH_HEIGHT']));
 for (const k of keys(tokens.size.icon)) space.push(v('size/size-icon' + (k === 'base' ? '' : '-' + k), vals((m) => CELL[m] * tokens.size.icon[k].$value), ['WIDTH_HEIGHT']));
 space.push(v('size/hit-min', vals(() => tokens.size['hit-min'].$value), ['WIDTH_HEIGHT']));
-// Measures core sets in cells and names: the shell's columns (D80), a bubble's measure (D99).
-for (const [k, n] of [['shell-nav-w', 20], ['shell-aside-w', 24], ['chat-measure', 40]]) space.push(v('size/' + k, vals((m) => CELL[m] * n), ['WIDTH_HEIGHT']));
+// Measures core sets in cells and names: the shell's columns (D80), a bubble's measure (D99), a tray's width.
+for (const [k, n] of [['shell-nav-w', 20], ['shell-aside-w', 24], ['chat-measure', 40], ['tray-w', 32]]) space.push(v('size/' + k, vals((m) => CELL[m] * n), ['WIDTH_HEIGHT']));
 // A media frame's height (D108), a count of cells in the code: twelve, and a full-bleed card's eighteen.
-for (const [k, n, css] of [['media-h', 12, 'calc(var(--u) * var(--media-h))'], ['media-h-fill', 18, '.media.cc-fill']]) space.push(Object.assign(v('size/' + k, vals((m) => CELL[m] * n), ['WIDTH_HEIGHT']), { codeSyntax: { WEB: css } }));
+for (const [k, n, css] of [['media-h', 12, 'calc(var(--u) * var(--media-h))'], ['media-h-fill', 18, '.media.cc-fill'],
+  // What a message carries, at its widest (D99), and a textarea's three lines.
+  ['chat-file-measure', 26, '.chat-file'], ['chat-link-measure', 32, '.chat-link'], ['textarea-h', 7, 'textarea.input']]) space.push(Object.assign(v('size/' + k, vals((m) => CELL[m] * n), ['WIDTH_HEIGHT']), { codeSyntax: { WEB: css } }));
 for (const k of keys(tokens.radius)) {
   const n = tokens.radius[k].$value;
   space.push(v('radius/r-' + k, vals((m) => (n >= 999 ? 999 : CELL[m] * n)), ['CORNER_RADIUS']));
@@ -215,7 +217,9 @@ for (const theme of ['Light', 'Dark']) for (const k of SOLIDS) pv(`${theme.toLow
 // Figma has no mix, and drops a paint's own opacity on an instance, so each
 // is a color with its alpha in it. [role, shares in percent]
 const HUES = SOLIDS;
-const TINTS = [['text', [6, 8, 10, 12, 20, 32]], ['accent-ink', [6, 12]], ['accent', [16, 26, 60]], ...HUES.map((k) => [k, /^kind-(person|group)$/.test(k) ? [14, 26, 42] : [14, 42]])];
+// 18% is a file's mark (D99), in the accent, a kind or the alert; 50% the unread line's rule.
+const TINTS = [['text', [6, 8, 10, 12, 20, 24, 32]], ['accent-ink', [6, 12]], ['accent', [16, 18, 26, 50, 60]],
+  ...HUES.map((k) => [k, [14, ...(/^kind-|^alert$/.test(k) ? [18] : []), ...(/^kind-(person|group)$/.test(k) ? [26] : []), 42]])];
 const alpha = (pct) => Math.round(pct * 2.55).toString(16).padStart(2, '0');
 for (const theme of ['Light', 'Dark']) for (const [k, shares] of TINTS) for (const pct of shares)
   pv(`${theme.toLowerCase()}/tint/${k}/${pct}`, 'COLOR', [], (p) => M.hex(palettes.get(p.mode)[theme][k]) + alpha(pct));
@@ -355,7 +359,9 @@ for (const c of out.collections) for (const x of c.variables) {
 }
 const coreOf = (prefix) => Object.fromEntries(product.filter((x) => x.name.startsWith(prefix)).map((x) => [x.name, x.values.Core]));
 const fonts = { families: [...new Set(product.filter((x) => x.name.startsWith('font/')).flatMap((x) => Object.values(x.values)))],
-  weights: [...new Set(product.filter((x) => x.name.startsWith('weight/')).flatMap((x) => Object.values(x.values)))], core: Object.assign(coreOf('font/'), coreOf('weight/')) };
+  weights: [...new Set(product.filter((x) => x.name.startsWith('weight/')).flatMap((x) => Object.values(x.values)))], core: Object.assign(coreOf('font/'), coreOf('weight/')),
+  // A text style holds one case and one tracking: core's defaults, in percent.
+  tracking: { heading: parseFloat(TEMPLATE.get('--heading-tracking')) * 100, label: parseFloat(TEMPLATE.get('--label-tracking')) * 100, upper: TEMPLATE.get('--label-case') === 'uppercase' } };
 
 // Compact, since a plugin can't fetch and the script travels whole: per
 // variable [name, type, scopes, values in mode order, code syntax]; a value
