@@ -123,4 +123,5 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D109](D109.md) | Checkbox, radio and switch are one archetype | 2026-11-23 | accepted |
 | [D110](D110.md) | Beside Tailwind: the layer statement, and three class names Tailwind must not make | 2026-11-23 | accepted |
 | [D111](D111.md) | Past the cap, a float grows with its type | 2026-11-23 | accepted |
+| [D112](D112.md) | A bubble holds typed text, or prose, and both keep their shape | 2026-11-24 | accepted |
 | [D113](D113.md) | Padding clears the corner | 2026-11-24 | accepted |

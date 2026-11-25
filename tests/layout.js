@@ -56,6 +56,10 @@
 //           an image fills its frame at the focal point, the frame in cells,
 //           and a banner, a strip and a full bleed meet the card's edges and
 //           take its corners
+//   gaps    a shell keeps a column for an aside only when it has one; the
+//           column's brand is not in the tab bar; prose in a bubble that
+//           shrinks to its content has a width; a message keeps the line
+//           breaks it was typed with, and a bubble of markup does not (D112)
 // Usage: node layout.js <url> [webkit] [WxH] [touch]
 // Needs Playwright (PLAYWRIGHT=module path). Exits 1 if anything is off.
 const pw = require(process.env.PLAYWRIGHT || 'playwright');
@@ -695,6 +699,104 @@ const ready = require('./ready');
     await Trellis.settled();
     return fails;
   }));
+  // A shell without an aside, at every width: main reaches the grid's end, and
+  // a width set for other pages' asides keeps no column here. The brand of a
+  // side column is not in the tab bar; a top bar keeps its brand. The boxes are
+  // absolute and unseen: they need a width, not a place.
+  fails.push(...await page.evaluate(async () => {
+    const bad = [], expect = (ok, msg) => { if (!ok) bad.push(msg); };
+    const host = document.createElement('div');
+    host.style.cssText = 'position: absolute; inset: 0 auto auto 0; visibility: hidden;';
+    const shell = (id, rem, cls, aside, grid = '') => `<div style="width: ${rem}rem"><div class="shell ${cls}" id="${id}"><div class="shell-grid" style="--shell-h: calc(var(--u) * 20); ${grid}"><header class="shell-nav"><a class="shell-brand" href="#top"><span>Seed Library</span></a><a class="shell-link" href="#top">Home</a></header><main class="shell-main"><p class="t-sm">Main</p></main>${aside}</div></div></div>`;
+    const has = '<aside class="shell-aside"><p class="t-sm">Aside</p></aside>', wide = '--shell-aside-w: calc(var(--u) * 30)';
+    host.innerHTML = ['side', 'cc-top'].map(k => shell(`sh-${k}-none`, 90, k, '') + shell(`sh-${k}-has`, 90, k, has) + shell(`sh-${k}-hidden`, 90, k, has.replace('<aside', '<aside hidden')) + shell(`sh-${k}-set`, 90, k, '', wide) + shell(`sh-${k}-wider`, 90, k, has, wide) + shell(`sh-${k}-narrow`, 30, k, '')).join('');
+    document.body.appendChild(host);
+    await Trellis.settled();
+    const cell = document.createElement('div'); cell.style.width = 'var(--u)'; host.appendChild(cell);
+    const u = cell.getBoundingClientRect().width, box = s => document.querySelector(s).getBoundingClientRect();
+    for (const k of ['side', 'cc-top']) {
+      const near = (n, cells) => { const spare = box(`#sh-${k}-${n} .shell-grid`).right - box(`#sh-${k}-${n} .shell-main`).right; expect(Math.abs(spare - cells * u) < 1, `${k} shell, ${n}: main ends ${(spare / u).toFixed(2)} cells before the grid's end, not ${cells}`); };
+      near('none', 0); near('has', 24); near('hidden', 0); near('set', 0); near('wider', 30); near('narrow', 0);
+      const shown = n => getComputedStyle(document.querySelector(`#sh-${k}-${n} .shell-brand`)).display !== 'none';
+      expect(shown('none'), `${k} shell: the brand is not in the wide navigation`);
+      expect(shown('narrow') === (k === 'cc-top'), k === 'cc-top' ? 'a top bar lost its brand when narrow' : "the column's brand is in the tab bar");
+    }
+    host.remove();
+    return bad;
+  }));
+
+  // What a bubble holds (D112). Prose: in a bubble that shrinks to its content
+  // it has the width of its words, never nothing and never past the message's
+  // measure; code, an embed and a wall post take the measure, and an embed
+  // keeps its shape. Typed text: its line breaks are kept; the line breaks of
+  // markup (between paragraphs, after a br, in prose) are not.
+  fails.push(...await page.evaluate(async () => {
+    const bad = [], expect = (ok, msg) => { if (!ok) bad.push(msg); };
+    const host = document.createElement('div');
+    host.className = 'card chat-thread';
+    host.style.cssText = 'position: absolute; inset: 0 auto auto 0; visibility: hidden; width: calc(var(--u) * 30);';
+    const item = (id, cls, inner) => `<div class="chat-item ${cls}" id="${id}"><span class="avatar cc-sm" aria-hidden="true">A</span><div class="chat-item-body">${inner}</div></div>`;
+    const words = 'Bring seed, a jar and whatever was learned since spring, and write the year on each packet before the table opens.';
+    const pre = '<pre><code>const seed = 1;</code></pre>', embed = '<iframe title="Embed" srcdoc="<p>Embed</p>"></iframe>';
+    const markup = '<p class="t-sm">One</p>\n          <p class="t-sm">Two</p>';
+    host.innerHTML = [
+      item('b-short', '', '<div class="chat-item-bubble"><div class="prose"><p>Yes.</p></div></div>'),
+      item('b-one', '', '<div class="chat-item-bubble prose"><p>Yes.</p></div>'),
+      item('b-own', 'cc-own', '<div class="chat-item-bubble"><div class="prose"><p>Yes.</p></div></div>'),
+      item('b-long', '', `<div class="chat-item-bubble"><div class="prose"><h3>Seed</h3><p>${words}</p><ul><li>Paper</li></ul></div></div>`),
+      item('b-pre', '', `<div class="chat-item-bubble"><div class="prose">${pre}</div></div>`),
+      `<div class="cc-dense">${item('b-dense', '', `<div class="chat-item-bubble"><div class="prose">${pre}</div></div>`)}</div>`,
+      item('b-embed', '', `<div class="chat-item-bubble"><div class="prose">${embed}</div></div>`),
+      item('b-wall', 'cc-wall', '<div class="chat-item-bubble prose"><h3>Beds</h3><p>Yes.</p></div>'),
+      item('b-wall-in', 'cc-wall', '<div class="chat-item-bubble"><div class="prose"><p>Yes.</p></div></div>'),
+      item('b-flat', 'cc-flat', '<div class="chat-item-bubble"><div class="prose"><p>Yes.</p></div></div>'),
+      item('l-one', '', '<div class="chat-item-bubble t-sm">One</div>'),
+      item('l-three', '', '<div class="chat-item-bubble t-sm">One\nTwo <b>and</b>\nThree</div>'),
+      item('l-flat-one', 'cc-flat', '<div class="chat-item-bubble t-sm">One</div>'),
+      item('l-flat', 'cc-flat', '<div class="chat-item-bubble t-sm">One\nTwo\nThree</div>'),
+      item('l-wrap', '', `<div class="chat-item-bubble t-sm">${words}\n${words}</div>`),
+      item('l-markup', '', `<div class="chat-item-bubble">\n          ${markup}\n        </div>`),
+      item('l-tight', '', `<div class="chat-item-bubble">${markup.replace(/\n\s*/g, '')}</div>`),
+      item('l-br', '', '<div class="chat-item-bubble t-sm">One<br>\nTwo</div>'),
+      item('l-br-tight', '', '<div class="chat-item-bubble t-sm">One<br>Two</div>'),
+      item('l-prose', '', '<div class="chat-item-bubble">\n  <div class="prose">\n    <p>One\n    two</p>\n  </div>\n</div>'),
+    ].join('');
+    document.body.appendChild(host);
+    await Trellis.settled();
+    const cell = document.createElement('div'); cell.style.width = 'var(--u)'; host.appendChild(cell);
+    const u = cell.getBoundingClientRect().width; cell.remove();
+    const el = (id, s = '.chat-item-bubble') => document.querySelector(`#${id} ${s}`), box = (id, s) => el(id, s).getBoundingClientRect();
+    for (const id of ['b-short', 'b-one', 'b-own']) {
+      const w = box(id).width, p = el(id, 'p'), r = document.createRange(); r.selectNodeContents(p);
+      const t = r.getBoundingClientRect().width;
+      expect(t > u && Math.abs(w - t - 2 * u) < 1.5, `${id}: a bubble of one word of prose is ${w.toFixed(1)}px round ${t.toFixed(1)}px of words, not the words and a cell each side`);
+    }
+    const end = box('b-own').right, row = document.querySelector('#b-own').getBoundingClientRect().right;
+    expect(Math.abs(end - row) < 1, `your own bubble of prose ends ${(row - end).toFixed(1)}px before the row's end`);
+    for (const id of ['b-long', 'b-pre', 'b-embed', 'b-wall', 'b-wall-in', 'b-flat']) {
+      const b = box(id), body = box(id, '.chat-item-body'), pr = document.querySelector(`#${id} .prose`);
+      expect(b.width > 8 * u && Math.abs(b.width - body.width) < 1.5, `${id}: the bubble is ${b.width.toFixed(1)}px in a message ${body.width.toFixed(1)}px wide`);
+      expect(pr.scrollWidth <= pr.clientWidth + (id === 'b-pre' ? u : 0) + 1, `${id}: its prose overflows, ${pr.scrollWidth} in ${pr.clientWidth}`);   // code steps out a cell, into the bubble's padding
+    }
+    for (const id of ['b-wall', 'b-wall-in', 'b-flat', 'b-pre']) expect(getComputedStyle(document.querySelector(`#${id} .prose`)).containerType === 'inline-size', `${id}: its prose is not a container`);
+    for (const id of ['b-pre', 'b-dense']) { const b = box(id), c = box(id, 'pre'); expect(c.left >= b.left - .1 && c.right <= b.right + .1 && c.width > 8 * u, `${id}: code reaches ${(b.left - c.left).toFixed(1)}px past its bubble, or is nothing: ${c.width.toFixed(1)}px wide`); }
+    const f = box('b-embed', 'iframe');
+    expect(f.width > 8 * u && Math.abs(f.height - f.width * 9 / 16) < u + 1, `an embed in a bubble is ${f.width.toFixed(1)} by ${f.height.toFixed(1)}px, not 16 by 9 of its bubble`);
+    const h = id => box(id).height, line = parseFloat(getComputedStyle(el('l-one')).lineHeight);
+    for (const [three, one] of [['l-three', 'l-one'], ['l-flat', 'l-flat-one']]) {
+      const rise = h(three) - h(one);
+      expect(rise > line * 2 - u - 1 && rise < line * 2 + u + 1, `${three}: three typed lines are ${rise.toFixed(1)}px taller than one (a line is ${line})`);
+    }
+    expect(box('l-wrap').right <= box('l-wrap', '.chat-item-body').right + 1, 'a typed line longer than the bubble does not wrap');
+    for (const [a, b, what] of [['l-markup', 'l-tight', 'between its paragraphs'], ['l-br', 'l-br-tight', 'after its line break']]) expect(Math.abs(h(a) - h(b)) < 1, `a bubble of markup draws the spaces ${what}: ${h(a).toFixed(1)}px against ${h(b).toFixed(1)}px`);
+    expect(Math.abs(h('l-prose') - h('b-short')) < 1, `a bubble of indented prose is ${h('l-prose').toFixed(1)}px, its one line ${h('b-short').toFixed(1)}px`);
+    // Each bubble's bottom on a line from its own top: whole cells, with Safari's
+    // missing space given as margin by settle.js.
+    for (const id of ['b-short', 'b-long', 'l-one', 'l-three', 'l-wrap']) { const t = box(id).height + parseFloat(getComputedStyle(el(id)).marginBottom || 0); expect(Math.abs(t / u - Math.round(t / u)) < .04, `${id}: the bubble takes ${(t / u).toFixed(2)} cells`); }
+    host.remove();
+    return bad;
+  }));
+
   // Stages (D107): seven of them, each a dot in its fill, a ring in its ink and
   // a tag tinted from its fill; a product's own seed reaches all three.
   fails.push(...await page.evaluate(() => {
