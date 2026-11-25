@@ -47,6 +47,7 @@
 const fs = require('fs');
 const path = require('path');
 const M = require('../math.js');
+const { seal, bare } = require('./figma-sealed.js');
 
 const root = path.join(__dirname, '..');
 const args = process.argv.slice(2);
@@ -85,18 +86,24 @@ space.push(v('space/hair', vals((m) => 1 / SCREENS[m].dpr), ['STROKE_FLOAT', 'WI
 // A ring's line (D103): a quarter of the dot, one line at the least and two at the most, on the half-cell dot.
 space.push(v('derived/dot-ring', vals((m) => Math.min(2, Math.max(1, CELL[m] * 0.5 / 4))), ['STROKE_FLOAT']));
 for (const k of keys(tokens.size.control)) space.push(v('size/size-control-' + k, vals((m) => CELL[m] * tokens.size.control[k].$value), ['WIDTH_HEIGHT']));
-for (const k of keys(tokens.size.icon)) space.push(v('size/size-icon' + (k === 'base' ? '' : '-' + k), vals((m) => CELL[m] * tokens.size.icon[k].$value), ['WIDTH_HEIGHT']));
+// --size-icon is a cell and two lines.
+const linesOf = (t) => (t.$extensions && t.$extensions.trellis && t.$extensions.trellis.lines) || 0;
+for (const k of keys(tokens.size.icon)) space.push(v('size/size-icon' + (k === 'base' ? '' : '-' + k), vals((m) => CELL[m] * tokens.size.icon[k].$value + linesOf(tokens.size.icon[k])), ['WIDTH_HEIGHT']));
 space.push(v('size/hit-min', vals(() => tokens.size['hit-min'].$value), ['WIDTH_HEIGHT']));
 // Measures core sets in cells and names: the shell's columns (D80), a bubble's measure (D99), a tray's width.
 for (const [k, n] of [['shell-nav-w', 20], ['shell-aside-w', 24], ['chat-measure', 40], ['tray-w', 32]]) space.push(v('size/' + k, vals((m) => CELL[m] * n), ['WIDTH_HEIGHT']));
 // A media frame's height (D108), a count of cells in the code: twelve, and a full-bleed card's eighteen.
 for (const [k, n, css] of [['media-h', 12, 'calc(var(--u) * var(--media-h))'], ['media-h-fill', 18, '.media.cc-fill'],
   // What a message carries, at its widest (D99), and a textarea's three lines.
-  ['chat-file-measure', 26, '.chat-file'], ['chat-link-measure', 32, '.chat-link'], ['textarea-h', 7, 'textarea.input']]) space.push(Object.assign(v('size/' + k, vals((m) => CELL[m] * n), ['WIDTH_HEIGHT']), { codeSyntax: { WEB: css } }));
+  ['chat-file-measure', 26, '.chat-file'], ['chat-link-measure', 32, '.chat-link'], ['textarea-h', 7, 'textarea.input'],
+  // A large field's slot (D116): its height less a quarter cell each side. The other two are derived/input-slot and --sp-1h.
+  ['input-slot-lg', 3.5, '.input.cc-slots.cc-lg']]) space.push(Object.assign(v('size/' + k, vals((m) => CELL[m] * n), ['WIDTH_HEIGHT']), { codeSyntax: { WEB: css } }));
 for (const k of keys(tokens.radius)) {
   const n = tokens.radius[k].$value;
   space.push(v('radius/r-' + k, vals((m) => (n >= 999 ? 999 : CELL[m] * n)), ['CORNER_RADIUS']));
 }
+// A translucent bar's blur (D115): --shell-nav-blur: var(--sp-1), as the README has it. Figma's radius is twice CSS's.
+space.push(v('derived/shell-nav-blur', vals((m) => CELL[m] * 2), ['EFFECT_FLOAT']));
 const controlType = keys(tokens['control-type']).map((k) => v('type/control/fs-control' + (k === 'base' ? '' : '-' + k), vals(() => tokens['control-type'][k].$value), ['FONT_SIZE']));
 
 /* ---- Products --------------------------------------------------------------- */
@@ -210,20 +217,28 @@ const palettes = new Map(PRODUCTS.map((p) => [p.mode, { Light: M.palette('light'
 const roles = Object.keys(M.palette('light', seed));
 for (const theme of ['Light', 'Dark']) for (const k of roles) pv(`${theme.toLowerCase()}/${k}`, 'COLOR', [], (p) => M.hex(palettes.get(p.mode)[theme][k]));
 // Ink on a solid fill of each hue, as core computes it from the fill (C4):
-// a solid tag's, a badge's. Core writes it inline; the file holds it as a role.
-const SOLIDS = roles.filter((k) => /^(kind-|ok$|warn$|alert$|stage-\d+$)/.test(k));
+// a solid tag's, a badge's, a filled button's (D115); on the third ink a solid quiet tag's. Core writes it inline; the file holds it as a role.
+const SOLIDS = roles.filter((k) => /^(kind-|ok$|warn$|alert$|stage-\d+$|text-tertiary$)/.test(k));
 for (const theme of ['Light', 'Dark']) for (const k of SOLIDS) pv(`${theme.toLowerCase()}/on-${k}`, 'COLOR', [], (p) => M.hex(M.ink(palettes.get(p.mode)[theme][k], seeds.get(p.mode))));
+// An outline button's edge and label (D115): its kind's color where it reads as text. With no kind it is the text's ink.
+const OUTLINES = ['accent', 'ok', 'alert'];
+const outlineInk = (p, theme, k) => M.hex(M.outlineInk(palettes.get(p.mode)[theme][k], theme.toLowerCase()));
+for (const theme of ['Light', 'Dark']) for (const k of OUTLINES) pv(`${theme.toLowerCase()}/btn-outline-${k}`, 'COLOR', [], (p) => outlineInk(p, theme, k));
 // Tints: a role at a share over nothing, as core mixes them with color-mix()
 // (a state over a control's fill, a tag's ground and edge, an avatar's wash).
 // Figma has no mix, and drops a paint's own opacity on an instance, so each
 // is a color with its alpha in it. [role, shares in percent]
 const HUES = SOLIDS;
 // 18% is a file's mark (D99), in the accent, a kind or the alert; 50% the unread line's rule.
-const TINTS = [['text', [6, 8, 10, 12, 20, 24, 32]], ['accent-ink', [6, 12]], ['accent', [16, 18, 26, 50, 60]],
+const TINTS = [['text', [6, 8, 10, 12, 20, 24, 32]], ['accent-ink', [6, 12]], ['accent', [8, 16, 18, 26, 50, 60]],
+  // A filled button's hover and press in its own ink, an outline's in its (D115); a chosen card's wash is the accent's 8% (D116).
+  ...['ok', 'alert'].map((k) => ['on-' + k, [6, 12]]), ...OUTLINES.map((k) => ['btn-outline-' + k, [6, 12]]),
+  // A translucent bar's ground, at the least that reads over anything (D115).
+  ['bg', [85]],
   ...HUES.map((k) => [k, [14, ...(/^kind-|^alert$/.test(k) ? [18] : []), ...(/^kind-(person|group)$/.test(k) ? [26] : []), 42]])];
 const alpha = (pct) => Math.round(pct * 2.55).toString(16).padStart(2, '0');
 for (const theme of ['Light', 'Dark']) for (const [k, shares] of TINTS) for (const pct of shares)
-  pv(`${theme.toLowerCase()}/tint/${k}/${pct}`, 'COLOR', [], (p) => M.hex(palettes.get(p.mode)[theme][k]) + alpha(pct));
+  pv(`${theme.toLowerCase()}/tint/${k}/${pct}`, 'COLOR', [], (p) => product.find((x) => x.name === `${theme.toLowerCase()}/${k}`).values[p.mode] + alpha(pct));
 // A product's color knobs (the bubble's, D99): each the role the layer names,
 // in each theme, or a color written out. A mix is not carried.
 const COLOR_KNOBS = { 'chat-own-bg': ['FRAME_FILL', 'SHAPE_FILL'], 'chat-own-ink': ['TEXT_FILL', 'SHAPE_FILL'], 'chat-bubble-edge': ['STROKE_COLOR'] };
@@ -284,20 +299,30 @@ const DERIVED = {
   'composer-btn-r': (c) => Math.max(0.25, c('shape-input') - 0.25),
   // .card .media: concentric with the card, its corner less the smaller padding, a quarter cell at the least (D108).
   'media-r': (c) => Math.max(0.25, c('shape-card') - Math.min(c('density-card-pad-inline'), c('density-card-pad-block'))),
+  // .input.cc-slots > .button: the box's height less a quarter cell each side (D116).
+  'input-slot': (c) => c('density-control-h') - 0.5,
   // A card in a card: how far it steps out, and its corner, concentric (rule 21).
   'card-nest-out': (c) => Math.min(1, Math.max(0, c('density-card-pad-inline') - 1)),
   'card-nest-r': (c) => { const out = Math.min(1, Math.max(0, c('density-card-pad-inline') - 1)); return Math.max(0.25, c('shape-card') - Math.min(c('density-card-pad-inline') - out, c('density-card-pad-block'))); },
   'card-nest-r2': (c) => { const out = Math.min(1, Math.max(0, c('density-card-pad-inline') - 1)); const r = Math.max(0.25, c('shape-card') - Math.min(c('density-card-pad-inline') - out, c('density-card-pad-block')));
     const pad = Math.min(c('density-card-pad-inline'), 1), padB = Math.min(c('density-card-pad-block'), 1), out2 = Math.min(1, Math.max(0, pad - 1)); return Math.max(0.25, r - Math.min(pad - out2, padB)); }
 };
+// An icon's line at each size: --icon-weight 256ths of it (D118). In pixels, since a stroke here is not a share of its box.
+const ICON_LINES = keys(tokens.size.icon).map((k) => (k === 'base' ? '' : '-' + k));
+const iconLine = (p, m, k) => { const t = tokens.size.icon[k.slice(1) || 'base']; return round((CELL[m] * t.$value + linesOf(t)) * plain(p.knobs.get('--icon-weight')) / 256); };
 const derived = [];
+for (const k of ICON_LINES) {
+  for (const m of Object.keys(SCREENS)) pv(`${SCREEN_KEY[m]}/icon-line${k}`, 'FLOAT', [], (p) => iconLine(p, m, k));
+  derived.push({ name: 'derived/icon-line' + k, type: 'FLOAT', scopes: ['STROKE_FLOAT'], codeSyntax: { WEB: 'var(--icon-weight)' },
+    values: Object.fromEntries(Object.keys(SCREENS).map((m) => [m, at0(`${SCREEN_KEY[m]}/icon-line${k}`)])), aliases: Object.fromEntries(Object.keys(SCREENS).map((m) => [m, `${SCREEN_KEY[m]}/icon-line${k}`])) });
+}
 for (const [name, f] of Object.entries(DERIVED)) {
   const cells = new Map(PRODUCTS.map((p) => {
     const c = (n) => { const x = cellsOf(p.knobs, n); if (Number.isNaN(x)) throw new Error(`${p.mode}: --${n} is not in cells, so ${name} can't follow it`); return x; };
     return [p.mode, f(c, p.knobs)];
   }));
   for (const m of Object.keys(SCREENS)) pv(`${SCREEN_KEY[m]}/${name}`, 'FLOAT', [], (p) => { const x = cells.get(p.mode); return x >= ROUND ? ROUND : round(x * CELL[m]); });
-  const scope = /-r2?$/.test(name) ? ['CORNER_RADIUS'] : ['GAP'];
+  const scope = /-r2?$/.test(name) ? ['CORNER_RADIUS'] : name === 'input-slot' ? ['WIDTH_HEIGHT'] : ['GAP'];
   const x = { name: 'derived/' + name, type: 'FLOAT', scopes: scope, values: Object.fromEntries(Object.keys(SCREENS).map((m) => [m, at0(`${SCREEN_KEY[m]}/${name}`)])), aliases: Object.fromEntries(Object.keys(SCREENS).map((m) => [m, `${SCREEN_KEY[m]}/${name}`])) };
   derived.push(x);
 }
@@ -325,13 +350,18 @@ const colorScopes = (k) => /^bg/.test(k) ? ['FRAME_FILL', 'SHAPE_FILL'] : /^text
 const color = roles.map((k) => Object.assign(
   v('color/' + k, { type: 'COLOR', values: { Light: at('light/' + k), Dark: at('dark/' + k) } }, colorScopes(k)),
   { aliases: { Light: 'light/' + k, Dark: 'dark/' + k } }));
-for (const [k, shares] of TINTS) for (const pct of shares) color.push({ name: `color/tint/${k}/${pct}`, type: 'COLOR', scopes: ['FRAME_FILL', 'SHAPE_FILL', 'STROKE_COLOR'],
-  codeSyntax: { WEB: /^stage-\d+$/.test(k) && pct === 14 ? `var(--${k}-tint)` : `color-mix(in oklab, var(--${k}) ${pct}%, transparent)` },
+// What the code writes for a tint: a stage's own role, a filled or outline button's state layer, or the mix.
+const tintSyntax = (k, pct) => /^stage-\d+$/.test(k) && pct === 14 ? `var(--${k}-tint)` : /^(on|btn-outline)-/.test(k) ? `color-mix(in oklab, var(--btn-ink) ${pct}%, transparent)` : `color-mix(in oklab, var(--${k}) ${pct}%, transparent)`;
+for (const [k, shares] of TINTS) for (const pct of shares) color.push({ name: k === 'bg' ? 'color/shell-nav-bg' : `color/tint/${k}/${pct}`, type: 'COLOR', scopes: ['FRAME_FILL', 'SHAPE_FILL', 'STROKE_COLOR'],
+  codeSyntax: { WEB: k === 'bg' ? 'var(--shell-nav-bg)' : tintSyntax(k, pct) },
   values: { Light: at(`light/tint/${k}/${pct}`), Dark: at(`dark/tint/${k}/${pct}`) }, aliases: { Light: `light/tint/${k}/${pct}`, Dark: `dark/tint/${k}/${pct}` } });
 for (const [k, scopes] of Object.entries(COLOR_KNOBS)) color.push(Object.assign(v('color/' + k, { type: 'COLOR', values: { Light: at('light/' + k), Dark: at('dark/' + k) } }, scopes), { aliases: { Light: 'light/' + k, Dark: 'dark/' + k } }));
 // The shadow under a float or a modal (--lift): its color in each theme.
 // White, for words on a full-bleed image (D108), as on a .cover.
 color.push({ name: 'color/white', type: 'COLOR', scopes: ['TEXT_FILL', 'SHAPE_FILL'], codeSyntax: { WEB: 'var(--white)' }, values: { Light: '#ffffff', Dark: '#ffffff' } });
+// A plain button's edge there (--border-strong on a full bleed, D108).
+color.push({ name: 'color/tint/white/60', type: 'COLOR', scopes: ['STROKE_COLOR'], codeSyntax: { WEB: 'color-mix(in oklab, var(--white) 60%, transparent)' }, values: { Light: '#ffffff99', Dark: '#ffffff99' } });
+for (const k of OUTLINES) color.push({ name: 'color/btn-outline-' + k, type: 'COLOR', scopes: ['TEXT_FILL', 'SHAPE_FILL', 'STROKE_COLOR'], codeSyntax: { WEB: '.button.cc-outline' }, values: { Light: at('light/btn-outline-' + k), Dark: at('dark/btn-outline-' + k) }, aliases: { Light: 'light/btn-outline-' + k, Dark: 'dark/btn-outline-' + k } });
 color.push({ name: 'color/lift', type: 'COLOR', scopes: ['EFFECT_COLOR'], values: { Light: '#1014161f', Dark: '#0000008c' } });
 for (const k of SOLIDS) color.push({ name: 'color/on-' + k, type: 'COLOR', scopes: ['TEXT_FILL', 'SHAPE_FILL'], values: { Light: at('light/on-' + k), Dark: at('dark/on-' + k) }, aliases: { Light: 'light/on-' + k, Dark: 'dark/on-' + k } });
 
@@ -367,25 +397,31 @@ const fonts = { families: [...new Set(product.filter((x) => x.name.startsWith('f
 // Compact, since a plugin can't fetch and the script travels whole: per
 // variable [name, type, scopes, values in mode order, code syntax]; a value
 // "@name" is an alias, a color is hex without its #, and the code syntax is
-// 1 for var(--its last part), 0 for none (hidden), 2 for none (shown), or
+// 1 for var(--its last part), 0 for none (hidden), 2 for none (shown), 3 for the
+// mix a tint's name says, or
 // written out. A product's tint (light/tint/<role>/<pct>) is its role's hex
-// with the share as alpha, so its values are 0 and the plugin works them out.
+// with the share as alpha, so its values are 0 and the plugin works them out; one
+// that is its own Product variable in every mode (color/x is light/x and dark/x) is
+// 1; and a value the same as the mode before it is ''.
 // only: a delta, the variables whose names match, written without removing the rest
 // (and so the parts' empty stand-ins, and the text styles, are left alone too).
+const mixOf = (name) => { const t = name.match(/^color\/tint\/(.+)\/(\d+)$/); return t && `color-mix(in oklab, var(--${t[1]}) ${t[2]}%, transparent)`; };
 function plugin(part, only) {
   const own = out.collections.filter((c) => PARTS[part].includes(c.name));
   const scopes = [...new Set(own.flatMap((c) => c.variables.map((x) => x.scopes.join(','))))];
   const pack = (c, x) => {
     const val = (m) => { const a = x.aliases && x.aliases[m], y = x.values[m]; return a ? '@' + a : y && y.alias ? '@' + y.alias : x.type === 'COLOR' ? y.slice(1) : y; };
-    const cs = !x.codeSyntax ? (x.hidden ? 0 : 2) : x.codeSyntax.WEB === `var(--${x.name.split('/').pop()})` ? 1 : x.codeSyntax.WEB;
+    const cs = !x.codeSyntax ? (x.hidden ? 0 : 2) : x.codeSyntax.WEB === `var(--${x.name.split('/').pop()})` ? 1 : x.codeSyntax.WEB === mixOf(x.name) ? 3 : x.codeSyntax.WEB;
     const tint = c.name === 'Product' && x.name.match(/^(light|dark)\/tint\/(.+)\/(\d+)$/);
     if (tint && !only && c.modes.every((m) => x.values[m] === c.variables.find((y) => y.name === `${tint[1]}/${tint[2]}`).values[m] + alpha(+tint[3])))
       return [x.name, x.type[0], scopes.indexOf(x.scopes.join(',')), 0, cs];
-    return [x.name, x.type[0], scopes.indexOf(x.scopes.join(',')), c.modes.map(val), cs];
+    const vals = c.modes.map(val), rest = x.name.split('/').slice(1).join('/');
+    return [x.name, x.type[0], scopes.indexOf(x.scopes.join(',')), c.modes.every((m, i) => vals[i] === `@${m.toLowerCase()}/${rest}`) ? 1 : vals.map((y, i) => (i && y === vals[i - 1] ? '' : y)), cs];
   };
   const data = { scopes, owner, collections: out.collections.map((c) => Object.assign({ name: c.name, modes: c.modes }, own.includes(c) ? { v: c.variables.filter((x) => !only || only.test(x.name)).map((x) => pack(c, x)) } : {})) };
-  if (only) data.delta = true; else if (own.some((c) => c.name === 'Type')) data.fonts = fonts;
-  return fs.readFileSync(path.join(__dirname, 'figma-plugin.js'), 'utf8').replace(/\r\n/g, '\n').replace('/*DATA*/null', JSON.stringify(data));
+  data.fonts = own.some((c) => c.name === 'Type') && !only ? fonts : { families: fonts.families, weights: fonts.weights };
+  if (only) data.delta = true;
+  return seal(`figma-variables --plugin ${part}${only ? ' --only ' + only.source : ''}`, bare(fs.readFileSync(path.join(__dirname, 'figma-plugin.js'), 'utf8')).replace('/*DATA*/null', () => JSON.stringify(data)));
 }
 
 // A checksum of every value in every mode, to check a file against the

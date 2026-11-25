@@ -1,19 +1,35 @@
-/* Trellis · figma-primitives · the first part of the components script
-   Run as `node tools/figma-components.js --plugin primitives`, which puts the
-   kit (tools/figma-kit.js) before it. Every primitive as a component set named
-   by its class chain, in the section Components, which it removes and builds
-   again; Thread, Templates and Screens are removed too, since they are made of
-   these: run the other parts after it. */
+/* Trellis · figma-primitives · the first controls
+   Run as `node tools/figma-components.js --plugin primitives`, after the
+   icons: buttons, tags, avatars, badges, dots, switches, choices and the range,
+   each a component set named by its class chain, in the section Components,
+   which it removes and builds again; Surfaces, Thread, Templates and Screens
+   are removed too, since they are made of these: run the other parts after it. */
 
 // ---- Start clean ------------------------------------------------------------
-clear(SECTIONS);
+clear(from('Components'));
+
+// ---- badge ------------------------------------------------------------------
+const BADGE = { default: ['alert', 1, 'on-alert'], 'cc-quiet': ['text', 0.1, 'text-secondary'], 'cc-accent': ['accent', 1, 'accent-ink'] };
+const badgeSet = await set('badge', { kind: Object.keys(BADGE) }, async (p) => {
+  const c = component(), [ground, o, ink] = BADGE[p.kind];
+  fixedHeight(c, 'size/size-control-xs'); bind(c, 'minWidth', 'size/size-control-xs'); padX(c, 'space/sp-q'); corners(c, 'radius/r-round');
+  c.primaryAxisAlignItems = 'CENTER';
+  fill(c, o < 1 ? [paint('bg-raised'), paint(ground, o)] : [paint(ground)]);
+  c.appendChild(await words('3', { fs: 'type/control/fs-control-xs', weight: 'type/fw-strong', ink }));
+  return c;
+}, { text: ['count', '3'], caption: 'badge · kind', width: 400, description: 'Trellis .badge: a count. <span class="badge cc-accent">3</span>. .cc-corner stands it on an icon button\'s corner: that button\'s own property.' });
 
 // ---- button -----------------------------------------------------------------
 const SIZES = { default: ['knob/density-control-h', 'knob/density-control-fs', 'derived/control-pad'], 'cc-sm': ['size/size-control-sm', 'type/control/fs-control-sm', 'space/sp-1'],
   'cc-md': ['size/size-control-md', 'type/control/fs-control-md', 'space/sp-1'], 'cc-lg': ['size/size-control-xl', 'type/control/fs-control-lg', 'space/sp-2'] };
-const KINDS = { default: { bg: null, edge: 'border-strong', ink: 'text' }, 'cc-primary': { bg: 'accent', edge: 'accent', ink: 'accent-ink' }, 'cc-ghost': { bg: null, edge: null, ink: 'text' } };
+const KINDS = { default: { bg: null, edge: 'border-strong', ink: 'text' }, 'cc-primary': { bg: 'accent', edge: 'accent', ink: 'accent-ink' }, 'cc-ghost': { bg: null, edge: null, ink: 'text' },
+  'cc-alert': { bg: 'alert', edge: 'alert', ink: 'on-alert' }, 'cc-ok': { bg: 'ok', edge: 'ok', ink: 'on-ok' } };
+// Outline (D115): the fill taken away, its edge and label one ink, the kind's color where it reads; with no kind, the text's.
+const LINES = { default: 'text', 'cc-primary': 'btn-outline-accent', 'cc-alert': 'btn-outline-alert', 'cc-ok': 'btn-outline-ok' };
+const faceOf = (p) => (p.emphasis === 'cc-outline' ? { bg: null, edge: LINES[p.kind], ink: LINES[p.kind] } : KINDS[p.kind]);
+const EMPHASES = ['default', 'cc-outline'], noGhost = (p) => p.kind === 'cc-ghost' && p.emphasis === 'cc-outline';
 const buttonFace = (c, p) => {
-  const k = KINDS[p.kind], off = p.state === 'disabled';
+  const k = faceOf(p), off = p.state === 'disabled';
   const [h, , pad] = SIZES[p.size];
   fixedHeight(c, h); padX(c, pad); corners(c, 'knob/shape-control');
   c.itemSpacing = 0; bind(c, 'itemSpacing', 'space/sp-h'); c.primaryAxisAlignItems = 'CENTER';
@@ -24,34 +40,40 @@ const buttonFace = (c, p) => {
   if (off) edge(c, 'border-subtle'); else if (k.edge) edge(c, k.edge);
   return off ? 'text-faint' : k.ink;
 };
-await set('button', { kind: Object.keys(KINDS), size: Object.keys(SIZES), state: ['rest', 'hover', 'press', 'disabled'] }, async (p) => {
+await set('button', { kind: Object.keys(KINDS), emphasis: EMPHASES, size: Object.keys(SIZES), state: ['rest', 'hover', 'press', 'disabled'] }, async (p) => {
   const c = component(), ink = buttonFace(c, p);
+  c.appendChild(glyph(ink));
   c.appendChild(await words('Button', { fs: SIZES[p.size][1], ink, family: 'type/font-button', weight: 'type/fw-button' }));
   return c;
-}, { text: ['label', 'Button'], caption: 'button · kind × size × state',
-  description: 'Trellis .button. <button class="button cc-primary cc-sm">Save</button>. Height, padding and corner follow the product (--density-control-h, --shape-control). Its family and weight follow the product (--font-button, --fw-button); its case and spacing (--button-case, --button-tracking) are for the code alone. Hover is 6% of its ink over its fill, press 12%; disabled is :disabled or aria-disabled. .cc-block fills its row: set an instance\'s width to Fill. On touch the hit area is 44pt whatever it draws.' });
+}, { skip: noGhost, text: ['label', 'Button'], parts: [['icon', false]], swap: [['drawing', 'icon', 'ph-plus']], caption: 'button · kind × emphasis × size × state', width: 1600,
+  description: 'Trellis .button. <button class="button cc-primary cc-sm">Save</button>. Height, padding and corner follow the product (--density-control-h, --shape-control). Its family and weight follow the product (--font-button, --fw-button); its case and spacing (--button-case, --button-tracking) are for the code alone. Hover is 6% of its ink over its fill, press 12%; disabled is :disabled or aria-disabled. .cc-block fills its row: set an instance\'s width to Fill. .cc-alert is destructive and .cc-ok confirms (D115), filled with the status. .cc-outline takes a kind\'s fill away: its edge and label are the kind\'s color moved to where it reads as text; --btn-tint, a share of it in the ground, is the code\'s. Properties show an icon before the label and swap its drawing. On touch the hit area is 44pt whatever it draws.' });
 
-await set('button icon-button', { kind: Object.keys(KINDS), size: Object.keys(SIZES) }, async (p) => {
-  const c = component(), ink = buttonFace(c, Object.assign({ state: 'rest' }, p));
+// A count on its corner (D115): how far past the corner it stands, at each size, at the wide screen.
+const PAST = { default: 3, 'cc-sm': 9, 'cc-md': 6, 'cc-lg': 3 };
+await set('button icon-button', { kind: Object.keys(KINDS), emphasis: EMPHASES, size: Object.keys(SIZES) }, async (p) => {
+  const c = component(); host.appendChild(c); c.clipsContent = false;   // in the wide host, where its badge is placed
+  const ink = buttonFace(c, Object.assign({ state: 'rest' }, p));
   c.paddingLeft = c.paddingRight = 0; c.primaryAxisSizingMode = 'FIXED'; bind(c, 'width', SIZES[p.size][0]);
   c.appendChild(glyph(ink));
+  const b = variant(badgeSet, { kind: 'default' }).createInstance(); c.appendChild(b); b.name = 'badge cc-corner'; b.layoutPositioning = 'ABSOLUTE';
+  b.x = c.width + PAST[p.size] - b.width; b.y = -PAST[p.size]; b.constraints = { horizontal: 'MAX', vertical: 'MIN' };
   return c;
-}, { caption: 'button icon-button · kind × size', description: 'Trellis .button.icon-button: a button made square. <button class="button icon-button cc-ghost cc-sm" aria-label="Add">. An icon button alone draws nothing: it is always a button.' });
+}, { skip: noGhost, parts: [['badge cc-corner', false]], swap: [['drawing', 'icon', 'ph-plus']], caption: 'button icon-button · kind × emphasis × size', width: 1600, description: 'Trellis .button.icon-button: a button made square. Its property drawing swaps the icon, svg.icon.cc-phosphor (D118). The property badge cc-corner shows a count on its corner (D115): span.badge.cc-corner in the button, aria-hidden, the button\'s own label naming the count; it grows outward with the reader\'s text, here it stands where one figure does at the wide screen. <button class="button icon-button cc-ghost cc-sm" aria-label="Add">. An icon button alone draws nothing: it is always a button.' });
 
 // ---- tag --------------------------------------------------------------------
-const TAG_KINDS = { default: 'kind-topic', 'cc-person': 'kind-person', 'cc-group': 'kind-group', 'cc-event': 'kind-event', 'cc-course': 'kind-course', 'cc-ok': 'ok', 'cc-warn': 'warn', 'cc-alert': 'alert', ...Object.fromEntries(STAGES.map((n) => ['cc-stage-' + n, 'stage-' + n])) };
+const TAG_KINDS = { default: 'kind-topic', 'cc-person': 'kind-person', 'cc-group': 'kind-group', 'cc-event': 'kind-event', 'cc-course': 'kind-course', 'cc-ok': 'ok', 'cc-warn': 'warn', 'cc-alert': 'alert', 'cc-quiet': 'text-tertiary', ...Object.fromEntries(STAGES.map((n) => ['cc-stage-' + n, 'stage-' + n])) };
 const TAG_SIZES = { default: ['knob/tag-default-h', 'knob/tag-default-fs', 'derived/tag-pad', 'space/sp-h'], 'cc-sm': ['size/size-control-xs', 'knob/tag-fs-sm', 'derived/tag-pad-sm', 'space/sp-q'], 'cc-lg': ['size/size-control-md', 'knob/tag-fs-lg', 'derived/tag-pad-lg', 'space/sp-h'] };
 await set('tag', { kind: Object.keys(TAG_KINDS), emphasis: ['default', 'cc-outline', 'cc-solid'], size: Object.keys(TAG_SIZES) }, async (p) => {
-  const c = component(), hue = TAG_KINDS[p.kind], [h, fs, pad, gap] = TAG_SIZES[p.size], solid = p.emphasis === 'cc-solid';
+  const c = component(), hue = TAG_KINDS[p.kind], [h, fs, pad, gap] = TAG_SIZES[p.size], solid = p.emphasis === 'cc-solid', ink = solid ? 'on-' + hue : p.kind === 'cc-quiet' ? 'text-secondary' : 'text';
   fixedHeight(c, h); padX(c, pad); corners(c, 'knob/tag-radius'); bind(c, 'itemSpacing', gap);
   fill(c, solid ? [paint(hue)] : p.emphasis === 'cc-outline' ? [] : [paint(hue, 0.14)]);
   edge(c, hue, solid ? 1 : 0.42);
   const d = figma.createEllipse(); d.name = 'tag-dot'; c.appendChild(d); bind(d, 'width', 'space/sp-h'); bind(d, 'height', 'space/sp-h'); fill(d, [paint(solid ? 'on-' + hue : hue)]);
-  c.appendChild(await words('Tag', { fs, ink: solid ? 'on-' + hue : 'text' }));
-  const x = glyph(solid ? 'on-' + hue : 'text', 'M 4 4 L 14 14 M 14 4 L 4 14'); x.name = 'tag-remove'; c.appendChild(x); x.opacity = 0.7; x.children[0].strokeWeight = 0.9; bind(x, 'width', 'size/size-icon-sm'); bind(x, 'height', 'size/size-icon-sm');
+  c.appendChild(await words('Tag', { fs, ink }));
+  const x = glyph(ink, 'ph-x', 'size-icon-sm'); x.name = 'tag-remove'; c.appendChild(x); x.opacity = 0.7;
   return c;
 }, { text: ['label', 'Tag'], parts: [['tag-dot', false], ['tag-remove', false]], caption: 'tag · kind × emphasis × size', width: 1600,
-  description: 'Trellis .tag, the archetype: a height, a corner, padding equal to the corner, an edge and a tint mixed from one kind color. <span class="tag cc-person cc-solid">. .cc-stage-1 to 7 take a step of a process (D107). A link that is the current one, a.tag[aria-current="page"], draws solid (D101). A product sets its corner, height and size (--tag-r-fixed, --tag-r-ratio, --tag-default-h); its case and tracking (--tag-case, Quarry\'s uppercase) are the code\'s alone. What isn\'t here yet takes --tag-edge-style: dashed: dash an instance\'s stroke (4, 2). Properties show .tag-dot (the kind\'s color before the words) and .tag-remove (a button at the end: the code pulls its box into the tag\'s padding, the file draws the mark alone).' });
+  description: 'Trellis .tag, the archetype: a height, a corner, padding equal to the corner, an edge and a tint mixed from one kind color. <span class="tag cc-person cc-solid">. .cc-stage-1 to 7 take a step of a process (D107). .cc-quiet is the neutral, for a label with no kind (D115). .cc-seed, a product\'s own color (D117), is the code\'s. A link that is the current one, a.tag[aria-current="page"], draws solid (D101). A product sets its corner, height and size (--tag-r-fixed, --tag-r-ratio, --tag-default-h); its case and tracking (--tag-case, Quarry\'s uppercase) are the code\'s alone. What isn\'t here yet takes --tag-edge-style: dashed: dash an instance\'s stroke (4, 2). Properties show .tag-dot (the kind\'s color before the words) and .tag-remove (a button at the end: the code pulls its box into the tag\'s padding, the file draws the mark alone).' });
 
 // ---- avatar -----------------------------------------------------------------
 const AV = { 'cc-xs': [1, 'space/sp-1'], default: [2, 'space/sp-2'], 'cc-md': [3, 'space/sp-3'], 'cc-lg': [4, 'space/sp-4'], 'cc-xl': [6, 'space/sp-6'], 'cc-xxl': [8, 'space/sp-8'], 'cc-hero': [12, 'space/sp-12'] };
@@ -70,16 +92,7 @@ const avatarSet = await set('avatar', { kind: ['default', 'cc-group', 'cc-space'
   return c;
 }, { caption: 'avatar · kind × size', description: 'Trellis .avatar: the photo is the box, on whole cells. Shape is kind: a circle is a person, a rounded square (corner a quarter of its size) a group, and in the accent a space: a project with people of its own (.cc-space). .cc-plain draws no gap and no ring. Its gap and ring are spread shadows; in the file they are numbers at the wide screen.' });
 
-// ---- badge, dot -------------------------------------------------------------
-const BADGE = { default: ['alert', 1, 'on-alert'], 'cc-quiet': ['text', 0.1, 'text-secondary'], 'cc-accent': ['accent', 1, 'accent-ink'] };
-await set('badge', { kind: Object.keys(BADGE) }, async (p) => {
-  const c = component(), [ground, o, ink] = BADGE[p.kind];
-  fixedHeight(c, 'size/size-control-xs'); bind(c, 'minWidth', 'size/size-control-xs'); padX(c, 'space/sp-q'); corners(c, 'radius/r-round');
-  c.primaryAxisAlignItems = 'CENTER';
-  fill(c, o < 1 ? [paint('bg-raised'), paint(ground, o)] : [paint(ground)]);
-  c.appendChild(await words('3', { fs: 'type/control/fs-control-xs', weight: 'type/fw-strong', ink }));
-  return c;
-}, { text: ['count', '3'], caption: 'badge · kind', width: 400, description: 'Trellis .badge: a count. <span class="badge cc-accent">3</span>.' });
+// ---- dot --------------------------------------------------------------------
 // A dot's fill, and its ring's line: a quiet ring and a stage's take an ink, since a line is thinner than a fill (D103, D107).
 const DOT = { default: ['alert', 'alert'], 'cc-ok': ['ok', 'ok'], 'cc-warn': ['warn', 'warn'], 'cc-quiet': ['text-faint', 'text-tertiary'], 'cc-accent': ['accent', 'accent'],
   ...Object.fromEntries(STAGES.map((n) => ['cc-stage-' + n, ['stage-' + n, `stage-${n}-ink`]])) };
@@ -91,20 +104,9 @@ const dotSet = await set('dot', { kind: Object.keys(DOT), fill: ['default', 'cc-
     for (const s of ['Top', 'Bottom', 'Left', 'Right']) bind(c, `stroke${s}Weight`, 'derived/dot-ring');
   } else fill(c, [paint(DOT[p.kind][0])]);
   return c;
-}, { caption: 'dot · kind × fill', width: 900, description: 'Trellis .dot: the smallest mark of a state. One that carries meaning alone takes role="img" and a label. .cc-ring is the dot not yet filled: a line a quarter of the dot, one to two lines (--dot-ring), clear inside (--dot-fill); on a rail set --dot-fill: var(--surface). .cc-stage-1 to 7 fill with a stage and ring with its ink.' });
+}, { caption: 'dot · kind × fill', width: 900, description: 'Trellis .dot: the smallest mark of a state. One that carries meaning alone takes role="img" and a label. .cc-ring is the dot not yet filled: a line a quarter of the dot, one to two lines (--dot-ring), clear inside (--dot-fill); on a rail set --dot-fill: var(--surface). .cc-stage-1 to 7 fill with a stage and ring with its ink. .cc-seed, a product\'s own color (D117), is the code\'s.' });
 
 // ---- switch -----------------------------------------------------------------
-// mid: aria-checked="mixed", the thumb half way on the off fill (D109).
-const track = (on, off, mid) => {
-  const t = row('track', { primaryAxisSizingMode: 'FIXED', counterAxisSizingMode: 'FIXED' });
-  bind(t, 'width', 'space/sp-3'); bind(t, 'height', 'space/sp-1h'); corners(t, 'radius/r-round'); padX(t, 'space/sp-q');
-  t.primaryAxisAlignItems = mid ? 'CENTER' : on ? 'MAX' : 'MIN';
-  fill(t, off ? [paint('text', 0.1)] : on ? [paint('accent')] : [paint('text', 0.32)]);
-  const k = figma.createEllipse(); k.name = 'thumb'; t.appendChild(k);
-  bind(k, 'width', 'space/sp-1'); bind(k, 'height', 'space/sp-1');
-  fill(k, [off ? paint('bg-sunken') : on ? paint('accent-ink') : { type: 'SOLID', color: { r: 1, g: 1, b: 1 } }]);
-  return t;
-};
 await set('switch', { checked: ['false', 'true', 'mixed'], state: ['rest', 'disabled'] }, async (p) => {
   const c = component(); bind(c, 'minHeight', 'size/size-control-sm'); bind(c, 'itemSpacing', 'space/sp-h');
   c.appendChild(track(p.checked === 'true', p.state === 'disabled', p.checked === 'mixed'));
@@ -151,180 +153,5 @@ await set('range', { kind: ['default', 'cc-zone'] }, async (p) => {
   seg('border', 1);
   return c;
 }, { caption: 'range · kind', width: 600, description: 'Trellis .range: a value along a line. <input type="range" class="range">. Inked up to the thumb (--range-at); .cc-zone inks the stretch where the value has an effect. Drag the thumb by resizing the two tracks.' });
-
-// ---- input, field -----------------------------------------------------------
-const IN_SIZES = { default: ['knob/density-control-h', 'knob/density-control-fs', 'space/sp-1'], 'cc-sm': ['size/size-control-sm', 'type/control/fs-control-sm', 'space/sp-h'], 'cc-lg': ['size/size-control-xl', 'type/control/fs-control-lg', 'space/sp-1'] };
-const inputSet = await set('input', { element: ['input', 'select', 'textarea'], state: ['rest', 'invalid', 'disabled', 'read-only'], size: Object.keys(IN_SIZES) }, async (p) => {
-  const c = component(), [h, fs, pad] = IN_SIZES[p.size], quiet = p.state === 'disabled' || p.state === 'read-only', area = p.element === 'textarea';
-  c.primaryAxisSizingMode = 'FIXED'; c.resize(240, 36); padX(c, pad); corners(c, 'knob/shape-input');
-  if (area) { c.counterAxisSizingMode = 'AUTO'; c.counterAxisAlignItems = 'MIN'; padY(c, 'space/sp-h'); bind(c, 'minHeight', 'size/textarea-h'); } else fixedHeight(c, h);
-  fill(c, [paint(quiet ? 'bg-sunken' : 'bg-raised')]);
-  edge(c, p.state === 'invalid' ? 'alert' : p.state === 'disabled' ? 'border-subtle' : 'border');
-  const t = await words('Placeholder', { fs, weight: 'type/fw-body', ink: p.state === 'disabled' ? 'text-tertiary' : 'text-tertiary', name: 'value' });
-  // A textarea's lines are two cells, its words on each line's middle.
-  if (area) { const l = row('line'); c.appendChild(l); bind(l, 'minHeight', 'space/sp-2'); l.layoutGrow = 1; l.appendChild(t); } else c.appendChild(t);
-  t.layoutGrow = 1; t.textAutoResize = 'HEIGHT';
-  if (p.element === 'select') { const v = figma.createVector(); v.name = 'chevron'; v.vectorPaths = [{ windingRule: 'NONZERO', data: 'M 0 0 L 10 0 L 5 5 Z' }]; stroke(v, []); fill(v, [paint(p.state === 'disabled' ? 'text-tertiary' : 'text')]); c.appendChild(v); bind(c, 'itemSpacing', 'space/sp-1'); bind(c, 'paddingRight', 'space/sp-1'); }
-  return c;
-}, { skip: (p) => p.element === 'select' && p.state === 'read-only', text: ['value', 'Placeholder'], caption: 'input · element × state × size', description: 'Trellis .input: one box for input, select and textarea, at the product\'s control height (--density-control-h, --shape-input). A select draws a chevron a cell from its end; a textarea is three lines of two cells (--input-rows) and grows with its text. invalid is aria-invalid="true". On touch the code makes it 44pt and 16px type, or iOS zooms.' });
-
-await set('field', { state: ['rest', 'invalid'] }, async (p) => {
-  const c = component('VERTICAL'); c.counterAxisAlignItems = 'MIN'; bind(c, 'itemSpacing', 'space/sp-1');
-  const lab = await words('Label', { style: 'label', ink: 'text-secondary', name: 'label' }); c.appendChild(lab);
-  const box = variant(inputSet, { element: 'input', state: p.state === 'invalid' ? 'invalid' : 'rest', size: 'default' }).createInstance(); c.appendChild(box);
-  const hint = await words('A hint, or what went wrong', { style: 'xs', ink: p.state === 'invalid' ? 'alert' : 'text-tertiary', name: 'hint' }); c.appendChild(hint);
-  for (const t of [lab, hint]) { const w = row('inset'); bind(w, 'paddingLeft', 'space/sp-1'); c.insertChild(c.children.indexOf(t), w); w.appendChild(t); }
-  return c;
-}, { caption: 'field · state', width: 700, description: 'Trellis .field: a label, an input and a hint, the label and hint starting where the input\'s text does (--field-inset, a cell). <label class="field"><span class="field-label t-label">…</span><input class="input">…<span class="field-hint t-xs">…</span></label>.' });
-
-// ---- tab, tabs --------------------------------------------------------------
-const tabSet = await set('tab', { context: ['default', 'cc-seg'], selected: ['false', 'true'] }, async (p) => {
-  const c = component(), seg = p.context === 'cc-seg', on = p.selected === 'true';
-  fixedHeight(c, seg ? 'knob/density-seg-h' : 'size/size-control-lg'); padX(c, 'space/sp-1'); bind(c, 'itemSpacing', 'space/sp-h');
-  if (seg) { corners(c, 'derived/seg-tab-r'); fill(c, on ? [paint('bg-raised')] : []); }
-  else if (on) { stroke(c, [paint('text')]); c.strokeAlign = 'INSIDE'; c.strokeTopWeight = c.strokeLeftWeight = c.strokeRightWeight = 0; c.strokeBottomWeight = 2; }
-  c.appendChild(await words('Tab', { fs: seg ? 'type/control/fs-control-sm' : 'type/control/fs-control', ink: on ? 'text' : 'text-secondary' }));
-  return c;
-}, { text: ['label', 'Tab'], caption: 'tab · context × selected', width: 600, description: 'Trellis .tab, in .tabs or .tabs.cc-seg (the segmented control). aria-selected="true" is its only state; a tab is whole cells tall.' });
-const tabs = async (seg) => {
-  const c = component(); c.name = seg ? 'tabs cc-seg' : 'tabs';
-  if (seg) { fill(c, [paint('bg-sunken')]); edge(c, 'border-subtle'); bind(c, 'paddingLeft', 'derived/seg-pad'); bind(c, 'paddingRight', 'derived/seg-pad'); padY(c, 'derived/seg-pad'); corners(c, 'knob/shape-control'); bind(c, 'itemSpacing', 'space/line'); }
-  else edge(c, 'border-subtle', 1, ['Bottom']);
-  ['Day', 'Week', 'Month'].forEach((label, i) => { const t = variant(tabSet, { context: seg ? 'cc-seg' : 'default', selected: String(i === 1) }).createInstance(); c.appendChild(t); t.setProperties({ [Object.keys(t.componentProperties).find((k) => k.startsWith('label'))]: label }); });
-  c.description = seg ? 'Trellis .tabs.cc-seg: a choice of one among several. Its ground pads the tabs (--density-seg-pad) so the control is three cells tall by default.' : 'Trellis .tabs: tabs on a rule, the selected one marked by a line under it.';
-  return c;
-};
-{
-  const block = col('tabs block', { itemSpacing: 12 }); host.appendChild(block);
-  block.appendChild(await words('tabs · tabs cc-seg', { style: 'label', ink: 'text-tertiary', name: 'caption' }));
-  const r = row('tabs row', { itemSpacing: 48 }); block.appendChild(r);
-  r.appendChild(await tabs(false)); r.appendChild(await tabs(true)); made.push('tabs', 'tabs cc-seg');
-}
-
-// ---- options-card, tooltip --------------------------------------------------
-const itemSet = await set('options-card-item', { kind: ['default', 'switch'], state: ['rest', 'hover', 'selected', 'disabled'] }, async (p) => {
-  const c = component(); c.primaryAxisSizingMode = 'FIXED'; width(c, 192);
-  bind(c, 'minHeight', 'knob/density-option-h'); padX(c, 'space/sp-h'); bind(c, 'itemSpacing', 'space/sp-h'); corners(c, 'derived/option-r');
-  const sw = p.kind === 'switch', on = sw ? p.state === 'selected' : false, off = p.state === 'disabled';
-  fill(c, !sw && share[p.state] ? [paint('text', share[p.state])] : sw && p.state === 'hover' ? [paint('text', share.hover)] : []);
-  const t = await words('Option', { fs: 'knob/density-option-fs', weight: 'type/fw-body', ink: off ? 'text-faint' : 'text' });
-  c.appendChild(t); t.layoutGrow = 1;
-  if (sw) c.appendChild(track(on, off));
-  else if (p.state === 'selected') c.appendChild(glyph('accent', 'M 3 9.5 L 7 13.5 L 15 4.5'));
-  return c;
-}, { text: ['label', 'Option'], caption: 'options-card-item · kind × state', width: 900, description: 'Trellis .options-card-item, a row in an options card. selected is aria-selected or aria-checked. kind=switch is button.options-card-item[role=menuitemcheckbox] with an empty span.switch at its end, lit by the row.' });
-{
-  const c = component('VERTICAL'); c.name = 'options-card'; c.counterAxisSizingMode = 'FIXED'; c.counterAxisAlignItems = 'MIN';
-  bind(c, 'width', 'space/sp-16'); padX(c, 'knob/density-options-pad'); padY(c, 'knob/density-options-pad'); corners(c, 'knob/shape-float');
-  fill(c, [paint('bg-raised')]); edge(c, 'border'); lift(c);
-  const hd = row('options-card-heading'); c.appendChild(hd); hd.layoutSizingHorizontal = 'FILL'; padX(hd, 'space/sp-h'); bind(hd, 'paddingTop', 'space/sp-h'); bind(hd, 'paddingBottom', 'space/sp-1');
-  // Its capitals a cell under the card's edge (the card's padding, a half, a quarter) and a cell over the first item.
-  const hi = row('inset'); hd.appendChild(hi); bind(hi, 'paddingTop', 'space/sp-q'); hi.appendChild(await words('Guides', { style: 'label', ink: 'text-tertiary' }));
-  for (const [label, state] of [['Rename', 'rest'], ['Duplicate', 'hover'], ['Sort by name', 'selected'], [null], ['Archive', 'disabled']]) {
-    if (!label) { const r = row('options-card-rule', { primaryAxisSizingMode: 'FIXED', counterAxisSizingMode: 'FIXED' }); c.appendChild(r); r.layoutSizingHorizontal = 'FILL'; bind(r, 'height', 'space/sp-h'); const l = figma.createRectangle(); l.name = 'line'; r.appendChild(l); l.layoutGrow = 1; bind(l, 'height', 'space/line'); fill(l, [paint('border-subtle')]); continue; }
-    const i = variant(itemSet, { kind: 'default', state }).createInstance(); c.appendChild(i); i.layoutSizingHorizontal = 'FILL';
-    i.setProperties({ [Object.keys(i.componentProperties).find((k) => k.startsWith('label'))]: label });
-  }
-  c.description = 'Trellis .float.options-card: 16 cells wide, items 2½ cells (--density-option-h), padding --density-options-pad, corner --shape-float, item corners concentric; .options-card-heading names a group, .options-card-rule parts two. Opened as a popover by its anchor; drawn here where it would open.';
-  const tip = component(); tip.name = 'tooltip'; padX(tip, 'space/sp-h'); padY(tip, 'space/sp-q'); corners(tip, 'radius/r-q'); fill(tip, [paint('text')]); lift(tip);
-  const tt = await words('A tooltip', { fs: 'type/control/fs-control-sm', weight: 'type/fw-body', ink: 'bg', name: 'label' }); tip.appendChild(tt);
-  tip.description = 'Trellis .float.tooltip: the page\'s ink as its ground, the page as its ink.';
-  const block = col('floats block', { itemSpacing: 12 }); host.appendChild(block);
-  block.appendChild(await words('options-card · tooltip', { style: 'label', ink: 'text-tertiary', name: 'caption' }));
-  const r = row('floats row', { itemSpacing: 48, counterAxisAlignItems: 'MIN' }); block.appendChild(r);
-  r.appendChild(c); r.appendChild(tip); made.push('options-card', 'tooltip');
-}
-
-// ---- list-item, composer (D99, D104) -------------------------------------------
-const listSet = await set('list-item', { mark: ['none', 'dot', 'face'], unread: ['false', 'true'], state: ['rest', 'selected'] }, async (p) => {
-  const c = component(); c.counterAxisAlignItems = 'MIN'; c.primaryAxisSizingMode = 'FIXED'; width(c, 320);
-  padY(c, 'space/sp-1'); padX(c, 'space/sp-1'); bind(c, 'itemSpacing', 'space/sp-1');
-  const on = p.state === 'selected', bold = p.unread === 'true';
-  fill(c, on ? [paint('text', share.selected)] : []);
-  if (on) { stroke(c, [paint('accent')]); c.strokeAlign = 'INSIDE'; c.strokeTopWeight = c.strokeRightWeight = c.strokeBottomWeight = 0; c.strokeLeftWeight = 2; }
-  const body = col('list-body'); c.appendChild(body); body.layoutGrow = 1; bind(body, 'itemSpacing', 'space/sp-1');
-  const first = row('first line'); body.appendChild(first); bind(first, 'itemSpacing', 'space/sp-1');
-  if (p.mark !== 'none') {
-    const m = row('list-mark', { primaryAxisSizingMode: 'FIXED' }); bind(m, 'width', 'space/sp-1'); first.appendChild(m);
-    m.appendChild((p.mark === 'dot' ? variant(dotSet, { kind: 'cc-stage-4', fill: 'default' }) : variant(avatarSet, { kind: 'default', ring: 'cc-plain', size: 'cc-xs' })).createInstance());
-  }
-  first.appendChild(await words('A row\'s title', { fs: 'type/body/size', weight: bold ? 'type/fw-strong' : 'type/fw-body', ink: 'text', name: 'title' }));
-  const sub = await words('What it says, on the line under it', { style: 'sm', ink: bold ? 'text' : 'text-secondary', name: 'sub' });
-  if (p.mark === 'none') body.appendChild(sub); else { const w = row('inset'); bind(w, 'paddingLeft', 'space/sp-2'); body.appendChild(w); w.appendChild(sub); }
-  const end = row('list-end'); c.appendChild(end); bind(end, 'itemSpacing', 'space/sp-h');
-  end.appendChild(await words('2m', { style: 'xs', ink: 'text-tertiary', name: 'time' }));
-  if (bold) end.appendChild(variant(dotSet, { kind: 'cc-accent', fill: 'default' }).createInstance());
-  return c;
-}, { text: ['title', 'A row\'s title'], caption: 'list-item · mark × unread × state', width: 1100,
-  description: 'Trellis .list > .list-item: a leading .list-mark, .list-body (.list-title, .list-sub), .list-end. A mark sits on the first line\'s capitals (D104), here by centering it on a one-line title: wrap the title and the code keeps it on the first line, the file does not. .cc-unread weighs the title, inks the line under it and shows a .dot.cc-accent. Selected is aria-current on the row. The list draws a hairline between rows that stops at the text\'s edges; a row here has none.' });
-
-await set('composer', { state: ['empty', 'ready'] }, async (p) => {
-  const c = component(), ready = p.state === 'ready'; c.counterAxisAlignItems = 'MAX'; c.primaryAxisSizingMode = 'FIXED'; width(c, 360);
-  padX(c, 'space/sp-q'); padY(c, 'space/sp-q'); bind(c, 'itemSpacing', 'space/sp-q'); corners(c, 'knob/shape-input');
-  fill(c, [paint('bg-raised')]); edge(c, 'border');
-  const btn = (ink, bg, d) => {
-    const b = row('button icon-button', { primaryAxisSizingMode: 'FIXED', counterAxisSizingMode: 'FIXED', primaryAxisAlignItems: 'CENTER' });
-    bind(b, 'width', 'size/size-control-md'); bind(b, 'height', 'size/size-control-md'); corners(b, 'derived/composer-btn-r'); fill(b, bg ? [paint(bg)] : []);
-    b.appendChild(glyph(ink, d)); return b;
-  };
-  c.appendChild(btn('text-secondary', null));
-  const box = row('composer-input'); c.appendChild(box); box.layoutGrow = 1; padX(box, 'space/sp-q'); fixedHeight(box, 'size/size-control-md');
-  const t = await words(ready ? 'See you at ten' : 'Write a message', { fs: 'type/control/fs-control-lg', weight: 'type/fw-body', ink: ready ? 'text' : 'text-tertiary', name: 'value' });
-  box.appendChild(t); t.layoutGrow = 1;
-  c.appendChild(btn(ready ? 'accent-ink' : 'text-tertiary', ready ? 'accent' : 'bg-hover', 'M 9 15 L 9 3 M 4 8 L 9 3 L 14 8'));
-  return c;
-}, { caption: 'composer · state', width: 900, description: 'Trellis .composer: one box, .composer-input (a textarea that grows a line at a time to --composer-max) between icon buttons, .composer-send last, which wakes with text. Three cells for one line. It takes the focus ring. In a .field its hint starts at the text.' });
-
-// ---- card -------------------------------------------------------------------
-const LEVEL = { 1: ['bg-raised', 'knob/shape-card', 'knob/density-card-pad-inline', 'knob/density-card-pad-block'], 2: ['bg-raised-2', 'derived/card-nest-r', 'space/sp-1', 'space/sp-1'], 3: ['bg-raised-3', 'derived/card-nest-r2', 'space/sp-1', 'space/sp-1'] };
-const cardSet = await set('card', { level: ['1', '2', '3'] }, async (p) => {
-  const c = component('VERTICAL'); c.counterAxisSizingMode = 'FIXED'; c.counterAxisAlignItems = 'MIN'; c.resize(288, 100);
-  const [ground, r, px, py] = LEVEL[p.level];
-  fill(c, [paint(ground)]); corners(c, r); padX(c, px); padY(c, py); bind(c, 'itemSpacing', 'space/sp-1');
-  if (p.level === '1') edge(c, 'border-subtle');
-  c.appendChild(await words('Card', { style: 'h5', name: 'title' }));
-  const b = await words('A surface on the page. In a card it is the next ground, with no edge, one cell of padding and a concentric corner.', { style: 'sm', ink: 'text-secondary', name: 'body' });
-  c.appendChild(b); b.layoutSizingHorizontal = 'FILL'; b.textAutoResize = 'HEIGHT';
-  return c;
-}, { text: ['title', 'Card'], caption: 'card · level', width: 1100, description: 'Trellis .card. Its level is its nesting, which a component can\'t see: set it. Level 1 has an edge and the product\'s padding and corner (--density-card-pad-inline, -block, --shape-card); 2 and 3 step along the ground and are concentric. A nested card steps out by derived/card-nest-out: draw it that much wider.' });
-
-// ---- modal ------------------------------------------------------------------
-const btnSet = figma.root.findOne((n) => n.type === 'COMPONENT_SET' && n.name === 'button');
-const iconSet = figma.root.findOne((n) => n.type === 'COMPONENT_SET' && n.name === 'button icon-button');
-const dialog = async (m) => {
-  m.counterAxisAlignItems = 'MIN'; fill(m, [paint('bg-raised')]); edge(m, 'border'); lift(m);
-  const head = row('modal-header', { counterAxisAlignItems: 'MIN', primaryAxisAlignItems: 'SPACE_BETWEEN' }); m.appendChild(head); head.layoutSizingHorizontal = 'FILL';
-  padX(head, 'space/sp-2'); bind(head, 'paddingTop', 'space/sp-2'); bind(head, 'paddingBottom', 'space/sp-1');
-  head.appendChild(await words('Dialog title', { style: 'h4', name: 'title' }));
-  head.appendChild(variant(iconSet, { kind: 'cc-ghost', size: 'cc-sm' }).createInstance());
-  const body = col('modal-body'); m.appendChild(body); body.layoutSizingHorizontal = 'FILL'; padX(body, 'space/sp-2'); padY(body, 'space/sp-1');
-  const bt = await words('The body scrolls when the dialog is taller than the screen. Its footer holds the actions, the main one last.', { style: 'body', ink: 'text-secondary', name: 'body' });
-  body.appendChild(bt); bt.layoutSizingHorizontal = 'FILL'; bt.textAutoResize = 'HEIGHT';
-  const foot = row('modal-footer', { primaryAxisAlignItems: 'MAX' }); m.appendChild(foot); foot.layoutSizingHorizontal = 'FILL';
-  padX(foot, 'space/sp-2'); bind(foot, 'paddingBottom', 'space/sp-2'); bind(foot, 'paddingTop', 'space/sp-1'); bind(foot, 'itemSpacing', 'space/sp-h');
-  foot.appendChild(variant(btnSet, { kind: 'default', size: 'default', state: 'rest' }).createInstance());
-  foot.appendChild(variant(btnSet, { kind: 'cc-primary', size: 'default', state: 'rest' }).createInstance());
-  return body;
-};
-{
-  const m = component('VERTICAL'); m.name = 'modal'; m.resize(420, 200); m.primaryAxisSizingMode = 'AUTO'; m.counterAxisSizingMode = 'FIXED'; corners(m, 'knob/shape-card');
-  await dialog(m);
-  m.description = 'Trellis .modal on the native <dialog>: .modal > .modal-inner > .modal-header / -body / -footer, padding two cells (--modal-pad), corner --shape-card. On a screen under 48rem a centered modal is a bottom tray (.cc-tray.cc-bottom).';
-  const block = col('modal block', { itemSpacing: 12 }); host.appendChild(block);
-  block.appendChild(await words('modal', { style: 'label', ink: 'text-tertiary', name: 'caption' }));
-  block.appendChild(m); made.push('modal');
-}
-// A tray: flush to a side of the screen, the corners away from it round.
-await set('modal cc-tray', { side: ['cc-left', 'cc-right', 'cc-bottom'] }, async (p) => {
-  const m = component('VERTICAL'), up = p.side === 'cc-bottom';
-  if (up) {
-    m.resize(393, 200); m.primaryAxisSizingMode = 'AUTO'; m.counterAxisSizingMode = 'FIXED';
-    const g = row('modal-grabber', { primaryAxisAlignItems: 'CENTER', counterAxisSizingMode: 'FIXED' }); m.appendChild(g); g.layoutSizingHorizontal = 'FILL'; bind(g, 'height', 'space/sp-1');
-    const pill = figma.createRectangle(); pill.name = 'pill'; g.appendChild(pill); bind(pill, 'width', 'space/sp-3'); bind(pill, 'height', 'space/sp-q'); corners(pill, 'radius/r-round'); fill(pill, [paint('text', 0.24)]);
-  } else { m.resize(384, 480); m.primaryAxisSizingMode = 'FIXED'; m.counterAxisSizingMode = 'FIXED'; bind(m, 'width', 'size/tray-w'); }
-  for (const f of { 'cc-left': ['topRightRadius', 'bottomRightRadius'], 'cc-right': ['topLeftRadius', 'bottomLeftRadius'], 'cc-bottom': ['topLeftRadius', 'topRightRadius'] }[p.side]) bind(m, f, 'knob/shape-card');
-  const body = await dialog(m); if (!up) body.layoutGrow = 1;
-  return m;
-}, { caption: 'modal cc-tray · side', width: 1300, description: 'Trellis .modal.cc-tray with .cc-left (the default), .cc-right or .cc-bottom: flush to its side of the screen, the corners away from it round; a side tray is 32 cells wide (--tray-w), two cells clear at each end (--tray-margin), its body scrolling and its footer at the end. A bottom tray draws the .modal-grabber, a cell tall. .cc-top is a bottom tray turned over, without the grabber.' });
 
 return Object.assign({ components: made }, section('Components'));

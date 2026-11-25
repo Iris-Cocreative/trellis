@@ -2,8 +2,8 @@
    Run as `node tools/figma-components.js --plugin screens`, last. One settings
    card in each product, wide and light, phone and dark; a page of scopes (D96);
    a conversation, flat and in bubbles (D99), and one on a phone at night; the
-   shell in two products; a page of events with covered cards, covered rows and
-   choices (D108, D109). The section Screens, removed and built again. */
+   shell in two products; a page of events with covered cards, covered rows,
+   choices, a field with slots and cards that are a choice (D108, D109, D116). The section Screens, removed and built again. */
 clear(['Screens']);
 host.name = 'screens'; host.itemSpacing = 80;
 const line = (name) => { const r = row(name, { itemSpacing: 80, counterAxisAlignItems: 'MIN' }); host.appendChild(r); return r; };
@@ -28,16 +28,13 @@ async function settings(title, width, modes) {
   const opts = col('options'); card.appendChild(opts); opts.layoutSizingHorizontal = 'FILL'; bind(opts, 'itemSpacing', 'space/sp-q');
   for (const [l, on] of [['Mentions', true], ['Replies to me', true], ['A weekly digest', false]]) { const i = item(l, on); opts.appendChild(i); i.layoutSizingHorizontal = 'FILL'; }
   const tagsRow = row('cluster'); card.appendChild(tagsRow); bind(tagsRow, 'itemSpacing', 'space/sp-h');
-  for (const [l, k, e] of [['People', 'cc-person', 'default'], ['Events', 'cc-event', 'default'], ['Urgent', 'cc-alert', 'cc-solid']]) {
+  for (const [l, k, e] of [['People', 'cc-person', 'default'], ['Events', 'cc-event', 'default'], ['Daily', 'cc-quiet', 'default'], ['Urgent', 'cc-alert', 'cc-solid']]) {
     const t = variant(tagSet, { kind: k, emphasis: e, size: 'default' }).createInstance(); tagsRow.appendChild(t);
     t.setProperties({ [Object.keys(t.componentProperties).find((x) => x.startsWith('label'))]: l });
   }
   const fld = variant(fieldSet, { state: 'rest' }).createInstance(); card.appendChild(fld); fld.layoutSizingHorizontal = 'FILL';
   const actions = row('cluster'); card.appendChild(actions); bind(actions, 'itemSpacing', 'space/sp-1');
-  for (const [l, k] of [['Save', 'cc-primary'], ['Cancel', 'default']]) {
-    const b = variant(btnSet, { kind: k, size: 'default', state: 'rest' }).createInstance(); actions.appendChild(b);
-    b.setProperties({ [Object.keys(b.componentProperties).find((x) => x.startsWith('label'))]: l });
-  }
+  for (const [l, k, e] of [['Save', 'cc-primary'], ['Cancel', 'default'], ['Turn off', 'cc-alert', 'cc-outline']]) actions.appendChild(btn(k, 'default', l, e));
   return f;
 }
 const shown = [], first = line('settings');
@@ -56,7 +53,7 @@ async function scopeCard(name, scope, dark) {
   head.appendChild(await words(name, { style: 'h3' }));
   const list = col('list'); card.appendChild(list); list.layoutSizingHorizontal = 'FILL';
   for (const [t, m, u] of [['Morning sit', 'dot', 'true'], ['Study circle', 'face', 'false']]) { const i = variant(listSet, { mark: m, unread: u, state: 'rest' }).createInstance(); list.appendChild(i); i.layoutSizingHorizontal = 'FILL'; label(i, 'title', t); }
-  const b = variant(btnSet, { kind: 'cc-primary', size: 'default', state: 'rest' }).createInstance(); card.appendChild(b); label(b, 'label', 'Join');
+  card.appendChild(btn('cc-primary', 'default', 'Join'));
   return card;
 }
 const eco = col('Grove · Wide · Light · scopes'); width(eco, 1200); eco.counterAxisSizingMode = 'FIXED'; fill(eco, [paint('bg')]);
@@ -74,7 +71,7 @@ async function convo(name, w, flat, says) {
   const pair = col('pair'); head.appendChild(pair); pair.layoutGrow = 1; bind(pair, 'itemSpacing', 'space/sp-h');
   pair.appendChild(await words(flat ? 'Ada' : 'Food Systems', { fs: 'type/sm/size', weight: 'type/fw-strong', name: 'list-title' }));
   pair.appendChild(await words(flat ? 'Seed Library · Food Systems' : 'Ada, Jonah, you and 9 more', { style: 'xs', ink: 'text-tertiary', name: 'context' }));
-  head.appendChild(icon('cc-md'));
+  head.appendChild(icon('cc-md', 'ph-magnifying-glass')); head.appendChild(icon('cc-md', 'ph-info'));
   const th = col(flat ? 'chat-thread cc-flat' : 'chat-thread'); f.appendChild(th); th.layoutSizingHorizontal = 'FILL'; bind(th, 'itemSpacing', flat ? 'space/sp-1' : 'space/sp-2');
   for (const group of says) {
     const run = col('run'); th.appendChild(run); run.layoutSizingHorizontal = 'FILL'; if (!flat) bind(run, 'itemSpacing', 'space/sp-1');
@@ -114,19 +111,23 @@ const second = line('scopes, conversation'); second.appendChild(eco); shown.push
 const ph9 = col('Conversation · Almanac · Phone · Dark'); modeOf(ph9, { Product: 'Almanac', Space: 'Phone', Type: 'Phone', Color: 'Dark' });
 fill(ph9, [paint('bg')]); padX(ph9, 'space/sp-2'); padY(ph9, 'space/sp-2'); ph9.appendChild(await convo('conversation', 354, true, FLAT(null)));
 second.appendChild(ph9); shown.push(ph9.id);
-// The shell (D80), in two products: across the top, wide and light; a tab bar, on a phone at night.
+// The shell (D80): across the top, wide and light; a tab bar, on a phone at night; a translucent bar (D115).
 const third = line('shell');
-for (const [p, s, c, top] of [['Quarry', 'Wide', 'Light', 'cc-top'], ['Almanac', 'Phone', 'Dark', 'default'], ['Core', 'Phone', 'Light', 'cc-top']]) {
+for (const [p, s, c, top, bar] of [['Quarry', 'Wide', 'Light', 'cc-top', 'opaque'], ['Almanac', 'Phone', 'Dark', 'default', 'opaque'], ['Core', 'Phone', 'Light', 'cc-top', 'translucent']]) {
   const f = col(`Shell · ${p} · ${s} · ${c}`); modeOf(f, { Product: p, Space: s, Type: s, Color: c });
-  f.appendChild(variant(shellSet, { top, width: s === 'Wide' ? 'wide' : 'narrow' }).createInstance());
+  f.appendChild(variant(shellSet, { top, width: s === 'Wide' ? 'wide' : 'narrow', bar }).createInstance());
   third.appendChild(f); shown.push(f.id);
 }
 // Covered cards, covered rows and choices (D108, D109), in one product: a page of events.
 const ev = col('Events · Almanac · Wide · Light'); width(ev, 1200); ev.counterAxisSizingMode = 'FIXED'; fill(ev, [paint('bg')]);
 modeOf(ev, { Product: 'Almanac', Space: 'Wide', Type: 'Wide', Color: 'Light' });
 padX(ev, 'space/sp-4'); padY(ev, 'space/sp-4'); bind(ev, 'itemSpacing', 'space/sp-3');
-const eh = col('section-head'); bind(eh, 'itemSpacing', 'space/sp-1'); ev.appendChild(eh);
+const top = row('section-head', { counterAxisAlignItems: 'MAX' }); ev.appendChild(top); top.layoutSizingHorizontal = 'FILL'; bind(top, 'itemSpacing', 'space/sp-1');
+const eh = col('pair'); bind(eh, 'itemSpacing', 'space/sp-1'); top.appendChild(eh); eh.layoutGrow = 1;
 eh.appendChild(await words('This month', { style: 'eyebrow', ink: 'text-tertiary' })); eh.appendChild(await words('Events', { style: 'h2' }));
+// A search in a field's box, and a count on an icon button's corner (D116, D115).
+top.appendChild(inst(got('input cc-slots'), { start: 'icon', end: 'button', state: 'rest', size: 'default' }, 'value', 'Lantern'));
+top.appendChild(props(pick(inst(iconSet, { kind: 'default', emphasis: 'default', size: 'default' }), 'ph-chat'), { 'badge cc-corner': true }));
 const grid = row('grid cc-fill', { counterAxisAlignItems: 'MIN' }); ev.appendChild(grid); grid.layoutSizingHorizontal = 'FILL'; bind(grid, 'itemSpacing', 'space/sp-2');
 for (const [m, s] of [['cc-bleed', 'rest'], ['cc-fill', 'hover'], ['default', 'rest']]) { const i = variant(coverSet, { media: m, state: s }).createInstance(); grid.appendChild(i); i.layoutGrow = 1; }
 const lower = row('columns', { counterAxisAlignItems: 'MIN' }); ev.appendChild(lower); lower.layoutSizingHorizontal = 'FILL'; bind(lower, 'itemSpacing', 'space/sp-2');
@@ -140,11 +141,14 @@ padX(prefs, 'knob/density-card-pad-inline'); padY(prefs, 'knob/density-card-pad-
 const ph = row('section-head', { primaryAxisAlignItems: 'SPACE_BETWEEN' }); prefs.appendChild(ph); ph.layoutSizingHorizontal = 'FILL';
 ph.appendChild(await words('Reminders', { style: 'h4' }));
 const draft = inst(tagSet, { kind: 'default', emphasis: 'cc-outline', size: 'cc-sm' }, 'label', 'Draft'); ph.appendChild(draft); draft.dashPattern = [4, 2];
-const choiceSet = got('choice'), pick = (kind, checked, t, indent) => { const i = inst(choiceSet, { kind, checked, state: 'rest', size: 'default' }, 'choice-label', t); if (indent) { const w = row('nested'); bind(w, 'paddingLeft', 'space/sp-2'); w.appendChild(i); return w; } return i; };
+const choiceSet = got('choice'), choose = (kind, checked, t, indent) => { const i = inst(choiceSet, { kind, checked, state: 'rest', size: 'default' }, 'choice-label', t); if (indent) { const w = row('nested'); bind(w, 'paddingLeft', 'space/sp-2'); w.appendChild(i); return w; } return i; };
 const checks = col('fieldset'); prefs.appendChild(checks);
-for (const [c, t, n] of [['mixed', 'Every event', false], ['true', 'A day before', true], ['false', 'An hour before', true]]) checks.appendChild(pick('checkbox', c, t, n));
+for (const [c, t, n] of [['mixed', 'Every event', false], ['true', 'A day before', true], ['false', 'An hour before', true]]) checks.appendChild(choose('checkbox', c, t, n));
 const radios = col('fieldset'); prefs.appendChild(radios);
-for (const [c, t] of [['false', 'By email'], ['true', 'By text message']]) radios.appendChild(pick('radio', c, t));
+for (const [c, t] of [['false', 'By email'], ['true', 'By text message']]) radios.appendChild(choose('radio', c, t));
+// Two cards that are a choice (D116).
+const ways = col('radiogroup'); prefs.appendChild(ways); ways.layoutSizingHorizontal = 'FILL'; bind(ways, 'itemSpacing', 'space/sp-1');
+for (const [checked, t] of [['true', 'Keep a bed going'], ['false', 'Grow at home']]) { const i = inst(got('card:has(.card-choice)'), { kind: 'radio', checked, state: 'rest' }); ways.appendChild(i); i.layoutSizingHorizontal = 'FILL'; label(i.findOne((n) => n.type === 'INSTANCE'), 'choice-label', t); }
 const save = btn('cc-primary', 'default', 'Save reminders'); prefs.appendChild(save); save.layoutSizingHorizontal = 'FILL';
 host.appendChild(ev); shown.push(ev.id);
 await host.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 0.05 } });   // drawn once, so its layout has settled before the section takes its size

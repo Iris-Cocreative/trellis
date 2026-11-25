@@ -9,8 +9,8 @@ const got = (name) => {
 const [btnSet, iconSet, tagSet, avatarSet] = ['button', 'button icon-button', 'tag', 'avatar'].map(got);
 const av = (size, ring = 'cc-plain', kind = 'default') => variant(avatarSet, { kind, ring, size }).createInstance();
 const inst = (s, props, key, v) => { const i = variant(s, props).createInstance(); if (key) label(i, key, v); return i; };
-const btn = (kind, size, text) => inst(btnSet, { kind, size, state: 'rest' }, 'label', text);
-const icon = (size = 'cc-sm') => inst(iconSet, { kind: 'cc-ghost', size });
+const btn = (kind, size, text, emphasis = 'default') => inst(btnSet, { kind, emphasis, size, state: 'rest' }, 'label', text);
+const icon = (size = 'cc-sm', name = 'ph-dots-three') => pick(inst(iconSet, { kind: 'cc-ghost', emphasis: 'default', size }), name);
 // A component's own properties on an instance, by name: its text, the parts it shows.
 const props = (i, o) => { const all = Object.keys(i.componentProperties); i.setProperties(Object.fromEntries(Object.entries(o).map(([k, v]) => [all.find((x) => x === k || x.startsWith(k + '#')), v]))); return i; };
 // Text that fills its column and wraps; its column must already hold it.

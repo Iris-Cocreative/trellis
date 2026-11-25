@@ -28,12 +28,13 @@ await figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
 const page = figma.root.children[0];
 const before = new Set(page.children.map((n) => n.id));
 // The sections the parts own, one above another in the order they are built.
-// A part removes its own and those made of it, sections by name and nothing else.
-const SECTIONS = ['Components', 'Thread', 'Templates', 'Screens'];
+// A part removes its own and those made of it, sections by name and nothing else; from(name) is it and all after it.
+const SECTIONS = ['Icons', 'Components', 'Surfaces', 'Thread', 'Templates', 'Screens'];
 const owned = (name) => page.children.find((n) => n.type === 'SECTION' && n.name === name);
 const clear = (names) => { for (const n of page.children.slice()) if (n.type === 'SECTION' && names.includes(n.name)) n.remove(); };
 // Each fitted to its frame again: a frame can settle a little taller after the part that built it.
 const stacked = () => { let y = 0; for (const n of SECTIONS) { const s = owned(n); if (!s) continue; if (s.children.length === 1) s.resizeWithoutConstraints(s.children[0].width, s.children[0].height); s.x = 0; s.y = y; y += s.height + 200; } };
+const from = (name) => SECTIONS.slice(SECTIONS.indexOf(name));
 const modeOf = (f, modes) => { for (const [k, m] of Object.entries(modes)) f.setExplicitVariableModeForCollection(COL[k], COL[k].modes.find((x) => x.name === m).modeId); };
 
 // ---- Helpers ----------------------------------------------------------------
@@ -88,15 +89,32 @@ async function words(chars, o) {
   fill(t, [paint(o.ink || 'text')]);
   return t;
 }
-// A stroke on an 18 box, where its path says (a vector's own origin is its path's top left).
-const at = (d) => { const n = d.match(/[\d.]+/g).map(Number); return [0, 1].map((k) => Math.min(...n.filter((_, i) => i % 2 === k))); };
-const glyph = (ink, d = 'M 9 3 L 9 15 M 3 9 L 15 9') => {
-  const box = figma.createFrame(); box.name = 'icon'; fill(box, []); box.resize(18, 18); box.clipsContent = false;
-  const v = figma.createVector(); v.vectorPaths = [{ windingRule: 'NONE', data: d }];
-  stroke(v, [paint(ink)]); v.strokeWeight = 1.5; v.strokeCap = 'ROUND';
-  box.appendChild(v); [v.x, v.y] = at(d); v.constraints = { horizontal: 'SCALE', vertical: 'SCALE' };
-  bind(box, 'width', 'size/size-icon-md'); bind(box, 'height', 'size/size-icon-md');
-  return box;
+// An icon (D118): an instance of a Phosphor component from the section Icons,
+// sized by an icon size and its line that size's, in a role's ink. A stroke is
+// in pixels here, not a share of its box, so the two go together. The vector in
+// every icon has one name, so a swapped instance keeps its ink and its line.
+const IC = {};
+for (const c of owned('Icons') ? owned('Icons').findAll((n) => n.type === 'COMPONENT') : []) IC[c.name] = c;
+const iconOf = (name) => { if (!IC[name]) throw new Error(`no icon ${name}: run figma-components --plugin icons first`); return IC[name]; };
+const inked = (node, ink, size) => { for (const v of node.findAll((n) => n.type === 'VECTOR')) { stroke(v, [paint(ink)]); if (size) bind(v, 'strokeWeight', 'derived/' + size.replace('size-icon', 'icon-line')); } };
+const glyph = (ink, name = 'ph-plus', size = 'size-icon') => {
+  const i = iconOf(name).createInstance(); i.name = 'icon';
+  bind(i, 'width', 'size/' + size); bind(i, 'height', 'size/' + size); inked(i, ink, size);
+  return i;
+};
+// Another icon, by the property that swaps it.
+const pick = (inst, name, key = 'drawing') => { inst.setProperties({ [Object.keys(inst.componentProperties).find((k) => k.startsWith(key + '#'))]: iconOf(name).id }); return inst; };
+
+// A switch's track. mid: aria-checked="mixed", the thumb half way on the off fill (D109).
+const track = (on, off, mid) => {
+  const t = row('track', { primaryAxisSizingMode: 'FIXED', counterAxisSizingMode: 'FIXED' });
+  bind(t, 'width', 'space/sp-3'); bind(t, 'height', 'space/sp-1h'); corners(t, 'radius/r-round'); padX(t, 'space/sp-q');
+  t.primaryAxisAlignItems = mid ? 'CENTER' : on ? 'MAX' : 'MIN';
+  fill(t, off ? [paint('text', 0.1)] : on ? [paint('accent')] : [paint('text', 0.32)]);
+  const k = figma.createEllipse(); k.name = 'thumb'; t.appendChild(k);
+  bind(k, 'width', 'space/sp-1'); bind(k, 'height', 'space/sp-1');
+  fill(k, [off ? paint('bg-sunken') : on ? paint('accent-ink') : { type: 'SOLID', color: { r: 1, g: 1, b: 1 } }]);
+  return t;
 };
 
 // A component set from a list of variants, laid out in rows by its first property.
@@ -134,6 +152,11 @@ async function set(name, axes, build, o = {}) {
   for (const [n, on] of o.parts || []) {
     const key = s.addComponentProperty(n, 'BOOLEAN', on);
     for (const c of s.children) for (const x of c.findAll((m) => m.name === n && m.id[0] !== 'I')) { x.visible = on; x.componentPropertyReferences = Object.assign({}, x.componentPropertyReferences, { visible: key }); }
+  }
+  // The icon a layer draws, swapped by a property: [property, layer, the icon it starts as].
+  for (const [n, layer, d] of o.swap || []) {
+    const key = s.addComponentProperty(n, 'INSTANCE_SWAP', iconOf(d).id, { preferredValues: Object.values(IC).map((c) => ({ type: 'COMPONENT', key: c.key })) });
+    for (const c of s.children) for (const x of c.findAll((m) => m.name === layer && m.id[0] !== 'I')) x.componentPropertyReferences = Object.assign({}, x.componentPropertyReferences, { mainComponent: key });
   }
   made.push(name);
   return s;

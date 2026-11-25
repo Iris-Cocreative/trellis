@@ -58,6 +58,7 @@ async function draw() {
     setExplicitVariableModeForCollection() {}
     async setTextStyleIdAsync() {}
     async exportAsync() {}
+    get key() { return this.id; }
     set() { return this.type === 'COMPONENT' && this.parent && this.parent.type === 'COMPONENT_SET' ? this.parent : this; }
     addComponentProperty(n, type, def) { const k = `${n}#${++ids}:0`; this.defs[k] = { type, def }; return k; }
     get componentPropertyDefinitions() { return this.defs; }

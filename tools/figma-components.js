@@ -6,13 +6,17 @@
    the variables by name, the fonts, the helpers), what it shares with other
    parts (figma-built.js: the components built so far; figma-photo.js: the
    stand-in picture) and its own body, wrapped so a run that fails takes back
-   what it made:
+   what it made, and sealed so it runs only as it was printed (figma-sealed.js):
 
-     node tools/figma-components.js --plugin primitives   every primitive as a
+     node tools/figma-components.js --plugin icons        Phosphor's icons, each
+          the other parts use a component, in the section Icons
+     node tools/figma-components.js --plugin primitives   the first controls, each a
           component set named by its class chain, its variants the modifiers
           (`button` with kind=cc-ghost, size=cc-sm is class="button cc-ghost
           cc-sm"), each measure bound to the variable core reads, in the
           section Components (tools/figma-primitives.js)
+     node tools/figma-components.js --plugin surfaces     fields, tabs, menus, rows,
+          cards and dialogs, in the section Surfaces
      node tools/figma-components.js --plugin thread       the conversation: the
           messages and what they carry, in the section Thread
      node tools/figma-components.js --plugin templates    what is built from
@@ -23,23 +27,32 @@
      node tools/figma-components.js                       each part's length
 
    Run them in that order, and all whenever the code changes: the first
-   removes the four sections, and each of the others builds its own again (and
-   removes the Screens, which are made of it). Only those sections are touched:
+   removes every section, and each of the others builds its own again (and
+   removes those made of it, so run the ones below it). Only those sections are touched:
    a designer's own frames elsewhere on the page are left alone, though an
    instance of a component they rebuilt is detached from it. */
 'use strict';
 const fs = require('fs');
 const path = require('path');
 
+const { seal, bare } = require('./figma-sealed.js');
 const PARTS = {
+  icons: ['figma-icons.js'],
   primitives: ['figma-primitives.js'],
+  surfaces: ['figma-built.js', 'figma-surfaces.js'],
   thread: ['figma-built.js', 'figma-photo.js', 'figma-thread.js'],
   templates: ['figma-built.js', 'figma-photo.js', 'figma-templates.js'],
   screens: ['figma-built.js', 'figma-screens.js']
 };
-// Without each file's header and the comments on lines of their own, which stay in the repository.
-const read = (f) => fs.readFileSync(path.join(__dirname, f), 'utf8').replace(/\r\n/g, '\n').replace(/^\/\*[\s\S]*?\*\/\n/, '').replace(/^[ \t]*\/\/.*\n/gm, '');
-const script = (part) => `// Trellis figma-components --plugin ${part}\n${read('figma-kit.js')}\ntry {\n${PARTS[part].map(read).join('')}\n} catch (e) {\n  for (const n of page.children.slice()) if (!before.has(n.id)) n.remove();\n  throw e;\n}\n`;
+const read = (f) => bare(fs.readFileSync(path.join(__dirname, f), 'utf8'));
+// The icons the other parts name are the ones the icons part makes.
+const used = () => [...new Set(['figma-kit.js', ...Object.entries(PARTS).filter(([p]) => p !== 'icons').flatMap(([, f]) => f)].flatMap((f) => [...read(f).matchAll(/'(ph-[a-z-]+)'/g)].map((m) => m[1])))].sort();
+const phosphor = () => { const P = require('./figma-phosphor.js'); return [P.icons(used()), P.notice()]; };
+const script = (part) => {
+  let body = `${read('figma-kit.js')}\ntry {\n${PARTS[part].map(read).join('')}\n} catch (e) {\nfor (const n of page.children.slice()) if (!before.has(n.id)) n.remove();\nthrow e;\n}\n`;
+  if (part === 'icons') { const [icons, notice] = phosphor(); body = body.replace('/*ICONS*/null', () => '[\n' + icons.map((x) => JSON.stringify(x)).join(',\n') + '\n]').replace('/*NOTICE*/null', () => JSON.stringify(notice)); }
+  return seal('figma-components --plugin ' + part, body);
+};
 module.exports = { PARTS, script };
 
 if (require.main === module) {

@@ -105,6 +105,8 @@ await set('media', { kind: ['default', 'cc-round'], focus: Object.keys(FOCUS), f
 }, { caption: 'media · kind × focus × fill', width: 1400, description: 'Trellis .media > img (D108): a frame sized in cells, --media-w by --media-h (twelve cells; no width fills its column), the image a real <img> by cover at --media-focus (50% 25% keeps a face). Empty, it shows --media-fill. Its corner is --r-1, in a card concentric with the card\'s (derived/media-r); .cc-round is a circle. The image here is a stand-in: replace the fill. A focus off the middle is a crop made at this size; resize the frame and crop again.' });
 
 const MEDIA = ['default', 'cc-bleed', 'cc-bleed-start', 'cc-fill'];
+// A control with no fill of its own reads white on a full bleed, its edge a share of white (D108).
+const onMedia = (i, edged) => { for (const t of i.findAll((n) => n.type === 'TEXT')) fill(t, [paint('white')]); inked(i, 'white'); if (edged) stroke(i, [paint('white', 0.6)]); };
 async function cover(kind, state) {
   const strip = kind === 'cc-bleed-start', full = kind === 'cc-fill', ink = (r) => (full ? 'white' : r);
   const c = component(strip ? 'HORIZONTAL' : 'VERTICAL'); c.counterAxisAlignItems = 'MIN'; width(c, 300); c.itemSpacing = 0;
@@ -126,7 +128,8 @@ async function cover(kind, state) {
   const sub = await words('Meet at the gate at dusk; we take the lower path.', { style: 'sm', ink: ink('text-secondary'), name: 'sub' });
   body.appendChild(sub); sub.layoutSizingHorizontal = 'FILL'; sub.textAutoResize = 'HEIGHT';
   const cl = row('cluster'); bind(cl, 'itemSpacing', 'space/sp-h'); body.appendChild(cl);
-  cl.appendChild(inst(tagSet, { kind: 'cc-event', emphasis: full ? 'cc-solid' : 'default', size: 'cc-sm' }, 'label', 'Outdoors')); cl.appendChild(icon());
+  const parts = [inst(tagSet, { kind: 'cc-event', emphasis: 'default', size: 'cc-sm' }, 'label', 'Outdoors'), btn('default', 'cc-sm', 'Save'), icon()];
+  for (const [i, n] of parts.entries()) { cl.appendChild(n); if (full) onMedia(n, i === 1); }
   // The cover, a link's ::before over the whole card: the state layer, the accent mark at its start when selected.
   if (share[state] || state === 'selected') {
     const v = figma.createRectangle(); v.name = 'card-link::before'; c.appendChild(v); v.layoutPositioning = 'ABSOLUTE'; v.x = v.y = 0; v.resize(c.width, c.height);
@@ -136,7 +139,7 @@ async function cover(kind, state) {
   return c;
 }
 const coverSet = await set('card:has(.card-link)', { media: MEDIA, state: ['rest', 'hover', 'press', 'selected'] }, (p) => cover(p.media, p.state), { caption: 'card:has(.card-link) · media × state', width: 1400,
-  description: 'Trellis .card with an a.card-link title (D108): the link\'s ::before covers the card, so the whole card is one link and nothing is wrapped in an <a>; its other controls (the tag, the button) are raised above the cover and keep their own clicks. Hover and press mix the ink into the cover (6%, 12%), selected (aria-current) 10% with the accent mark at its start; the focus ring is the cover\'s, round the card. Hover is prototype-only. The media is a .media as the card\'s own child: default sits inside, concentric; .cc-bleed is a banner to the card\'s top and sides; .cc-bleed-start a strip three cells wide, the card a row; .cc-fill the card\'s whole ground, at least eighteen cells tall, under a scrim to 80% black, its edge dropped and its words white.' });
+  description: 'Trellis .card with an a.card-link title (D108): the link\'s ::before covers the card, so the whole card is one link and nothing is wrapped in an <a>; its other controls (the tag, the button) are raised above the cover and keep their own clicks. Hover and press mix the ink into the cover (6%, 12%), selected (aria-current) 10% with the accent mark at its start; the focus ring is the cover\'s, round the card. Hover is prototype-only. The media is a .media as the card\'s own child: default sits inside, concentric; .cc-bleed is a banner to the card\'s top and sides; .cc-bleed-start a strip three cells wide, the card a row; .cc-fill the card\'s whole ground, at least eighteen cells tall, under a scrim to 80% black, its edge dropped and its words white; a control there with no fill of its own (a tinted tag, a plain or a ghost button) reads white too, its edge a share of white.' });
 
 const linkRowSet = await set('list-item:has(.list-link)', { state: ['rest', 'hover', 'press', 'selected'] }, async (p) => {
   const c = component(); c.primaryAxisSizingMode = 'FIXED'; width(c, 380); bind(c, 'paddingRight', 'space/sp-1');
@@ -147,8 +150,8 @@ const linkRowSet = await set('list-item:has(.list-link)', { state: ['rest', 'hov
 }, { caption: 'list-item:has(.list-link) · state', width: 900, description: 'Trellis .list-item with an a.list-link title (D108): its ::before covers the row, and a button in the row\'s end is raised above it. Hover and press mix the ink into the row; selected (aria-current on the link) is 10% with the accent mark at its start.' });
 
 // ---- the shell and its navigation (D80) -------------------------------------
-const LINKS = ['Home', 'People', 'Events', 'Library'];
-const PLUS = 'M 9 3 L 9 15 M 3 9 L 15 9', HOUSE = 'M 3 9 L 9 3 L 15 9 M 5 8 L 5 15 L 13 15 L 13 8', MENU = 'M 3 5 L 15 5 M 3 9 L 15 9 M 3 13 L 15 13';
+const LINKS = ['Home', 'People', 'Field', 'Messages'];
+const LINK_ICONS = { Home: 'ph-house', People: 'ph-users', Field: 'ph-map-trifold', Messages: 'ph-chat' };
 // A shell-link beside the page (side), across the top (bar) or in a tab bar (tab).
 async function link(t, on, how) {
   const l = how === 'tab' ? col('shell-link', { primaryAxisAlignItems: 'CENTER', counterAxisAlignItems: 'CENTER' }) : row('shell-link');
@@ -158,26 +161,28 @@ async function link(t, on, how) {
   const MARK = { bar: ['Bottom', 'bottomLeftRadius', 'bottomRightRadius'], tab: ['Top', 'topLeftRadius', 'topRightRadius'], side: ['Left', 'topLeftRadius', 'bottomLeftRadius'] }[how];
   cornersBut(l, 'radius/r-h', on ? MARK.slice(1) : []);
   if (on) { side(l, 'accent', MARK[0], 2); fill(l, [paint('text', share.selected)]); }
-  if (how !== 'bar') l.appendChild(glyph(on ? 'text' : 'text-secondary', t === 'Home' ? HOUSE : PLUS));
+  if (how !== 'bar') l.appendChild(glyph(on ? 'text' : 'text-secondary', LINK_ICONS[t]));
   l.appendChild(await words(t, { fs: how === 'tab' ? 'type/control/fs-control-xs' : 'type/control/fs-control', ink: on ? 'text' : 'text-secondary' }));
   return l;
 }
 async function shell(p) {
-  const top = p.top === 'cc-top', narrow = p.width === 'narrow';
+  const top = p.top === 'cc-top', narrow = p.width === 'narrow', clear = p.bar === 'translucent';
   const c = component('VERTICAL'); c.primaryAxisSizingMode = 'FIXED'; c.counterAxisSizingMode = 'FIXED';
   c.resize(narrow ? 393 : 1200, narrow ? 760 : 680); c.counterAxisAlignItems = 'MIN'; c.itemSpacing = 0; fill(c, [paint('bg')]); c.clipsContent = true;
   const nav = top || narrow ? row('shell-nav') : col('shell-nav', { counterAxisAlignItems: 'MIN' });
-  fill(nav, [paint('bg')]);
+  // A translucent bar (D115): its ground at the least that reads over anything, and a blur of what passes under it.
+  fill(nav, [paint(clear ? 'shell-nav-bg' : 'bg')]);
+  if (clear) nav.effects = [figma.variables.setBoundVariableForEffect({ type: 'BACKGROUND_BLUR', blurType: 'NORMAL', radius: 24, visible: true }, 'radius', need('derived/shell-nav-blur'))];
   if (top) {
     fixedHeight(nav, 'space/sp-4'); padX(nav, 'space/sp-2'); bind(nav, 'itemSpacing', narrow ? 'space/sp-1' : 'space/sp-2'); edge(nav, 'border-subtle', 1, ['Bottom']);
     nav.appendChild(await words('Trellis', { fs: 'type/control/fs-control', weight: 'type/fw-strong', name: 'shell-brand' }));
     if (narrow) {
       const m = row('button icon-button shell-menu', { primaryAxisSizingMode: 'FIXED', counterAxisSizingMode: 'FIXED', primaryAxisAlignItems: 'CENTER' }); nav.appendChild(m);
-      bind(m, 'width', 'size/size-control-sm'); bind(m, 'height', 'size/size-control-sm'); corners(m, 'knob/shape-control'); m.appendChild(glyph('text', MENU));
+      bind(m, 'width', 'size/size-control-sm'); bind(m, 'height', 'size/size-control-sm'); corners(m, 'knob/shape-control'); m.appendChild(glyph('text', 'ph-list'));
     }
     else { const ls = row('shell-links'); bind(ls, 'itemSpacing', 'space/sp-q2'); nav.appendChild(ls); for (const t of LINKS) ls.appendChild(await link(t, t === 'People', 'bar')); }
     const end = row('shell-nav-end', { primaryAxisAlignItems: 'MAX' }); bind(end, 'itemSpacing', 'space/sp-h'); nav.appendChild(end); end.layoutGrow = 1;
-    end.appendChild(icon()); end.appendChild(av('default'));
+    end.appendChild(icon('cc-sm', 'ph-magnifying-glass')); end.appendChild(av('default'));
   } else if (narrow) {
     bind(nav, 'paddingLeft', 'space/sp-2'); bind(nav, 'paddingRight', 'space/sp-2'); edge(nav, 'border-subtle', 1, ['Top']);
     for (const t of LINKS) { const l = await link(t, t === 'People', 'tab'); nav.appendChild(l); l.layoutGrow = 1; }
@@ -196,17 +201,20 @@ async function shell(p) {
   const foot = col('shell-foot'); padX(foot, 'space/sp-2'); padY(foot, 'space/sp-2'); edge(foot, 'border-subtle', 1, ['Top']);
   foot.appendChild(await words('The small print · Privacy · Terms', { style: 'xs', ink: 'text-tertiary' }));
   const grow = (n) => { n.layoutGrow = 1; };
+  // Over the page, which has scrolled under it.
+  const over = () => { c.appendChild(nav); nav.layoutPositioning = 'ABSOLUTE'; nav.x = nav.y = 0; nav.resize(c.width, nav.height); nav.constraints = { horizontal: 'STRETCH', vertical: 'MIN' }; };
   if (narrow) {
-    if (top) c.appendChild(nav);
+    if (top && !clear) c.appendChild(nav);
     for (const n of [main, aside, foot]) { c.appendChild(n); n.layoutSizingHorizontal = 'FILL'; }
     grow(main);
     if (!top) c.appendChild(nav);
-    nav.layoutSizingHorizontal = 'FILL'; at.layoutSizingHorizontal = 'FILL'; at.textAutoResize = 'HEIGHT';
+    if (clear) over(); else nav.layoutSizingHorizontal = 'FILL';
+    at.layoutSizingHorizontal = 'FILL'; at.textAutoResize = 'HEIGHT';
   } else {
     const cols = row('shell-cols', { counterAxisAlignItems: 'MIN' }); cols.appendChild(main); cols.appendChild(aside);
     grow(main); aside.counterAxisSizingMode = 'FIXED'; bind(aside, 'width', 'size/shell-aside-w'); at.layoutSizingHorizontal = 'FILL'; at.textAutoResize = 'HEIGHT';
     const right = col('shell-right'); right.appendChild(cols); right.appendChild(foot); cols.layoutSizingHorizontal = 'FILL'; foot.layoutSizingHorizontal = 'FILL'; grow(cols);
-    if (top) { c.appendChild(nav); nav.layoutSizingHorizontal = 'FILL'; c.appendChild(right); right.layoutSizingHorizontal = 'FILL'; grow(right); }
+    if (top) { if (!clear) { c.appendChild(nav); nav.layoutSizingHorizontal = 'FILL'; } c.appendChild(right); right.layoutSizingHorizontal = 'FILL'; grow(right); if (clear) over(); }
     else {
       c.layoutMode = 'HORIZONTAL'; c.counterAxisAlignItems = 'MIN'; c.appendChild(nav); nav.layoutSizingVertical = 'FILL';
       c.appendChild(right); grow(right); right.layoutSizingVertical = 'FILL';
@@ -214,8 +222,8 @@ async function shell(p) {
   }
   return c;
 }
-const shellSet = await set('shell', { top: ['default', 'cc-top'], width: ['wide', 'narrow'] }, shell, { caption: 'shell · top × width', width: 1700,
-  description: 'Trellis .shell > .shell-grid > .shell-nav, .shell-main, .shell-aside, .shell-foot. Wide, the navigation is a column 20 cells wide (--shell-nav-w) and the aside 24 (--shell-aside-w); under 72rem the aside drops under main, and under 48rem the navigation is a tab bar. .cc-top puts it in a bar four cells tall (--shell-bar-h): .shell-brand, .shell-links, .shell-nav-end; under 48rem the links fold behind .shell-menu and open as a left tray. The shell answers to its own width (a container query): here, wide is 1200 and narrow a 393pt phone. The current link (aria-current) carries the accent mark; a dropdown is an options-card under its link (.float.cc-anchor).' });
+const shellSet = await set('shell', { top: ['default', 'cc-top'], width: ['wide', 'narrow'], bar: ['opaque', 'translucent'] }, shell, { skip: (p) => p.bar === 'translucent' && p.top === 'default', caption: 'shell · top × width × bar', width: 1700,
+  description: 'Trellis .shell > .shell-grid > .shell-nav, .shell-main, .shell-aside, .shell-foot. Wide, the navigation is a column 20 cells wide (--shell-nav-w) and the aside 24 (--shell-aside-w); under 72rem the aside drops under main, and under 48rem the navigation is a tab bar. .cc-top puts it in a bar four cells tall (--shell-bar-h): .shell-brand, .shell-links, .shell-nav-end; under 48rem the links fold behind .shell-menu and open as a left tray. The shell answers to its own width (a container query): here, wide is 1200 and narrow a 393pt phone. The current link (aria-current) carries the accent mark; a dropdown is an options-card under its link (.float.cc-anchor). bar=translucent sets --shell-nav-bg to the ground at 85%, the least it may be, and --shell-nav-blur to a cell (D115), drawn with the page scrolled under it; Figma\'s blur radius is twice the code\'s.' });
 
 // Crumbs, an outline, the skip link.
 await set('crumbs', { width: ['default', 'narrow'] }, async (p) => {

@@ -18,6 +18,11 @@ const PACKED = /*DATA*/null;
 const TYPES = { F: 'FLOAT', S: 'STRING', C: 'COLOR' };
 // A tint's values are 0: its role's hex, with the share in its name as alpha.
 const share = (pct) => Math.round(pct * 2.55).toString(16).padStart(2, '0');
+// Values of 1 are the Product variable of the same name, per mode; '' is the mode before's.
+for (const c of PACKED.collections) for (const row of c.v || []) {
+  if (row[3] === 1) row[3] = c.modes.map((m) => '@' + m.toLowerCase() + '/' + row[0].split('/').slice(1).join('/'));
+  else if (row[3]) row[3].forEach((y, i) => { if (y === '') row[3][i] = row[3][i - 1]; });
+}
 for (const c of PACKED.collections) for (const row of c.v || []) if (row[3] === 0) {
   const [, theme, role, pct] = row[0].match(/^(light|dark)\/tint\/(.+)\/(\d+)$/);
   row[3] = c.v.find((y) => y[0] === `${theme}/${role}`)[3].map((hex) => hex + share(+pct));
@@ -25,7 +30,7 @@ for (const c of PACKED.collections) for (const row of c.v || []) if (row[3] === 
 const DATA = { collections: PACKED.collections.map((c) => ({ name: c.name, modes: c.modes, variables: c.v && c.v.map(([name, t, sc, vs, cs]) => {
   const d = { name, type: TYPES[t], scopes: PACKED.scopes[sc] ? PACKED.scopes[sc].split(',') : [], values: {}, aliases: {} };
   c.modes.forEach((m, i) => { const y = vs[i]; if (typeof y === 'string' && y[0] === '@') d.aliases[m] = y.slice(1); else d.values[m] = d.type === 'COLOR' ? '#' + y : y; });
-  if (cs === 0) d.hidden = true; else if (cs !== 2) d.codeSyntax = { WEB: cs === 1 ? `var(--${name.split('/').pop()})` : cs };
+  if (cs === 0) d.hidden = true; else if (cs !== 2) d.codeSyntax = { WEB: cs === 1 ? `var(--${name.split('/').pop()})` : cs === 3 ? name.replace(/^color\/tint\/(.+)\/(\d+)$/, 'color-mix(in oklab, var(--$1) $2%, transparent)') : cs };
   return d;
 }) })) };
 const mine = DATA.collections.filter((c) => c.variables);
@@ -68,6 +73,17 @@ for (const c of mine) for (const d of c.variables) for (const a of Object.values
   if (!colOf(a)) throw new Error(`${d.name}: no collection holds ${a}`);
   byName[a] = figma.variables.createVariable(a, colOf(a), d.type); report.made.push(a + ' (empty, for its part)');
 }
+// Every family any product names is loaded, in every weight any product sets,
+// before a value is written: text bound to a family's variable changes with it,
+// and a frame can switch product. A family may lack a weight another product
+// sets (Alegreya Sans has no 600): that pair is never drawn, so only a text
+// style's own font must exist.
+const F = PACKED.fonts;
+const STYLE = { 100: 'Thin', 200: 'ExtraLight', 300: 'Light', 400: 'Regular', 500: 'Medium', 600: 'SemiBold', 700: 'Bold', 800: 'ExtraBold', 900: 'Black' };
+const fonts = await figma.listAvailableFontsAsync();
+const key = (s) => s.replace(/\s+/g, '').toLowerCase();
+const find = (fam, w) => fonts.find((x) => x.fontName.family === fam && key(x.fontName.style) === key(STYLE[w]));
+if (F) for (const fam of F.families) for (const w of F.weights) { const f = find(fam, w); if (f) await figma.loadFontAsync(f.fontName); }
 for (const c of mine) {
   const col = cols[c.name];
   for (const d of c.variables) {
@@ -85,19 +101,9 @@ for (const c of mine) {
 }
 
 // Text styles, one per role, bound to the Type variables, trimmed to the
-// capitals and the baseline: in the part that writes Type. Every family any
-// product names is loaded in every weight any product sets, so a frame can
-// switch product.
-const F = PACKED.fonts;
-if (F) {
-  const STYLE = { 100: 'Thin', 200: 'ExtraLight', 300: 'Light', 400: 'Regular', 500: 'Medium', 600: 'SemiBold', 700: 'Bold', 800: 'ExtraBold', 900: 'Black' };
-  const fonts = await figma.listAvailableFontsAsync();
-  const key = (s) => s.replace(/\s+/g, '').toLowerCase();
-  const find = (fam, w) => fonts.find((x) => x.fontName.family === fam && key(x.fontName.style) === key(STYLE[w]));
+// capitals and the baseline: in the part that writes Type.
+if (F && F.core) {
   const fontFor = (fam, w) => { const f = find(fam, w); if (!f) throw new Error(`Figma has no ${fam} at ${w}; pick another stand-in in tools/figma-variables.js`); return f.fontName; };
-  // A family may lack a weight another product sets (Alegreya Sans has no 600):
-  // that pair is never drawn, so only a text style's own font must exist.
-  for (const fam of F.families) for (const w of F.weights) { const f = find(fam, w); if (f) await figma.loadFontAsync(f.fontName); }
   const roles = [...new Set(mine.flatMap((c) => c.variables).map((x) => (x.name.match(/^type\/([a-z0-9]+)\/size$/) || [])[1]).filter(Boolean))];
   const styles = await figma.getLocalTextStylesAsync();
   for (const role of roles) {

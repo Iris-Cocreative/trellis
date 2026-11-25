@@ -17,8 +17,6 @@ const quoteSet = await set('chat-quote', { state: ['rest', 'hover'] }, async (p)
   return c;
 }, { caption: 'chat-quote · state', width: 800, description: 'Trellis a.chat-quote > span.chat-quote-author.t-xs + span.chat-quote-text.t-xs: the message this one replies to, who wrote it and two lines of it, after a two-line rule (--chat-quote-rule), its text on the next cell. A link or a button to the original; hover inks the rule and the words. The code rounds the block up to whole cells.' });
 
-// The file's mark is the specimen's, on a 12 box.
-const FILE = 'M 3.6 1.8 L 6.6 1.8 L 9 4.2 L 9 10.2 L 3.6 10.2 Z M 6.6 1.8 L 6.6 4.2 L 9 4.2';
 const FILE_TINTS = { default: 'accent', 'kind-person': 'kind-person', 'kind-group': 'kind-group', 'kind-event': 'kind-event', 'kind-course': 'kind-course', 'kind-topic': 'kind-topic', alert: 'alert' };
 const fileSet = await set('chat-file', { tint: Object.keys(FILE_TINTS) }, async (p) => {
   const c = component(), hue = FILE_TINTS[p.tint];
@@ -26,15 +24,12 @@ const fileSet = await set('chat-file', { tint: Object.keys(FILE_TINTS) }, async 
   corners(c, 'radius/r-1'); fill(c, [paint('bg-raised')]); edge(c, 'border-subtle'); bind(c, 'maxWidth', 'size/chat-file-measure');
   const m = row('chat-file-mark', { primaryAxisSizingMode: 'FIXED', counterAxisSizingMode: 'FIXED', primaryAxisAlignItems: 'CENTER' }); c.appendChild(m);
   bind(m, 'width', 'size/size-control-lg'); bind(m, 'height', 'size/size-control-lg'); corners(m, 'radius/r-h'); fill(m, [paint(hue, 0.18)]);
-  const i = figma.createFrame(); i.name = 'icon'; fill(i, []); i.resize(12, 12); i.clipsContent = false; m.appendChild(i);
-  const v = figma.createVector(); v.vectorPaths = [{ windingRule: 'NONE', data: FILE }]; i.appendChild(v); [v.x, v.y] = at(FILE);
-  stroke(v, [paint(hue)]); fill(v, []); v.strokeWeight = 0.9; v.strokeCap = 'ROUND'; v.strokeJoin = 'ROUND'; v.constraints = { horizontal: 'SCALE', vertical: 'SCALE' };
-  bind(i, 'width', 'size/size-icon'); bind(i, 'height', 'size/size-icon');
+  m.appendChild(glyph(hue, 'ph-file'));
   const pair = col('pair'); c.appendChild(pair); bind(pair, 'itemSpacing', 'space/sp-h');
   pair.appendChild(await words('seed-log-november.pdf', { style: 'sm', name: 'name' }));
   pair.appendChild(await words('PDF · 2.4 MB', { style: 'xs', ink: 'text-tertiary', name: 'size' }));
   return c;
-}, { text: ['name', 'seed-log-november.pdf'], caption: 'chat-file · tint', width: 1100, description: 'Trellis a.chat-file > span.chat-file-mark > svg.icon, then .pair > .t-sm.u-truncate + .t-xs: a file, four cells tall, at most 26 wide, its mark tinted by its kind (--chat-file-tint, the accent unless set; a variant here for each kind and the alert). A name too long is cut with an ellipsis: set Truncate on an instance\'s name. The same shape as an attachment chip.' });
+}, { text: ['name', 'seed-log-november.pdf'], swap: [['drawing', 'icon', 'ph-file']], caption: 'chat-file · tint', width: 1100, description: 'Trellis a.chat-file > span.chat-file-mark > svg.icon, then .pair > .t-sm.u-truncate + .t-xs: a file, four cells tall, at most 26 wide, its mark tinted by its kind (--chat-file-tint, the accent unless set; a variant here for each kind and the alert). A name too long is cut with an ellipsis: set Truncate on an instance\'s name. The same shape as an attachment chip.' });
 
 const linkSet = await set('chat-link', { media: ['none', 'image'] }, async (p) => {
   const c = component('VERTICAL'); c.counterAxisAlignItems = 'MIN'; width(c, 384);
@@ -135,7 +130,7 @@ await set('chat-item cc-flat', { run: ['first', 'cc-cont'], state: ['rest', 'hov
   if (on) {
     const a = row('chat-item-actions'); c.appendChild(a); a.layoutPositioning = 'ABSOLUTE';
     padX(a, 'space/sp-q'); padY(a, 'space/sp-q'); bind(a, 'itemSpacing', 'space/sp-q'); corners(a, 'radius/r-1'); fill(a, [paint('bg')]); edge(a, 'border-subtle'); a.strokeAlign = 'OUTSIDE';
-    for (let i = 0; i < 3; i++) a.appendChild(icon());
+    for (const n of ['ph-smiley', 'ph-arrow-bend-up-left', 'ph-dots-three']) a.appendChild(icon('cc-sm', n));
     a.x = c.width - 12 - a.width; a.y = -12; a.constraints = { horizontal: 'MAX', vertical: 'MIN' };
   }
   return c;
