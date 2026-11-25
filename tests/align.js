@@ -8,6 +8,7 @@
 //   the specimen's band in the opposite scheme (D96): its blocks are measured with the rest, its roles
 //   are the other theme's, its ground is painted, and its contrast holds
 //   the specimen's eyebrows, and the labels colored like them: 4.5:1 on their grounds in both themes
+//   on a Chromium phone, that an SVG image moves no font's metrics (tests/chromium.js): every measure rests on them
 // Usage:
 //   node align.js <url> [WxH] [product] [theme] [flags…]
 //   product: neutral, an example's name, or name=<address> (see target.js)
