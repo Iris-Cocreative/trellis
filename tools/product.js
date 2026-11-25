@@ -6,9 +6,13 @@
 
      shape      one :root[data-product="name"] rule, and any [data-product]
                 scopes it brings (D96), all in @layer trellis.product
-     knobs      it sets variables only, and only those product.template.css lists
+     knobs      it sets variables only, and only those product.template.css lists,
+                or a color of its own, --seed-own-<name>, which must be a color (D117);
+                --night-lift, --day-depth, --color-lift and --ink-flip must be plain
+                numbers, and over their floors
      contrast   every text role, the accent and its ink, each status as a line,
-                each stage's ink, a solid kind's ink and an outline button's
+                each stage's ink, each of the product's own colors' ink and the ink
+                on its solid fill, a solid kind's ink and an outline button's
                 meet their floors
                 (WCAG AA), in both themes, for the root and for every scope.
                 A scope whose rule names the dark theme in its selector,
@@ -47,6 +51,16 @@ const FLOORS = [['text', 'bg', 4.5], ['text', 'bg-raised', 4.5], ['text', 'bg-su
   // level, whatever color the product gave the stage. Its fill has no floor: it may be pale.
   ...[1, 2, 3, 4, 5, 6, 7].flatMap((n) => GROUNDS.map((g) => [`stage-${n}-ink`, g, 4.5]))];
 const THEMES = ['light', 'dark'];
+// A product's own color (D117): a name of its own after --seed-own-, and not the name of another's role.
+const OWN = /^--seed-own-(?!.*-(?:ink|solid|tint)$)[a-z][a-z0-9-]*$/;
+// The palette's numbers, as a layer writes them: the seed's name for each, and the least it may be.
+//   night-lift  under 0 is a night deeper than core's, and its ink dims with it: past -.025 core's own
+//               tertiary ink falls to its floor, and any hue in the grounds takes it under (D117)
+//   day-depth   a raised surface is white at 0, so nothing is left to lift it into
+//   color-lift  a hue is lifted at night, never lowered
+const NUMBERS = { 'color-lift': ['lift', 0, 'a color is lifted at night, never lowered'], 'ink-flip': ['flip', 0, 'it is a lightness'],
+  'night-lift': ['nightLift', -0.025, 'a night deeper than that takes tertiary ink under 4.5:1'], 'day-depth': ['dayDepth', 0, 'a raised surface is white by day already'] };
+const isNumber = (s) => /^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(s);
 // What an outline button takes its color from (.button.cc-outline, D115): its ink is a label.
 const OUTLINES = ['accent', 'ok', 'alert'];
 // A translucent bar (--shell-nav-bg, D115) keeps this share of its ground, and these inks are words on it.
@@ -70,7 +84,8 @@ function shape(css, label, knobs = template()) {
   if (notVar) fails.push(`${label} sets something other than a variable: ${notVar.slice(0, 60)}`);
   for (const [k, v] of decl(body)) {
     sets.set(k, v);
-    if (!knobs.has(k)) fails.push(`${label} sets ${k}, which product.template.css doesn't list`);
+    if (knobs.has(k) || OWN.test(k)) continue;
+    fails.push(k.startsWith('--seed-own-') ? `${label} sets ${k}: a color of its own can't end in -ink, -solid or -tint, which are roles` : `${label} sets ${k}, which product.template.css doesn't list`);
   }
   return { fails, sets };
 }
@@ -90,38 +105,54 @@ function scopesOf(css, label, fails = []) {
     // A seed a layer sets is that color; one it leaves, or leaves as the
     // template has it (var(--…)), follows from its accent.
     for (const [, k, v] of body.matchAll(/--seed-([a-z0-9-]+)\s*:\s*([^;]+);/g)) {
-      if (/^var\(--[a-z0-9-]+\)$/.test(v.trim())) continue;
+      // A color of the product's own follows nothing, so a name in its place is a color no check would see (D117).
+      if (/^var\(--[a-z0-9-]+\)$/.test(v.trim()) && !OWN.test('--seed-' + k)) continue;
       try { out[k] = M.parseColor(v); } catch (e) { fails.push(`${label}: --seed-${k}: ${e.message}`); }
     }
     return out;
   };
   const rootBlock = blocks.find((b) => b[1].startsWith(':root'));
   const rootBody = rootBlock ? rootBlock[4] : '';
-  const lift = rootBody.match(/--color-lift\s*:\s*([\d.]+)/), flip = rootBody.match(/--ink-flip\s*:\s*([\d.]+)/);
-  if (lift) base.color.lift = +lift[1];
-  if (flip) base.color.flip = +flip[1];
-  const nightOf = (body) => { const m = body.match(/--night-lift\s*:\s*([\d.]+)/); return m ? +m[1] : undefined; };
-  const dayOf = (body) => { const m = body.match(/--day-depth\s*:\s*([\d.]+)/); return m ? +m[1] : undefined; };
-  if (nightOf(rootBody) !== undefined) base.color.nightLift = nightOf(rootBody);
-  if (dayOf(rootBody) !== undefined) base.color.dayDepth = dayOf(rootBody);
+  // The palette's numbers, signs and all; core reads each on the root and on every scope. One
+  // that isn't a number can't be checked, so it is refused rather than passed over.
+  const numbers = (body, color) => {
+    for (const [k, v] of decl(body)) {
+      const n = NUMBERS[k.slice(2)];
+      if (!n) continue;
+      if (isNumber(v)) color[n[0]] = +v;
+      else if (!fails.some((f) => f.startsWith(`${label}: ${k} is "${v}"`))) fails.push(`${label}: ${k} is "${v}": it must be a plain number, as -.012 or .15 is, or its colors can't be checked`);
+    }
+  };
+  numbers(rootBody, base.color);
   const rootSeeds = rootBlock ? seedsOf(rootBody) : {}, out = [];
   if (rootBlock) out.push([label, null, M.scope(base, rootSeeds), THEMES]);
   for (const b of blocks.filter((x) => x !== rootBlock)) {
     const under = b[3] ? blocks.filter((x) => x !== rootBlock && !x[3] && x[2] === b[2]).map((x) => x[4]) : [];
     const bodies = [...under, b[4]];
     const sc = M.scope(base, rootSeeds, ...bodies.map(seedsOf));
-    for (const body of bodies) {
-      if (nightOf(body) !== undefined) sc.color.nightLift = nightOf(body);
-      if (dayOf(body) !== undefined) sc.color.dayDepth = dayOf(body);
-    }
+    for (const body of bodies) numbers(body, sc.color);
     out.push([`${label} ${b[1]}`, b[2], sc, b[3] ? ['dark'] : THEMES]);
   }
   return out;
 }
 
-// Contrast for one seed, in both themes, or in the ones scopesOf() says it is seen in.
+// The palette's numbers over their floors, and a night deeper than core's inside sRGB: near black
+// sRGB holds little color, so a strong --seed-night that is in at core's night can be out of it (D117).
+function ranges(label, seed) {
+  const fails = [], col = seed.color;
+  for (const [k, [name, floor, why]] of Object.entries(NUMBERS))
+    if ((col[name] || 0) < floor) fails.push(`${label}: --${k} is ${col[name]}, under its floor of ${floor}: ${why}`);
+  if (fails.length || !(col.nightLift < 0)) return fails;
+  const p = M.palette('dark', seed), out = Object.keys(p).filter((k) => /^(bg|border)/.test(k) && !M.inGamut(p[k]));
+  if (out.length) fails.push(`${label}: with --night-lift at ${col.nightLift}, the night's ${out.map((k) => '--' + k).join(', ')} ${out.length > 1 ? 'are' : 'is'} outside sRGB: quiet --seed-night (the ground, if that isn't set), or raise the lift`);
+  return fails;
+}
+
+// Contrast for one seed, in both themes, or in the ones scopesOf() says it is seen in;
+// first that the numbers it stands on are ones core can draw.
 function contrast(label, seed, themes = THEMES) {
-  const fails = [];
+  const fails = ranges(label, seed);
+  if (fails.length) return fails;
   for (const theme of themes) {
     const p = M.palette(theme, seed);
     for (const [ink, ground, floor] of FLOORS) {
@@ -140,9 +171,21 @@ function contrast(label, seed, themes = THEMES) {
     // A solid or selected quiet tag: ink computed from the neutral it fills with.
     const q = M.contrast(M.ink(p['text-tertiary'], seed), p['text-tertiary']);
     if (!(q >= 4.5)) fails.push(`contrast: ${label} ${theme}: ink on a solid quiet tag is ${q.toFixed(2)}:1, under 4.5`);
+    // Each color of the product's own (D117): its ink is text, and a label stands on its solid fill.
+    for (const k of ownOf(seed)) {
+      for (const g of GROUNDS) {
+        const r = M.contrast(p[k + '-ink'], p[g]);
+        if (!(r >= 4.5)) fails.push(`contrast: ${label} ${theme}: the ink of --seed-${k} on --${g} is ${r.toFixed(2)}:1, under 4.5`);
+      }
+      const r = M.contrast(p[k + '-solid-ink'], p[k + '-solid']);
+      if (!(r >= 4.5)) fails.push(`contrast: ${label} ${theme}: ink on the solid fill of --seed-${k} is ${r.toFixed(2)}:1, under 4.5`);
+    }
   }
   return fails;
 }
+
+// The colors of the product's own a seed holds: own-gold, own-inner, … (D117).
+function ownOf(seed) { return Object.keys(seed.color.seeds).filter((k) => OWN.test('--seed-' + k)); }
 
 // Everything a product owns: shape, knobs, and contrast on every scope.
 function validate(css, label = 'product layer', knobs = template()) {
@@ -151,7 +194,7 @@ function validate(css, label = 'product layer', knobs = template()) {
   return { fails, sets };
 }
 
-module.exports = { validate, shape, scopesOf, contrast, template, FLOORS, SOLIDS, OUTLINES, BAR, GROUNDS, THEMES };
+module.exports = { validate, shape, scopesOf, contrast, ownOf, template, FLOORS, SOLIDS, OUTLINES, BAR, GROUNDS, THEMES };
 
 if (require.main === module) {
   const files = process.argv.slice(2);
@@ -163,7 +206,8 @@ if (require.main === module) {
     try { css = fs.readFileSync(f, 'utf8'); } catch (e) { console.log(`${f}: can't read it (${e.code || e.message})`); failed++; continue; }
     const { fails, sets } = validate(css, f, knobs);
     const all = scopesOf(css, f), n = all.length, night = all.filter((s) => s[3].length === 1).length;
-    console.log(`${f}: ${sets.size} knobs, ${n} ${n === 1 ? 'scope' : 'scopes'}${night ? ` (${night} always dark, so checked at night alone)` : ''} · ${fails.length ? fails.length + ' FAILED' : 'ok'}`);
+    const own = [...new Set(all.flatMap((s) => ownOf(s[2])))];
+    console.log(`${f}: ${sets.size} knobs, ${n} ${n === 1 ? 'scope' : 'scopes'}${own.length ? `, ${own.length} ${own.length === 1 ? 'color' : 'colors'} of its own (${own.map((k) => k.slice(4)).join(', ')})` : ''}${night ? ` (${night} always dark, so checked at night alone)` : ''} · ${fails.length ? fails.length + ' FAILED' : 'ok'}`);
     fails.forEach((x) => console.log('  ' + x));
     if (fails.length) failed++;
   }

@@ -85,9 +85,16 @@
     --seed-stage-5: var(--derived-stage-5);              /* the fifth step */
     --seed-stage-6: var(--derived-stage-6);              /* the sixth step */
     --seed-stage-7: var(--derived-stage-7);              /* the seventh and last: what is closed or put away, if the process has that */
+    /* Colors of your own (D117), as many as you have, each by your own name after
+       "--seed-own-", as in "--seed-own-gold: #c09642". A color, #rrggbb or
+       oklch(l c h), of any lightness. An element uses one with class="u-seed" (or
+       .cc-seed on a tag or a dot) and "--seed: var(--seed-own-gold)": it gets
+       a fill (--seeded), --seeded-ink (reads as text), --seeded-tint, and
+       a solid fill (--seeded-solid) with the --seeded-solid-ink a label on it takes, in both
+       themes, and each is checked as your other seeds are. ------------------- */
     --color-lift: .17;                                   /* how much lighter every hue is in the dark theme */
-    --night-lift: 0;                                     /* how much lighter every ground and edge is at night: 0 is the default night ground, .15 a lighter dusk */
-    --day-depth: 0;                                      /* how much darker every ground and edge is by day: 0 is white paper, .02 a faint tint, like linen */
+    --night-lift: 0;                                     /* how much lighter every ground and edge is at night: 0 is the default night ground, .1 a lighter dusk, -.012 a deeper night; never under -.025 */
+    --day-depth: 0;                                      /* how much darker every ground and edge is by day: 0 is white paper, .02 a faint tint, like linen; never under 0 */
     --ink-flip: .58;                                     /* ink on the accent is white below this lightness, dark above */
     --gradient-space: oklch;                             /* the space gradients interpolate in */
     --gradient-turn: 40;                                 /* degrees the accent gradient turns its hue */

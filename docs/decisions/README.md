@@ -128,3 +128,4 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D114](D114.md) | A scope that is always dark says so in its selector | 2026-11-24 | accepted |
 | [D115](D115.md) | What a button does, what a label quiets, and what a bar lets through | 2026-11-24 | accepted |
 | [D116](D116.md) | A field's box holds slots, and a card can be a choice | 2026-11-24 | accepted |
+| [D117](D117.md) | A product's own colors, named by it and derived where they are used; and a night deeper than core's | 2026-11-24 | accepted |
