@@ -5,6 +5,8 @@
 //   boxes (cards, plates, stacks, rows, tags, buttons, …): top and left
 //   prose: every block in a .prose, read from its bare tag, by the same rules
 //   keyboard reach: every region that scrolls sideways can be focused, or holds something that can
+//   the specimen's band in the opposite scheme (D96): its blocks are measured with the rest, its roles
+//   are the other theme's, its ground is painted, and its contrast holds
 // Usage:
 //   node align.js <url> [WxH] [product] [theme] [flags…]
 //   product: neutral, an example's name, or name=<address> (see target.js)
@@ -20,6 +22,7 @@
 const pw = require(process.env.PLAYWRIGHT || 'playwright');
 const ready = require('./ready');
 const target = require('./target');
+const { FLOORS } = require('../tools/product');
 
 (async () => {
   const [url, size = '1440x900', product = 'neutral', theme = 'auto', ...flags] = process.argv.slice(2);
@@ -64,7 +67,7 @@ const target = require('./target');
     const SKIP = '.measure-layer,svg,[popover],.nav,.float,.avatar,.code-panel,.shell-nav,[data-by-ratio]';
     const off = (v) => { const m = ((v % u) + u) % u; return m > .5 && m < u - .5; };
     const desc = e => e.tagName.toLowerCase() + '.' + [...e.classList].join('.') + ' "' + (e.textContent || '').trim().slice(0, 28) + '"';
-    const out = { u, text: 0, box: 0, offText: [], offBox: [] };
+    const out = { u, text: 0, box: 0, offText: [], offBox: [], band: 0 };
     // Prose: bare tags, no classes, so the roles are read from the tag. Inside a
     // table only the rows are checked: a cell's left edge belongs to its column.
     const P_STANDS = 'h1,h2,h3', P_INLINEISH = 'td,th,tbody,thead,summary *,pre *,pre';
@@ -121,6 +124,7 @@ const target = require('./target');
       const t = b.top - pr.top, bot = b.bottom - pr.top, l = b.left - pr.left;
       // A dialog is closed here; open, it aligns to the screen, not the page (rule 16).
       if (e.closest('dialog')) continue;
+      if (e.closest('[data-scheme-opposite]') && (TEXT.test(e.className) || BOX.test(e.className))) out.band++;
       // Cap-centered text that wraps hangs like other text (rule 8): its top and
       // its rounded end are on lines.
       if (e.matches('.cap-center[data-trellis-wrap]')) {
@@ -168,6 +172,79 @@ const target = require('./target');
     out.calcSize = CSS.supports('height', 'calc-size(fit-content, size)');
     return out;
   });
+  // A scheme on part of a page (D96): the specimen's band is in the scheme the
+  // page isn't. Its roles must be the ones the page has in that theme, so the
+  // page is put in it for a moment and read; it must paint its ground, read from
+  // the pixels where nothing lies over it; and its text must meet its floors.
+  const band = await page.evaluate(FLOORS => {
+    const band = document.querySelector('[data-scheme-opposite]'), root = document.documentElement;
+    // Only the specimen has one (and its Color section): the Tailwind page doesn't.
+    if (!band) return document.getElementById('color') ? { fails: ['the specimen has no band in the opposite scheme'] } : null;
+    const fails = [], cs = getComputedStyle(band);
+    const dark = e => { const s = getComputedStyle(e).colorScheme; return s === 'dark' || (s !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches); };
+    const want = dark(root) ? 'light' : 'dark';
+    if (cs.colorScheme !== want) fails.push(`its color scheme is ${cs.colorScheme}, on a ${dark(root) ? 'dark' : 'light'} page`);
+    const ctx = Object.assign(document.createElement('canvas'), { width: 1, height: 1 }).getContext('2d', { willReadFrequently: true });
+    const px = (...colors) => { ctx.clearRect(0, 0, 1, 1); colors.forEach(c => { ctx.fillStyle = c; ctx.fillRect(0, 0, 1, 1); }); return [...ctx.getImageData(0, 0, 1, 1).data]; };
+    const lum = p => { const f = p.slice(0, 3).map(v => { v /= 255; return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }); return .2126 * f[0] + .7152 * f[1] + .0722 * f[2]; };
+    const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
+    const same = (a, b, t) => a.every((v, i) => Math.abs(v - b[i]) <= t);
+    const ROLES = ['bg', 'bg-raised', 'bg-raised-2', 'bg-raised-3', 'bg-sunken', 'bg-hover', 'text', 'text-secondary', 'text-tertiary', 'text-faint', 'border', 'border-subtle', 'border-strong',
+      'accent', 'accent-ink', 'focus', 'kind-person', 'kind-group', 'kind-event', 'kind-course', 'kind-topic', 'ok', 'warn', 'alert', ...[1, 2, 3, 4, 5, 6, 7].flatMap(n => [`stage-${n}`, `stage-${n}-ink`, `stage-${n}-tint`])];
+    const read = host => {
+      const probe = document.createElement('i'); probe.style.cssText = 'position: absolute; transition: none';
+      host.appendChild(probe);
+      const out = Object.fromEntries(ROLES.map(r => { probe.style.color = `var(--${r})`; return [r, px(getComputedStyle(probe).color)]; }));
+      probe.remove();
+      return out;
+    };
+    const at = root.getAttribute('data-theme'), mine = read(band), here = read(document.body);
+    root.setAttribute('data-theme', want);
+    const theirs = read(document.body);
+    if (at === null) root.removeAttribute('data-theme'); else root.setAttribute('data-theme', at);
+    ROLES.forEach(r => { if (!same(mine[r], theirs[r], 1)) fails.push(`--${r} is ${mine[r]} in it, ${theirs[r]} on a ${want} page`); });
+    const moved = ROLES.filter(r => !same(theirs[r], here[r], 1)).length;
+    if (moved < ROLES.length / 2) fails.push(`only ${moved} of ${ROLES.length} roles differ between the themes: nothing was proved`);
+    FLOORS.forEach(([ink, ground, floor]) => { const r = ratio(mine[ink], mine[ground]); if (r < floor) fails.push(`--${ink} on --${ground} is ${r.toFixed(2)}:1 in it, under ${floor}`); });
+    // The text it holds, as drawn: each run's ink on the grounds under it.
+    let low = 99, n = 0;
+    for (const e of band.querySelectorAll('*')) {
+      const words = e.matches('input:not([type="checkbox"])') ? e.value : [...e.childNodes].filter(c => c.nodeType === 3).map(c => c.data.trim()).join('');
+      if (!words || !e.getClientRects().length) continue;
+      const grounds = [];
+      for (let a = e; a; a = a === band ? null : a.parentElement) grounds.unshift(getComputedStyle(a).backgroundColor);
+      const g = px(...grounds), r = ratio(px(...grounds, getComputedStyle(e).color), g);
+      n++; low = Math.min(low, r);
+      if (r < 4.5) fails.push(`"${words.slice(0, 24)}" is ${r.toFixed(2)}:1 on its ground, under 4.5`);
+    }
+    if (n < 20) fails.push(`only ${n} pieces of text were found in it`);
+    if (!same(px(cs.backgroundColor), mine.bg, 1)) fails.push(`its ground is ${px(cs.backgroundColor)}, not --bg (${mine.bg})`);
+    band.scrollIntoView({ block: 'start', behavior: 'instant' });
+    window.scrollBy({ top: -innerHeight / 2, behavior: 'instant' });
+    const b = band.getBoundingClientRect(), pr = document.getElementById('top').getBoundingClientRect(), u = Trellis.cell();
+    if (Math.abs(b.left - pr.left) > .5 || Math.abs(b.right - pr.right) > .5) fails.push(`it runs ${b.left.toFixed(1)} to ${b.right.toFixed(1)}, the frame ${pr.left.toFixed(1)} to ${pr.right.toFixed(1)}`);
+    const spots = [[b.left + u / 2, b.top + u / 2], [b.right - u / 2, b.top + u / 2], [b.left + u / 2, b.top - u / 2]];
+    return { fails, low, n, ground: mine.bg, spots: spots.map(([x, y], i) => ({ x, y, inside: i < 2, clear: document.elementFromPoint(x, y) === (i < 2 ? band : document.getElementById('top')) })) };
+  }, FLOORS);
+  // Measure draws over the page, so its pixels say nothing here.
+  if (band && band.spots && !flags.includes('measure')) {
+    await page.waitForTimeout(100);
+    const shot = (await page.screenshot({ scale: 'css' })).toString('base64');
+    const seen = await page.evaluate(async ([shot, spots]) => {
+      const img = new Image(); img.src = 'data:image/png;base64,' + shot; await img.decode();
+      const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+      const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+      return spots.map(s => [...g.getImageData(Math.floor(s.x), Math.floor(s.y), 1, 1).data]);
+    }, [shot, band.spots]);
+    const near = (a, b) => a.every((v, i) => Math.abs(v - b[i]) <= 4);
+    if (!band.spots.some(s => s.inside && s.clear)) band.fails.push('no clear point on its ground was found');
+    band.spots.forEach((s, i) => {
+      if (!s.clear) return;
+      if (s.inside && !near(seen[i], band.ground)) band.fails.push(`at ${s.x.toFixed(0)},${s.y.toFixed(0)} the pixel is ${seen[i]}, its ground ${band.ground}`);
+      if (!s.inside && near(seen[i], band.ground)) band.fails.push(`its ground is painted above it too, at ${s.x.toFixed(0)},${s.y.toFixed(0)}`);
+    });
+  }
+  if (band && r.band < 30) band.fails.push(`only ${r.band} of its blocks were measured`);
   // The one change a reader makes inside a post: open every details and measure again.
   const again = await page.evaluate(() => { document.querySelectorAll('.prose details').forEach(d => { d.open = true; }); return 1; })
     .then(() => ready(page))
@@ -186,15 +263,17 @@ const target = require('./target');
     }));
   r.offProse.push(...again);
   await Promise.race([browser.close(), new Promise(r => setTimeout(r, 5000))]); // WebKit on Windows can hang on close
-  const bad = r.offText.length + r.offBox.length + r.offProse.length + errors.length + r.noReach.length + (r.scrollW > r.vw ? 1 : 0);
+  const bad = r.offText.length + r.offBox.length + r.offProse.length + errors.length + r.noReach.length + (r.scrollW > r.vw ? 1 : 0) + (band ? band.fails.length : 0);
   console.log(`${flags.includes('webkit') ? 'webkit' : 'chromium'} ${size} ${product} ${theme} ${flags.join(' ')} :: u=${r.u} frame=${r.frame} gutter=${r.gutter} ` +
     `text ${r.offText.length}/${r.text} off · boxes ${r.offBox.length}/${r.box} off · prose ${r.offProse.length}/${r.prose} off · scroll ${r.scrollW}/${r.vw} · unreachable ${r.noReach.length}/${r.scrollers} · errors ${errors.length}` +
+    (band && band.low ? ` · band ${r.band} blocks, ${band.fails.length} off, text from ${band.low.toFixed(1)}:1` : '') +
     (r.calcSize ? '' : ' · (no calc-size: settle.js)'));
   if (process.env.VERBOSE || bad) {
     r.offText.slice(0, 12).forEach(x => console.log('  text  ' + x));
     r.offBox.slice(0, 12).forEach(x => console.log('  box   ' + x));
     r.offProse.slice(0, Number(process.env.SHOW || 12)).forEach(x => console.log('  prose ' + x));
     r.wide.forEach(x => console.log('  wide  ' + x + ' reaches past the screen'));
+    if (band) band.fails.slice(0, 12).forEach(x => console.log('  band  ' + x));
     r.noReach.slice(0, 12).forEach(x => console.log('  reach ' + x + ' scrolls sideways with no way in for a keyboard'));
     errors.slice(0, 5).forEach(x => console.log('  error ' + x));
   }

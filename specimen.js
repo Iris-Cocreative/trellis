@@ -51,6 +51,8 @@
   function apply() {
     if (state.theme === 'auto') root.removeAttribute('data-theme');
     else root.setAttribute('data-theme', resolvedTheme());
+    // The band in the other scheme: a scope with data-theme, the one the page isn't in.
+    document.querySelectorAll('[data-scheme-opposite]').forEach(function (b) { b.setAttribute('data-theme', resolvedTheme() === 'dark' ? 'light' : 'dark'); });
     if (state.grid === 'off') root.removeAttribute('data-grid'); else root.setAttribute('data-grid', state.grid);
     root.toggleAttribute('data-measure', state.measure);
     root.toggleAttribute('data-no-outset', !state.outset);
