@@ -240,7 +240,7 @@
   .seed { --stack-gap: var(--sp-1); }
   .seed .t-label { color: var(--text-tertiary); }
   .qualities { --stack-gap: var(--sp-2); }
-  .qualities .rules { --cols: 5; }
+  .qualities .rules { --cols: 4; }
   @container page (width < 1100px) { .qualities .rules { --cols: 2; } }
   @container page (width < 576px) { .qualities .rules { --cols: 1; } }
 

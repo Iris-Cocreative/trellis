@@ -2,9 +2,9 @@
    A product layer · copy this file, name it for your product, keep the knobs
    you change and delete the rest.
 
-   A product only sets variables on :root. It never redraws a primitive, and it
-   never adds a class. If a product needs something a knob can't give it, that
-   is a request for a new knob in core, not a rule here.
+   A product only sets variables on :root. It doesn't add classes or override
+   core's rules. If you need something no knob provides, ask for a new knob in
+   core.
 
    Every value below is core's default. tests/contract.js checks that, and that
    every knob a product sets is listed here. A knob whose line says "Follows"
@@ -64,9 +64,9 @@
     --seed-neutral: var(--derived-neutral);              /* surfaces, ink and edges: its hue and chroma. Follows the accent; set a color to choose your own */
     --seed-ground: var(--seed-neutral);                  /* grounds and edges alone, when paper and ink differ in hue. Follows the neutral */
     --seed-ink: var(--seed-neutral);                     /* text alone. Follows the neutral */
-    --seed-night: var(--seed-ground);                    /* the grounds and edges at night: linen by day, forest by night. Follows the ground */
-    --seed-ink-night: var(--seed-ink);                   /* text at night: forest ink by day, cream by night. Follows the ink */
-    --seed-accent-night: var(--derived-accent-night);   /* the accent at night. Follows the accent, lifted by --color-lift; set a color for a night of its own (forest by day, sage by night) */
+    --seed-night: var(--seed-ground);                    /* the grounds and edges at night, e.g. a beige ground by day and a dark green one at night. Follows the ground */
+    --seed-ink-night: var(--seed-ink);                   /* text at night, e.g. dark green ink by day and cream at night. Follows the ink */
+    --seed-accent-night: var(--derived-accent-night);   /* the accent at night. Follows the accent, lifted by --color-lift; set a color for a night of its own (e.g. dark green by day, a light sage green at night) */
     --seed-person: var(--derived-person);                /* a person: rings and tags. Follows the accent; set a color to choose your own */
     --seed-group: var(--derived-group);                  /* a group. Follows the accent, as above */
     --seed-event: var(--derived-event);                  /* an event. Follows the accent, as above */
@@ -83,8 +83,8 @@
     --seed-stage-6: var(--derived-stage-6);              /* the sixth step */
     --seed-stage-7: var(--derived-stage-7);              /* the seventh and last: what is closed or put away, if the process has that */
     --color-lift: .17;                                   /* how much lighter every hue is in the dark theme */
-    --night-lift: 0;                                     /* how much lighter every ground and edge is at night: 0 is night, .15 a dusk */
-    --day-depth: 0;                                      /* how much darker every ground and edge is by day: 0 is white paper, .02 linen */
+    --night-lift: 0;                                     /* how much lighter every ground and edge is at night: 0 is the default night ground, .15 a lighter dusk */
+    --day-depth: 0;                                      /* how much darker every ground and edge is by day: 0 is white paper, .02 a faint tint, like linen */
     --ink-flip: .58;                                     /* ink on the accent is white below this lightness, dark above */
     --gradient-space: oklch;                             /* the space gradients interpolate in */
     --gradient-turn: 40;                                 /* degrees the accent gradient turns its hue */

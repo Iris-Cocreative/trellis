@@ -184,7 +184,7 @@
   sec.querySelector('[data-pal-reset]').addEventListener('click', function () { state = Object.assign({}, DEFAULT); render(); });
   sec.querySelector('[data-pal-copy]').addEventListener('click', function (e) {
     var label = e.currentTarget.querySelector('.button-label');
-    if (navigator.clipboard) navigator.clipboard.writeText(out.textContent).then(function () { label.textContent = 'Copied'; setTimeout(function () { label.textContent = 'Copy'; }, 1500); });
+    if (navigator.clipboard) navigator.clipboard.writeText(out.textContent).then(function () { label.textContent = 'Copied'; setTimeout(function () { label.textContent = 'Copy CSS'; }, 1500); });
   });
   // The wheel draws in the page's inks: follow the theme, the cell and the size.
   new MutationObserver(function () { requestAnimationFrame(render); }).observe(root, { attributes: true, attributeFilter: ['data-theme'] });

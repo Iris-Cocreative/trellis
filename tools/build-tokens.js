@@ -44,7 +44,7 @@ function build(tokens) {
   const px = pt => n(pt) + 'px';
   out.push(`    /* The cell's target: ${lo}pt up to a ${val(c, 'screen-narrow')}pt screen, rising to ${hi}pt at ${val(c, 'screen-wide')}pt.`,
     `       It follows the reader's text size up to ${cap}× and no further: above that only type grows.`,
-    `       --u-type is the rem line alone, the cell the reader's text size asks for past the cap too. */`);
+    `       --u-type is the rem formula alone, with no cap and no dial: the cell the reader's text size asks for. */`);
   line('u-type', `clamp(${rem(lo)}, calc(${rem(intercept)} + ${n(slope * 100)}vw), ${rem(hi)})`);
   line('u-base', `min(var(--u-type), ` +
     `clamp(${px(lo * cap)}, calc(${px(intercept * cap)} + ${n(slope * 100)}vw), ${px(hi * cap)}))`);
@@ -124,13 +124,14 @@ function build(tokens) {
   out.push('    /* Seeds: one color each, in its light-theme form. A product sets the accent. The others follow',
     '       from it, and a product may set any of them in its place (--seed-neutral, --seed-person, …,',
     '       --seed-ground and --seed-ink, the neutral for grounds and for text, and --seed-night, the ground at',
-    '       night; --seed-stage-1 to -' + STAGES.length + ', the steps of a process). They have no default:',
-    '       one a layer set carries into its scopes; one it left follows each scope\'s accent. Never a role. */');
+    '       night; --seed-stage-1 to -' + STAGES.length + ', the steps of a process). None has a default. If a',
+    '       product layer sets one, it carries into its scopes; if not, each scope works it out from its own',
+    '       accent. Products set seeds here, never roles. */');
   for (const k of keys(col.seed)) line(`seed-${k}`, oklch(col.seed[k].$value));
   line('color-lift', short(col.lift.$value), 'how much lighter a hue is in the dark theme');
   line('ink-flip', short(col['ink-flip'].$value), 'ink on a fill: white below this lightness, dark above it');
-  line('day-depth', short(col['day-depth'].$value), 'how much darker every ground and edge is by day: 0 is white paper, higher is linen');
-  line('night-lift', short(col['night-lift'].$value), 'how much lighter every ground and edge is at night: 0 is night, higher is dusk');
+  line('day-depth', short(col['day-depth'].$value), 'how much darker every ground and edge is by day: 0 is white paper, higher is a beige paper');
+  line('night-lift', short(col['night-lift'].$value), 'how much lighter every ground and edge is at night: 0 is core\'s night, higher is lighter, like dusk');
   line('gradient-space', col.gradient.space.$value, 'the space gradients interpolate in');
   line('gradient-turn', n(col.gradient.turn.$value), 'degrees the accent gradient turns its hue');
   out.push('  }', '', '  /* Everything that follows from the seeds, on the root and again on every scope (D96), so a',
