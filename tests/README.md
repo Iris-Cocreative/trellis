@@ -117,6 +117,8 @@ Then each median is judged against the base's: no more than `PERF_TOLERANCE` (0.
 
 On 2026-11-19 the development PC (20 cores, about 57% busy with 32 Claude processes and about 130 browser processes) measured, alone, five WebKit first settles of 1,725 to 1,872ms. Alternated with 0.10.0 it measured 1,347 to 2,204ms (median 1,582ms) against 0.10.0's 1,343 to 1,536ms (median 1,499ms): within the tolerance, so the runtime added since 0.10.0 costs no more than the noise. Run to run, the same build moved by up to a quarter on that machine.
 
+On 2026-11-24, at `598efef`, the development PC measured, alone, five WebKit first settles of 1,198 to 1,248ms (median 1,238ms), one changed row 65ms and 1,000 rows 531ms: inside every budget. Alternated with 0.10.0, served from its own worktree on a port checked to be that worktree's, it measured 1,207 to 1,250ms (median 1,220ms) against 1,152 to 1,527ms (median 1,253ms). Blocks off their lines were 0 of 5,000 throughout. The PC was not quiet: 16 to 46% busy in samples taken before and after. Check what a port serves before trusting a base (`curl <url>/.git` names the worktree): a first comparison that day was thrown out because a leftover server already held the base's port.
+
 A WebKit browser on Windows sometimes never answers `browser.close()` once a test has finished. Every test now gives it five seconds and then exits, so a finished test cannot sit with no output. Each run also has two minutes to settle, or `perf.js` fails and says which run stalled.
 
 ### What the numbers changed
