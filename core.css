@@ -1239,13 +1239,15 @@
   .shell-grid {
     --shell-nav-w: calc(var(--u) * 20);
     --shell-aside-w: calc(var(--u) * 24);
+    --shell-aside-col: 0px;   /* the aside's column, there only when there is an aside (below) */
     --shell-pad: var(--sp-2);
     display: grid;
     min-height: var(--shell-h, 100svh);
-    grid-template-columns: var(--shell-nav-w) minmax(0, 1fr) var(--shell-aside-w);
+    grid-template-columns: var(--shell-nav-w) minmax(0, 1fr) var(--shell-aside-col);
     grid-template-areas: "nav main aside" "nav foot foot";
     grid-template-rows: 1fr auto;
   }
+  .shell-grid:has(> .shell-aside:not([hidden])) { --shell-aside-col: var(--shell-aside-w); }
   .shell-nav {
     grid-area: nav;
     position: sticky; inset-block-start: 0;
@@ -1324,7 +1326,7 @@
      behind the menu button and open as a left tray (see .shell-links). */
   .shell.cc-top > .shell-grid {
     --shell-bar-h: var(--sp-4);
-    grid-template-columns: minmax(0, 1fr) var(--shell-aside-w);
+    grid-template-columns: minmax(0, 1fr) var(--shell-aside-col);
     grid-template-areas: "nav nav" "main aside" "foot foot";
     grid-template-rows: auto 1fr auto;
   }
@@ -2120,6 +2122,8 @@
   /* In a bar the current link's mark is under it, not beside it. */
   .shell.cc-top .shell-link[aria-current]:not([aria-current="false"]) { box-shadow: inset 0 calc(var(--line) * -2) 0 var(--accent); border-radius: var(--r-h) var(--r-h) 0 0; }
   @container shell (width < 48rem) {
+    /* A tab bar holds destinations: a side column's brand is not one of them. */
+    .shell:not(.cc-top) .shell-nav > .shell-brand { display: none; }
     .shell.cc-top .shell-menu { display: inline-flex; }
     .shell.cc-top .shell-links[popover]:not(:popover-open) { display: none; }
     .shell.cc-top .shell-links:popover-open {
@@ -2685,6 +2689,22 @@
     outline: var(--line) var(--chat-edge-style) var(--chat-edge);
     outline-offset: calc(var(--line) * -1);
   }
+  /* A message is typed text: a bubble of words and inline marks keeps its line
+     breaks and its spaces, as the composer showed them (D112). A bubble that
+     holds markup of its own (prose, a paragraph, a list, a line break) sets its
+     own lines, and the spaces between its tags mean nothing. */
+  :where(.chat-item-bubble:not(.prose, :has(> :is(br, p, div, ul, ol, dl, pre, blockquote, figure, table, details, section, article, form, hr, h1, h2, h3, h4, h5, h6, .chat-quote, .chat-file, .chat-link, .chat-reactions)))) { white-space: pre-wrap; }
+  /* Prose in a bubble, or a bubble that is one. A .prose is a size container,
+     and a container's width can't come from what it holds (D74): in a bubble
+     that shrinks to its content it had no width at all. There it is not one,
+     and its type answers to the thread, as the words in the bubbles beside it
+     do. What needs a width to measure from takes the message's measure
+     instead: code and an embed, and a wall post, which has no bubble to
+     shrink. Flat rows are already as wide as the row. */
+  :is(.chat-item-bubble.prose, .chat-item-bubble .prose) { container-type: var(--chat-prose, normal); }
+  .chat-item-bubble:is(.prose, :has(.prose)):is(.chat-item.cc-wall .chat-item-bubble, :has(:is(pre, iframe))) { --chat-prose: inline-size; align-self: stretch; }
+  /* Code steps out of its column as far as the bubble's padding, no further. */
+  .chat-item:not(.cc-wall, .cc-flat, .chat-thread.cc-flat > *) :is(.chat-item-bubble.prose, .chat-item-bubble .prose) > pre { margin-inline: max(var(--outset) * var(--u) * -1, var(--chat-pad) * -1); }
   /* A continuing message's own time, in the avatar's column, shown on hover and
      focus: as wide as the column and clipped to it, on the text's baseline. */
   .chat-item-time {
@@ -2752,6 +2772,7 @@
     --chat-pad: 0px; --chat-measure: 100%;
     --chat-avatar: inline-grid; --chat-meta-order: 0;
     --chat-avatar-n: 3;
+    --chat-prose: inline-size;
     --chat-name-ink: var(--text); --chat-name-weight: var(--fw-strong);
   }
   :is(.chat-thread.cc-flat > .chat-item, .chat-item.cc-flat) > .avatar { --av-n: var(--chat-avatar-n); --av-gap: 0px; --av-ring: 0px; }
