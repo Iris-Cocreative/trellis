@@ -12,7 +12,8 @@
                 numbers, and over their floors
      contrast   every text role, the accent and its ink, each status as a line,
                 each stage's ink, each of the product's own colors' ink and the ink
-                on its solid fill, and a solid kind's ink meet their floors
+                on its solid fill, a solid kind's ink and an outline button's
+                meet their floors
                 (WCAG AA), in both themes, for the root and for every scope.
                 A scope whose rule names the dark theme in its selector,
                 [data-product="part"][data-theme="dark"], never applies by day,
@@ -60,6 +61,10 @@ const OWN = /^--seed-own-(?!.*-(?:ink|solid|tint)$)[a-z][a-z0-9-]*$/;
 const NUMBERS = { 'color-lift': ['lift', 0, 'a color is lifted at night, never lowered'], 'ink-flip': ['flip', 0, 'it is a lightness'],
   'night-lift': ['nightLift', -0.025, 'a night deeper than that takes tertiary ink under 4.5:1'], 'day-depth': ['dayDepth', 0, 'a raised surface is white by day already'] };
 const isNumber = (s) => /^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(s);
+// What an outline button takes its color from (.button.cc-outline, D115): its ink is a label.
+const OUTLINES = ['accent', 'ok', 'alert'];
+// A translucent bar (--shell-nav-bg, D115) keeps this share of its ground, and these inks are words on it.
+const BAR = { share: 0.85, grounds: ['bg', 'bg-raised'], inks: ['text', 'text-secondary'] };
 const SOLIDS = ['kind-person', 'kind-group', 'kind-event', 'kind-course', 'kind-topic', 'ok', 'warn', 'alert'];
 
 // The shape and the knobs. Returns the failures and the knobs the layer sets.
@@ -159,6 +164,13 @@ function contrast(label, seed, themes = THEMES) {
       const r = M.contrast(M.ink(p[k], seed), p[k]);
       if (!(r >= 4.5)) fails.push(`contrast: ${label} ${theme}: ink on a solid --${k} is ${r.toFixed(2)}:1, under 4.5`);
     }
+    for (const k of OUTLINES) for (const g of GROUNDS) {
+      const r = M.contrast(M.outlineInk(p[k], theme), p[g]);
+      if (!(r >= 4.5)) fails.push(`contrast: ${label} ${theme}: an outline button's ink from --${k} on --${g} is ${r.toFixed(2)}:1, under 4.5`);
+    }
+    // A solid or selected quiet tag: ink computed from the neutral it fills with.
+    const q = M.contrast(M.ink(p['text-tertiary'], seed), p['text-tertiary']);
+    if (!(q >= 4.5)) fails.push(`contrast: ${label} ${theme}: ink on a solid quiet tag is ${q.toFixed(2)}:1, under 4.5`);
     // Each color of the product's own (D117): its ink is text, and a label stands on its solid fill.
     for (const k of ownOf(seed)) {
       for (const g of GROUNDS) {
@@ -182,7 +194,7 @@ function validate(css, label = 'product layer', knobs = template()) {
   return { fails, sets };
 }
 
-module.exports = { validate, shape, scopesOf, contrast, ownOf, template, FLOORS, SOLIDS };
+module.exports = { validate, shape, scopesOf, contrast, ownOf, template, FLOORS, SOLIDS, OUTLINES, BAR, GROUNDS, THEMES };
 
 if (require.main === module) {
   const files = process.argv.slice(2);

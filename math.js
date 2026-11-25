@@ -323,6 +323,12 @@
     var f = parseColor(fill), flip = (seed || SEED).color.flip;
     return f[0] < flip ? [1, 0, f[2]] : [0.16, f[1] * 0.3, f[2]];
   }
+  // The label and the edge of an outline button (D115): its kind's color in this
+  // theme, moved to where it reads as text, hovered and pressed too.
+  function outlineInk(color, theme) {
+    var c = parseColor(color);
+    return shade(c, theme === 'dark' ? Math.max(c[0], 0.77) : Math.min(c[0], 0.46));
+  }
   // ---- One seed --------------------------------------------------------------
   // The seeds that follow from the accent (D90). core.css says the same with
   // relative colors, so it is arithmetic CSS can state: no search, no loop.
@@ -455,7 +461,7 @@
     typeFrom: typeFrom, typeSteps: typeSteps, typeEnds: typeEnds, typeSize: typeSize, lineRatio: lineRatio, lineHeight: lineHeight,
     standPad: standPad, hang: hang, settleCluster: settleCluster, spaceAfter: spaceAfter, spaceAfterInStack: spaceAfterInStack,
     stands: stands, isHeading: isHeading, seedFromTokens: seedFromTokens,
-    parseColor: parseColor, hex: hex, inGamut: inGamut, contrast: contrast, hue: hue, ink: ink, shade: shade, stage: stage, stageInk: stageInk, ownSolid: ownSolid, palette: palette,
+    parseColor: parseColor, hex: hex, inGamut: inGamut, contrast: contrast, hue: hue, ink: ink, shade: shade, stage: stage, stageInk: stageInk, ownSolid: ownSolid, outlineInk: outlineInk, palette: palette,
     clear: clear, chromaLimit: chromaLimit, follow: follow, derived: derived, seeds: seeds, scope: scope
   };
 });
