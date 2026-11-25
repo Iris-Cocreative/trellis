@@ -15,7 +15,7 @@ Find the need here first. If it is here, use it and write no CSS for it.
 
 | You need | Use |
 |---|---|
-| A page with navigation, main, a side panel | `.shell` > `.shell-grid` > `.shell-nav`, `.shell-main`, `.shell-aside`, `.shell-foot`; `.cc-top` for a top bar |
+| A page with navigation, main, a side panel | `.shell` > `.shell-grid` > `.shell-nav`, `.shell-main`, `.shell-aside`, `.shell-foot`; `.cc-top` for a top bar. No aside, no element: its column goes with it, so never `--shell-aside-w: 0px`. A `.shell-brand` in a side column leaves the phone's tab bar by itself |
 | Things one above another, or in a wrapping row | `.stack` (`--stack-gap`), `.cluster` (`--cluster-gap`) |
 | Columns | `.cols` (`--cols`), `.split` (`--split-a`, `--split-b`), `.grid` (`--grid-min`) |
 | A sideways scroller, lanes | `.rail`, `.board` (give each `tabindex="0"`, a role and a label) |
@@ -27,15 +27,15 @@ Find the need here first. If it is here, use it and write no CSS for it.
 | On or off | `.switch` (the same archetype, with a track; `aria-checked="mixed"` for a selection that differs); in a menu row, the row is `button.options-card-item[role=menuitemcheckbox][aria-checked]` and the switch an empty `<span class="switch" aria-hidden="true">` at its end, with no script to copy the state |
 | A value along a line (a slider) | `input.range`; `.cc-zone` to ink a stretch between two values |
 | One of several (a filter, a view switch) | `.tabs.cc-seg` > `.tab[aria-selected]` (or `role="radio"` tabs with `aria-checked` in a `role="radiogroup"`); plain `.tabs` for tabs |
-| A label, a status, a chip | `.tag` (kinds `.cc-ok`, `.cc-warn`, `.cc-alert`…; `.cc-solid`, `.cc-outline`) |
+| A label, a status, a chip | `.tag` (kinds `.cc-ok`, `.cc-warn`, `.cc-alert`…; `.cc-solid`, `.cc-outline`); a color per value is `style="--tag-color: var(--…)"`, never a class that sets `background` |
 | A status light, a count | `.dot` (`--dot-color`, `--dot-size`; `.cc-ring` for a state not yet reached, drawn as a ring), `.badge` |
 | A step of a process (idea, planned, underway, done…) | `.dot.cc-stage-1` … `.cc-stage-7`, `.tag.cc-stage-n`; words in the stage's color take `--stage-n-ink`, a wash `--stage-n-tint`, a fill `--stage-n`. The product layer sets `--seed-stage-1` … `-7`, pale colors included; map your status names to the numbers in markup. Never keep a status color list of your own |
 | A menu, a popover, a tooltip | `.float.options-card` > `.options-card-item`; `.float.tooltip`. Always a popover: `popover="manual"` and `Trellis.float.open(float, anchor)` from `float.js` (it places, flips, follows and closes it), or `.cc-anchor` with a `popovertarget` button. Never `position` or `z-index` of your own |
-| A dialog, a drawer, a bottom sheet | `dialog.modal` > `.modal-inner` > `.modal-header`, `.modal-body`, `.modal-footer`; `.cc-tray` with a side. Open with `showModal()` |
-| A person or group | `.avatar`, `.member-tile` |
+| A dialog, a drawer, a bottom sheet | `dialog.modal` > `.modal-inner` > `.modal-header`, `.modal-body`, `.modal-footer`; `.cc-tray` with a side; a step counter goes above the title, not beside it. Open with `showModal()` |
+| A person or group | `.avatar`, `.member-tile` (`.cc-row`; words on a tall avatar's middle: `align-self: center` on the body); a photo is `img.avatar`, or with an `.avatar-dot` a `.media.cc-round` inside the `.avatar` |
 | A whole card or row that opens something | the title is an `a.card-link` (a row's `a.list-link`): it covers the card, and the card's own buttons, tags and fields stay above it with their own clicks. Never an `<a>` round the card, never a click handler on it |
 | An image: a cover, a banner, a thumbnail, a photo | `.media` > `img` (with `alt`, `loading="lazy"`), sized in cells (`--media-w`, `--media-h`), filled by cover at `--media-focus` (`50% 25%` keeps a face); as a card's own child `.cc-bleed` (a banner), `.cc-bleed-start` / `-end` (a strip), `.cc-fill` (the whole ground, under `--media-scrim`); `.cc-round` for a face. Never `background-image` for a picture |
-| Messages | `.chat-item` (`.cc-own`, `.cc-cont`, `.cc-system`) |
+| Messages | `.chat-item` (`.cc-own`, `.cc-cont`, `.cc-system`); put the typed text straight in `.chat-item-bubble`: it keeps its line breaks, so never `white-space` of your own; rendered Markdown is a `.prose` in it. A day break is `.chat-divider` |
 | Rendered Markdown or editor content | `.prose` on the wrapper, bare tags inside |
 | Loading | `.skeleton` |
 | Text | `.t-h1`…`.t-h6`, `.t-xl`, `.t-lg`, `.t-body`, `.t-sm`, `.t-xs`, `.t-label`, `.t-eyebrow`; `.u-text-secondary`; `.u-truncate` for one line, `.u-clamp` for several (`--lines`, two unless set). Never `-webkit-line-clamp` or `overflow: hidden` on text: it cuts the descenders |

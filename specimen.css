@@ -725,6 +725,11 @@
   .scheme.cc-light { color-scheme: light; color: var(--text); }
   .scheme.cc-dark { color-scheme: dark; color: var(--text); }
   .scheme .t-label { color: var(--text-tertiary); }
+  /* The band in the other scheme: the scope paints it (core), from one edge of
+     the frame to the other. */
+  .scheme-band { margin-inline: calc(var(--gutter) * -1); padding: var(--sp-6) var(--gutter); }
+  .scheme-band .t-eyebrow { color: var(--text-secondary); }   /* a kind as small text has no floor; the band's text does */
+  .scheme-card { --stack-gap: var(--sp-2); }
   .role-lines { display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(var(--u) * 13), 1fr)); column-gap: var(--sp-1); }
   .role-line { display: flex; align-items: center; gap: var(--sp-h); height: var(--sp-2); min-width: 0; }
   .role-line .swatch-chip { width: var(--sp-2); height: var(--sp-1h); border-radius: var(--r-q); }

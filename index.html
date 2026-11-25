@@ -6,7 +6,7 @@
 <title>Trellis</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 18 18%27%3E%3Crect x=%27.5%27 y=%27.5%27 width=%2717%27 height=%2717%27 rx=%274.5%27 fill=%27%23101111%27 stroke=%27%236aa5f5%27/%3E%3Cline x1=%27.5%27 y1=%2712.5%27 x2=%2717.5%27 y2=%2712.5%27 stroke=%27%236aa5f5%27/%3E%3Ccircle cx=%276%27 cy=%276%27 r=%272%27 fill=%27%23f4f4f2%27/%3E%3C/svg%3E">
 <meta name="description" content="Trellis: a CSS framework from a cell and a ratio, in context.">
-<link rel="stylesheet" href="core.css?v=0.10.14">
+<link rel="stylesheet" href="core.css?v=0.10.15">
 <link rel="stylesheet" id="product-layer">
 <script>
   // Before first paint, so nothing flashes: the saved view settings, and one
@@ -38,7 +38,7 @@
     if (s.fit === 'on' || s.fit === 'off') d.setAttribute('data-unit-fit', s.fit);
   })();
 </script>
-<link rel="stylesheet" href="specimen.css?v=0.10.16">
+<link rel="stylesheet" href="specimen.css?v=0.10.17">
 </head>
 <body>
 
@@ -634,6 +634,36 @@
         <div class="gradient-bar" style="--g: linear-gradient(to bottom var(--gradient-surface))"></div>
         <p class="t-xs faint"><code>linear-gradient(to bottom var(--gradient-surface))</code>: a raised ground into a sunken one. A token is a space and stops; you add the direction or the shape.</p>
       </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ A SCHEME ON PART OF A PAGE -->
+  <section class="section cc-split scheme-band" id="scheme-band" data-product="opposite" data-theme="dark" data-scheme-opposite>
+    <header class="section-head stack">
+      <p class="t-eyebrow">A scheme on part of a page</p>
+      <h2 class="t-h4">This band is in the other scheme</h2>
+      <p class="t-sm muted">Two attributes, <code class="t-mono">data-product</code> and <code class="t-mono">data-theme</code>, and nothing else: the band sets its own color scheme, every role is worked out again in it, and it paints its ground, since its ink would not read on the page's. Change the page's theme and the band takes the one the page left.</p>
+      <p class="t-xs faint">The words, edges and controls in it are the ones used everywhere else.</p>
+    </header>
+    <div class="section-body stack">
+      <p class="t-body">Night on a day page, or day on a night one, for a quote, a film, a listening room or the foot of a page. <a href="#color">The roles</a> are the same roles.</p>
+      <div class="stack">
+        <div class="cluster"><span class="tag cc-person"><span class="tag-label">Person</span></span><span class="tag cc-group"><span class="tag-label">Group</span></span><span class="tag cc-event"><span class="tag-label">Event</span></span><span class="tag cc-course"><span class="tag-label">Course</span></span><span class="tag cc-topic"><span class="tag-label">Topic</span></span></div>
+        <div class="cluster"><span class="tag cc-solid cc-person"><span class="tag-label">Person</span></span><span class="tag cc-solid cc-group"><span class="tag-label">Group</span></span><span class="tag cc-solid cc-event"><span class="tag-label">Event</span></span><span class="tag cc-solid cc-course"><span class="tag-label">Course</span></span><span class="tag cc-solid cc-topic"><span class="tag-label">Topic</span></span></div>
+        <div class="cluster"><span class="tag cc-ok"><span class="tag-dot"></span><span class="tag-label">Active</span></span><span class="tag cc-warn"><span class="tag-dot"></span><span class="tag-label">Pending</span></span><span class="tag cc-alert"><span class="tag-dot"></span><span class="tag-label">Blocked</span></span><span class="tag cc-stage-1"><span class="tag-label">Idea</span></span><span class="tag cc-stage-4"><span class="tag-label">Underway</span></span><span class="tag cc-stage-7"><span class="tag-label">Put away</span></span></div>
+      </div>
+      <article class="card stack scheme-card">
+        <p class="t-h6">A card on the band</p>
+        <p class="t-sm muted">Raised one step along the band's own ladder, not the page's.</p>
+        <div class="card"><p class="t-sm">And a card in it, one step more.</p></div>
+        <ul class="list">
+          <li class="list-item"><div class="list-body"><p class="t-sm">Evening tide</p><p class="t-xs faint">Tuesday</p></div><div class="list-end"><span class="t-xs faint">19:00</span></div></li>
+          <li class="list-item"><div class="list-body"><p class="t-sm">Night reading</p><p class="t-xs faint">Thursday</p></div><div class="list-end"><span class="t-xs faint">21:30</span></div></li>
+        </ul>
+        <label class="choice"><input type="checkbox" checked><span class="choice-label cap-center">Remind me</span></label>
+        <div class="field"><label class="field-label t-label" for="band-name">Name</label><input class="input" id="band-name" type="text" value="Amara Okafor"></div>
+        <div class="cluster"><button class="button cc-primary" type="button"><span class="button-label">Join</span></button><button class="button" type="button"><span class="button-label">Details</span></button><button class="button cc-ghost" type="button"><span class="button-label">Not now</span></button></div>
+      </article>
     </div>
   </section>
 
@@ -1688,7 +1718,7 @@
 <script src="math.js?v=0.10.8"></script>
 <script src="experiments/solids.js?v=0.10.0"></script>
 <script src="experiments/vines.js?v=0.10.0"></script>
-<script src="specimen.js?v=0.10.10"></script>
+<script src="specimen.js?v=0.10.11"></script>
 <script src="hero.js?v=0.10.5"></script>
 <script src="palette.js?v=0.10.7"></script>
 <script src="tuner.js?v=0.10.12"></script>

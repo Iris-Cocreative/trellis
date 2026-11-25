@@ -58,6 +58,11 @@
   inherits: false;
   initial-value: 0px;
 }
+/* What a card's corner floor compares (D113): its corner and its two paddings,
+   registered so a bare 0 is a length. Only compared, never laid out. */
+@property --card-corner { syntax: '<length>'; inherits: false; initial-value: 0px; }
+@property --card-own-inline { syntax: '<length>'; inherits: false; initial-value: 0px; }
+@property --card-own-block { syntax: '<length>'; inherits: false; initial-value: 0px; }
 /* A control's state, as the share of its ink mixed into its fill. Registered
    so a state belongs to one box: a hovered row doesn't hover the button in it. */
 /* The presets' moving values: registered, so they animate (presets below). */
@@ -1239,13 +1244,15 @@
   .shell-grid {
     --shell-nav-w: calc(var(--u) * 20);
     --shell-aside-w: calc(var(--u) * 24);
+    --shell-aside-col: 0px;   /* the aside's column, there only when there is an aside (below) */
     --shell-pad: var(--sp-2);
     display: grid;
     min-height: var(--shell-h, 100svh);
-    grid-template-columns: var(--shell-nav-w) minmax(0, 1fr) var(--shell-aside-w);
+    grid-template-columns: var(--shell-nav-w) minmax(0, 1fr) var(--shell-aside-col);
     grid-template-areas: "nav main aside" "nav foot foot";
     grid-template-rows: 1fr auto;
   }
+  .shell-grid:has(> .shell-aside:not([hidden])) { --shell-aside-col: var(--shell-aside-w); }
   .shell-nav {
     grid-area: nav;
     position: sticky; inset-block-start: 0;
@@ -1324,7 +1331,7 @@
      behind the menu button and open as a left tray (see .shell-links). */
   .shell.cc-top > .shell-grid {
     --shell-bar-h: var(--sp-4);
-    grid-template-columns: minmax(0, 1fr) var(--shell-aside-w);
+    grid-template-columns: minmax(0, 1fr) var(--shell-aside-col);
     grid-template-areas: "nav nav" "main aside" "foot foot";
     grid-template-rows: auto 1fr auto;
   }
@@ -1446,13 +1453,25 @@
     --card-pad-inline: var(--card-pad, var(--density-card-pad-inline, var(--density-card-pad)));
     --card-pad-block: var(--card-pad, var(--density-card-pad-block, var(--density-card-pad)));
     --card-radius: var(--shape-card);
+    /* Padding clears the corner (D113): what a card lays out is its inset, its
+       padding and whole cells more where content would meet the corner's curve.
+       Content p in on both sides is inside a corner of radius r from .293r
+       (1 - 1/√2); with its other side further in, at q, from the chord between
+       there and no padding at all where the curve ends: .415 (r - q). The
+       corner counts up to eight cells: a pill's real corner is its height's. */
+    --card-corner: min(var(--card-radius), calc(var(--u) * 8));
+    --card-own-inline: var(--card-pad-inline);
+    --card-own-block: var(--card-pad-block);
+    --card-inset-inline: calc(var(--card-pad-inline) + round(up, max(0px, min(.293 * var(--card-corner), .415 * (var(--card-corner) - var(--card-own-block))) - var(--card-own-inline) - 1px / 16), var(--u)));
+    --card-inset-block: calc(var(--card-pad-block) + round(up, max(0px, min(.293 * var(--card-corner), .415 * (var(--card-corner) - var(--card-own-inline))) - var(--card-own-block) - 1px / 16), var(--u)));
     --card-border: var(--border-subtle);
     --surface: var(--bg-raised);
     position: relative;
     container-type: inline-size;
     background: var(--surface);
     border-radius: var(--card-radius);
-    padding: var(--card-pad-block) var(--card-pad-inline);
+    padding-block: var(--card-inset-block);
+    padding-inline: var(--card-inset-inline);
   }
   .card::after {
     content: "";
@@ -1464,7 +1483,7 @@
   }
   .card-media {
     /* Concentric with the card's corner, from the nearer of its two paddings. */
-    border-radius: max(var(--r-q), calc(var(--card-radius) - min(var(--card-pad-inline), var(--card-pad-block))));
+    border-radius: max(var(--r-q), calc(var(--card-radius) - min(var(--card-inset-inline), var(--card-inset-block))));
     overflow: hidden;
   }
   .cc-dense .card, .card.cc-dense { --card-pad: var(--sp-1); --card-radius: var(--r-1); }
@@ -1493,13 +1512,13 @@
      one above from variables that level alone writes, so none refers to
      itself. */
   .card:not(.card .card) {
-    --card-nest-out: min(calc(var(--outset) * var(--u)), max(0px, calc(var(--card-pad-inline) - var(--u))));
-    --card-nest-r: max(var(--r-q), calc(var(--card-radius) - min(calc(var(--card-pad-inline) - var(--card-nest-out)), var(--card-pad-block))));
+    --card-nest-out: min(calc(var(--outset) * var(--u)), max(0px, calc(var(--card-inset-inline) - var(--u))));
+    --card-nest-r: max(var(--r-q), calc(var(--card-radius) - min(calc(var(--card-inset-inline) - var(--card-nest-out)), var(--card-inset-block))));
   }
   .card .card:not(.card .card .card) {
     --card-radius: var(--card-nest-r);
-    --card-nest-out2: min(calc(var(--outset) * var(--u)), max(0px, calc(var(--card-pad-inline) - var(--u))));
-    --card-nest-r2: max(var(--r-q), calc(var(--card-radius) - min(calc(var(--card-pad-inline) - var(--card-nest-out2)), var(--card-pad-block))));
+    --card-nest-out2: min(calc(var(--outset) * var(--u)), max(0px, calc(var(--card-inset-inline) - var(--u))));
+    --card-nest-r2: max(var(--r-q), calc(var(--card-radius) - min(calc(var(--card-inset-inline) - var(--card-nest-out2)), var(--card-inset-block))));
   }
   .card .card .card { --card-radius: var(--card-nest-r2); }
   :is(.card, .card *):where(.stack, .section-body):not(:where(.cols, .split, .grid, .rail) > *) > .card,
@@ -1520,17 +1539,17 @@
      stays inside them. Its own sides pad --card-scroll-pad, the card's by
      default, so what scrolls lines up with the rest of the card. */
   .card-scroll {
-    --card-scroll-pad: var(--card-pad-inline);
-    margin-inline: calc(var(--card-pad-inline) * -1);
+    --card-scroll-pad: var(--card-inset-inline);
+    margin-inline: calc(var(--card-inset-inline) * -1);
     padding-inline: var(--card-scroll-pad);
     overflow-y: auto; overscroll-behavior: contain;
   }
   .card-scroll:first-child {
-    margin-block-start: calc(var(--card-pad-block) * -1); padding-block-start: var(--card-pad-block);
+    margin-block-start: calc(var(--card-inset-block) * -1); padding-block-start: var(--card-inset-block);
     border-start-start-radius: var(--card-radius); border-start-end-radius: var(--card-radius);
   }
   .card-scroll:last-child {
-    margin-block-end: calc(var(--card-pad-block) * -1); padding-block-end: var(--card-pad-block);
+    margin-block-end: calc(var(--card-inset-block) * -1); padding-block-end: var(--card-inset-block);
     border-end-start-radius: var(--card-radius); border-end-end-radius: var(--card-radius);
   }
   .board-lane > .card { --card-pad: var(--board-card-pad); }
@@ -1594,21 +1613,21 @@
   }
   .media > :where(img, video, picture), .media > picture > img { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; object-position: var(--media-focus); border-radius: 0; }
   .media::after { content: ""; position: absolute; inset: 0; background: var(--media-scrim); pointer-events: none; }
-  .card .media { --media-radius: max(var(--r-q), calc(var(--card-radius) - min(var(--card-pad-inline), var(--card-pad-block)))); }
+  .card .media { --media-radius: max(var(--r-q), calc(var(--card-radius) - min(var(--card-inset-inline), var(--card-inset-block)))); }
   .media.cc-round { --media-radius: var(--r-round); }
   .media:is(.cc-bleed-start, .cc-bleed-end) { --media-w: 3; }
   .media.cc-fill { --media-h: 18; --media-scrim: linear-gradient(to top, color-mix(in oklab, var(--black) 80%, transparent), transparent 70%); }
-  .card > .media.cc-bleed { inline-size: auto; margin-inline: calc(var(--card-pad-inline) * -1); border-radius: 0; }
-  .card > .media.cc-bleed:first-child { margin-block-start: calc(var(--card-pad-block) * -1); border-start-start-radius: var(--card-radius); border-start-end-radius: var(--card-radius); }
-  .card > .media.cc-bleed:last-child { margin-block-end: calc(var(--card-pad-block) * -1); border-end-start-radius: var(--card-radius); border-end-end-radius: var(--card-radius); }
-  .card:has(> .media:is(.cc-bleed-start, .cc-bleed-end)) { display: flex; flex-direction: row; align-items: flex-start; gap: var(--card-pad-inline); }
+  .card > .media.cc-bleed { inline-size: auto; margin-inline: calc(var(--card-inset-inline) * -1); border-radius: 0; }
+  .card > .media.cc-bleed:first-child { margin-block-start: calc(var(--card-inset-block) * -1); border-start-start-radius: var(--card-radius); border-start-end-radius: var(--card-radius); }
+  .card > .media.cc-bleed:last-child { margin-block-end: calc(var(--card-inset-block) * -1); border-end-start-radius: var(--card-radius); border-end-end-radius: var(--card-radius); }
+  .card:has(> .media:is(.cc-bleed-start, .cc-bleed-end)) { display: flex; flex-direction: row; align-items: flex-start; gap: var(--card-inset-inline); }
   .card:has(> .media.cc-bleed-start) > .media + *, .card:has(> .media.cc-bleed-end) > :first-child:not(.media) { flex: 1 1 0; min-width: 0; }
-  .card > .media:is(.cc-bleed-start, .cc-bleed-end) { align-self: stretch; block-size: auto; margin-block: calc(var(--card-pad-block) * -1); border-radius: 0; }
-  .card > .media.cc-bleed-start { margin-inline-start: calc(var(--card-pad-inline) * -1); border-start-start-radius: var(--card-radius); border-end-start-radius: var(--card-radius); }
-  .card > .media.cc-bleed-end { margin-inline-end: calc(var(--card-pad-inline) * -1); border-start-end-radius: var(--card-radius); border-end-end-radius: var(--card-radius); }
+  .card > .media:is(.cc-bleed-start, .cc-bleed-end) { align-self: stretch; block-size: auto; margin-block: calc(var(--card-inset-block) * -1); border-radius: 0; }
+  .card > .media.cc-bleed-start { margin-inline-start: calc(var(--card-inset-inline) * -1); border-start-start-radius: var(--card-radius); border-end-start-radius: var(--card-radius); }
+  .card > .media.cc-bleed-end { margin-inline-end: calc(var(--card-inset-inline) * -1); border-start-end-radius: var(--card-radius); border-end-end-radius: var(--card-radius); }
   .card:has(> .media.cc-fill) { --card-border: transparent; isolation: isolate; display: grid; grid-template: minmax(0, auto) / minmax(0, 1fr); color: var(--white); }
   .card:has(> .media.cc-fill) > * { grid-area: 1 / 1; align-self: end; min-width: 0; }
-  .card > .media.cc-fill { z-index: -1; align-self: stretch; inline-size: auto; block-size: auto; min-block-size: calc(var(--u) * var(--media-h)); margin: calc(var(--card-pad-block) * -1) calc(var(--card-pad-inline) * -1); border-radius: var(--card-radius); }
+  .card > .media.cc-fill { z-index: -1; align-self: stretch; inline-size: auto; block-size: auto; min-block-size: calc(var(--u) * var(--media-h)); margin: calc(var(--card-inset-block) * -1) calc(var(--card-inset-inline) * -1); border-radius: var(--card-radius); }
 
   /* Labels inside controls: the text box is trimmed to the cap height, so
      centering the box centers the capitals exactly. */
@@ -2120,6 +2139,8 @@
   /* In a bar the current link's mark is under it, not beside it. */
   .shell.cc-top .shell-link[aria-current]:not([aria-current="false"]) { box-shadow: inset 0 calc(var(--line) * -2) 0 var(--accent); border-radius: var(--r-h) var(--r-h) 0 0; }
   @container shell (width < 48rem) {
+    /* A tab bar holds destinations: a side column's brand is not one of them. */
+    .shell:not(.cc-top) .shell-nav > .shell-brand { display: none; }
     .shell.cc-top .shell-menu { display: inline-flex; }
     .shell.cc-top .shell-links[popover]:not(:popover-open) { display: none; }
     .shell.cc-top .shell-links:popover-open {
@@ -2685,6 +2706,22 @@
     outline: var(--line) var(--chat-edge-style) var(--chat-edge);
     outline-offset: calc(var(--line) * -1);
   }
+  /* A message is typed text: a bubble of words and inline marks keeps its line
+     breaks and its spaces, as the composer showed them (D112). A bubble that
+     holds markup of its own (prose, a paragraph, a list, a line break) sets its
+     own lines, and the spaces between its tags mean nothing. */
+  :where(.chat-item-bubble:not(.prose, :has(> :is(br, p, div, ul, ol, dl, pre, blockquote, figure, table, details, section, article, form, hr, h1, h2, h3, h4, h5, h6, .chat-quote, .chat-file, .chat-link, .chat-reactions)))) { white-space: pre-wrap; }
+  /* Prose in a bubble, or a bubble that is one. A .prose is a size container,
+     and a container's width can't come from what it holds (D74): in a bubble
+     that shrinks to its content it had no width at all. There it is not one,
+     and its type answers to the thread, as the words in the bubbles beside it
+     do. What needs a width to measure from takes the message's measure
+     instead: code and an embed, and a wall post, which has no bubble to
+     shrink. Flat rows are already as wide as the row. */
+  :is(.chat-item-bubble.prose, .chat-item-bubble .prose) { container-type: var(--chat-prose, normal); }
+  .chat-item-bubble:is(.prose, :has(.prose)):is(.chat-item.cc-wall .chat-item-bubble, :has(:is(pre, iframe))) { --chat-prose: inline-size; align-self: stretch; }
+  /* Code steps out of its column as far as the bubble's padding, no further. */
+  .chat-item:not(.cc-wall, .cc-flat, .chat-thread.cc-flat > *) :is(.chat-item-bubble.prose, .chat-item-bubble .prose) > pre { margin-inline: max(var(--outset) * var(--u) * -1, var(--chat-pad) * -1); }
   /* A continuing message's own time, in the avatar's column, shown on hover and
      focus: as wide as the column and clipped to it, on the text's baseline. */
   .chat-item-time {
@@ -2752,6 +2789,7 @@
     --chat-pad: 0px; --chat-measure: 100%;
     --chat-avatar: inline-grid; --chat-meta-order: 0;
     --chat-avatar-n: 3;
+    --chat-prose: inline-size;
     --chat-name-ink: var(--text); --chat-name-weight: var(--fw-strong);
   }
   :is(.chat-thread.cc-flat > .chat-item, .chat-item.cc-flat) > .avatar { --av-n: var(--chat-avatar-n); --av-gap: 0px; --av-ring: 0px; }
