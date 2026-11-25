@@ -37,6 +37,7 @@ Everything here lands before the first app pins a version.
 | Apply the five relations | done | `ddff689` | `--hang` is `--outset` everywhere, the README names all five; `contract.js` ok, suite at baseline. Breaking, under Unreleased. |
 | Cap on the cell | decided | | Yes: the cell follows the reader's text size up to a cap; above it only type grows. |
 | Apply the cap on the cell | done | `bcc9438`, `f077de3` | The cap in the token source, the math module, core and rule 19; `align.js` at 312% in both engines and all three layers: 0 off, no sideways scroll. |
+| Test the cap's value | done | (this commit) | D46 holds the comparison: 1.25, 1.5 and 2 in scratch copies, `align.js` at six text sizes, on 393 and 320 phones and 1440 wide, both engines, with both example layers at two of the sizes (180 runs). 2 scrolls sideways at 320 from 200%; 1.25 leaves the specimen's lines at 312% on a phone; 1.5 stays; 1.25 reads better on a phone, and is the owner's question. |
 | Read the cell from a probe | done | `379a604` | WebKit at 312% text now reports the cell Chromium does (18 wide, 15.09 on a phone); suite at baseline. |
 | Controls past the cap | done | `f077de3` | Button, icon button, tag, input, tab and badge are never shorter than their type; nothing moves at default sizes. |
 | Cap-centered text that wraps | done | `005048f` | `settle.js` marks a wrapped label and core hangs it from its row's top, in whole cells (D67); `tests/align.js` and `tests/layout.js`, both engines. |
