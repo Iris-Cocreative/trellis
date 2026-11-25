@@ -187,7 +187,7 @@
     background: var(--text); color: var(--bg);
     box-shadow: 0 0 0 var(--line) var(--surface);
   }
-  .demo-agent-mark .icon { --icon-size: calc(var(--sp-1) * .75); --icon-stroke: 2; }
+  .demo-agent-mark .icon { --icon-size: calc(var(--sp-1) * .75); --icon-weight: 24; }
   .demo-done { opacity: .55; }
   .demo-done .avatar { filter: grayscale(1); }
   .demo-tiles { --grid-min: calc(var(--u) * 28); }
@@ -761,10 +761,11 @@
   .icon-row.cc-given { height: var(--sp-1); }
   .icon-row.cc-given .icon { margin-block: calc((var(--size-icon-lg) - var(--sp-1)) / -2); }
   .icon-overhangs .icon-row { box-shadow: inset 0 calc(var(--line) * -1) 0 var(--border-subtle); }
-  .icon-overhangs .lbl { font-size: var(--fs-control); }
+  .icon-overhangs .icon-row .lbl { font-size: var(--fs-control); }
   .icon-strokes { --cluster-gap: var(--sp-2); }
   .icon-stroke { display: inline-flex; align-items: center; gap: var(--sp-h); color: var(--kind-group); }
   .icon-stroke code { color: var(--text-secondary); font-size: var(--fs-control-xs); }
+  .icon-hue { display: inline-flex; }
   .icon-rows { --stack-gap: var(--sp-1); }
   .icon-row { display: flex; align-items: center; gap: var(--sp-h); height: var(--sp-2); }
   .icon-row .lbl { display: block; font-size: 1.125rem; }

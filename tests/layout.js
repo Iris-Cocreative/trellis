@@ -84,6 +84,9 @@
 //           on an icon button's corner, at every size and at 312% text; a bar's
 //           ground and blur, and the words on it over black and over white; the
 //           face for code and a dense card's corner as knobs
+//   icons   (D118) what each kind of drawing draws, as an amount of ink: strokes
+//           at each weight, outlined files, dots, tones, stroke icons as they
+//           were, pictures, a mirror; their color, size and knob; forced colors
 // Usage: node layout.js <url> [webkit] [WxH] [touch]
 // Needs Playwright (PLAYWRIGHT=module path). Exits 1 if anything is off.
 const pw = require(process.env.PLAYWRIGHT || 'playwright');
@@ -2201,6 +2204,107 @@ const ready = require('./ready');
       host.remove();
       return fails;
     }));
+  }
+  // Icons (D118): what each kind of drawing draws, read as an amount of ink from a
+  // screenshot (the line's width, whatever the antialiasing), then color and size.
+  {
+    const at = await page.evaluate(async () => {
+      const host = document.createElement('div'); host.id = 'ic-test';
+      host.style.cssText = 'position: absolute; inset-block-start: 0; inset-inline-start: 0; z-index: 2147483647; display: grid; grid-template-columns: repeat(6, max-content); gap: var(--u); padding: var(--u); background: #fff; color: #000; --icon-size: calc(var(--u) * 4)';
+      const G = 'fill="none" stroke="currentColor"', line = '<path d="M40,128H216"/>', minus = '<path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128Z"/>', left = '<path d="M0,0H64V256H0Z"/>';
+      const use = (id, style = '', cls = '') => `<svg class="icon cc-phosphor ${cls}" style="${style}" aria-hidden="true"><use href="#ic-${id}"/></svg>`;
+      const ph = (b, style = '') => `<svg class="icon cc-phosphor" viewBox="0 0 256 256" style="${style}" aria-hidden="true">${b}</svg>`;
+      const pic = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="20"><rect width="40" height="20"/></svg>');
+      // [name, markup, the ink it should draw as a share of its box]
+      const stroke = w => (176 * w + Math.PI * w * w / 4) / 65536, dot = r => Math.PI * r * r / 65536, old = (10 * 1.5 + Math.PI * .75 ** 2) / 196;
+      const all = [
+        ['a drawing in strokes, by use', use('line'), stroke(16)], ['at weight 8', use('line', '--icon-weight: 8'), stroke(8)], ['at weight 24', use('line', '--icon-weight: 24'), stroke(24)],
+        ['in a context at weight 12', `<span style="--icon-weight: 12">${use('line')}</span>`, stroke(12)], ['inline, at weight 20', ph(`<g ${G}>${line}</g>`, '--icon-weight: 20'), stroke(20)],
+        ['a raw file as it comes, its own weight 24 kept', ph(`<rect width="256" height="256" fill="none"/><path d="M40,128H216" ${G} stroke-linecap="round" stroke-linejoin="round" stroke-width="24"/>`, '--icon-weight: 8'), stroke(24)],
+        ['an outlined file', ph(minus), stroke(16)], ['an outlined file at another weight', ph(minus, '--icon-weight: 24; --icon-stroke: 9'), stroke(16)],
+        ['a dot', use('dot'), dot(12)], ['a dot at weight 8', use('dot', '--icon-weight: 8'), dot(8)],
+        ['a tone', use('tone'), .2 * 128 * 128 / 65536], ['a tone of its own', use('tone', '--icon-tone: #000'), 128 * 128 / 65536], ['a raw duotone', ph('<path d="M64,64H192V192H64Z" opacity="0.2"/>'), .2 * 128 * 128 / 65536],
+        ['a stroke icon', '<svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7h10"/></svg>', old], ['a stroke icon where Phosphor has a weight', '<span style="--icon-weight: 24"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7h10"/></svg></span>', old],
+        ['a stroke icon at 3', '<svg class="icon" style="--icon-stroke: 3" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7h10"/></svg>', (30 + Math.PI * 1.5 ** 2) / 196], ['a filled group in a stroke icon', '<svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><g fill="currentColor" stroke="none"><path d="M0 0h7v14H0z"/></g></svg>', .5],
+        ['a tone in a stroke icon', '<svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path class="icon-tone" d="M0 0h8v16H0z"/></svg>', .1],
+        ['a picture twice as wide as tall', `<img class="icon" src="${pic}" alt="">`, .5], ['a square picture in prose, its corners kept', `<div class="prose"><img class="icon" src="${pic.replaceAll('%2220%22', '%2240%22')}" alt=""></div>`, 1],
+        // Mirrored: [share, the share of the ink in its left half]
+        ['left to right, a mirror', use('left', '', 'cc-mirror'), .25, 1], ['right to left, a mirror', `<span dir="rtl">${use('left', '', 'cc-mirror')}</span>`, .25, 0], ['right to left, no mirror', `<span dir="rtl">${use('left')}</span>`, .25, 1],
+        ['left to right inside right to left', `<span dir="rtl"><span dir="ltr">${use('left', '', 'cc-mirror')}</span></span>`, .25, 1], ['a stroke set, mirrored', '<span dir="rtl"><svg class="icon cc-mirror" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" stroke="none" d="M0 0h4v16H0z"/></svg></span>', .25, 0],
+      ];
+      host.innerHTML = `<svg hidden aria-hidden="true"><symbol id="ic-line" viewBox="0 0 256 256"><g ${G}>${line}</g></symbol><symbol id="ic-dot" viewBox="0 0 256 256"><g ${G}><circle cx="128" cy="128" r="4" fill="currentColor"/></g></symbol>`
+        + `<symbol id="ic-tone" viewBox="0 0 256 256"><path class="icon-tone" d="M64,64H192V192H64Z"/></symbol><symbol id="ic-left" viewBox="0 0 256 256">${left}</symbol></svg>` + all.map(([, m], i) => `<div data-i="${i}" style="display: grid">${m}</div>`).join('');
+      document.body.appendChild(host);
+      scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      await Promise.all([...host.querySelectorAll('img')].map(i => i.decode())); await Trellis.settled();
+      const h = host.getBoundingClientRect();
+      return all.map(([name, , want, half], i) => { const e = host.querySelector(`[data-i="${i}"]`).querySelector('.icon').getBoundingClientRect(); return { name, want, half, x: e.x - h.x, y: e.y - h.y, w: e.width, h: e.height, W: h.width }; });
+    });
+    const png = (await page.locator('#ic-test').screenshot()).toString('base64');
+    fails.push(...await page.evaluate(async ([png, at]) => {
+      const fails = [], img = new Image(), u = Trellis.cell(); img.src = 'data:image/png;base64,' + png; await img.decode();
+      const c = Object.assign(document.createElement('canvas'), { width: img.width, height: img.height }), g = c.getContext('2d'); g.drawImage(img, 0, 0);
+      const k = img.width / at[0].W;
+      for (const a of at) {
+        if (Math.abs(a.w - u * 4) > .1 || Math.abs(a.h - u * 4) > .1) fails.push(`icons: ${a.name}: ${a.w.toFixed(1)} by ${a.h.toFixed(1)}px at four cells (${(u * 4).toFixed(1)})`);
+        const x = Math.round((a.x - 1) * k), y = Math.round((a.y - 1) * k), w = Math.round((a.w + 2) * k), h = Math.round((a.h + 2) * k), d = g.getImageData(x, y, w, h).data;
+        let ink = 0, left = 0;
+        for (let j = 0; j < d.length; j += 4) { const v = 1 - (d[j] + d[j + 1] + d[j + 2]) / 765; ink += v; if ((j / 4) % w < w / 2) left += v; }
+        const got = ink / (a.w * a.h * k * k);
+        if (Math.abs(got - a.want) > (/picture/.test(a.name) ? .03 : Math.max(.006, a.want * .04))) fails.push(`icons: ${a.name}: draws ${(got * 100).toFixed(2)}% of its box, not ${(a.want * 100).toFixed(2)}%`);
+        if (a.half !== undefined && Math.abs(left / ink - a.half) > .05) fails.push(`icons: ${a.name}: ${Math.round(100 * left / ink)}% of its ink is on the left, not ${a.half * 100}%`);
+      }
+      document.getElementById('ic-test').remove();
+      // Every use in the specimen names a drawing it holds, and every icon is
+      // either drawn and nothing more, or named.
+      for (const e of document.querySelectorAll('.icon use')) if (!document.querySelector(e.getAttribute('href'))) fails.push(`icons: the specimen has no ${e.getAttribute('href')}`);
+      for (const e of document.querySelectorAll('.icon')) if (e.tagName === 'IMG' ? !e.hasAttribute('alt') : !e.closest('[aria-hidden="true"]') && !(e.getAttribute('role') === 'img' && e.getAttribute('aria-label'))) fails.push(`icons: one in the specimen is neither hidden nor named: ${e.outerHTML.slice(0, 120)}`);
+      return fails;
+    }, [png, at]));
+    // Color: the ink around it, or a role, which gives way to a color set on the
+    // icon, to a disabled control and to forced colors; then size and the knob.
+    await page.evaluate(() => {
+      const host = document.createElement('div'); host.id = 'ic-color';
+      host.style.cssText = 'position: absolute; inset-block-start: 0; inset-inline-start: 0; color: rgb(1 2 3)';
+      const ic = (id, style = '', cls = '') => `<svg class="icon cc-phosphor ${cls}" id="${id}" style="${style}" viewBox="0 0 256 256" aria-hidden="true"><path class="icon-tone" d="M0,0H9V9Z"/></svg>`, own = '--icon-color: rgb(4 5 6)';
+      host.innerHTML = '<style>@layer trellis.utilities { .ic-set { color: rgb(7 8 9); } }</style>' + ic('ic-ink') + ic('ic-own', own) + `<span style="${own}">${ic('ic-ctx')}</span>` + ic('ic-set', own, 'ic-set') + `<svg class="icon" id="ic-stroke" style="${own}" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7h10"/></svg>`
+        + `<button class="button icon-button" type="button" id="ic-b" aria-label="A">${ic('ic-in', own)}</button><button class="button" type="button" disabled id="ic-off-b">${ic('ic-off', own)}</button><button class="button" type="button" aria-disabled="true" id="ic-aria-b">${ic('ic-aria', own)}</button><fieldset disabled>${ic('ic-set2', own)}</fieldset>`
+        + ['sm', '', 'md', 'lg'].map(k => ic('ic-s' + k, `--icon-size: var(--size-icon${k && '-' + k})`)).join('') + `<div data-product="ic">${ic('ic-scope')}</div>`;
+      document.body.appendChild(host);
+    });
+    fails.push(...await page.evaluate(() => {
+      const fails = [], $ = id => document.getElementById(id), cs = id => getComputedStyle($(id)), u = Trellis.cell(), root = document.documentElement, is = (id, p, want, what) => { if (cs(id)[p] !== want) fails.push(`icons: ${what}: its ${p} is ${cs(id)[p]}, not ${want}`); };
+      is('ic-ink', 'color', 'rgb(1, 2, 3)', 'one with no color of its own');
+      for (const [id, what] of [['ic-own', 'one with --icon-color'], ['ic-ctx', 'one in a context with --icon-color'], ['ic-stroke', 'a stroke icon with --icon-color'], ['ic-in', 'one in a button, with --icon-color'], ['ic-set2', 'one in a disabled fieldset, in no control']]) is(id, 'color', 'rgb(4, 5, 6)', what);
+      is('ic-own', 'fill', 'rgb(4, 5, 6)', 'a Phosphor drawing'); is('ic-own', 'stroke', 'none', 'a Phosphor drawing'); is('ic-stroke', 'stroke', 'rgb(4, 5, 6)', 'a stroke icon'); is('ic-stroke', 'fill', 'none', 'a stroke icon');
+      is('ic-set', 'color', 'rgb(7, 8, 9)', 'one whose own class sets a color');
+      for (const k of ['off', 'aria']) is('ic-' + k, 'color', getComputedStyle($(`ic-${k}-b`)).color, 'one in a disabled button');
+      const r = e => e.getBoundingClientRect(), b = r($('ic-b')), i = r($('ic-in'));
+      if (Math.abs(b.x + b.width / 2 - i.x - i.width / 2) > .51 || Math.abs(b.y + b.height / 2 - i.y - i.height / 2) > .51) fails.push('icons: one is not in the middle of its icon button');
+      const px = v => { const e = document.createElement('i'); e.style.cssText = `position: absolute; width: ${v}`; document.body.appendChild(e); const w = e.getBoundingClientRect().width; e.remove(); return w; };
+      for (const [k, n] of [['sm', 1], ['', 0], ['md', 1.5], ['lg', 2]]) { const q = r($('ic-s' + k)), want = n ? n * u : u + 2 * px('var(--line)'); if (Math.abs(q.width - want) > .1 || Math.abs(q.height - want) > .1) fails.push(`icons: --size-icon${k && '-' + k} draws ${q.width.toFixed(2)} by ${q.height.toFixed(2)}px, not ${want.toFixed(2)}`); }
+      // The knob: 16 unless a product or a scope sets it.
+      const w = id => parseFloat(cs(id).strokeWidth);
+      if (w('ic-ink') !== 16 || w('ic-scope') !== 16) fails.push(`icons: a weight of ${w('ic-ink')} by default, not 16`);
+      const style = document.createElement('style'); style.textContent = '@layer trellis.product { :root { --icon-weight: 12; } [data-product="ic"] { --icon-weight: 8; } }'; document.head.appendChild(style);
+      if (w('ic-ink') !== 12 || w('ic-scope') !== 8) fails.push(`icons: a product's weight of 12 and a scope's of 8 draw ${w('ic-ink')} and ${w('ic-scope')}`);
+      style.remove();
+      return fails;
+    }));
+    if (engine !== 'webkit') {
+      await page.emulateMedia({ forcedColors: 'active' });
+      fails.push(...await page.evaluate(() => {
+        const fails = [], cs = id => getComputedStyle(document.getElementById(id)), sys = v => { const e = document.createElement('i'); e.style.cssText = `forced-color-adjust: none; color: ${v}`; document.body.appendChild(e); const c = getComputedStyle(e).color; e.remove(); return c; };
+        for (const id of ['ic-own', 'ic-ctx', 'ic-stroke']) if (cs(id).color !== sys('CanvasText')) fails.push(`icons: in forced colors ${id} is ${cs(id).color}, not the system's ${sys('CanvasText')}`);
+        if (cs('ic-in').color !== sys('ButtonText')) fails.push(`icons: in forced colors one in a button is ${cs('ic-in').color}, not ${sys('ButtonText')}`);
+        return fails;
+      }));
+      // A tone of the product's own is the ink's again.
+      await page.evaluate(() => document.getElementById('ic-own').style.setProperty('--icon-tone', 'rgb(250 1 1)'));
+      fails.push(...await page.evaluate(() => { const f = getComputedStyle(document.querySelector('#ic-own .icon-tone')).fill; return /250/.test(f) ? ['icons: in forced colors a tone keeps its own color, ' + f] : []; }));
+      await page.emulateMedia({ forcedColors: 'none' });
+    }
+    await page.evaluate(() => document.getElementById('ic-color').remove());
   }
   await Promise.race([browser.close(), new Promise(r => setTimeout(r, 5000))]); // WebKit on Windows can hang on close
   console.log(`${engine} ${size}${touch ? ' touch' : ''}: layout ${fails.length ? fails.length + ' FAILED' : 'ok'}`);

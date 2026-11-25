@@ -6,6 +6,7 @@ All marks are drawn on a 24-unit square (two cells at a 12px cell) and paint in 
 |---|---|---|
 | `trellis-mark.svg` | The panel: a rounded square (the plane), 2:1 laths (the lines), and a vine resting on three lattice points and ending in a tendril curl | Recommended. The nav bar, next to the word, at 24px |
 | `trellis-mark-b.svg` | The tile: the same drawing cut out of one solid rounded square | Favicon, app icon, avatar, anywhere the mark sits alone |
+| `trellis-tile-108.png` | The tile in blue, 108px square | The specimen's raster icon: a two-cell icon at three pixels to one |
 | `trellis-lockup.svg` | The panel and the word "Trellis", 90 x 24 | Places that take one image (a README header, slides). The word is live text in the system sans the site uses, so it renders in the viewer's system font |
 
 The lattice is the framework's own: points at (4 + 8m, 4n) with m and n of equal parity, laths sloping 2:1. The vine bows off the lattice between points and rests on it at (12, 20), (12, 12) and near (12, 4).

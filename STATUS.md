@@ -159,7 +159,7 @@ Work that grows from the grid or leaves it, and still belongs to it.
 | Interaction presets | done: see Before the second app |
 | Component and collection contract | idea |
 | Navigation templates | done: see Before the second app |
-| Icons | idea |
+| Icons | done: Phosphor is the default set (D118) and [`skill/ICONS.md`](skill/ICONS.md); animated icons and the Figma file's set are later |
 | Right-sized images | idea |
 | Calendar standards | idea |
 | Specimen as knob editor | done: `e252bf0`, the specimen's Tune it |

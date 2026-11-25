@@ -44,7 +44,7 @@ async function main() {
   const tarball = path.join(tmp, packed.filename);
   const inTar = new Set(packed.files.map((f) => f.path.replace(/\\/g, '/')));
   const pkg = JSON.parse(fs.readFileSync(path.join(repo, 'package.json'), 'utf8'));
-  const need = new Set([...Object.values(pkg.exports), ...Object.values(pkg.bin || {}), 'skill/SKILL.md', 'skill/ADOPT.md', 'README.md', 'REACT.md', 'LICENSE']
+  const need = new Set([...Object.values(pkg.exports), ...Object.values(pkg.bin || {}), 'skill/SKILL.md', 'skill/ADOPT.md', 'skill/ICONS.md', 'README.md', 'REACT.md', 'LICENSE']
     .map((f) => f.replace(/^\.\//, '')));
   for (const f of need) check(inTar.has(f), `the tarball has no ${f}`);
   for (const f of inTar) check(!/^(tests|docs|examples|experiments|brand)\//.test(f), `the tarball carries ${f}, which is the repository's own`);
@@ -141,7 +141,7 @@ async function main() {
   check(r.code === 0, `require('${NAME}/tools/product.js').validate() did not reject the invalid layer: ${r.out.slice(0, 300)}`);
 
   // ---- What the packaged docs name --------------------------------------------
-  const docs = ['README.md', 'REACT.md', 'skill/SKILL.md', 'skill/ADOPT.md'].map((f) => fs.readFileSync(path.join(installed, f), 'utf8')).join('\n');
+  const docs = ['README.md', 'REACT.md', 'skill/SKILL.md', 'skill/ADOPT.md', 'skill/ICONS.md'].map((f) => fs.readFileSync(path.join(installed, f), 'utf8')).join('\n');
   // A file or a folder, as a sentence may end on it.
   const paths = new Set([...docs.matchAll(new RegExp(`node_modules/${NAME}/([\\w./-]+)`, 'g'))].map((m) => m[1].replace(/\.+$/, '')));
   check(paths.size >= 2, `the packaged docs name only ${paths.size} installed paths`);

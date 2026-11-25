@@ -102,6 +102,7 @@
     /* ---- Shape and density ----------------------------------------------- */
     --shape-card: var(--r-1h);                           /* a card's corner; media in prose too */
     --shape-card-dense: var(--r-1);                      /* a card's corner in .cc-dense; its padding still clears it. One cell unless set: it does not follow --shape-card, unless you set it to that */
+    --icon-weight: 16;                                   /* the line of a Phosphor icon drawn as strokes, in 256ths of its size: 8 thin, 12 light, 16 regular */
     --shape-control: var(--r-round);                     /* buttons and segmented tabs */
     --shape-input: var(--r-h);                           /* inputs, selects, textareas */
     --shape-float: var(--r-1);                           /* popovers and options cards */
