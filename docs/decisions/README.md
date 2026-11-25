@@ -126,4 +126,5 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D112](D112.md) | A bubble holds typed text, or prose, and both keep their shape | 2026-11-24 | accepted |
 | [D113](D113.md) | Padding clears the corner | 2026-11-24 | accepted |
 | [D114](D114.md) | A scope that is always dark says so in its selector | 2026-11-24 | accepted |
+| [D115](D115.md) | What a button does, what a label quiets, and what a bar lets through | 2026-11-24 | accepted |
 | [D116](D116.md) | A field's box holds slots, and a card can be a choice | 2026-11-24 | accepted |

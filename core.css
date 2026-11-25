@@ -1270,10 +1270,20 @@
     height: var(--shell-h, 100svh);
     display: flex; flex-direction: column; gap: var(--sp-q2);
     padding: var(--sp-1);
-    background: var(--surface);
+    background: var(--shell-nav-bg);
+    backdrop-filter: blur(var(--shell-nav-blur));
     box-shadow: var(--line) 0 0 var(--border-subtle);
     z-index: var(--z-raised);
   }
+  /* Its ground and its blur (D115). Opaque and not blurred unless a context
+     says so: with no blur set, the filter is none. What scrolls under a
+     translucent bar is anything, so a ground keeps at least 85% of --surface
+     or --bg-raised: there --text and --text-secondary hold 4.5:1 over black
+     and over white. --text-tertiary does not, and the focus ring may not (set
+     --focus: var(--text) beside it). Opaque for a reader who asks for less
+     transparency, and in forced colors. */
+  .shell-nav { --shell-nav-bg: var(--surface); --shell-nav-blur: initial; }
+  @media (prefers-reduced-transparency: reduce) { .shell-nav { background: var(--surface); backdrop-filter: none; } }
   .shell-main { grid-area: main; min-width: 0; padding: var(--shell-pad); }
   .shell-aside { grid-area: aside; min-width: 0; padding: var(--shell-pad); }
   /* The foot: groups of links, then the small print. Its rule is a plane
@@ -1497,7 +1507,8 @@
     border-radius: max(var(--r-q), calc(var(--card-radius) - min(var(--card-inset-inline), var(--card-inset-block))));
     overflow: hidden;
   }
-  .cc-dense .card, .card.cc-dense { --card-pad: var(--sp-1); --card-radius: var(--r-1); }
+  /* A dense card's corner is the product's knob too (D115): a cell unless set. */
+  .cc-dense .card, .card.cc-dense { --card-pad: var(--sp-1); --card-radius: var(--shape-card-dense, var(--r-1)); }
   /* Surfaces on surfaces (D81). Nesting shows as a change of ground rather
      than a shadow. A surface inside a surface (a card, a grouped list, a
      modal, a float) is one step along the neutral ladder, --bg-raised-2, and
@@ -1650,6 +1661,7 @@
     --text-secondary: color-mix(in oklab, var(--white) 85%, transparent);
     --text-tertiary: color-mix(in oklab, var(--white) 75%, transparent);
     --border-strong: color-mix(in oklab, var(--white) 60%, transparent);
+    --btn-on-media: var(--white);   /* an outline button's ink there, whatever its kind */
   }
   :where(a[href]:not(.card-link), button, input, select, textarea, summary, .switch, [tabindex]):where(.card:has(> .media.cc-fill) *):not(:where(.card:has(> .media.cc-fill) :is(.card, .list.cc-group, .float, .modal, [data-theme]) *)) { --focus: var(--white); }
 
@@ -1674,6 +1686,8 @@
     --btn-bg: transparent;
     --btn-ink: var(--text);
     --btn-border: var(--border-strong);
+    --btn-color: var(--text);    /* the color a kind fills with, and .cc-outline draws in */
+    --btn-tint: 0%;              /* the share of it in an outline's ground */
     --btn-track: var(--btn-tracking, var(--button-tracking));
     /* Height grows with the label's type. Once the reader's text size passes
        the cell's cap, a label's font size (1em) can be taller than --btn-h;
@@ -1696,8 +1710,37 @@
     text-transform: var(--button-case);
     transition: background var(--dur-out) var(--ease-in), border-color var(--dur-out) var(--ease-in);
   }
-  .button.cc-primary { --btn-bg: var(--accent); --btn-border: var(--accent); --btn-ink: var(--accent-ink); }
+  .button.cc-primary { --btn-color: var(--accent); --btn-bg: var(--accent); --btn-border: var(--accent); --btn-ink: var(--accent-ink); }
+  /* Kinds (D115): what a button does, in the status's color, under the names a
+     tag has. Destructive is .cc-alert, confirm is .cc-ok. Filled, as a solid
+     tag is, and its ink computed from the fill the same way (C4). */
+  .button.cc-alert { --btn-color: var(--alert); }
+  .button.cc-ok { --btn-color: var(--ok); }
+  .button:is(.cc-alert, .cc-ok) { --btn-bg: var(--btn-color); --btn-border: var(--btn-color); --btn-ink: light-dark(var(--white), color-mix(in oklab, var(--btn-color) 18%, var(--black))); }
+  @supports (color: oklch(from red l c h)) {
+    .button:is(.cc-alert, .cc-ok) { --btn-ink: oklch(from var(--btn-color) clamp(.16, (var(--ink-flip) - l) * 1000, 1) calc(clamp(0, (l - var(--ink-flip)) * 1000, 1) * c * .3) h); }
+  }
   .button.cc-ghost { --btn-border: transparent; }
+  /* Outline: a kind with its fill taken away, as .cc-outline is on a tag. The
+     edge and the label are its color, moved to where it reads as text on the
+     page and on every raised level, hovered and pressed too: no lighter than
+     .46 by day, no darker than .77 at night. A kind is destructive, confirm,
+     or .cc-primary, the accent; with none, the text's ink; --btn-color in a
+     context is any other. --btn-tint puts a share of the color in its ground. */
+  .button.cc-outline {
+    --btn-bg: color-mix(in oklab, var(--btn-color) var(--btn-tint), transparent);
+    --btn-ink: var(--btn-on-media, var(--btn-color));
+    --btn-border: var(--btn-ink);
+  }
+  @supports (color: oklch(from red l c h)) {
+    .button.cc-outline {
+      --btn-ink: var(--btn-on-media, light-dark(
+        oklch(from var(--btn-color) min(l, .46) calc(c * min(1, .46 / max(l, .001))) h),
+        oklch(from var(--btn-color) max(l, .77) calc(c * min(1, (1 - max(l, .77)) / max(1 - l, .001))) h)));
+    }
+  }
+  /* Selected, its edge is two lines: the mark that a plain button's darker edge is. */
+  .button.cc-outline[aria-pressed="true"]:not(:disabled, [aria-disabled="true"]) { --btn-border: var(--btn-ink); box-shadow: inset 0 0 0 var(--line) var(--btn-border); }
   .button.cc-sm { --btn-h: var(--size-control-sm); --btn-fs: var(--fs-control-sm); }
   .button.cc-md { --btn-h: var(--size-control-md); --btn-fs: var(--fs-control-md); }
   .button.cc-lg { --btn-h: var(--size-control-xl); --btn-fs: var(--fs-control-lg); }
@@ -2076,6 +2119,9 @@
   .tag.cc-ok     { --tag-color: var(--ok); }
   .tag.cc-warn   { --tag-color: var(--warn); }
   .tag.cc-alert  { --tag-color: var(--alert); }
+  /* No kind: the neutral, for what is worth a label and not a color (D115).
+     Its words step back too; solid or selected, they are the fill's ink. */
+  .tag.cc-quiet  { --tag-color: var(--text-tertiary); --tag-ink: var(--text-secondary); }
   /* A stage (D107): the tint, the edge and, solid, the fill and its ink all follow the one color. */
   .tag.cc-stage-1 { --tag-color: var(--stage-1); }
   .tag.cc-stage-2 { --tag-color: var(--stage-2); }
@@ -3100,6 +3146,25 @@
   }
   .badge.cc-quiet { --badge-color: color-mix(in oklab, var(--text) 10%, var(--surface)); --badge-ink: var(--text-secondary); }
   .badge.cc-accent { --badge-color: var(--accent); --badge-ink: var(--accent-ink); }
+  /* On its icon button's corner, as the button's child (D115). Its inner corner
+     is a quarter cell short of the button's middle and no more than a cell and
+     a quarter in, so one figure leaves the icon's middle clear at every size:
+     on a button of three cells and up it stands a quarter cell past the
+     corner. More figures grow inward. Past the cell's cap a badge grows with
+     its type: it grows outward, and the button keeps that many whole cells
+     (none, at default sizes) above it and after it, so nothing is covered. */
+  .icon-button > .badge.cc-corner {
+    --badge-in: min(50% - var(--sp-q), var(--u) * 1.25 - var(--line));
+    position: absolute;
+    inset-block-end: calc(100% - var(--badge-in));
+    inset-inline-end: calc(var(--badge-in) - var(--badge-h) - var(--badge-over, 0px));
+    letter-spacing: 0; text-indent: 0; text-transform: none;   /* a count, whatever the button's face */
+  }
+  .icon-button:has(> .badge.cc-corner) {
+    --badge-over: max(0px, round(up, calc(var(--fs-control-xs) - var(--size-control-xs)), var(--u)));
+    position: relative;
+    margin-block-start: var(--badge-over); margin-inline-end: var(--badge-over);
+  }
   .dot {
     --dot-color: var(--alert);
     --dot-size: var(--sp-h);
@@ -3443,6 +3508,9 @@
     .dot { forced-color-adjust: none; background: CanvasText; }
     .dot.cc-ring { border-color: CanvasText; background: Canvas; }
     .badge { outline: var(--line) solid CanvasText; outline-offset: calc(var(--line) * -1); }
+    .badge.cc-corner { background: Canvas; }   /* its button's edge passes under it */
+    /* A translucent bar is opaque here: the words on it are the system's (D115). */
+    .shell-nav { background: Canvas; backdrop-filter: none; }
     .avatar { outline: var(--av-ring) solid CanvasText; outline-offset: var(--av-gap); }
     /* A nested surface has no edge of its own (D88), and here its ground is gone too. */
     :is(.card, .list.cc-group, .modal-inner, .float) .card { --card-border: CanvasText; }

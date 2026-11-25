@@ -8,7 +8,8 @@
                 scopes it brings (D96), all in @layer trellis.product
      knobs      it sets variables only, and only those product.template.css lists
      contrast   every text role, the accent and its ink, each status as a line,
-                each stage's ink and a solid kind's ink meet their floors
+                each stage's ink, a solid kind's ink and an outline button's
+                meet their floors
                 (WCAG AA), in both themes, for the root and for every scope.
                 A scope whose rule names the dark theme in its selector,
                 [data-product="part"][data-theme="dark"], never applies by day,
@@ -46,6 +47,10 @@ const FLOORS = [['text', 'bg', 4.5], ['text', 'bg-raised', 4.5], ['text', 'bg-su
   // level, whatever color the product gave the stage. Its fill has no floor: it may be pale.
   ...[1, 2, 3, 4, 5, 6, 7].flatMap((n) => GROUNDS.map((g) => [`stage-${n}-ink`, g, 4.5]))];
 const THEMES = ['light', 'dark'];
+// What an outline button takes its color from (.button.cc-outline, D115): its ink is a label.
+const OUTLINES = ['accent', 'ok', 'alert'];
+// A translucent bar (--shell-nav-bg, D115) keeps this share of its ground, and these inks are words on it.
+const BAR = { share: 0.85, grounds: ['bg', 'bg-raised'], inks: ['text', 'text-secondary'] };
 const SOLIDS = ['kind-person', 'kind-group', 'kind-event', 'kind-course', 'kind-topic', 'ok', 'warn', 'alert'];
 
 // The shape and the knobs. Returns the failures and the knobs the layer sets.
@@ -128,6 +133,13 @@ function contrast(label, seed, themes = THEMES) {
       const r = M.contrast(M.ink(p[k], seed), p[k]);
       if (!(r >= 4.5)) fails.push(`contrast: ${label} ${theme}: ink on a solid --${k} is ${r.toFixed(2)}:1, under 4.5`);
     }
+    for (const k of OUTLINES) for (const g of GROUNDS) {
+      const r = M.contrast(M.outlineInk(p[k], theme), p[g]);
+      if (!(r >= 4.5)) fails.push(`contrast: ${label} ${theme}: an outline button's ink from --${k} on --${g} is ${r.toFixed(2)}:1, under 4.5`);
+    }
+    // A solid or selected quiet tag: ink computed from the neutral it fills with.
+    const q = M.contrast(M.ink(p['text-tertiary'], seed), p['text-tertiary']);
+    if (!(q >= 4.5)) fails.push(`contrast: ${label} ${theme}: ink on a solid quiet tag is ${q.toFixed(2)}:1, under 4.5`);
   }
   return fails;
 }
@@ -139,7 +151,7 @@ function validate(css, label = 'product layer', knobs = template()) {
   return { fails, sets };
 }
 
-module.exports = { validate, shape, scopesOf, contrast, template, FLOORS, SOLIDS };
+module.exports = { validate, shape, scopesOf, contrast, template, FLOORS, SOLIDS, OUTLINES, BAR, GROUNDS, THEMES };
 
 if (require.main === module) {
   const files = process.argv.slice(2);

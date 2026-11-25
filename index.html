@@ -6,7 +6,7 @@
 <title>Trellis</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 18 18%27%3E%3Crect x=%27.5%27 y=%27.5%27 width=%2717%27 height=%2717%27 rx=%274.5%27 fill=%27%23101111%27 stroke=%27%236aa5f5%27/%3E%3Cline x1=%27.5%27 y1=%2712.5%27 x2=%2717.5%27 y2=%2712.5%27 stroke=%27%236aa5f5%27/%3E%3Ccircle cx=%276%27 cy=%276%27 r=%272%27 fill=%27%23f4f4f2%27/%3E%3C/svg%3E">
 <meta name="description" content="Trellis is a CSS and HTML framework built on one spacing unit, the cell, and one type ratio. This page shows every part of it.">
-<link rel="stylesheet" href="core.css?v=0.10.16">
+<link rel="stylesheet" href="core.css?v=0.10.17">
 <link rel="stylesheet" id="product-layer">
 <script>
   // Before first paint, so nothing flashes: the saved view settings, and one
@@ -38,7 +38,7 @@
     if (s.fit === 'on' || s.fit === 'off') d.setAttribute('data-unit-fit', s.fit);
   })();
 </script>
-<link rel="stylesheet" href="specimen.css?v=0.10.19">
+<link rel="stylesheet" href="specimen.css?v=0.10.20">
 </head>
 <body>
 
@@ -958,7 +958,7 @@
           </header>
           <div class="shell-main stack">
             <nav aria-label="Breadcrumb, example, top"><ol class="crumbs"><li><a href="#navigation">Catalog</a></li><li><a href="#navigation">Squash</a></li><li><span aria-current="page">Long Island Cheese</span></li></ol></nav>
-            <p class="t-sm">The bar is four cells tall and sticky (here it stays in its box). Guides opens a float under its button: the browser places it by its anchor, and flips it when it would leave the screen.</p>
+            <p class="t-sm">The bar is four cells tall and sticky (here it stays in its box). Its ground and its blur are variables, so it can be translucent over a page that scrolls under it. Guides opens a float under its button: the browser places it by its anchor, and flips it when it would leave the screen.</p>
           </div>
           <aside class="shell-aside stack">
             <p class="t-label faint">On this page</p>
@@ -1267,6 +1267,12 @@
       <div class="cluster"><button class="button" type="button"><span class="button-label">Default</span></button><button class="button" type="button" aria-pressed="true"><span class="button-label">Selected</span></button><button class="button" type="button" disabled><span class="button-label">Disabled</span></button><button class="button cc-primary" type="button"><span class="button-label">Primary</span></button><button class="button cc-primary" type="button" disabled><span class="button-label">Disabled</span></button></div>
       <p class="t-sm muted">Hover and press mix a control's own ink into its own fill, 6% and 12%, and selected 10% with a mark of its own; hover only where a pointer can hover. The task rows under Floating surfaces are a control of the specimen's own, given the same layer by <code>.u-state</code>.</p>
 
+      <h3 class="t-h5">.button: kinds, outline and a count</h3>
+      <div class="cluster" id="demo-kinds"><button class="button cc-alert" type="button"><span class="button-label">Delete the log</span></button><button class="button cc-ok" type="button"><span class="button-label">Confirm</span></button><button class="button cc-alert" type="button" disabled><span class="button-label">Disabled</span></button></div>
+      <div class="cluster" id="demo-outline"><button class="button cc-primary cc-outline" type="button"><span class="button-label">Connect</span></button><button class="button cc-alert cc-outline" type="button"><span class="button-label">Leave the circle</span></button><button class="button cc-ok cc-outline" type="button"><span class="button-label">Approve</span></button><button class="button cc-outline" type="button"><span class="button-label">Outline alone</span></button><button class="button cc-alert cc-outline" type="button" aria-pressed="true"><span class="button-label">Recording</span></button></div>
+      <div class="cluster" id="demo-corner"><button class="button icon-button cc-sm" type="button" aria-label="Messages, 3 unread"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 3h10v6.5H6.5L3.5 12V9.5H2z"></path></svg><span class="badge cc-corner" aria-hidden="true">3</span></button><button class="button icon-button" type="button" aria-label="Messages, 3 unread"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 3h10v6.5H6.5L3.5 12V9.5H2z"></path></svg><span class="badge cc-corner" aria-hidden="true">3</span></button><button class="button icon-button cc-ghost cc-lg" type="button" aria-label="Messages, more than 99 unread"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 3h10v6.5H6.5L3.5 12V9.5H2z"></path></svg><span class="badge cc-corner cc-accent" aria-hidden="true">99+</span></button></div>
+      <p class="t-xs faint">A status makes a button destructive or confirming, as it does a tag. <code>.cc-outline</code> takes the fill away and draws the edge and the label in the same color, moved to where it reads as text. A count sits on its icon button's corner, and the button's label says it.</p>
+
       <h3 class="t-h5">.range</h3>
       <div class="cols demo-ranges">
         <div class="field"><label class="field-label t-label" for="demo-range">A value</label><input class="range" id="demo-range" type="range" min="0" max="100" value="40"></div>
@@ -1498,7 +1504,7 @@
     <div class="section-body stack">
       <div class="plate" tabindex="0">
         <div class="matrix stack">
-          <div class="matrix-row"><span class="t-label cap-center">Kind</span><div class="cluster"><span class="tag"><span class="tag-label">Systems design</span></span><span class="tag cc-person"><span class="tag-label">Amara Okafor</span></span><span class="tag cc-group"><span class="tag-label">Seed library</span></span><span class="tag cc-event"><span class="tag-label">Thursday gathering</span></span><span class="tag cc-course"><span class="tag-label">Pattern design</span></span></div></div>
+          <div class="matrix-row"><span class="t-label cap-center">Kind</span><div class="cluster"><span class="tag"><span class="tag-label">Systems design</span></span><span class="tag cc-person"><span class="tag-label">Amara Okafor</span></span><span class="tag cc-group"><span class="tag-label">Seed library</span></span><span class="tag cc-event"><span class="tag-label">Thursday gathering</span></span><span class="tag cc-course"><span class="tag-label">Pattern design</span></span><span class="tag cc-quiet"><span class="tag-label">Ends in 3 days</span></span></div></div>
           <div class="matrix-row"><span class="t-label cap-center">Status</span><div class="cluster"><span class="tag cc-ok"><span class="tag-dot"></span><span class="tag-label">Active</span></span><span class="tag cc-warn"><span class="tag-dot"></span><span class="tag-label">Pending</span></span><span class="tag cc-alert"><span class="tag-dot"></span><span class="tag-label">Blocked</span></span></div></div>
           <div class="matrix-row"><span class="t-label cap-center">Emphasis</span><div class="cluster"><span class="tag cc-group"><span class="tag-label">Soft</span></span><span class="tag cc-group cc-outline"><span class="tag-label">Outline</span></span><span class="tag cc-group cc-solid"><span class="tag-label">Solid</span></span></div></div>
           <div class="matrix-row"><span class="t-label cap-center">Size</span><div class="cluster u-align-end"><span class="tag cc-sm"><span class="tag-label">Small</span></span><span class="tag cc-md"><span class="tag-label">Medium</span></span><span class="tag cc-lg"><span class="tag-label">Large</span></span></div></div>

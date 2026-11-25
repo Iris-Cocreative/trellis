@@ -73,6 +73,12 @@
 //           column's brand is not in the tab bar; prose in a bubble that
 //           shrinks to its content has a width; a message keeps the line
 //           breaks it was typed with, and a bubble of markup does not (D112)
+//   controls (D115) a button's kinds and its outline, a quiet tag: the label as
+//           drawn on every ground in both themes, hovered, pressed, focused,
+//           disabled and selected, on a full bleed and in forced colors; a count
+//           on an icon button's corner, at every size and at 312% text; a bar's
+//           ground and blur, and the words on it over black and over white; the
+//           face for code and a dense card's corner as knobs
 // Usage: node layout.js <url> [webkit] [WxH] [touch]
 // Needs Playwright (PLAYWRIGHT=module path). Exits 1 if anything is off.
 const pw = require(process.env.PLAYWRIGHT || 'playwright');
@@ -1856,6 +1862,262 @@ const ready = require('./ready');
     const usual = await page.evaluate(build, '100%');
     fails.push(...usual.fails);
     if (usual.line !== usual.choice) fails.push(`choice: at default sizes its line is ${usual.choice}, the page's ${usual.line}`);
+  }
+  // Controls (D115): a button's kinds and its outline, a quiet tag, a count on an
+  // icon button's corner, a translucent bar, and two knobs. Colors are read as
+  // drawn, composited on each ground of the ladder, in both themes.
+  {
+    await page.evaluate(() => {
+      const host = document.createElement('div'); host.id = 'ctl';
+      host.style.cssText = 'position: absolute; inset-block-start: 0; inset-inline-start: 0; z-index: 2147483647; inline-size: calc(var(--u) * 30); background: var(--bg)';
+      const b = (k, c, more = '') => `<button class="button cc-sm ${c}" type="button" data-k="${k}" ${more}><span class="button-label">A</span></button>`;
+      const set = `<div class="cluster">${b('alert', 'cc-alert')}${b('ok', 'cc-ok')}${b('o-accent', 'cc-primary cc-outline')}${b('o-alert', 'cc-alert cc-outline')}${b('o-ok', 'cc-ok cc-outline')}${b('o-none', 'cc-outline')}${b('o-own', 'cc-outline', 'style="--btn-color: var(--kind-event)"')}`
+        + `<button class="tag cc-quiet" type="button" data-k="quiet"><span class="tag-label">A</span></button><span class="tag cc-quiet cc-outline" data-k="quiet-outline"><span class="tag-label">A</span></span><span class="tag cc-quiet cc-solid" data-k="quiet-solid"><span class="tag-label">A</span></span><button class="tag cc-quiet" type="button" aria-pressed="true" data-k="quiet-on"><span class="tag-label">A</span></button></div>`;
+      host.innerHTML = ['--bg', '--bg-raised', '--bg-raised-2', '--bg-raised-3'].map(g => `<div data-g="${g}" style="background: var(${g})">${set}</div>`).join('')
+        + `<div class="cluster" id="ctl-more">${b('plain', '')}${b('plain-off', '', 'disabled')}${['cc-alert', 'cc-ok', 'cc-alert cc-outline', 'cc-outline'].map((c, i) => b('off-' + i, c, i % 2 ? 'aria-disabled="true"' : 'disabled') + b('size-' + i, c)).join('')}${b('o-on', 'cc-alert cc-outline', 'aria-pressed="true"')}${b('o-on-off', 'cc-alert cc-outline', 'aria-pressed="true" disabled')}`
+        + `${b('o-tint', 'cc-alert cc-outline', 'style="--btn-tint: 10%; --btn-border: transparent"')}${b('own', '', 'style="--btn-bg: rgb(0 60 0); --btn-ink: rgb(200 255 200); --btn-border: rgb(1 2 3)"')}${b('own-kind', 'cc-alert', 'style="--btn-bg: rgb(0 60 0); --btn-ink: rgb(200 255 200); --btn-border: rgb(1 2 3)"')}</div>`
+        + `<div class="card" id="ctl-fill"><div class="media cc-fill"></div><div class="cluster">${b('f-alert', 'cc-alert cc-outline')}${b('f-none', 'cc-outline')}<div class="card">${b('f-nest', 'cc-alert cc-outline')}</div></div></div>`;
+      document.body.appendChild(host);
+      window.__ctl = {
+        px: (...cs) => { const c = Object.assign(document.createElement('canvas'), { width: 1, height: 1 }), g = c.getContext('2d', { willReadFrequently: true }); cs.forEach(v => { g.fillStyle = v; g.fillRect(0, 0, 1, 1); }); return [...g.getImageData(0, 0, 1, 1).data].slice(0, 3); },
+        ratio: (a, b) => { const l = p => { const f = p.map(v => { v /= 255; return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }); return .2126 * f[0] + .7152 * f[1] + .0722 * f[2]; }; const x = l(a), y = l(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); },
+        still: () => Promise.all(document.getAnimations().filter(a => a.effect && a.effect.target && a.effect.target.closest && a.effect.target.closest('#ctl')).map(a => a.finished.catch(() => {}))),
+        // A label on its control on its ground, as drawn.
+        read: e => { const { px, ratio } = window.__ctl, cs = getComputedStyle(e), g = getComputedStyle(e.closest('[data-g]') || document.getElementById('ctl')).backgroundColor, under = px(g, cs.backgroundColor); return { r: ratio(px(g, cs.backgroundColor, cs.color), under), under }; },
+        color: v => { const i = document.createElement('i'); i.style.color = v; document.getElementById('ctl').appendChild(i); const c = window.__ctl.px(getComputedStyle(i).color); i.remove(); return c; },
+        theme: document.documentElement.getAttribute('data-theme'),
+      };
+    });
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(async theme => { document.documentElement.setAttribute('data-theme', theme); scrollTo({ top: 0, left: 0, behavior: 'instant' }); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); await window.__ctl.still(); }, theme);
+      await page.mouse.move(width - 2, height - 2);
+      fails.push(...await page.evaluate(theme => {
+        const fails = [], { px, read, color } = window.__ctl, say = m => fails.push(`controls, ${theme}: ${m}`), q = k => document.querySelector(`#ctl [data-k="${k}"]`), cs = k => getComputedStyle(q(k));
+        const same = (a, b, t = 1) => a.every((v, i) => Math.abs(v - b[i]) <= t);
+        for (const row of document.querySelectorAll('#ctl [data-g]')) for (const e of row.querySelectorAll('[data-k]')) {
+          const { r, under } = read(e), k = e.dataset.k;
+          if (r < 4.5) say(`${k} on ${row.dataset.g}: its label is ${r.toFixed(2)}:1`);
+          if (/^(alert|ok)$/.test(k) && !same(under, color(`var(--${k})`))) say(`a ${k} button fills with ${under}, not --${k} ${color(`var(--${k})`)}`);
+          if (/^o-/.test(k) && !same(under, color(`var(${row.dataset.g})`))) say(`${k} has a ground of its own: ${under} on ${row.dataset.g}`);
+          if (/^o-/.test(k) && !same(px(getComputedStyle(e).color), px(getComputedStyle(e).borderTopColor), 0)) say(`${k}'s edge is ${getComputedStyle(e).borderTopColor}, its label ${getComputedStyle(e).color}`);
+        }
+        // Outline: the kind's hue, where math.js says it reads; alone, the text's ink.
+        for (const [k, v] of [['o-accent', 'accent'], ['o-alert', 'alert'], ['o-ok', 'ok'], ['o-own', 'kind-event'], ['o-none', 'text']]) {
+          const got = px(cs(k).color), M = window.TrellisMath, hex = M.hex(M.outlineInk('#' + color(`var(--${v})`).map(x => ('0' + x.toString(16)).slice(-2)).join(''), theme)), want = [1, 3, 5].map(i => parseInt(hex.substr(i, 2), 16));
+          if (!same(got, want, 3)) say(`${k}'s ink is ${got}, where math.js has ${want}`);
+        }
+        if (!same(px(cs('o-none').color), color('var(--text)'), 0)) say(`an outline alone is ${cs('o-none').color}, not the text's ink`);
+        if (String(px(cs('o-alert').color)) === String(px(cs('o-ok').color))) say('destructive and confirm outlines are one color');
+        // Quiet: the neutral's tint and edge, secondary words; solid and selected, filled.
+        if (!same(px(cs('quiet').color), color('var(--text-secondary)'), 0)) say(`a quiet tag's words are ${cs('quiet').color}`);
+        { const t = document.createElement('span'); t.className = 'tag'; t.style.setProperty('--tag-color', 'var(--text-tertiary)'); q('quiet').parentElement.appendChild(t);
+          const want = getComputedStyle(t); for (const p of ['backgroundColor', 'borderTopColor', 'height', 'borderTopLeftRadius']) if (want[p] !== cs('quiet')[p]) say(`a quiet tag's ${p} is ${cs('quiet')[p]}, not ${want[p]}`); t.remove(); }
+        for (const k of ['quiet-solid', 'quiet-on']) if (!same(read(q(k)).under, color('var(--text-tertiary)'))) say(`${k} does not fill with the neutral: ${read(q(k)).under}`);
+        // The box is a button's, whatever its kind; disabled is a disabled button.
+        for (const i of [0, 1, 2, 3]) {
+          for (const p of ['width', 'height', 'paddingLeft', 'borderTopWidth', 'borderTopLeftRadius', 'fontSize']) if (cs('size-' + i)[p] !== cs('plain')[p]) say(`${q('size-' + i).className}: ${p} is ${cs('size-' + i)[p]}, a plain button's ${cs('plain')[p]}`);
+          for (const p of ['color', 'backgroundColor', 'borderTopColor', 'boxShadow']) if (cs('off-' + i)[p] !== cs('plain-off')[p]) say(`a disabled ${q('off-' + i).className}: ${p} is ${cs('off-' + i)[p]}, a disabled button's ${cs('plain-off')[p]}`);
+        }
+        // Selected: its wash, its edge in its ink and two lines thick; not when disabled.
+        if (cs('o-on').boxShadow === 'none' || String(px(cs('o-on').borderTopColor)) !== String(px(cs('o-on').color)) || read(q('o-on')).r < 4) say(`a selected outline: shadow ${cs('o-on').boxShadow}, edge ${cs('o-on').borderTopColor}, label ${read(q('o-on')).r.toFixed(2)}:1`);
+        if (cs('o-on-off').boxShadow !== 'none' || cs('o-on-off').borderTopColor !== cs('plain-off').borderTopColor) say('a disabled selected outline still draws its mark');
+        // The tint, and a button a context paints itself, with a kind or without.
+        { const i = document.createElement('i'); i.style.background = 'color-mix(in oklab, var(--alert) 10%, transparent)'; document.getElementById('ctl').appendChild(i);
+          if (!same(read(q('o-tint')).under, px(getComputedStyle(document.getElementById('ctl')).backgroundColor, getComputedStyle(i).backgroundColor))) say(`--btn-tint: 10% draws ${read(q('o-tint')).under}`); i.remove();
+          if (read(q('o-tint')).r < 4.5) say(`a tinted outline's label is ${read(q('o-tint')).r.toFixed(2)}:1`);
+          if (!/^(transparent|rgba\(0, 0, 0, 0\))$/.test(cs('o-tint').borderTopColor)) say(`--btn-border does not reach an outline: ${cs('o-tint').borderTopColor}`); }
+        for (const k of ['own', 'own-kind']) if (!same(px(cs(k).backgroundColor), [0, 60, 0], 2) || !same(px(cs(k).color), [200, 255, 200], 2) || !same(px(cs(k).borderTopColor), [1, 2, 3], 2)) say(`${k}: --btn-bg, --btn-ink and --btn-border set in markup draw ${cs(k).backgroundColor}, ${cs(k).color}, ${cs(k).borderTopColor}`);
+        // On a full bleed an outline is white, whatever its kind; on a surface in it, its own.
+        for (const k of ['f-alert', 'f-none']) if (String(px(cs(k).color)) !== '255,255,255' || String(px(cs(k).borderTopColor)) !== '255,255,255') say(`${k}, an outline on a full bleed, is ${cs(k).color}`);
+        if (cs('f-nest').color !== cs('o-alert').color) say(`an outline on a card in a full bleed is ${cs('f-nest').color}, not ${cs('o-alert').color}`);
+        return fails;
+      }, theme));
+      // Hovered, pressed and focused, on the ground where they read worst.
+      for (const k of ['alert', 'ok', 'o-accent', 'o-alert', 'o-ok', 'o-none', 'quiet']) {
+        const sel = `#ctl [data-g="--bg-raised-3"] [data-k="${k}"]`, p = await page.evaluate(s => { const b = document.querySelector(s).getBoundingClientRect(); return { x: (b.left + b.right) / 2, y: (b.top + b.bottom) / 2 }; }, sel);
+        const state = () => page.evaluate(async s => { await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); await window.__ctl.still(); const e = document.querySelector(s); return { r: window.__ctl.read(e).r, act: getComputedStyle(e).getPropertyValue('--state-act').trim() }; }, sel);
+        const floor = /^(alert|ok)$/.test(k) ? 3 : 4.5;   // a filled kind's ink is mixed into its fill, as a primary button's is
+        await page.mouse.move(p.x, p.y);
+        if (await page.evaluate(() => matchMedia('(hover: hover)').matches)) { const s = await state(); if (s.act !== '6%' || s.r < floor) fails.push(`controls, ${theme}: ${k} hovered is ${s.r.toFixed(2)}:1 (${s.act})`); }
+        await page.mouse.down();
+        const s = await state(); if (s.act !== '12%' || s.r < floor) fails.push(`controls, ${theme}: ${k} pressed is ${s.r.toFixed(2)}:1 (${s.act})`);
+        await page.mouse.move(width - 2, height - 2); await page.mouse.up();
+      }
+      await page.keyboard.press('Tab');
+      fails.push(...await page.evaluate(theme => {
+        const fails = [], { px, color } = window.__ctl;
+        for (const k of ['alert', 'ok', 'o-accent', 'o-alert', 'o-none', 'quiet']) {
+          const e = document.querySelector(`#ctl [data-k="${k}"]`); e.focus({ preventScroll: true });
+          const cs = getComputedStyle(e);
+          if (!e.matches(':focus-visible') || cs.outlineStyle !== 'solid' || String(px(cs.outlineColor)) !== String(color('var(--focus)'))) fails.push(`controls, ${theme}: ${k} focused draws ${cs.outlineStyle} ${cs.outlineColor}`);
+        }
+        document.activeElement.blur();
+        return fails;
+      }, theme));
+    }
+    // Forced colors: a filled kind and an outline are outlined by their border.
+    await page.emulateMedia({ forcedColors: 'active' });
+    fails.push(...await page.evaluate(() => {
+      const fails = [];
+      if (!matchMedia('(forced-colors: active)').matches) return fails;
+      for (const k of ['alert', 'ok', 'o-alert', 'o-none', 'quiet']) {
+        const cs = getComputedStyle(document.querySelector(`#ctl [data-k="${k}"]`));
+        if (cs.borderTopStyle !== 'solid' || !(parseFloat(cs.borderTopWidth) > 0) || /^(transparent|rgba\(0, 0, 0, 0\))$/.test(cs.borderTopColor)) fails.push(`forced colors: ${k} has no edge (${cs.borderTopStyle} ${cs.borderTopColor})`);
+      }
+      return fails;
+    }));
+    await page.emulateMedia({ forcedColors: 'none' });
+    await page.evaluate(() => { const t = window.__ctl.theme; if (t === null) document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t); document.getElementById('ctl').remove(); });
+
+    // The count on the corner: where it sits at each size, its button's box and
+    // place untouched, its clicks the button's, on touch the whole 44px, and
+    // past the cap, room for it and the icon clear.
+    const corner = async (pg, at) => pg.evaluate(async at => {
+      const fails = [], u = Trellis.cell(), host = document.createElement('div'), root = document.documentElement, r = e => e.getBoundingClientRect(), big = at !== '100%';
+      const icon = '<svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7h10"/></svg>';
+      const ib = (c, n, more = '') => `<button class="button icon-button ${c}" type="button" aria-label="A, ${n}" ${more}>${icon}${n === null ? '' : `<span class="badge cc-corner" aria-hidden="true">${n}</span>`}</button>`;
+      host.id = 'corner-test'; host.style.cssText = 'position: absolute; inset-block-start: 0; inset-inline: 0; padding: calc(var(--u) * 4); background: var(--bg); z-index: 2147483647';
+      const sizes = ['cc-sm', 'cc-md', '', 'cc-lg', 'cc-ghost'];
+      host.innerHTML = sizes.map((c, i) => `<div class="cluster" data-row="${i}">${ib(c, 3)}${ib(c, null)}</div><div class="cluster" data-more="${i}">${ib(c, '99+')}${ib(c, null)}</div>`).join('')
+        + `<div class="cluster" data-place>${ib('', null)}${ib('', null)}</div><div class="cluster" data-hide>${ib('', 3).replace('cc-corner"', 'cc-corner" hidden')}</div>`
+        + `<div style="--button-tracking: .2em; --button-case: uppercase" data-face>${ib('', 'new')}</div><div style="display: flex; justify-content: flex-end" data-end>${ib('', '99+')}</div>`;
+      document.body.appendChild(host); await Trellis.settled();
+      sizes.forEach((c, i) => {
+        const [btn, next] = host.querySelector(`[data-row="${i}"]`).children, b = r(btn), badge = btn.querySelector('.badge'), n = r(badge), g = r(btn.querySelector('.icon')), name = `${at}: a count on "${c || 'default'}"`;
+        const past = { top: b.top - n.top, end: n.right - b.right };
+        if (!big) {
+          // At default sizes: a quarter cell past the corner from three cells up, its inner corner short of the middle by a quarter cell below that.
+          const want = Math.max(u / 4, 1.5 * u - (b.width / 2 - u / 4));
+          if (Math.abs(past.top - want) > 1.1 || Math.abs(past.end - want) > 1.1) fails.push(`${name} stands ${past.top.toFixed(2)} and ${past.end.toFixed(2)}px past the corner, not ${want.toFixed(2)}`);
+          if (getComputedStyle(btn).marginTop !== '0px' || getComputedStyle(btn).marginRight !== '0px') fails.push(`${name} moved its button: ${getComputedStyle(btn).margin}`);
+          if (b.width !== r(next).width || b.height !== r(next).height || Math.abs(b.top - r(next).top) > .1) fails.push(`${name} changed its button's box`);
+        } else {
+          if (!(n.height > 1.5 * u + .5)) fails.push(`${name} did not grow with its type (${n.height.toFixed(1)}px)`);
+          if (n.right > r(next).left + u / 4 + .5 && Math.abs(r(next).top - b.top) < u * 2 && n.bottom > r(next).top) fails.push(`${name} covers the next button by ${(n.right - r(next).left).toFixed(1)}px`);
+          if (n.top < r(btn.parentElement).top - u) fails.push(`${name} stands ${(r(btn.parentElement).top - n.top).toFixed(1)}px above its row`);
+        }
+        // The icon's middle is clear, and at most a quarter of it is under one figure.
+        const w = Math.max(0, Math.min(n.right, g.right) - Math.max(n.left, g.left)), h = Math.max(0, Math.min(n.bottom, g.bottom) - Math.max(n.top, g.top));
+        if (w * h > g.width * g.height / 4 + 1) fails.push(`${name} covers ${Math.round(100 * w * h / (g.width * g.height))}% of the icon`);
+        if (badge.scrollWidth > badge.clientWidth + 1) fails.push(`${name}: its figure is wider than it`);
+        const many = host.querySelector(`[data-more="${i}"] .badge`), m = r(many), mb = r(many.parentElement);
+        if (Math.abs((m.right - mb.right) - past.end) > .6) fails.push(`${name}: more figures do not grow inward`);
+        // A click on the count is its button's; on touch the whole target is.
+        const hits = [[(n.left + n.right) / 2, (n.top + n.bottom) / 2]];
+        if (matchMedia('(pointer: coarse)').matches) { const t = Math.max(44, b.width) / 2 - 1; hits.push([(b.left + b.right) / 2 - t, (b.top + b.bottom) / 2], [(b.left + b.right) / 2, (b.top + b.bottom) / 2 + t]); }
+        btn.style.zIndex = 1;
+        for (const [x, y] of hits) { const e = document.elementFromPoint(x, y); if (!e || e.closest('button') !== btn) fails.push(`${name}: a tap at ${(x - b.left).toFixed(0)},${(y - b.top).toFixed(0)} misses it`); }
+        btn.style.zIndex = '';
+      });
+      if (host.querySelector('[data-hide] .badge').getClientRects().length) fails.push(`${at}: a hidden count is drawn`);
+      { const cs = getComputedStyle(host.querySelector('[data-face] .badge')); if (!/^(0px|normal)$/.test(cs.letterSpacing) || cs.textIndent !== '0px' || cs.textTransform !== 'none') fails.push(`${at}: a count takes its button's face (${cs.letterSpacing}, ${cs.textIndent}, ${cs.textTransform})`); }
+      { const e = r(host.querySelector('[data-end] .badge')); if (e.right > r(host).right - u * 3 + .5) fails.push(`${at}: a count at a row's end runs ${(e.right - r(host).right + u * 4).toFixed(1)}px past it`); }
+      if (root.scrollWidth > root.clientWidth + 1) fails.push(`${at}: the page scrolls sideways (${root.scrollWidth} of ${root.clientWidth})`);
+      host.remove();
+      return fails;
+    }, at);
+    fails.push(...await corner(page, '100%'));
+    {
+      const ax = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: touch ? 3 : 1, isMobile: touch, hasTouch: touch });
+      await ax.addInitScript(font => {
+        const set = () => { if (!document.documentElement) return false; const s = document.documentElement.style; s.fontSize = '312%'; if (font) ['--font-sans', '--font-serif', '--font-heading', '--font-mono'].forEach(v => s.setProperty(v, font)); return true; };
+        if (!set()) new MutationObserver((m, o) => { if (set()) o.disconnect(); }).observe(document, { childList: true });
+      }, process.env.FONT || '');
+      await ax.goto(url, { waitUntil: 'networkidle', timeout: 120000 });
+      await ready(ax);
+      fails.push(...await corner(ax, '312%'));
+      // The kinds hold their type, as a plain button does.
+      fails.push(...await ax.evaluate(() => {
+        const fails = [], u = Trellis.cell(), plain = document.querySelector('.button:not(.icon-button, .cc-sm, .cc-md, .cc-lg)').getBoundingClientRect().height;
+        for (const e of document.querySelectorAll('#demo-kinds .button, #demo-outline .button')) { const h = e.getBoundingClientRect().height, l = e.querySelector('.button-label').getBoundingClientRect().height; if (Math.abs(h - plain) > .5 || h < parseFloat(getComputedStyle(e).fontSize) - .5 || l > h) fails.push(`312%: ${e.className} is ${h.toFixed(1)}px, a plain button ${plain.toFixed(1)}px`); }
+        if (!document.querySelector('#demo-kinds .button') || !document.querySelector('#demo-outline .button')) fails.push('312%: the specimen has no kinds to check');
+        return fails;
+      }));
+      await ax.close();
+    }
+
+    // The bar: opaque and not blurred unless it is told to be; told, what it is
+    // told, and the words on it hold over black and over white; its tray is still
+    // the screen's; opaque in forced colors and with less transparency asked for.
+    fails.push(...await page.evaluate(async () => {
+      const fails = [], px = (...cs) => { const c = Object.assign(document.createElement('canvas'), { width: 1, height: 1 }), g = c.getContext('2d', { willReadFrequently: true }); cs.forEach(v => { g.fillStyle = v; g.fillRect(0, 0, 1, 1); }); return [...g.getImageData(0, 0, 1, 1).data].slice(0, 3); };
+      const lum = p => { const f = p.map(v => { v /= 255; return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }); return .2126 * f[0] + .7152 * f[1] + .0722 * f[2]; }, ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
+      const root = document.documentElement, was = root.getAttribute('data-theme');
+      for (const theme of ['light', 'dark']) {
+        root.setAttribute('data-theme', theme);
+        for (const id of ['demo-shell-wide', 'demo-shell-narrow', 'demo-top-wide', 'demo-top-narrow']) {
+          const nav = document.querySelector(`#${id} .shell-nav`), cs = getComputedStyle(nav), i = document.createElement('i');
+          i.style.background = 'var(--surface)'; nav.appendChild(i); const surface = getComputedStyle(i).backgroundColor; i.remove();
+          if (cs.backgroundColor !== surface || cs.backdropFilter !== 'none') fails.push(`bar, ${theme}: ${id} paints ${cs.backgroundColor} and ${cs.backdropFilter} by default, not ${surface} and no filter`);
+          for (const g of ['--bg', '--bg-raised']) {
+            nav.style.setProperty('--shell-nav-bg', `color-mix(in oklab, var(${g}) 85%, transparent)`); nav.style.setProperty('--shell-nav-blur', 'var(--sp-1)');
+            const now = getComputedStyle(nav), blur = `blur(${parseFloat(getComputedStyle(nav).paddingLeft) >= 0 ? Trellis.cell() : 0}px)`;
+            if (now.backdropFilter !== blur) fails.push(`bar, ${theme}: ${id} blurs ${now.backdropFilter}, not ${blur}`);
+            if (String(px('black', now.backgroundColor)) === String(px('white', now.backgroundColor))) fails.push(`bar, ${theme}: ${id} lets nothing through`);
+            for (const behind of ['black', 'white']) for (const e of nav.querySelectorAll('.shell-link, .shell-brand')) {
+              if (!e.getClientRects().length) continue;
+              const under = px(behind, now.backgroundColor, getComputedStyle(e).backgroundColor), r = ratio(px(`rgb(${under.join(' ')})`, getComputedStyle(e).color), under);
+              if (r < 4.5) fails.push(`bar, ${theme}: "${e.textContent.trim()}" on 85% of ${g} over ${behind} is ${r.toFixed(2)}:1 in ${id}`);
+            }
+          }
+          nav.style.removeProperty('--shell-nav-bg'); nav.style.removeProperty('--shell-nav-blur');
+        }
+      }
+      if (was === null) root.removeAttribute('data-theme'); else root.setAttribute('data-theme', was);
+      // The tray of a narrow top bar that blurs.
+      const nav = document.querySelector('#demo-top-narrow .shell-nav'), tray = nav.querySelector('.shell-links');
+      const at = async () => { tray.showPopover(); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); await Promise.all(tray.getAnimations().map(a => a.finished.catch(() => {}))); const b = tray.getBoundingClientRect(); tray.hidePopover(); return [b.left, b.top, b.width, b.height].map(v => v.toFixed(1)).join(' '); };
+      const plain = await at(); nav.style.setProperty('--shell-nav-blur', 'var(--sp-1)'); const blurred = await at(); nav.style.removeProperty('--shell-nav-blur');
+      if (plain !== blurred) fails.push(`bar: its tray opens at ${blurred} when the bar blurs, ${plain} when it doesn't`);
+      return fails;
+    }));
+    const opaque = how => page.evaluate(how => {
+      const fails = [], nav = document.querySelector('#demo-top-wide .shell-nav');
+      nav.style.setProperty('--shell-nav-bg', 'rgb(128 128 128 / .5)'); nav.style.setProperty('--shell-nav-blur', 'var(--sp-1)');
+      const cs = getComputedStyle(nav), px = b => { const c = Object.assign(document.createElement('canvas'), { width: 1, height: 1 }), g = c.getContext('2d', { willReadFrequently: true }); for (const v of [b, cs.backgroundColor]) { g.fillStyle = v; g.fillRect(0, 0, 1, 1); } return String(g.getImageData(0, 0, 1, 1).data); };
+      if (px('black') !== px('white') || cs.backdropFilter !== 'none') fails.push(`${how}: a translucent bar paints ${cs.backgroundColor} and ${cs.backdropFilter}`);
+      nav.style.removeProperty('--shell-nav-bg'); nav.style.removeProperty('--shell-nav-blur');
+      return fails;
+    }, how);
+    await page.emulateMedia({ forcedColors: 'active' });
+    if (await page.evaluate(() => matchMedia('(forced-colors: active)').matches)) fails.push(...await opaque('forced colors'));
+    await page.emulateMedia({ forcedColors: 'none' });
+    if (engine === 'chromium') {
+      const cdp = await page.context().newCDPSession(page);
+      await cdp.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-transparency', value: 'reduce' }] });
+      if (await page.evaluate(() => matchMedia('(prefers-reduced-transparency: reduce)').matches)) fails.push(...await opaque('less transparency'));
+      else fails.push('less transparency: the engine did not emulate it, so nothing was proved');
+      await cdp.send('Emulation.setEmulatedMedia', { features: [] });
+      await cdp.detach();
+    }
+
+    // Two knobs: a face for code, and a dense card's corner, which its padding still clears (D113).
+    fails.push(...await page.evaluate(() => {
+      const fails = [], u = Trellis.cell(), root = document.documentElement, host = document.createElement('div');
+      host.style.cssText = 'position: absolute; inset-block-start: 0; inset-inline-start: 0; inline-size: calc(var(--u) * 30); visibility: hidden';
+      host.innerHTML = '<p class="t-body t-mono" id="kn-mono">a</p><div class="prose"><p><code id="kn-code">a</code></p><pre id="kn-pre">a</pre></div><div data-product="kn"><p class="t-mono" id="kn-scope">a</p></div>'
+        + '<div class="cc-dense"><div class="card" id="kn-dense">a</div></div><div class="card cc-dense" id="kn-self">a</div><div class="card" id="kn-card">a</div><div data-product="kn"><div class="cc-dense"><div class="card" id="kn-in">a</div></div></div><div class="cc-dense"><div class="card" style="--card-pad: var(--sp-4)"><div class="card" id="kn-nest">a</div></div></div>';
+      document.body.appendChild(host);
+      const cs = id => getComputedStyle(document.getElementById(id)), corner = id => parseFloat(cs(id).borderTopLeftRadius) / u, pad = id => [parseFloat(cs(id).paddingLeft) / u, parseFloat(cs(id).paddingTop) / u], near = (a, b) => Math.abs(a - b) < .02;
+      for (const id of ['kn-mono', 'kn-code', 'kn-pre', 'kn-scope']) if (!/^"?IBM Plex Mono/.test(cs(id).fontFamily)) fails.push(`--font-mono: ${id} is ${cs(id).fontFamily} by default`);
+      root.style.setProperty('--font-mono', 'Courier New');
+      for (const id of ['kn-mono', 'kn-code', 'kn-pre', 'kn-scope']) if (!/^"?Courier New/.test(cs(id).fontFamily)) fails.push(`--font-mono: ${id} is ${cs(id).fontFamily}, not the knob's`);
+      root.style.removeProperty('--font-mono');
+      const card = corner('kn-card'), nest = corner('kn-nest');
+      for (const id of ['kn-dense', 'kn-self', 'kn-in']) if (!near(corner(id), 1) || !pad(id).every(p => near(p, 1))) fails.push(`a dense card (${id}) has a corner of ${corner(id)} cells and padding ${pad(id)} by default, not 1 and 1`);
+      for (const [n, want] of [[0, 1], [.25, 1], [2, 1], [5, 2]]) {
+        root.style.setProperty('--shape-card-dense', `calc(var(--u) * ${n})`);
+        for (const id of ['kn-dense', 'kn-self', 'kn-in']) {
+          if (!near(corner(id), n)) fails.push(`--shape-card-dense: a dense card (${id}) has a corner of ${corner(id)} cells, not ${n}`);
+          if (!pad(id).every(p => near(p, want))) fails.push(`--shape-card-dense at ${n}: a dense card (${id}) pads ${pad(id)} cells, not ${want}`);
+        }
+        if (!near(corner('kn-card'), card)) fails.push('--shape-card-dense reaches a card that is not dense');
+      }
+      if (near(corner('kn-nest'), nest)) fails.push('a card in a dense card is not concentric with its corner');
+      root.style.removeProperty('--shape-card-dense');
+      host.remove();
+      return fails;
+    }));
   }
   await Promise.race([browser.close(), new Promise(r => setTimeout(r, 5000))]); // WebKit on Windows can hang on close
   console.log(`${engine} ${size}${touch ? ' touch' : ''}: layout ${fails.length ? fails.length + ' FAILED' : 'ok'}`);
