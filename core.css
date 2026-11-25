@@ -58,6 +58,11 @@
   inherits: false;
   initial-value: 0px;
 }
+/* What a card's corner floor compares (D113): its corner and its two paddings,
+   registered so a bare 0 is a length. Only compared, never laid out. */
+@property --card-corner { syntax: '<length>'; inherits: false; initial-value: 0px; }
+@property --card-own-inline { syntax: '<length>'; inherits: false; initial-value: 0px; }
+@property --card-own-block { syntax: '<length>'; inherits: false; initial-value: 0px; }
 /* A control's state, as the share of its ink mixed into its fill. Registered
    so a state belongs to one box: a hovered row doesn't hover the button in it. */
 /* The presets' moving values: registered, so they animate (presets below). */
@@ -1446,13 +1451,25 @@
     --card-pad-inline: var(--card-pad, var(--density-card-pad-inline, var(--density-card-pad)));
     --card-pad-block: var(--card-pad, var(--density-card-pad-block, var(--density-card-pad)));
     --card-radius: var(--shape-card);
+    /* Padding clears the corner (D113): what a card lays out is its inset, its
+       padding and whole cells more where content would meet the corner's curve.
+       Content p in on both sides is inside a corner of radius r from .293r
+       (1 - 1/√2); with its other side further in, at q, from the chord between
+       there and no padding at all where the curve ends: .415 (r - q). The
+       corner counts up to eight cells: a pill's real corner is its height's. */
+    --card-corner: min(var(--card-radius), calc(var(--u) * 8));
+    --card-own-inline: var(--card-pad-inline);
+    --card-own-block: var(--card-pad-block);
+    --card-inset-inline: calc(var(--card-pad-inline) + round(up, max(0px, min(.293 * var(--card-corner), .415 * (var(--card-corner) - var(--card-own-block))) - var(--card-own-inline) - 1px / 16), var(--u)));
+    --card-inset-block: calc(var(--card-pad-block) + round(up, max(0px, min(.293 * var(--card-corner), .415 * (var(--card-corner) - var(--card-own-inline))) - var(--card-own-block) - 1px / 16), var(--u)));
     --card-border: var(--border-subtle);
     --surface: var(--bg-raised);
     position: relative;
     container-type: inline-size;
     background: var(--surface);
     border-radius: var(--card-radius);
-    padding: var(--card-pad-block) var(--card-pad-inline);
+    padding-block: var(--card-inset-block);
+    padding-inline: var(--card-inset-inline);
   }
   .card::after {
     content: "";
@@ -1464,7 +1481,7 @@
   }
   .card-media {
     /* Concentric with the card's corner, from the nearer of its two paddings. */
-    border-radius: max(var(--r-q), calc(var(--card-radius) - min(var(--card-pad-inline), var(--card-pad-block))));
+    border-radius: max(var(--r-q), calc(var(--card-radius) - min(var(--card-inset-inline), var(--card-inset-block))));
     overflow: hidden;
   }
   .cc-dense .card, .card.cc-dense { --card-pad: var(--sp-1); --card-radius: var(--r-1); }
@@ -1493,13 +1510,13 @@
      one above from variables that level alone writes, so none refers to
      itself. */
   .card:not(.card .card) {
-    --card-nest-out: min(calc(var(--outset) * var(--u)), max(0px, calc(var(--card-pad-inline) - var(--u))));
-    --card-nest-r: max(var(--r-q), calc(var(--card-radius) - min(calc(var(--card-pad-inline) - var(--card-nest-out)), var(--card-pad-block))));
+    --card-nest-out: min(calc(var(--outset) * var(--u)), max(0px, calc(var(--card-inset-inline) - var(--u))));
+    --card-nest-r: max(var(--r-q), calc(var(--card-radius) - min(calc(var(--card-inset-inline) - var(--card-nest-out)), var(--card-inset-block))));
   }
   .card .card:not(.card .card .card) {
     --card-radius: var(--card-nest-r);
-    --card-nest-out2: min(calc(var(--outset) * var(--u)), max(0px, calc(var(--card-pad-inline) - var(--u))));
-    --card-nest-r2: max(var(--r-q), calc(var(--card-radius) - min(calc(var(--card-pad-inline) - var(--card-nest-out2)), var(--card-pad-block))));
+    --card-nest-out2: min(calc(var(--outset) * var(--u)), max(0px, calc(var(--card-inset-inline) - var(--u))));
+    --card-nest-r2: max(var(--r-q), calc(var(--card-radius) - min(calc(var(--card-inset-inline) - var(--card-nest-out2)), var(--card-inset-block))));
   }
   .card .card .card { --card-radius: var(--card-nest-r2); }
   :is(.card, .card *):where(.stack, .section-body):not(:where(.cols, .split, .grid, .rail) > *) > .card,
@@ -1520,17 +1537,17 @@
      stays inside them. Its own sides pad --card-scroll-pad, the card's by
      default, so what scrolls lines up with the rest of the card. */
   .card-scroll {
-    --card-scroll-pad: var(--card-pad-inline);
-    margin-inline: calc(var(--card-pad-inline) * -1);
+    --card-scroll-pad: var(--card-inset-inline);
+    margin-inline: calc(var(--card-inset-inline) * -1);
     padding-inline: var(--card-scroll-pad);
     overflow-y: auto; overscroll-behavior: contain;
   }
   .card-scroll:first-child {
-    margin-block-start: calc(var(--card-pad-block) * -1); padding-block-start: var(--card-pad-block);
+    margin-block-start: calc(var(--card-inset-block) * -1); padding-block-start: var(--card-inset-block);
     border-start-start-radius: var(--card-radius); border-start-end-radius: var(--card-radius);
   }
   .card-scroll:last-child {
-    margin-block-end: calc(var(--card-pad-block) * -1); padding-block-end: var(--card-pad-block);
+    margin-block-end: calc(var(--card-inset-block) * -1); padding-block-end: var(--card-inset-block);
     border-end-start-radius: var(--card-radius); border-end-end-radius: var(--card-radius);
   }
   .board-lane > .card { --card-pad: var(--board-card-pad); }
@@ -1594,21 +1611,21 @@
   }
   .media > :where(img, video, picture), .media > picture > img { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; object-position: var(--media-focus); border-radius: 0; }
   .media::after { content: ""; position: absolute; inset: 0; background: var(--media-scrim); pointer-events: none; }
-  .card .media { --media-radius: max(var(--r-q), calc(var(--card-radius) - min(var(--card-pad-inline), var(--card-pad-block)))); }
+  .card .media { --media-radius: max(var(--r-q), calc(var(--card-radius) - min(var(--card-inset-inline), var(--card-inset-block)))); }
   .media.cc-round { --media-radius: var(--r-round); }
   .media:is(.cc-bleed-start, .cc-bleed-end) { --media-w: 3; }
   .media.cc-fill { --media-h: 18; --media-scrim: linear-gradient(to top, color-mix(in oklab, var(--black) 80%, transparent), transparent 70%); }
-  .card > .media.cc-bleed { inline-size: auto; margin-inline: calc(var(--card-pad-inline) * -1); border-radius: 0; }
-  .card > .media.cc-bleed:first-child { margin-block-start: calc(var(--card-pad-block) * -1); border-start-start-radius: var(--card-radius); border-start-end-radius: var(--card-radius); }
-  .card > .media.cc-bleed:last-child { margin-block-end: calc(var(--card-pad-block) * -1); border-end-start-radius: var(--card-radius); border-end-end-radius: var(--card-radius); }
-  .card:has(> .media:is(.cc-bleed-start, .cc-bleed-end)) { display: flex; flex-direction: row; align-items: flex-start; gap: var(--card-pad-inline); }
+  .card > .media.cc-bleed { inline-size: auto; margin-inline: calc(var(--card-inset-inline) * -1); border-radius: 0; }
+  .card > .media.cc-bleed:first-child { margin-block-start: calc(var(--card-inset-block) * -1); border-start-start-radius: var(--card-radius); border-start-end-radius: var(--card-radius); }
+  .card > .media.cc-bleed:last-child { margin-block-end: calc(var(--card-inset-block) * -1); border-end-start-radius: var(--card-radius); border-end-end-radius: var(--card-radius); }
+  .card:has(> .media:is(.cc-bleed-start, .cc-bleed-end)) { display: flex; flex-direction: row; align-items: flex-start; gap: var(--card-inset-inline); }
   .card:has(> .media.cc-bleed-start) > .media + *, .card:has(> .media.cc-bleed-end) > :first-child:not(.media) { flex: 1 1 0; min-width: 0; }
-  .card > .media:is(.cc-bleed-start, .cc-bleed-end) { align-self: stretch; block-size: auto; margin-block: calc(var(--card-pad-block) * -1); border-radius: 0; }
-  .card > .media.cc-bleed-start { margin-inline-start: calc(var(--card-pad-inline) * -1); border-start-start-radius: var(--card-radius); border-end-start-radius: var(--card-radius); }
-  .card > .media.cc-bleed-end { margin-inline-end: calc(var(--card-pad-inline) * -1); border-start-end-radius: var(--card-radius); border-end-end-radius: var(--card-radius); }
+  .card > .media:is(.cc-bleed-start, .cc-bleed-end) { align-self: stretch; block-size: auto; margin-block: calc(var(--card-inset-block) * -1); border-radius: 0; }
+  .card > .media.cc-bleed-start { margin-inline-start: calc(var(--card-inset-inline) * -1); border-start-start-radius: var(--card-radius); border-end-start-radius: var(--card-radius); }
+  .card > .media.cc-bleed-end { margin-inline-end: calc(var(--card-inset-inline) * -1); border-start-end-radius: var(--card-radius); border-end-end-radius: var(--card-radius); }
   .card:has(> .media.cc-fill) { --card-border: transparent; isolation: isolate; display: grid; grid-template: minmax(0, auto) / minmax(0, 1fr); color: var(--white); }
   .card:has(> .media.cc-fill) > * { grid-area: 1 / 1; align-self: end; min-width: 0; }
-  .card > .media.cc-fill { z-index: -1; align-self: stretch; inline-size: auto; block-size: auto; min-block-size: calc(var(--u) * var(--media-h)); margin: calc(var(--card-pad-block) * -1) calc(var(--card-pad-inline) * -1); border-radius: var(--card-radius); }
+  .card > .media.cc-fill { z-index: -1; align-self: stretch; inline-size: auto; block-size: auto; min-block-size: calc(var(--u) * var(--media-h)); margin: calc(var(--card-inset-block) * -1) calc(var(--card-inset-inline) * -1); border-radius: var(--card-radius); }
 
   /* Labels inside controls: the text box is trimmed to the cap height, so
      centering the box centers the capitals exactly. */

@@ -11,6 +11,10 @@
 //   knobs   a segmented control's ring, an option's height and type and its
 //           card's width and cap, a float's ink: the default, and the variable; and the
 //           compact density knobs a product sets once
+//   corner  a small padding on a very round card is raised, by whole cells, to
+//           what clears the corner's curve; a padding that clears it, at the
+//           defaults or one side against the other, is left alone; bleeding
+//           media and a card's scroller still meet its edges (D113)
 //   wrap    a cap-centered label that wraps is marked, hangs from its row's
 //           top line and rounds up to whole cells; one that doesn't, centers
 //   modal   the real dialog: modal, page locked, on screen, a tray flush to
@@ -141,6 +145,46 @@ const ready = require('./ready');
       expect(p.every(v => near(v, u)), `a dense card's shorthand should set both: ${p}`);
       p = pad('pad-c');
       expect(near(p[2], 0) && near(p[0], was), `a context should be able to set one side: ${p}`);
+      host.remove();
+    }
+
+    // Padding clears the corner (D113): corner, sides, top and bottom as asked,
+    // then the sides and the top and bottom as laid out, in cells. The content's
+    // own corner, measured from the boxes, must be inside the curve.
+    {
+      const host = document.createElement('div');
+      host.style.cssText = 'position: absolute; inset-block-start: 0; inset-inline-start: 0; inline-size: calc(var(--u) * 30); visibility: hidden;';
+      document.body.appendChild(host);
+      const CASES = [
+        [5, 0, 0, 2, 2], [5, 1, 1, 2, 2], [4, 1, 1, 2, 2], [5, .25, 2, 1.25, 2], [5, 2, .25, 2, 1.25], [3, 0, 1, 1, 1],
+        [5, 1, 4, 1, 4], [5, 4, 1, 4, 1], [5, 0, 5, 0, 5], [4, 1, 2, 1, 2], [4, 1.5, 1.5, 1.5, 1.5], [3, 1, 1, 1, 1], [1.5, 2, 0, 2, 0], [1.5, 2, 2, 2, 2], [2, 1, 2, 1, 2], [.25, 1, 1, 1, 1], [0, 0, 0, 0, 0],
+      ];
+      for (const [r, i, b, wi, wb] of CASES) {
+        host.innerHTML = `<div class="card" style="--card-radius: calc(var(--u) * ${r}); --card-pad-inline: calc(var(--u) * ${i}); --card-pad-block: calc(var(--u) * ${b})"><div style="block-size: calc(var(--u) * 12)"></div></div>`;
+        const c = box(host.firstChild), k = box(host.firstChild.firstChild), name = `corner: a card of corner ${r} and padding ${i} by ${b} cells`;
+        const px = (k.left - c.left) / u, py = (k.top - c.top) / u, ex = (c.right - k.right) / u, ey = (c.bottom - k.bottom) / u;
+        expect([[px, wi], [ex, wi], [py, wb], [ey, wb]].every(([a, w]) => Math.abs(a - w) < .01), `${name} lays out ${px.toFixed(2)} by ${py.toFixed(2)} (and ${ex.toFixed(2)} by ${ey.toFixed(2)} at its end), not ${wi} by ${wb}`);
+        expect(px >= r || py >= r || Math.hypot(r - px, r - py) <= r + .01, `${name}: its content's corner, ${px.toFixed(2)} by ${py.toFixed(2)} in, is on the curve`);
+      }
+      // A pill's corner counts to eight cells; a bare 0 is a length; the shorthand and a nested card are held too.
+      const laid = html => { host.innerHTML = html; return [...host.querySelectorAll('[data-c]')].map(e => { const s = getComputedStyle(e); return [parseFloat(s.paddingLeft) / u, parseFloat(s.paddingTop) / u, parseFloat(s.borderTopLeftRadius) / u].map(v => +v.toFixed(2)); }); };
+      const is = (got, want, what) => expect(got.every((g, n) => want[n].every((w, m) => Math.abs(g[m] - w) < .02)), `corner: ${what}: ${JSON.stringify(got)}, not ${JSON.stringify(want)}`);
+      is(laid('<div class="card" data-c style="--card-radius: var(--r-round); --card-pad: var(--sp-1)">a</div>'), [[3, 3]], 'a pill with one cell of padding');
+      is(laid('<div class="card" data-c style="--card-radius: 0; --card-pad: var(--sp-1)">a</div>'), [[1, 1, 0]], 'a bare 0 for the corner');
+      is(laid('<div class="card" data-c style="--card-radius: var(--r-1h); --card-pad-inline: var(--sp-2); --card-pad-block: 0">a</div>'), [[2, 0]], 'a bare 0 for one padding');
+      is(laid('<div class="card" data-c style="--card-radius: calc(var(--u) * 5); --card-pad: var(--sp-1)"><div class="card" data-c>a</div></div>'), [[2, 2, 5], [2, 2, 4]], 'a card in a round card');
+      // Bleeding media and a scroller give the raised padding back, and meet the card's edges exactly.
+      const round = 'style="--card-radius: calc(var(--u) * 5); --card-pad: var(--sp-1)"';
+      const meets = (html, sides, what) => { host.innerHTML = html; const c = box(host.querySelector('.card')), m = box(host.querySelector('[data-m]')), off = sides.filter(k => Math.abs(c[k] - m[k]) > .05);
+        expect(!off.length, `corner: ${what} does not meet a round card's ${off.join(', ')} edge (${off.map(k => (m[k] - c[k]).toFixed(2)).join(', ')}px)`);
+        const s = getComputedStyle(host.querySelector('.card')); expect(Math.abs(parseFloat(s.paddingLeft) - 2 * u) < .05, `corner: the card of ${what} pads ${s.paddingLeft}`); };
+      const words = '<p class="t-sm">Words</p>';
+      meets(`<div class="card stack" ${round}><div class="media cc-bleed" data-m></div>${words}</div>`, ['left', 'top', 'right'], 'a banner');
+      meets(`<div class="card stack" ${round}>${words}<div class="media cc-bleed" data-m></div></div>`, ['left', 'bottom', 'right'], 'a banner at the foot');
+      meets(`<div class="card" ${round}><div class="media cc-bleed-start" data-m></div><div>${words}</div></div>`, ['left', 'top', 'bottom'], 'a strip');
+      meets(`<div class="card" ${round}><div>${words}</div><div class="media cc-bleed-end" data-m></div></div>`, ['right', 'top', 'bottom'], 'a strip at the end');
+      meets(`<div class="card" ${round}><div class="media cc-fill" data-m></div><div>${words}</div></div>`, ['left', 'top', 'right', 'bottom'], 'a full bleed');
+      meets(`<div class="card" ${round}><div class="card-scroll" data-m tabindex="0">${words}</div></div>`, ['left', 'top', 'right', 'bottom'], 'a scroller');
       host.remove();
     }
 
