@@ -6,7 +6,7 @@
 <title>Trellis</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 18 18%27%3E%3Crect x=%27.5%27 y=%27.5%27 width=%2717%27 height=%2717%27 rx=%274.5%27 fill=%27%23101111%27 stroke=%27%236aa5f5%27/%3E%3Cline x1=%27.5%27 y1=%2712.5%27 x2=%2717.5%27 y2=%2712.5%27 stroke=%27%236aa5f5%27/%3E%3Ccircle cx=%276%27 cy=%276%27 r=%272%27 fill=%27%23f4f4f2%27/%3E%3C/svg%3E">
 <meta name="description" content="Trellis is a CSS and HTML framework built on one spacing unit, the cell, and one type ratio. This page shows every part of it.">
-<link rel="stylesheet" href="core.css?v=0.10.17">
+<link rel="stylesheet" href="core.css?v=0.10.18">
 <link rel="stylesheet" id="product-layer">
 <script>
   // Before first paint, so nothing flashes: the saved view settings, and one
@@ -38,11 +38,70 @@
     if (s.fit === 'on' || s.fit === 'off') d.setAttribute('data-unit-fit', s.fit);
   })();
 </script>
-<link rel="stylesheet" href="specimen.css?v=0.10.20">
+<link rel="stylesheet" href="specimen.css?v=0.10.21">
 </head>
 <body>
 
 <a class="skip-link" href="#top">Skip to the specimen</a>
+
+<!-- Icons: Phosphor (github.com/phosphor-icons/core, at 2b75f3a), from its raw
+     files, made into symbols by the script in skill/ICONS.md.
+
+     MIT License
+
+     Copyright (c) 2023 Phosphor Icons
+
+     Permission is hereby granted, free of charge, to any person obtaining a copy
+     of this software and associated documentation files (the "Software"), to deal
+     in the Software without restriction, including without limitation the rights
+     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+     copies of the Software, and to permit persons to whom the Software is
+     furnished to do so, subject to the following conditions:
+
+     The above copyright notice and this permission notice shall be included in all
+     copies or substantial portions of the Software.
+
+     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+     SOFTWARE. -->
+<svg hidden aria-hidden="true">
+  <symbol id="ph-arrow-bend-up-left" viewBox="0 0 256 256"><polyline points="80 152 32 104 80 56" fill="none" stroke="currentColor"/><path d="M224,200a96,96,0,0,0-96-96H32" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-arrow-left" viewBox="0 0 256 256"><line x1="216" y1="128" x2="40" y2="128" fill="none" stroke="currentColor"/><polyline points="112 56 40 128 112 200" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-arrow-right" viewBox="0 0 256 256"><line x1="40" y1="128" x2="216" y2="128" fill="none" stroke="currentColor"/><polyline points="144 56 216 128 144 200" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-arrow-up" viewBox="0 0 256 256"><line x1="128" y1="216" x2="128" y2="40" fill="none" stroke="currentColor"/><polyline points="56 112 128 40 200 112" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-asterisk" viewBox="0 0 256 256"><line x1="128" y1="40" x2="128" y2="216" fill="none" stroke="currentColor"/><line x1="48" y1="80" x2="208" y2="176" fill="none" stroke="currentColor"/><line x1="48" y1="176" x2="208" y2="80" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-caret-down" viewBox="0 0 256 256"><polyline points="208 96 128 176 48 96" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-caret-left" viewBox="0 0 256 256"><polyline points="160 208 80 128 160 48" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-caret-right" viewBox="0 0 256 256"><polyline points="96 48 176 128 96 208" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-chat" viewBox="0 0 256 256"><path d="M45.15,230.11A8,8,0,0,1,32,224V64a8,8,0,0,1,8-8H216a8,8,0,0,1,8,8V192a8,8,0,0,1-8,8H80Z" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-check" viewBox="0 0 256 256"><polyline points="40 144 96 200 224 72" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-circle" viewBox="0 0 256 256"><circle cx="128" cy="128" r="96" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-dots-three" viewBox="0 0 256 256"><circle cx="128" cy="128" r="4" stroke="currentColor"/><circle cx="196" cy="128" r="4" stroke="currentColor"/><circle cx="60" cy="128" r="4" stroke="currentColor"/></symbol>
+  <symbol id="ph-eye" viewBox="0 0 256 256"><path d="M128,56C48,56,16,128,16,128s32,72,112,72,112-72,112-72S208,56,128,56Z" fill="none" stroke="currentColor"/><circle cx="128" cy="128" r="40" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-file" viewBox="0 0 256 256"><path d="M200,224H56a8,8,0,0,1-8-8V40a8,8,0,0,1,8-8h96l56,56V216A8,8,0,0,1,200,224Z" fill="none" stroke="currentColor"/><polyline points="152 32 152 88 208 88" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-house" viewBox="0 0 256 256"><path d="M104,216V152h48v64h64V120a8,8,0,0,0-2.34-5.66l-80-80a8,8,0,0,0-11.32,0l-80,80A8,8,0,0,0,40,120v96Z" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-info" viewBox="0 0 256 256"><circle cx="128" cy="128" r="96" fill="none" stroke="currentColor"/><path d="M120,120a8,8,0,0,1,8,8v40a8,8,0,0,0,8,8" fill="none" stroke="currentColor"/><circle cx="124" cy="84" r="4" stroke="currentColor"/></symbol>
+  <symbol id="ph-leaf" viewBox="0 0 256 256"><path d="M63.81,192.19c-47.89-79.81,16-159.62,151.64-151.64C223.43,176.23,143.62,240.08,63.81,192.19Z" fill="none" stroke="currentColor"/><line x1="160" y1="96" x2="40" y2="216" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-list" viewBox="0 0 256 256"><line x1="40" y1="128" x2="216" y2="128" fill="none" stroke="currentColor"/><line x1="40" y1="64" x2="216" y2="64" fill="none" stroke="currentColor"/><line x1="40" y1="192" x2="216" y2="192" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-magnifying-glass" viewBox="0 0 256 256"><circle cx="112" cy="112" r="80" fill="none" stroke="currentColor"/><line x1="168.57" y1="168.57" x2="224" y2="224" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-map-trifold" viewBox="0 0 256 256"><line x1="96" y1="184" x2="96" y2="40" fill="none" stroke="currentColor"/><line x1="160" y1="72" x2="160" y2="216" fill="none" stroke="currentColor"/><polygon points="96 184 32 200 32 56 96 40 160 72 224 56 224 200 160 216 96 184" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-minus" viewBox="0 0 256 256"><line x1="40" y1="128" x2="216" y2="128" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-paperclip" viewBox="0 0 256 256"><path d="M160,80,76.69,164.69a16,16,0,0,0,22.63,22.62L198.63,86.63a32,32,0,0,0-45.26-45.26L54.06,142.06a48,48,0,0,0,67.88,67.88L204,128" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-plant" viewBox="0 0 256 256"><path d="M138.54,149.46C106.62,96.25,149.18,43.05,239.63,48.37,245,138.82,191.75,181.38,138.54,149.46Z" fill="none" stroke="currentColor"/><path d="M88.47,160.47c22.8-38-7.6-76-72.21-72.21C12.46,152.87,50.47,183.27,88.47,160.47Z" fill="none" stroke="currentColor"/><line x1="56" y1="128" x2="120" y2="192" fill="none" stroke="currentColor"/><path d="M200,88l-61.25,61.25A64,64,0,0,0,120,194.51V224" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-plus" viewBox="0 0 256 256"><line x1="40" y1="128" x2="216" y2="128" fill="none" stroke="currentColor"/><line x1="128" y1="40" x2="128" y2="216" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-smiley" viewBox="0 0 256 256"><circle cx="128" cy="128" r="96" fill="none" stroke="currentColor"/><circle cx="92" cy="108" r="4" stroke="currentColor"/><circle cx="164" cy="108" r="4" stroke="currentColor"/><path d="M168,152c-8.3,14.35-22.23,24-40,24s-31.7-9.65-40-24" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-square" viewBox="0 0 256 256"><rect x="40" y="40" width="176" height="176" rx="8" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-user" viewBox="0 0 256 256"><circle cx="128" cy="96" r="64" fill="none" stroke="currentColor"/><path d="M32,216c19.37-33.47,54.55-56,96-56s76.63,22.53,96,56" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-users" viewBox="0 0 256 256"><circle cx="84" cy="108" r="52" fill="none" stroke="currentColor"/><path d="M10.23,200a88,88,0,0,1,147.54,0" fill="none" stroke="currentColor"/><path d="M172,160a87.93,87.93,0,0,1,73.77,40" fill="none" stroke="currentColor"/><path d="M152.69,59.7A52,52,0,1,1,172,160" fill="none" stroke="currentColor"/></symbol>
+  <symbol id="ph-x" viewBox="0 0 256 256"><line x1="200" y1="56" x2="56" y2="200" stroke="currentColor"/><line x1="200" y1="200" x2="56" y2="56" stroke="currentColor"/></symbol>
+  <symbol id="ph-plant-bold" viewBox="0 0 256 256"><path d="M142.54,153.46C110.62,100.25,153.18,47.05,243.63,52.37,249,142.82,195.75,185.38,142.54,153.46Z" fill="none" stroke="currentColor" stroke-width="24"/><path d="M88.47,164.47c22.8-38-7.6-76-72.21-72.21C12.46,156.87,50.47,187.27,88.47,164.47Z" fill="none" stroke="currentColor" stroke-width="24"/><line x1="64" y1="140" x2="124" y2="200" fill="none" stroke="currentColor" stroke-width="24"/><path d="M192,104l-49.25,49.25A64,64,0,0,0,124,198.51V228" fill="none" stroke="currentColor" stroke-width="24"/></symbol>
+  <symbol id="ph-plant-fill" viewBox="0 0 256 256"><path d="M205.41,159.07a60.9,60.9,0,0,1-31.83,8.86,71.71,71.71,0,0,1-27.36-5.66A55.55,55.55,0,0,0,136,194.51V224a8,8,0,0,1-8.53,8,8.18,8.18,0,0,1-7.47-8.25V211.31L81.38,172.69A52.5,52.5,0,0,1,63.44,176a45.82,45.82,0,0,1-23.92-6.67C17.73,156.09,6,125.62,8.27,87.79a8,8,0,0,1,7.52-7.52c37.83-2.23,68.3,9.46,81.5,31.25A46,46,0,0,1,103.74,140a4,4,0,0,1-6.89,2.43l-19.2-20.1a8,8,0,0,0-11.31,11.31l53.88,55.25c.06-.78.13-1.56.21-2.33a68.56,68.56,0,0,1,18.64-39.46l50.59-53.46a8,8,0,0,0-11.31-11.32l-49,51.82a4,4,0,0,1-6.78-1.74c-4.74-17.48-2.65-34.88,6.4-49.82,17.86-29.48,59.42-45.26,111.18-42.22a8,8,0,0,1,7.52,7.52C250.67,99.65,234.89,141.21,205.41,159.07Z"/></symbol>
+  <symbol id="ph-plant-duotone" viewBox="0 0 256 256"><path class="icon-tone" d="M138.54,149.46C106.62,96.25,149.18,43.05,239.63,48.37,245,138.82,191.75,181.38,138.54,149.46Z"/><path class="icon-tone" d="M88.47,160.47c22.8-38-7.6-76-72.21-72.21C12.46,152.87,50.47,183.27,88.47,160.47Z"/><path d="M138.54,149.46C106.62,96.25,149.18,43.05,239.63,48.37,245,138.82,191.75,181.38,138.54,149.46Z" fill="none" stroke="currentColor"/><path d="M88.47,160.47c22.8-38-7.6-76-72.21-72.21C12.46,152.87,50.47,183.27,88.47,160.47Z" fill="none" stroke="currentColor"/><line x1="56" y1="128" x2="120" y2="192" fill="none" stroke="currentColor"/><path d="M200,88l-61.25,61.25A64,64,0,0,0,120,194.51V224" fill="none" stroke="currentColor"/></symbol>
+</svg>
 
 <canvas class="grid-canvas" id="grid-canvas" aria-hidden="true"></canvas>
 
@@ -78,9 +137,9 @@
       <div class="control">
         <span class="t-label control-name">Unit</span>
         <div class="seg" role="group" aria-label="Unit size">
-          <button class="button icon-button" type="button" data-step="-1" aria-label="Smaller unit"><svg class="icon" viewBox="0 0 14 14"><path d="M3 7h8"></path></svg></button>
+          <button class="button icon-button" type="button" data-step="-1" aria-label="Smaller unit"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-minus"/></svg></button>
           <span class="stepper-value t-mono" id="unit-value" aria-live="polite">12px</span>
-          <button class="button icon-button" type="button" data-step="1" aria-label="Larger unit"><svg class="icon" viewBox="0 0 14 14"><path d="M3 7h8M7 3v8"></path></svg></button>
+          <button class="button icon-button" type="button" data-step="1" aria-label="Larger unit"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-plus"/></svg></button>
         </div>
       </div>
       <div class="control">
@@ -438,8 +497,8 @@
       </div>
       <div class="plate" tabindex="0">
         <div class="icon-rows stack">
-          <div class="icon-row"><svg class="icon" viewBox="0 0 14 14"><rect x="2" y="2" width="10" height="10" rx="2.5"></rect></svg><span class="lbl cc-cap">CIRCLES 12</span></div>
-          <div class="icon-row"><svg class="icon" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5"></circle></svg><span class="lbl cc-ex">messages and replies</span></div>
+          <div class="icon-row"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-square"/></svg><span class="lbl cc-cap">CIRCLES 12</span></div>
+          <div class="icon-row"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-circle"/></svg><span class="lbl cc-ex">messages and replies</span></div>
           <p class="t-xs faint">Beside capitals or numbers, an icon centers on the cap height. Beside lowercase text, it centers on the x-height.</p>
         </div>
       </div>
@@ -926,9 +985,9 @@
       <div class="shell demo-shell" id="demo-shell-wide">
         <div class="shell-grid">
           <nav class="shell-nav" aria-label="Example">
-            <a class="shell-link" href="#apps" aria-current="page"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5"></circle></svg><span>Home</span></a>
-            <a class="shell-link" href="#apps"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5"></circle></svg><span>Field</span></a>
-            <a class="shell-link" href="#apps"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5"></circle></svg><span>People</span></a>
+            <a class="shell-link" href="#apps" aria-current="page"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-house"/></svg><span>Home</span></a>
+            <a class="shell-link" href="#apps"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-map-trifold"/></svg><span>Field</span></a>
+            <a class="shell-link" href="#apps"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-users"/></svg><span>People</span></a>
           </nav>
           <div class="shell-main stack"><p class="t-label faint">Main</p><p class="t-sm">Navigation beside main, with the aside under it or beside it when there is room.</p></div>
           <aside class="shell-aside stack"><p class="t-label faint">Aside</p><p class="t-xs muted">Details, related posts, members.</p></aside>
@@ -937,9 +996,9 @@
       <div class="shell demo-shell cc-narrow" id="demo-shell-narrow">
         <div class="shell-grid">
           <nav class="shell-nav" aria-label="Example, narrow">
-            <a class="shell-link" href="#apps" aria-current="page"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5"></circle></svg><span>Home</span></a>
-            <a class="shell-link" href="#apps"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5"></circle></svg><span>Field</span></a>
-            <a class="shell-link" href="#apps"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5"></circle></svg><span>People</span></a>
+            <a class="shell-link" href="#apps" aria-current="page"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-house"/></svg><span>Home</span></a>
+            <a class="shell-link" href="#apps"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-map-trifold"/></svg><span>Field</span></a>
+            <a class="shell-link" href="#apps"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-users"/></svg><span>People</span></a>
           </nav>
           <div class="shell-main stack"><p class="t-label faint">Main</p><p class="t-sm">The same markup in a box under 48rem: the navigation is a tab bar.</p></div>
           <aside class="shell-aside stack"><p class="t-label faint">Aside</p><p class="t-xs muted">Under main.</p></aside>
@@ -969,11 +1028,11 @@
         <div class="shell-grid">
           <header class="shell-nav">
             <a class="shell-brand" href="#navigation"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6M7 6C7 3.5 9 2 11.5 2 11.5 4.5 9.5 6 7 6ZM7 8.5C7 6.5 5.5 5 3 5 3 7 4.5 8.5 7 8.5Z"></path></svg><span>Seed Library</span></a>
-            <button class="button shell-menu icon-button cc-ghost" type="button" popovertarget="top-links-wide" aria-label="Menu"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 4h9M2.5 7h9M2.5 10h9"></path></svg></button>
+            <button class="button shell-menu icon-button cc-ghost" type="button" popovertarget="top-links-wide" aria-label="Menu"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-list"/></svg></button>
             <nav class="shell-links" id="top-links-wide" popover aria-label="Example, top">
               <a class="shell-link" href="#navigation" aria-current="page"><span>Catalog</span></a>
               <a class="shell-link" href="#navigation"><span>Growers</span></a>
-              <button class="shell-link" type="button" popovertarget="top-guides-wide"><span>Guides</span><svg class="icon cc-end" viewBox="0 0 14 14" aria-hidden="true"><path d="M4 5.5 7 8.5l3-3"></path></svg></button>
+              <button class="shell-link" type="button" popovertarget="top-guides-wide"><span>Guides</span><svg class="icon cc-phosphor cc-end" aria-hidden="true"><use href="#ph-caret-down"/></svg></button>
               <div class="float options-card cc-anchor" id="top-guides-wide" popover>
                 <p class="t-label options-card-heading">Guides</p>
                 <a class="options-card-item" href="#navigation"><span class="button-label">Saving seed</span></a>
@@ -1011,11 +1070,11 @@
         <div class="shell-grid">
           <header class="shell-nav">
             <a class="shell-brand" href="#navigation"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6M7 6C7 3.5 9 2 11.5 2 11.5 4.5 9.5 6 7 6ZM7 8.5C7 6.5 5.5 5 3 5 3 7 4.5 8.5 7 8.5Z"></path></svg><span>Seed Library</span></a>
-            <button class="button shell-menu icon-button cc-ghost" type="button" popovertarget="top-links-narrow" aria-label="Menu"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 4h9M2.5 7h9M2.5 10h9"></path></svg></button>
+            <button class="button shell-menu icon-button cc-ghost" type="button" popovertarget="top-links-narrow" aria-label="Menu"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-list"/></svg></button>
             <nav class="shell-links" id="top-links-narrow" popover aria-label="Example, top, narrow">
               <a class="shell-link" href="#navigation" aria-current="page"><span>Catalog</span></a>
               <a class="shell-link" href="#navigation"><span>Growers</span></a>
-              <button class="shell-link" type="button" popovertarget="top-guides-narrow"><span>Guides</span><svg class="icon cc-end" viewBox="0 0 14 14" aria-hidden="true"><path d="M4 5.5 7 8.5l3-3"></path></svg></button>
+              <button class="shell-link" type="button" popovertarget="top-guides-narrow"><span>Guides</span><svg class="icon cc-phosphor cc-end" aria-hidden="true"><use href="#ph-caret-down"/></svg></button>
               <div class="float options-card cc-anchor" id="top-guides-narrow" popover>
                 <p class="t-label options-card-heading">Guides</p>
                 <a class="options-card-item" href="#navigation"><span class="button-label">Saving seed</span></a>
@@ -1092,7 +1151,7 @@
     <dialog class="modal cc-tray cc-bottom" id="demo-stack-1" aria-labelledby="demo-stack-1-title">
       <div class="modal-inner">
         <div class="modal-grabber" aria-hidden="true"></div>
-        <header class="modal-header"><h3 class="t-h5" id="demo-stack-1-title">First tray</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg></button></header>
+        <header class="modal-header"><h3 class="t-h5" id="demo-stack-1-title">First tray</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-x"/></svg></button></header>
         <div class="modal-body"><p class="t-sm">A bottom tray keeps a grabber on its top edge.</p><p class="t-sm muted">Seeds, sowing, saving and sharing: enough lines that a tray this tall shows the one behind it peeking above.</p><p class="t-sm muted">The page under every tray holds still.</p></div>
         <footer class="modal-footer"><button class="button" type="button" data-open-modal="demo-stack-2"><span class="button-label">Open another</span></button><button class="button cc-primary" type="button" data-close-modal><span class="button-label">Done</span></button></footer>
       </div>
@@ -1100,7 +1159,7 @@
     <dialog class="modal cc-tray cc-bottom" id="demo-stack-2" aria-labelledby="demo-stack-2-title">
       <div class="modal-inner">
         <div class="modal-grabber" aria-hidden="true"></div>
-        <header class="modal-header"><h3 class="t-h5" id="demo-stack-2-title">Second tray</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg></button></header>
+        <header class="modal-header"><h3 class="t-h5" id="demo-stack-2-title">Second tray</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-x"/></svg></button></header>
         <div class="modal-body"><p class="t-sm">The first peeks above this one by two cells.</p><p class="t-sm muted">Seeds, sowing, saving and sharing: enough lines that a tray this tall shows the one behind it peeking above.</p><p class="t-sm muted">The page under every tray holds still.</p></div>
         <footer class="modal-footer"><button class="button" type="button" data-open-modal="demo-stack-3"><span class="button-label">Open another</span></button><button class="button cc-primary" type="button" data-close-modal><span class="button-label">Done</span></button></footer>
       </div>
@@ -1108,7 +1167,7 @@
     <dialog class="modal cc-tray cc-bottom" id="demo-stack-3" aria-labelledby="demo-stack-3-title">
       <div class="modal-inner">
         <div class="modal-grabber" aria-hidden="true"></div>
-        <header class="modal-header"><h3 class="t-h5" id="demo-stack-3-title">Third tray</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg></button></header>
+        <header class="modal-header"><h3 class="t-h5" id="demo-stack-3-title">Third tray</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-x"/></svg></button></header>
         <div class="modal-body"><p class="t-sm">Three levels: the most there will be.</p><p class="t-sm muted">Seeds, sowing, saving and sharing: enough lines that a tray this tall shows the one behind it peeking above.</p><p class="t-sm muted">The page under every tray holds still.</p></div>
         <footer class="modal-footer"><button class="button" type="button" data-open-modal="demo-stack-4"><span class="button-label">Open another</span></button><button class="button cc-primary" type="button" data-close-modal><span class="button-label">Done</span></button></footer>
       </div>
@@ -1116,7 +1175,7 @@
     <dialog class="modal cc-tray cc-bottom" id="demo-stack-4" aria-labelledby="demo-stack-4-title">
       <div class="modal-inner">
         <div class="modal-grabber" aria-hidden="true"></div>
-        <header class="modal-header"><h3 class="t-h5" id="demo-stack-4-title">A fourth</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg></button></header>
+        <header class="modal-header"><h3 class="t-h5" id="demo-stack-4-title">A fourth</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-x"/></svg></button></header>
         <div class="modal-body"><p class="t-sm">This one replaced the third.</p><p class="t-sm muted">Seeds, sowing, saving and sharing: enough lines that a tray this tall shows the one behind it peeking above.</p><p class="t-sm muted">The page under every tray holds still.</p></div>
         <footer class="modal-footer"><button class="button cc-primary" type="button" data-close-modal><span class="button-label">Done</span></button></footer>
       </div>
@@ -1173,7 +1232,7 @@
     <dialog class="modal cc-tray cc-bottom" id="demo-detents" data-trellis-detents="half full" aria-labelledby="demo-detents-title">
       <div class="modal-inner">
         <div class="modal-grabber" aria-hidden="true"></div>
-        <header class="modal-header"><h3 class="t-h5" id="demo-detents-title">Half, then full</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg></button></header>
+        <header class="modal-header"><h3 class="t-h5" id="demo-detents-title">Half, then full</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-x"/></svg></button></header>
         <div class="modal-body"><p class="t-sm">It opens at half the screen. Drag the grabber up for full, down to close.</p><p class="t-sm">Sow after the last frost, an inch deep.</p><p class="t-sm">Thin to a foot apart once the true leaves show.</p><p class="t-sm">Save from the best plants, never the first to bolt.</p></div>
         <footer class="modal-footer"><button class="button cc-primary" type="button" data-close-modal><span class="button-label">Done</span></button></footer>
       </div>
@@ -1235,14 +1294,14 @@
 
       <h3 class="t-h5">.input.cc-slots: something in the box</h3>
       <div class="cols demo-fields" id="demo-slots">
-        <div class="field"><label class="field-label t-label" for="fs1">Search the seed log</label><div class="input cc-slots"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><circle cx="6" cy="6" r="4"/><path d="m9 9 3.5 3.5"/></svg><input class="input-control" id="fs1" type="search" placeholder="Variety or keeper" value="Glass Gem"><button class="button icon-button cc-ghost" type="button" aria-label="Clear the search" data-demo-clear><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="m3 3 8 8M11 3l-8 8"/></svg></button></div><p class="field-hint t-xs">An icon, and a button that clears it.</p></div>
-        <div class="field"><label class="field-label t-label" for="fs2">Password</label><div class="input cc-slots"><input class="input-control" id="fs2" type="password" autocomplete="new-password" value="eleven up, two asleep"><button class="button icon-button cc-ghost" type="button" aria-label="Show the password" aria-pressed="false" data-demo-show><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M1 7s2.2-4 6-4 6 4 6 4-2.2 4-6 4-6-4-6-4z"/><circle cx="7" cy="7" r="1.6"/></svg></button></div><p class="field-hint t-xs">A button that shows it.</p></div>
+        <div class="field"><label class="field-label t-label" for="fs1">Search the seed log</label><div class="input cc-slots"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-magnifying-glass"/></svg><input class="input-control" id="fs1" type="search" placeholder="Variety or keeper" value="Glass Gem"><button class="button icon-button cc-ghost" type="button" aria-label="Clear the search" data-demo-clear><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-x"/></svg></button></div><p class="field-hint t-xs">An icon, and a button that clears it.</p></div>
+        <div class="field"><label class="field-label t-label" for="fs2">Password</label><div class="input cc-slots"><input class="input-control" id="fs2" type="password" autocomplete="new-password" value="eleven up, two asleep"><button class="button icon-button cc-ghost" type="button" aria-label="Show the password" aria-pressed="false" data-demo-show><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-eye"/></svg></button></div><p class="field-hint t-xs">A button that shows it.</p></div>
         <div class="field"><label class="field-label t-label" for="fs3">Your gift, in dollars</label><div class="input cc-slots"><span class="input-unit" aria-hidden="true">$</span><input class="input-control" id="fs3" type="number" inputmode="decimal" value="25"><span class="input-unit" aria-hidden="true">a month</span></div><p class="field-hint t-xs">A unit at each end.</p></div>
-        <div class="field"><label class="field-label t-label" for="fs4">Bed</label><div class="input cc-slots"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 11.5C2.5 5.5 6 2.5 12 2.5c0 6-3 9.5-9 9.5M2.5 11.5 7.5 6.5"/></svg><select class="input-control" id="fs4"><option>By the gate</option><option>The long bed</option></select></div><p class="field-hint t-xs">A select takes a start slot.</p></div>
+        <div class="field"><label class="field-label t-label" for="fs4">Bed</label><div class="input cc-slots"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-leaf"/></svg><select class="input-control" id="fs4"><option>By the gate</option><option>The long bed</option></select></div><p class="field-hint t-xs">A select takes a start slot.</p></div>
         <div class="field"><label class="field-label t-label" for="fs5">Weight, in grams</label><div class="input cc-slots"><input class="input-control" id="fs5" aria-invalid="true" value="a jar"><span class="input-unit" aria-hidden="true">g</span></div><p class="field-hint t-xs">A number, please.</p></div>
         <div class="field"><label class="field-label t-label" for="fs6">Page</label><div class="input cc-slots"><span class="input-unit" aria-hidden="true">https://</span><input class="input-control" id="fs6" disabled value="seeds.example"></div><p class="field-hint t-xs">Disabled.</p></div>
       </div>
-      <div class="cluster demo-inputs"><div class="input cc-slots cc-sm"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><circle cx="6" cy="6" r="4"/><path d="m9 9 3.5 3.5"/></svg><input class="input-control" type="search" aria-label="Small search" placeholder="Small"><button class="button icon-button cc-ghost" type="button" aria-label="Clear the small search" data-demo-clear><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="m3 3 8 8M11 3l-8 8"/></svg></button></div><div class="input cc-slots"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><circle cx="6" cy="6" r="4"/><path d="m9 9 3.5 3.5"/></svg><input class="input-control" type="search" aria-label="Search" placeholder="Default"></div><div class="input cc-slots cc-lg"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><circle cx="6" cy="6" r="4"/><path d="m9 9 3.5 3.5"/></svg><input class="input-control" type="search" aria-label="Large search" placeholder="Large"><button class="button icon-button cc-ghost" type="button" aria-label="Clear the large search" data-demo-clear><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="m3 3 8 8M11 3l-8 8"/></svg></button></div></div>
+      <div class="cluster demo-inputs"><div class="input cc-slots cc-sm"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-magnifying-glass"/></svg><input class="input-control" type="search" aria-label="Small search" placeholder="Small"><button class="button icon-button cc-ghost" type="button" aria-label="Clear the small search" data-demo-clear><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-x"/></svg></button></div><div class="input cc-slots"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-magnifying-glass"/></svg><input class="input-control" type="search" aria-label="Search" placeholder="Default"></div><div class="input cc-slots cc-lg"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-magnifying-glass"/></svg><input class="input-control" type="search" aria-label="Large search" placeholder="Large"><button class="button icon-button cc-ghost" type="button" aria-label="Clear the large search" data-demo-clear><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-x"/></svg></button></div></div>
       <p class="t-sm muted">The box is the field and what is in it is the field's: an icon or a unit is drawn and nothing more, so a click on it is a click on the input; a button keeps its own click and its own ring. The box takes the focus ring and the input's states, and a browser's autofill fills the whole box.</p>
 
       <h3 class="t-h5">.tabs</h3>
@@ -1297,7 +1356,7 @@
       <h3 class="t-h5">.button: kinds, outline and a count</h3>
       <div class="cluster" id="demo-kinds"><button class="button cc-alert" type="button"><span class="button-label">Delete the log</span></button><button class="button cc-ok" type="button"><span class="button-label">Confirm</span></button><button class="button cc-alert" type="button" disabled><span class="button-label">Disabled</span></button></div>
       <div class="cluster" id="demo-outline"><button class="button cc-primary cc-outline" type="button"><span class="button-label">Connect</span></button><button class="button cc-alert cc-outline" type="button"><span class="button-label">Leave the circle</span></button><button class="button cc-ok cc-outline" type="button"><span class="button-label">Approve</span></button><button class="button cc-outline" type="button"><span class="button-label">Outline alone</span></button><button class="button cc-alert cc-outline" type="button" aria-pressed="true"><span class="button-label">Recording</span></button></div>
-      <div class="cluster" id="demo-corner"><button class="button icon-button cc-sm" type="button" aria-label="Messages, 3 unread"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 3h10v6.5H6.5L3.5 12V9.5H2z"></path></svg><span class="badge cc-corner" aria-hidden="true">3</span></button><button class="button icon-button" type="button" aria-label="Messages, 3 unread"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 3h10v6.5H6.5L3.5 12V9.5H2z"></path></svg><span class="badge cc-corner" aria-hidden="true">3</span></button><button class="button icon-button cc-ghost cc-lg" type="button" aria-label="Messages, more than 99 unread"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 3h10v6.5H6.5L3.5 12V9.5H2z"></path></svg><span class="badge cc-corner cc-accent" aria-hidden="true">99+</span></button></div>
+      <div class="cluster" id="demo-corner"><button class="button icon-button cc-sm" type="button" aria-label="Messages, 3 unread"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-chat"/></svg><span class="badge cc-corner" aria-hidden="true">3</span></button><button class="button icon-button" type="button" aria-label="Messages, 3 unread"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-chat"/></svg><span class="badge cc-corner" aria-hidden="true">3</span></button><button class="button icon-button cc-ghost cc-lg" type="button" aria-label="Messages, more than 99 unread"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-chat"/></svg><span class="badge cc-corner cc-accent" aria-hidden="true">99+</span></button></div>
       <p class="t-xs faint">A status makes a button destructive or confirming, as it does a tag. <code>.cc-outline</code> takes the fill away and draws the edge and the label in the same color, moved to where it reads as text. A count sits on its icon button's corner, and the button's label says it.</p>
 
       <h3 class="t-h5">.range</h3>
@@ -1319,9 +1378,9 @@
       <p class="t-xs faint">A thread on a wall, with a reply an assistant wrote for someone: their face carries the assistant's mark, and the line names both. A reply steps in under what it answers; a resolved reply fades, mark and all.</p>
       <div class="stack demo-chat demo-thread">
         <div class="chat-item cc-wall"><span class="avatar cc-sm" aria-hidden="true">AO</span><div class="chat-item-body"><p class="chat-item-meta t-xs"><span>Ada Okafor</span><time>1h</time></p><div class="chat-item-bubble t-sm">Is the trial bed list ready to share with the stewards?</div></div></div>
-        <div class="chat-item cc-wall demo-reply"><span class="avatar cc-sm demo-agent" aria-hidden="true">MV<span class="demo-agent-mark"><svg class="icon" viewBox="0 0 14 14"><path d="M7 2.5v9M2.5 7h9M3.8 3.8l6.4 6.4M10.2 3.8l-6.4 6.4"></path></svg></span></span><div class="chat-item-body"><p class="chat-item-meta t-xs"><span>Assistant <span class="faint">via</span> Marisol Vega</span><time>42m</time></p><div class="chat-item-bubble t-sm">Yes. Twelve varieties are on it, and the two still drying are marked.</div></div></div>
+        <div class="chat-item cc-wall demo-reply"><span class="avatar cc-sm demo-agent" aria-hidden="true">MV<span class="demo-agent-mark"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-asterisk"/></svg></span></span><div class="chat-item-body"><p class="chat-item-meta t-xs"><span>Assistant <span class="faint">via</span> Marisol Vega</span><time>42m</time></p><div class="chat-item-bubble t-sm">Yes. Twelve varieties are on it, and the two still drying are marked.</div></div></div>
         <div class="chat-item cc-wall demo-reply"><span class="avatar cc-sm" aria-hidden="true">MV</span><div class="chat-item-body"><p class="chat-item-meta t-xs"><span>Marisol Vega</span><time>18m</time></p><div class="chat-item-bubble t-sm">Sending it tonight after the last tray is weighed.</div></div></div>
-        <div class="chat-item cc-wall demo-reply demo-done"><span class="avatar cc-sm demo-agent" aria-hidden="true">MV<span class="demo-agent-mark"><svg class="icon" viewBox="0 0 14 14"><path d="M7 2.5v9M2.5 7h9M3.8 3.8l6.4 6.4M10.2 3.8l-6.4 6.4"></path></svg></span></span><div class="chat-item-body"><p class="chat-item-meta t-xs"><span>Assistant <span class="faint">via</span> Marisol Vega</span><time>2d</time></p><div class="chat-item-bubble t-sm">Resolved: the list went out on Tuesday.</div></div></div>
+        <div class="chat-item cc-wall demo-reply demo-done"><span class="avatar cc-sm demo-agent" aria-hidden="true">MV<span class="demo-agent-mark"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-asterisk"/></svg></span></span><div class="chat-item-body"><p class="chat-item-meta t-xs"><span>Assistant <span class="faint">via</span> Marisol Vega</span><time>2d</time></p><div class="chat-item-bubble t-sm">Resolved: the list went out on Tuesday.</div></div></div>
       </div>
 
       <h3 class="t-h5">A conversation: .chat-thread.cc-flat, .composer</h3>
@@ -1335,22 +1394,22 @@
 
       <article class="card demo-convo" id="conversation" aria-label="Conversation with Marisol Vega">
         <header class="cluster demo-convo-head">
-          <button class="button icon-button cc-ghost cc-md" type="button" aria-label="Back"><svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><path d="m12 4-6 6 6 6"/></svg></button>
+          <button class="button icon-button cc-ghost cc-md" type="button" aria-label="Back"><svg class="icon cc-phosphor cc-mirror" aria-hidden="true"><use href="#ph-caret-left"/></svg></button>
           <span class="avatar cc-md cc-plain" aria-hidden="true">MV</span>
           <div class="pair"><p class="t-sm list-title">Marisol Vega</p><p class="t-xs faint u-truncate">Seed Library · Food Systems · 2 more</p></div>
-          <button class="button icon-button cc-ghost cc-md" type="button" aria-label="Search this conversation"><svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13 13 4 4"/></svg></button>
-          <button class="button icon-button cc-ghost cc-md" type="button" aria-label="Details"><svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M10 9v5M10 6.5v.01"/></svg></button>
+          <button class="button icon-button cc-ghost cc-md" type="button" aria-label="Search this conversation"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-magnifying-glass"/></svg></button>
+          <button class="button icon-button cc-ghost cc-md" type="button" aria-label="Details"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-info"/></svg></button>
         </header>
 
         <div class="chat-thread cc-flat" role="log" aria-label="Messages">
           <div class="chat-divider"><span class="t-xs">Yesterday</span></div>
           <div class="chat-item"><span class="avatar cc-sm" aria-hidden="true">MV</span><div class="chat-item-body"><p class="chat-item-meta"><span class="chat-item-name t-sm">Marisol Vega</span><time class="t-xs">4:12 PM</time></p><div class="chat-item-bubble t-sm">The seed log is up to date. Twelve varieties are on it, and the two still drying are marked.</div></div></div>
-          <div class="chat-item cc-cont"><span class="avatar cc-sm" aria-hidden="true">MV</span><time class="chat-item-time t-xs">4:13</time><div class="chat-item-body"><a class="chat-file" href="#conversation"><span class="chat-file-mark" style="--chat-file-tint: var(--alert)"><svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M6 3h5l4 4v10H6z"/><path d="M11 3v4h4"/></svg></span><span class="pair"><span class="t-sm u-truncate">seed-log-november.pdf</span><span class="t-xs">PDF · 2.4 MB</span></span></a></div></div>
+          <div class="chat-item cc-cont"><span class="avatar cc-sm" aria-hidden="true">MV</span><time class="chat-item-time t-xs">4:13</time><div class="chat-item-body"><a class="chat-file" href="#conversation"><span class="chat-file-mark" style="--chat-file-tint: var(--alert)"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-file"/></svg></span><span class="pair"><span class="t-sm u-truncate">seed-log-november.pdf</span><span class="t-xs">PDF · 2.4 MB</span></span></a></div></div>
           <div class="chat-item cc-own"><span class="avatar cc-sm" aria-hidden="true">JB</span><div class="chat-item-body"><p class="chat-item-meta"><span class="chat-item-name t-sm">Jonah Baptiste</span><time class="t-xs">4:20 PM</time></p><div class="chat-item-bubble t-sm">Thank you. One thing: can the two drying ones go on the swap table anyway?</div><div class="chat-reactions"><button class="chat-reaction" type="button" aria-pressed="false" aria-label="Thumbs up, 1"><span class="chat-reaction-emoji" aria-hidden="true">👍</span><span aria-hidden="true">1</span></button></div></div></div>
           <div class="chat-divider"><span class="t-xs">Today</span></div>
           <div class="chat-item"><span class="avatar cc-sm" aria-hidden="true">MV</span><div class="chat-item-body"><p class="chat-item-meta"><span class="chat-item-name t-sm">Marisol Vega</span><time class="t-xs">9:41 AM</time></p><div class="chat-item-bubble t-sm">Labeled them. The trial bed opens on the first of the month.</div><div class="chat-reactions"><button class="chat-reaction" type="button" aria-pressed="true" aria-label="Party, 2, including you"><span class="chat-reaction-emoji" aria-hidden="true">🎉</span><span aria-hidden="true">2</span></button><button class="chat-reaction" type="button" aria-pressed="false" aria-label="Seedling, 1"><span class="chat-reaction-emoji" aria-hidden="true">🌱</span><span aria-hidden="true">1</span></button></div></div></div>
           <div class="chat-divider cc-new"><span class="t-xs">New</span></div>
-          <div class="chat-item"><span class="avatar cc-sm" aria-hidden="true">MV</span><div class="chat-item-body"><p class="chat-item-meta"><span class="chat-item-name t-sm">Marisol Vega</span><time class="t-xs">9:42 AM</time></p><a class="chat-quote" href="#conversation"><span class="chat-quote-author t-xs">Jonah Baptiste</span><span class="chat-quote-text t-xs">Thank you. One thing: can the two drying ones go on the swap table anyway?</span></a><div class="chat-item-bubble t-sm">Yes, with a note that they want another week. <span class="chat-edited">(edited)</span></div></div><div class="chat-item-actions"><button class="button icon-button cc-ghost cc-sm" type="button" aria-label="React"><svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M7.2 11.8a3.4 3.4 0 0 0 5.6 0M7.5 8h.01M12.5 8h.01"/></svg></button><button class="button icon-button cc-ghost cc-sm" type="button" aria-label="Reply"><svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M8 5 3 10l5 5M3 10h9a5 5 0 0 1 5 5"/></svg></button><button class="button icon-button cc-ghost cc-sm" type="button" aria-label="More"><svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 10h.01M10 10h.01M15 10h.01"/></svg></button></div></div>
+          <div class="chat-item"><span class="avatar cc-sm" aria-hidden="true">MV</span><div class="chat-item-body"><p class="chat-item-meta"><span class="chat-item-name t-sm">Marisol Vega</span><time class="t-xs">9:42 AM</time></p><a class="chat-quote" href="#conversation"><span class="chat-quote-author t-xs">Jonah Baptiste</span><span class="chat-quote-text t-xs">Thank you. One thing: can the two drying ones go on the swap table anyway?</span></a><div class="chat-item-bubble t-sm">Yes, with a note that they want another week. <span class="chat-edited">(edited)</span></div></div><div class="chat-item-actions"><button class="button icon-button cc-ghost cc-sm" type="button" aria-label="React"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-smiley"/></svg></button><button class="button icon-button cc-ghost cc-sm" type="button" aria-label="Reply"><svg class="icon cc-phosphor cc-mirror" aria-hidden="true"><use href="#ph-arrow-bend-up-left"/></svg></button><button class="button icon-button cc-ghost cc-sm" type="button" aria-label="More"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-dots-three"/></svg></button></div></div>
           <div class="chat-item cc-cont"><span class="avatar cc-sm" aria-hidden="true">MV</span><time class="chat-item-time t-xs">9:42</time><div class="chat-item-body"><a class="chat-link" href="#conversation"><span class="chat-link-site t-xs">seedsavers.org</span><span class="chat-link-title t-sm">Drying seed at home: racks, screens and how long each kind takes</span></a></div></div>
           <div class="chat-item cc-cont"><span class="avatar cc-sm" aria-hidden="true">MV</span><time class="chat-item-time t-xs">9:42</time><div class="chat-item-body"><div class="chat-item-bubble t-sm">Is the swap table still on for Saturday?</div></div></div>
           <div class="chat-item cc-own cc-removed"><span class="avatar cc-sm" aria-hidden="true">JB</span><div class="chat-item-body"><p class="chat-item-meta"><span class="chat-item-name t-sm">Jonah Baptiste</span><time class="t-xs">9:44 AM</time></p><div class="chat-item-bubble t-sm">Message removed</div></div></div>
@@ -1360,10 +1419,10 @@
 
         <form class="field demo-composer" data-demo-composer>
           <div class="composer">
-            <button class="button icon-button cc-ghost" type="button" aria-label="Attach a file"><svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><path d="m15.5 9.5-5.8 5.8a3.5 3.5 0 0 1-5-5l6.4-6.4a2.3 2.3 0 0 1 3.3 3.3l-6.4 6.4a1.2 1.2 0 0 1-1.7-1.7l5.8-5.8"/></svg></button>
+            <button class="button icon-button cc-ghost" type="button" aria-label="Attach a file"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-paperclip"/></svg></button>
             <textarea class="composer-input" rows="1" placeholder="Message Marisol" aria-label="Message Marisol Vega"></textarea>
-            <button class="button icon-button cc-ghost" type="button" aria-label="Emoji"><svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M7.2 11.8a3.4 3.4 0 0 0 5.6 0M7.5 8h.01M12.5 8h.01"/></svg></button>
-            <button class="button icon-button composer-send" type="submit" aria-label="Send"><svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 16V4M5 9l5-5 5 5"/></svg></button>
+            <button class="button icon-button cc-ghost" type="button" aria-label="Emoji"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-smiley"/></svg></button>
+            <button class="button icon-button composer-send" type="submit" aria-label="Send"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-arrow-up"/></svg></button>
           </div>
           <p class="field-hint t-xs">Enter to send · Shift+Enter for a new line</p>
         </form>
@@ -1397,13 +1456,13 @@
         </article>
         <article class="card" id="demo-cover-fill">
           <div class="media cc-fill"><img class="ph" style="--ph: var(--kind-event); --ph-to: var(--warn)" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='500'/%3E" alt="Gradient placeholder: the swap table" loading="lazy" width="900" height="500"></div>
-          <div class="stack"><p class="t-eyebrow">Saturday</p><p class="t-h5"><a class="card-link" href="#primitives">Seed swap at the library</a></p><div class="cluster"><button class="button cc-sm" type="button"><span class="button-label">Save a seat</span></button><button class="button icon-button cc-ghost cc-sm" type="button" aria-label="More"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><circle cx="3" cy="7" r="1"></circle><circle cx="7" cy="7" r="1"></circle><circle cx="11" cy="7" r="1"></circle></svg></button></div></div>
+          <div class="stack"><p class="t-eyebrow">Saturday</p><p class="t-h5"><a class="card-link" href="#primitives">Seed swap at the library</a></p><div class="cluster"><button class="button cc-sm" type="button"><span class="button-label">Save a seat</span></button><button class="button icon-button cc-ghost cc-sm" type="button" aria-label="More"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-dots-three"/></svg></button></div></div>
         </article>
       </div>
       <article class="card" id="demo-cover-line">
         <div class="media cc-bleed-start"><img class="ph" style="--ph: var(--kind-group)" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='800'/%3E" alt="Gradient placeholder: a labeled jar" loading="lazy" width="600" height="800"></div>
         <div class="stack"><p class="t-sm"><a class="card-link" href="#primitives">Glass Gem, saved 2025</a></p><p class="t-xs muted">A strip three cells wide, as tall as the card.</p></div>
-        <button class="button icon-button cc-ghost cc-sm" type="button" aria-label="More"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><circle cx="3" cy="7" r="1"></circle><circle cx="7" cy="7" r="1"></circle><circle cx="11" cy="7" r="1"></circle></svg></button>
+        <button class="button icon-button cc-ghost cc-sm" type="button" aria-label="More"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-dots-three"/></svg></button>
       </article>
       <div class="cluster u-gap-2" id="demo-media-points">
         <div class="media" id="demo-media-focus" style="--media-w: 8; --media-h: 10; --media-focus: 50% 25%"><img class="ph" style="--ph: var(--kind-person)" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='1200'/%3E" alt="Gradient placeholder: a portrait" loading="lazy" width="800" height="1200"></div>
@@ -1458,14 +1517,14 @@
     </div>
     <dialog class="modal" id="demo-modal" aria-labelledby="demo-modal-title">
       <div class="modal-inner">
-        <header class="modal-header"><h3 class="t-h5" id="demo-modal-title">Bring seed to the swap</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg></button></header>
+        <header class="modal-header"><h3 class="t-h5" id="demo-modal-title">Bring seed to the swap</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-x"/></svg></button></header>
         <div class="modal-body"><p class="t-sm muted">Tell the keepers what you're bringing on Saturday, so there's a place on the table for it.</p><div class="field"><label class="field-label t-label" for="f6">Variety</label><input class="input" id="f6" placeholder="Long Island Cheese squash"></div><div class="field"><label class="field-label t-label" for="f7">Packets</label><input class="input" id="f7" inputmode="numeric" value="4"><p class="field-hint t-xs">About twenty seeds each.</p></div></div>
         <footer class="modal-footer"><button class="button cc-ghost" type="button" data-close-modal><span class="button-label">Cancel</span></button><button class="button cc-primary" type="button" data-close-modal><span class="button-label">Add to the swap</span></button></footer>
       </div>
     </dialog>
     <dialog class="modal cc-tray cc-left" id="demo-tray" aria-labelledby="demo-tray-title">
       <div class="modal-inner">
-        <header class="modal-header"><h3 class="t-h5" id="demo-tray-title">A tray</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg></button></header>
+        <header class="modal-header"><h3 class="t-h5" id="demo-tray-title">A tray</h3><button class="button icon-button cc-ghost cc-sm" type="button" data-close-modal aria-label="Close"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-x"/></svg></button></header>
         <div class="modal-body"><p class="t-sm">The same parts. A tray only changes the variables: it slides in from its side on the spring curve, flush to the screen's edge, with two cells at each end.</p></div>
         <footer class="modal-footer"><button class="button cc-primary" type="button" data-close-modal><span class="button-label">Done</span></button></footer>
       </div>
@@ -1536,7 +1595,7 @@
           <div class="matrix-row"><span class="t-label cap-center">Emphasis</span><div class="cluster"><span class="tag cc-group"><span class="tag-label">Soft</span></span><span class="tag cc-group cc-outline"><span class="tag-label">Outline</span></span><span class="tag cc-group cc-solid"><span class="tag-label">Solid</span></span></div></div>
           <div class="matrix-row"><span class="t-label cap-center">Size</span><div class="cluster u-align-end"><span class="tag cc-sm"><span class="tag-label">Small</span></span><span class="tag cc-md"><span class="tag-label">Medium</span></span><span class="tag cc-lg"><span class="tag-label">Large</span></span></div></div>
           <div class="matrix-row"><span class="t-label cap-center">Filter</span><div class="cluster" id="filter-tags"><button class="tag" type="button" aria-pressed="true"><span class="tag-label">Food systems</span></button><button class="tag" type="button" aria-pressed="false"><span class="tag-label">Regenerative finance</span></button><button class="tag" type="button" aria-pressed="false"><span class="tag-label">Facilitation</span></button></div></div>
-          <div class="matrix-row"><span class="t-label cap-center">Removable</span><div class="cluster"><span class="tag cc-person"><span class="tag-label">Lena Vogt</span><button class="tag-remove" type="button" aria-label="Remove Lena Vogt"><svg class="icon" viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6"></path></svg></button></span><span class="tag"><span class="tag-label">Permaculture</span><button class="tag-remove" type="button" aria-label="Remove Permaculture"><svg class="icon" viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6"></path></svg></button></span></div></div>
+          <div class="matrix-row"><span class="t-label cap-center">Removable</span><div class="cluster"><span class="tag cc-person"><span class="tag-label">Lena Vogt</span><button class="tag-remove" type="button" aria-label="Remove Lena Vogt"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-x"/></svg></button></span><span class="tag"><span class="tag-label">Permaculture</span><button class="tag-remove" type="button" aria-label="Remove Permaculture"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-x"/></svg></button></span></div></div>
           <div class="matrix-row"><span class="t-label cap-center">Dense card</span><div class="card cc-dense"><div class="cluster"><span class="tag"><span class="tag-label">Systems design</span></span><span class="tag cc-group"><span class="tag-label">Commerce</span></span><span class="tag cc-ok"><span class="tag-dot"></span><span class="tag-label">Active</span></span></div></div></div>
           <div class="matrix-row"><span class="t-label cap-center">On media</span><div class="media-tile cc-on-media"><div class="cluster"><span class="tag"><span class="tag-label">Gallery</span></span><span class="tag"><span class="tag-label">12 photos</span></span></div></div></div>
         </div>
@@ -1554,43 +1613,95 @@
   <section class="section cc-split" id="icons">
     <header class="section-head stack">
       <p class="t-eyebrow">Icons</p>
-      <h2 class="t-h4">A stroke on the cells</h2>
-      <p class="t-sm muted">One <code>.icon</code>: a stroke in the ink around it, sized in cells, drawn on a 14-unit square. It centers on the capitals beside it, or on the x-height beside lowercase. Whether it overhangs its line is the component's choice. Trellis ships no icon set.</p>
+      <h2 class="t-h4">Phosphor, sized in cells</h2>
+      <p class="t-sm muted">The set is <a href="https://phosphoricons.com">Phosphor</a>, in the product's markup: nothing is loaded and nothing is installed. Size, weight, color and a second tone are variables on <code>.icon.cc-phosphor</code>. <code>.icon</code> alone is a stroke, for a set of your own. How to add one, and what each size is on iOS and Android: <a href="https://github.com/Iris-Cocreative/trellis/blob/main/skill/ICONS.md">Icons</a>.</p>
     </header>
     <div class="section-body stack">
       <div class="stack color-part">
         <h3 class="t-h6">Four sizes</h3>
         <div class="cols icon-sizes">
-          <div class="icon-size stack"><span class="icon-well"><svg class="icon cc-xs-demo" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg></span><p class="t-xs"><code>--size-icon-sm</code> · 1 cell</p></div>
-          <div class="icon-size stack"><span class="icon-well"><svg class="icon cc-base-demo" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg></span><p class="t-xs"><code>--size-icon</code> · a cell and two lines</p></div>
-          <div class="icon-size stack"><span class="icon-well"><svg class="icon cc-md-demo" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg></span><p class="t-xs"><code>--size-icon-md</code> · 1½ cells</p></div>
-          <div class="icon-size stack"><span class="icon-well"><svg class="icon cc-lg-demo" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg></span><p class="t-xs"><code>--size-icon-lg</code> · 2 cells</p></div>
+          <div class="icon-size stack"><span class="icon-well"><svg class="icon cc-phosphor cc-xs-demo" aria-hidden="true"><use href="#ph-plant"/></svg></span><p class="t-xs"><code>--size-icon-sm</code> · 1 cell</p></div>
+          <div class="icon-size stack"><span class="icon-well"><svg class="icon cc-phosphor cc-base-demo" aria-hidden="true"><use href="#ph-plant"/></svg></span><p class="t-xs"><code>--size-icon</code> · a cell and two lines</p></div>
+          <div class="icon-size stack"><span class="icon-well"><svg class="icon cc-phosphor cc-md-demo" aria-hidden="true"><use href="#ph-plant"/></svg></span><p class="t-xs"><code>--size-icon-md</code> · 1½ cells</p></div>
+          <div class="icon-size stack"><span class="icon-well"><svg class="icon cc-phosphor cc-lg-demo" aria-hidden="true"><use href="#ph-plant"/></svg></span><p class="t-xs"><code>--size-icon-lg</code> · 2 cells</p></div>
         </div>
+      </div>
+      <div class="stack color-part">
+        <h3 class="t-h6">Weight</h3>
+        <div class="cluster icon-strokes">
+          <span class="icon-stroke" style="--icon-weight: 8"><svg class="icon cc-phosphor cc-lg-demo" aria-hidden="true"><use href="#ph-plant"/></svg><code>8</code></span>
+          <span class="icon-stroke" style="--icon-weight: 12"><svg class="icon cc-phosphor cc-lg-demo" aria-hidden="true"><use href="#ph-plant"/></svg><code>12</code></span>
+          <span class="icon-stroke" style="--icon-weight: 16"><svg class="icon cc-phosphor cc-lg-demo" aria-hidden="true"><use href="#ph-plant"/></svg><code>16</code></span>
+          <span class="icon-stroke"><svg class="icon cc-phosphor cc-lg-demo" aria-hidden="true"><use href="#ph-plant-bold"/></svg><code>bold</code></span>
+          <span class="icon-stroke"><svg class="icon cc-phosphor cc-lg-demo" aria-hidden="true"><use href="#ph-plant-fill"/></svg><code>fill</code></span>
+          <span class="icon-stroke"><svg class="icon cc-phosphor cc-lg-demo" aria-hidden="true"><use href="#ph-plant-duotone"/></svg><code>duotone</code></span>
+        </div>
+        <p class="t-xs faint"><code>--icon-weight</code>, in 256ths of the icon: one drawing, thin to regular. Phosphor moves its shapes apart for bold, so bold is a drawing of its own here, as fill and duotone are.</p>
+      </div>
+      <div class="stack color-part">
+        <h3 class="t-h6">One line at every size</h3>
+        <div class="cluster icon-strokes">
+          <span class="icon-stroke" style="--icon-weight: 24"><svg class="icon cc-phosphor cc-xs-demo" aria-hidden="true"><use href="#ph-leaf"/></svg><code>24</code></span>
+          <span class="icon-stroke" style="--icon-weight: 20"><svg class="icon cc-phosphor cc-base-demo" aria-hidden="true"><use href="#ph-leaf"/></svg><code>20</code></span>
+          <span class="icon-stroke" style="--icon-weight: 16"><svg class="icon cc-phosphor cc-md-demo" aria-hidden="true"><use href="#ph-leaf"/></svg><code>16</code></span>
+          <span class="icon-stroke" style="--icon-weight: 12"><svg class="icon cc-phosphor cc-lg-demo" aria-hidden="true"><use href="#ph-leaf"/></svg><code>12</code></span>
+        </div>
+        <p class="t-xs faint">A weight is a share of the icon, so a small icon's line is thinner. The smaller the icon, the higher the weight: at 24, 20, 16 and 12 the line is about the same at all four sizes.</p>
+      </div>
+      <div class="stack color-part">
+        <h3 class="t-h6">Color</h3>
+        <div class="cluster icon-strokes">
+          <span class="icon-hue" style="--icon-color: var(--text-secondary)"><svg class="icon cc-phosphor cc-lg-demo" aria-hidden="true"><use href="#ph-plant-duotone"/></svg></span>
+          <span class="icon-hue" style="--icon-color: var(--accent)"><svg class="icon cc-phosphor cc-lg-demo" aria-hidden="true"><use href="#ph-plant-duotone"/></svg></span>
+          <span class="icon-hue" style="--icon-color: var(--ok)"><svg class="icon cc-phosphor cc-lg-demo" aria-hidden="true"><use href="#ph-plant-duotone"/></svg></span>
+          <span class="icon-hue" style="--icon-color: var(--stage-3-ink)"><svg class="icon cc-phosphor cc-lg-demo" aria-hidden="true"><use href="#ph-plant-duotone"/></svg></span>
+          <span class="icon-hue" style="--icon-color: var(--text); --icon-tone: var(--stage-5)"><svg class="icon cc-phosphor cc-lg-demo" aria-hidden="true"><use href="#ph-plant-duotone"/></svg></span>
+        </div>
+        <p class="t-xs faint">The ink around it, or a role by <code>--icon-color</code>. A duotone's second shape is a fifth of that ink, or <code>--icon-tone</code>, as in the last.</p>
       </div>
       <div class="stack color-part">
         <h3 class="t-h6">Where it centers (<a href="https://github.com/Iris-Cocreative/trellis/blob/main/README.md#rules">rule 9</a>)</h3>
         <div class="icon-rows stack">
-          <div class="icon-row"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg><span class="lbl cc-cap">SEEDS 12</span></div>
-          <div class="icon-row"><svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg><span class="lbl cc-ex">seeds and swaps</span></div>
+          <div class="icon-row"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-plant"/></svg><span class="lbl cc-cap">SEEDS 12</span></div>
+          <div class="icon-row"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-plant"/></svg><span class="lbl cc-ex">seeds and swaps</span></div>
         </div>
         <p class="t-xs faint">Beside capitals and numbers, on the cap height; beside lowercase, on the x-height. Both labels are trimmed to the edge the icon centers on.</p>
       </div>
       <div class="stack color-part">
         <h3 class="t-h6">An overhang is the component's choice</h3>
         <div class="stack icon-overhangs">
-          <div class="icon-row cc-tall"><svg class="icon cc-lg-demo" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg><span class="lbl cc-ex">the row grows to its icon: two cells</span></div>
-          <div class="icon-row cc-given"><svg class="icon cc-lg-demo" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg><span class="lbl cc-ex">the icon gives its overhang back: the row keeps one cell</span></div>
+          <div class="icon-row cc-tall"><svg class="icon cc-phosphor cc-lg-demo" aria-hidden="true"><use href="#ph-plant"/></svg><span class="lbl cc-ex">the row grows to its icon: two cells</span></div>
+          <div class="icon-row cc-given"><svg class="icon cc-phosphor cc-lg-demo" aria-hidden="true"><use href="#ph-plant"/></svg><span class="lbl cc-ex">the icon gives its overhang back: one cell</span></div>
         </div>
         <p class="t-xs faint">A two-cell icon beside one line of text. Either is on the cells; the component chooses (<a href="https://github.com/Iris-Cocreative/trellis/blob/main/docs/decisions/D68.md">D68</a>).</p>
       </div>
       <div class="stack color-part">
-        <h3 class="t-h6">Stroke</h3>
+        <h3 class="t-h6">Reading from the right</h3>
+        <div class="cluster icon-strokes" dir="rtl">
+          <span class="icon-hue"><svg class="icon cc-phosphor cc-mirror cc-lg-demo" aria-hidden="true"><use href="#ph-arrow-left"/></svg></span>
+          <span class="icon-hue"><svg class="icon cc-phosphor cc-mirror cc-lg-demo" aria-hidden="true"><use href="#ph-caret-right"/></svg></span>
+          <span class="icon-hue"><svg class="icon cc-phosphor cc-lg-demo" aria-hidden="true"><use href="#ph-check"/></svg></span>
+          <span class="icon-hue"><svg class="icon cc-phosphor cc-lg-demo" aria-hidden="true"><use href="#ph-magnifying-glass"/></svg></span>
+        </div>
+        <p class="t-xs faint">An icon that points along the line takes <code>.cc-mirror</code>: these are a left arrow and a right caret. A check or a magnifier stays as drawn.</p>
+      </div>
+      <div class="stack color-part">
+        <h3 class="t-h6">A set of your own</h3>
         <div class="cluster icon-strokes">
           <span class="icon-stroke" style="--icon-stroke: 1"><svg class="icon cc-lg-demo" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg><code>1</code></span>
           <span class="icon-stroke" style="--icon-stroke: 1.5"><svg class="icon cc-lg-demo" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg><code>1.5</code></span>
           <span class="icon-stroke" style="--icon-stroke: 2"><svg class="icon cc-lg-demo" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg><code>2</code></span>
+          <span class="icon-stroke"><svg class="icon cc-xs-demo" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 12.5V6.5M7 6.5C7 4 5 2.5 2.5 2.5 2.5 5 4.5 6.5 7 6.5ZM7 8.5c0-2.2 1.8-3.8 4.5-3.8 0 2.2-1.8 3.8-4.5 3.8Z"></path></svg><code>1 cell</code></span>
+          <span class="icon-stroke" style="--icon-stroke: 1.5"><svg class="icon cc-lg-demo" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.5V11M12 11C12 6.5 8.5 4 3.5 4 3.5 9 7 11.5 12 11ZM12 14.5c0-4 3.2-7 8.5-7 0 5-3.5 7.5-8.5 7M6.5 6.5 12 11M17.5 9.8 12 14.5"></path></svg><code>2 cells</code></span>
         </div>
-        <p class="t-xs faint"><code>--icon-stroke</code>, in the 14-unit square's units: 1.5 by default, so the line thickens with the icon.</p>
+        <p class="t-xs faint"><code>.icon</code> alone draws a stroke, <code>--icon-stroke</code> in the drawing's own units: 1.5 by default, so the line thickens with the icon. The last two are one icon drawn for two sizes: the larger on 24 units, with its veins.</p>
+      </div>
+      <div class="stack color-part">
+        <h3 class="t-h6">A picture as an icon</h3>
+        <div class="icon-rows stack">
+          <div class="icon-row"><img class="icon cc-lg-demo" src="brand/trellis-tile-108.png" alt="" width="108" height="108"><span class="lbl cc-ex">a raster, at three pixels to one</span></div>
+        </div>
+        <p class="t-xs faint"><code>img.icon</code> is sized as any icon is, and keeps its own colors in both themes.</p>
       </div>
     </div>
   </section>
@@ -1613,11 +1724,11 @@
 <pre class="code settle" tabindex="0">&lt;div class="<span class="k">float options-card</span>" popover&gt;</pre>
           <div class="float options-card settle" role="listbox" aria-label="Set role (example)">
             <p class="t-label options-card-heading">Set role</p>
-            <div class="options-card-item" role="option" aria-selected="true"><svg class="icon" viewBox="0 0 14 14"><circle cx="7" cy="5" r="2.5"></circle><path d="M2.5 12.5c.6-2.3 2.3-3.5 4.5-3.5s3.9 1.2 4.5 3.5"></path></svg><span class="button-label">Owner</span><svg class="icon cc-end" viewBox="0 0 14 14"><path d="M3 7.5 6 10.5 11 4"></path></svg></div>
-            <div class="options-card-item" role="option"><svg class="icon" viewBox="0 0 14 14"><path d="M2.5 7h9M8 3.5 11.5 7 8 10.5"></path></svg><span class="button-label">Assignee</span></div>
-            <div class="options-card-item" role="option"><svg class="icon" viewBox="0 0 14 14"><path d="M11.5 7h-9M6 3.5 2.5 7 6 10.5"></path></svg><span class="button-label">Owed to</span></div>
+            <div class="options-card-item" role="option" aria-selected="true"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-user"/></svg><span class="button-label">Owner</span><svg class="icon cc-phosphor cc-end" aria-hidden="true"><use href="#ph-check"/></svg></div>
+            <div class="options-card-item" role="option"><svg class="icon cc-phosphor cc-mirror" aria-hidden="true"><use href="#ph-arrow-right"/></svg><span class="button-label">Assignee</span></div>
+            <div class="options-card-item" role="option"><svg class="icon cc-phosphor cc-mirror" aria-hidden="true"><use href="#ph-arrow-left"/></svg><span class="button-label">Owed to</span></div>
             <div class="options-card-rule" aria-hidden="true"></div>
-            <div class="options-card-item" role="option"><svg class="icon" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg><span class="button-label">Remove role</span></div>
+            <div class="options-card-item" role="option"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-x"/></svg><span class="button-label">Remove role</span></div>
           </div>
           <p class="t-xs faint">16u wide, at most 24u tall. Its corner minus its padding gives the items their corner.</p>
         </div>
@@ -1740,11 +1851,11 @@
     </header>
     <div class="section-body stack">
       <div class="checks stack">
-        <div class="check"><svg class="icon" viewBox="0 0 18 18"><path d="M4 9.5 7.5 13 14 5.5"></path></svg><p class="t-body"><b>No raw values.</b> A color, size, space, radius, shadow or z-index outside the token layer fails.</p></div>
-        <div class="check"><svg class="icon" viewBox="0 0 18 18"><path d="M4 9.5 7.5 13 14 5.5"></path></svg><p class="t-body"><b>Edges land on lines.</b> A test checks every headline's baseline, every text block's top and every box's edges against the cells, in Chrome and in WebKit; a pixel test checks card edges against their grid lines' device pixels.</p></div>
-        <div class="check"><svg class="icon" viewBox="0 0 18 18"><path d="M4 9.5 7.5 13 14 5.5"></path></svg><p class="t-body"><b>Every class is registered.</b> A class the stylesheet doesn't define, or the style guide doesn't show, fails. So a one-off avatar style can't be added without registering it.</p></div>
-        <div class="check"><svg class="icon" viewBox="0 0 18 18"><path d="M4 9.5 7.5 13 14 5.5"></path></svg><p class="t-body"><b>Products turn knobs.</b> A product layer may only set variables on the root. Variants and contexts set the primitive's own variables.</p></div>
-        <div class="check"><svg class="icon" viewBox="0 0 18 18"><path d="M4 9.5 7.5 13 14 5.5"></path></svg><p class="t-body"><b>Inline styles set variables only.</b> <code class="t-mono">style="--face: var(--kind-person)"</code> passes; <code class="t-mono">style="padding: 13px"</code> fails.</p></div>
+        <div class="check"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-check"/></svg><p class="t-body"><b>No raw values.</b> A color, size, space, radius, shadow or z-index outside the token layer fails.</p></div>
+        <div class="check"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-check"/></svg><p class="t-body"><b>Edges land on lines.</b> A test checks every headline's baseline, every text block's top and every box's edges against the cells, in Chrome and in WebKit; a pixel test checks card edges against their grid lines' device pixels.</p></div>
+        <div class="check"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-check"/></svg><p class="t-body"><b>Every class is registered.</b> A class the stylesheet doesn't define, or the style guide doesn't show, fails. So a one-off avatar style can't be added without registering it.</p></div>
+        <div class="check"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-check"/></svg><p class="t-body"><b>Products turn knobs.</b> A product layer may only set variables on the root. Variants and contexts set the primitive's own variables.</p></div>
+        <div class="check"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-check"/></svg><p class="t-body"><b>Inline styles set variables only.</b> <code class="t-mono">style="--face: var(--kind-person)"</code> passes; <code class="t-mono">style="padding: 13px"</code> fails.</p></div>
       </div>
     </div>
   </section>
@@ -1770,7 +1881,7 @@
     </div>
     <input class="code-find" id="code-find" type="search" placeholder="Find" aria-label="Find in stylesheet" autocomplete="off" spellcheck="false">
     <span class="code-count" id="code-count" aria-live="polite"></span>
-    <button class="button icon-button" type="button" data-toggle="css" aria-label="Close stylesheets"><svg class="icon" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg></button>
+    <button class="button icon-button" type="button" data-toggle="css" aria-label="Close stylesheets"><svg class="icon cc-phosphor" aria-hidden="true"><use href="#ph-x"/></svg></button>
   </div>
   <p class="code-hint">With Measure on, click anything on the page to find its rule.</p>
   <pre class="code-panel-body" id="code-body" tabindex="0" aria-label="Stylesheet source"><code id="code-view"></code></pre>

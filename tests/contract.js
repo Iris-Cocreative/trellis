@@ -145,7 +145,7 @@ for (const [b, f] of Object.entries(pkg.bin || {})) {
   check(read(f).startsWith('#!/usr/bin/env node\n'), `${f} needs a #!/usr/bin/env node line to run as ${b}`);
 }
 check(pkg.bin && pkg.bin['trellis-check'] === 'tools/check.js' && pkg.bin['trellis-product'] === 'tools/product.js', 'package.json should install trellis-check and trellis-product');
-for (const f of ['skill/SKILL.md', 'skill/ADOPT.md']) check(shipped(f), `package.json's files don't carry ${f}, which the adoption workflow reads`);
+for (const f of ['skill/SKILL.md', 'skill/ADOPT.md', 'skill/ICONS.md']) check(shipped(f), `package.json's files don't carry ${f}, which the adoption workflow reads`);
 check(!pkg.dependencies, 'package.json has runtime dependencies; Trellis has none');
 check(fs.existsSync(path.join(dir, 'LICENSE')) && pkg.license === 'MIT', 'the MIT license is missing, or package.json does not name it');
 const version = (readme.match(/\*\*v(\d+\.\d+(?:\.\d+)?)\b/) || [])[1];
