@@ -1628,6 +1628,19 @@
   .card:has(> .media.cc-fill) { --card-border: transparent; isolation: isolate; display: grid; grid-template: minmax(0, auto) / minmax(0, 1fr); color: var(--white); }
   .card:has(> .media.cc-fill) > * { grid-area: 1 / 1; align-self: end; min-width: 0; }
   .card > .media.cc-fill { z-index: -1; align-self: stretch; inline-size: auto; block-size: auto; min-block-size: calc(var(--u) * var(--media-h)); margin: calc(var(--card-inset-block) * -1) calc(var(--card-inset-inline) * -1); border-radius: var(--card-radius); }
+  /* A control with no fill of its own (a plain or ghost button, a tinted tag, a
+     check, a switch, a tab, a slider) draws on the scrim there, so it reads white
+     where it reads the page's ink: on the control, so a surface in the card keeps
+     its own roles, and what carries its own fill (a primary button, a solid tag,
+     a field) is not touched. The focus ring is white round any of them; the
+     cover's is the card's, on the page. */
+  :where(.button, .tag, .choice, .switch, .range, .tabs:not(.cc-seg) > .tab):where(.card:has(> .media.cc-fill) *):not(:where(.card:has(> .media.cc-fill) :is(.card, .list.cc-group, .float, .modal, [data-theme]) *)) {
+    --text: var(--white);
+    --text-secondary: color-mix(in oklab, var(--white) 85%, transparent);
+    --text-tertiary: color-mix(in oklab, var(--white) 75%, transparent);
+    --border-strong: color-mix(in oklab, var(--white) 60%, transparent);
+  }
+  :where(a[href]:not(.card-link), button, input, select, textarea, summary, .switch, [tabindex]):where(.card:has(> .media.cc-fill) *):not(:where(.card:has(> .media.cc-fill) :is(.card, .list.cc-group, .float, .modal, [data-theme]) *)) { --focus: var(--white); }
 
   /* Labels inside controls: the text box is trimmed to the cap height, so
      centering the box centers the capitals exactly. */
@@ -1792,6 +1805,7 @@
     --choice-fill: transparent;
     --choice-line: var(--line);
     gap: var(--choice-gap);
+    line-height: max(1lh, round(up, 1em, var(--u)));   /* the line it is in (1lh is its parent's), never shorter than its own type: past the cell's cap a wrapped label's lines ran into each other, too close to count */
   }
   .choice.cc-sm { --choice-box: var(--sp-1); font-size: var(--fs-control-sm); }
   .choice.cc-lg { --choice-box: var(--sp-2); --choice-row: var(--size-control-lg); font-size: var(--fs-control-lg); }
@@ -2910,6 +2924,7 @@
      .member-tile-body + .cluster. */
   .member-tile { --tile-dir: column; --tile-align: flex-start; display: flex; flex-direction: var(--tile-dir); align-items: var(--tile-align); gap: var(--sp-2); }
   .member-tile.cc-row { --tile-dir: row; }
+  .member-tile > .cluster { max-width: 100%; }   /* never wider than its tile, so a long tag in it truncates (rule 11) */
   .member-tile-body { --stack-gap: var(--sp-1); display: flex; flex-direction: column; gap: var(--stack-gap); flex: 1 1 auto; min-width: 0; align-self: stretch; }
   .cc-dense .member-tile { gap: var(--sp-1); }
 

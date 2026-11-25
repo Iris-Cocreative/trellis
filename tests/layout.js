@@ -39,7 +39,8 @@
 //           row's start, rows whole cells, capitals centered on the box, a
 //           wrapped label's box on its first line; the touch hit area; checked,
 //           mixed, disabled and invalid; Space, a radio group's arrows, a
-//           click on the words; a prose task's box on its first line
+//           click on the words; a prose task's box on its first line; at 340%
+//           text a wrapped label is marked and its lines clear each other
 //   forced  in forced colors, current and selected marks, the switch, dots,
 //           badges and avatar rings still draw
 //   ring    a ring dot keeps the dot's box, its line a quarter of the dot and
@@ -55,7 +56,10 @@
 //           clicks, a row's link the same, and the focus ring is the card's;
 //           an image fills its frame at the focal point, the frame in cells,
 //           and a banner, a strip and a full bleed meet the card's edges and
-//           take its corners
+//           take its corners; on a full bleed, in both themes, a control with
+//           no fill of its own reads on the scrim, at rest, hovered, pressed
+//           and focused, and one with a fill, or on a surface, is untouched
+//   tile    a member tile's cluster is no wider than its tile
 //   gaps    a shell keeps a column for an aside only when it has one; the
 //           column's brand is not in the tab bar; prose in a bubble that
 //           shrinks to its content has a width; a message keeps the line
@@ -1224,6 +1228,125 @@ const ready = require('./ready');
     await page.evaluate(() => { document.removeEventListener('click', window.__coverClick, true); document.getElementById('cover-row-test').remove(); });
   }
 
+  // Controls on a full bleed (D108), in both themes. The ground is read from a
+  // screenshot under each control, over a mid-gray image: ink 4.5:1 on it, an
+  // edge 3:1. Hover and press mix white in, the focus ring is white. What has
+  // a fill of its own, or is on a surface in the card, is as it is outside it.
+  {
+    await page.evaluate(() => {
+      const host = document.createElement('div'); host.id = 'fill-test';
+      host.style.cssText = 'position: absolute; inset-block-start: 0; inset-inline-start: 0; z-index: 2147483647; inline-size: calc(var(--u) * 30); background: var(--bg)';
+      const icon = '<svg class="icon" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7h10"/></svg>';
+      const controls = k => `<button class="button cc-sm" data-c="${k}-plain"><span class="button-label">A</span></button><button class="button cc-ghost cc-sm" data-c="${k}-ghost"><span class="button-label">B</span></button>`
+        + `<button class="button icon-button cc-ghost cc-sm" data-c="${k}-icon" aria-label="C">${icon}</button><button class="button cc-sm" aria-pressed="true" data-c="${k}-pressed"><span class="button-label">D</span></button>`
+        + `<a class="tag cc-sm cc-event" href="#fill-test" data-c="${k}-tag"><span class="tag-label">E</span></a><button class="tag cc-sm cc-outline" data-c="${k}-outline"><span class="tag-label">F</span></button>`
+        + `<label class="choice cc-sm" data-c="${k}-choice"><input type="checkbox"><span class="choice-label">G</span></label><button class="switch" role="switch" aria-checked="false" data-c="${k}-switch"><span class="switch-label">H</span></button>`
+        + `<div class="tabs" role="tablist"><button class="tab" role="tab" aria-selected="true" data-c="${k}-tab">I</button><button class="tab" role="tab" aria-selected="false" data-c="${k}-tab2">J</button></div>`;
+      const filled = k => `<button class="button cc-primary cc-sm" data-c="${k}-primary"><span class="button-label">K</span></button><button class="button cc-sm" disabled data-c="${k}-disabled"><span class="button-label">L</span></button>`
+        + `<span class="tag cc-sm cc-solid cc-event" data-c="${k}-solid"><span class="tag-label">M</span></span><button class="tag cc-sm" aria-pressed="true" data-c="${k}-tagon"><span class="tag-label">N</span></button>`
+        + `<input class="input cc-sm" value="O" aria-label="O" data-c="${k}-input"><div class="tabs cc-seg" role="tablist"><button class="tab" role="tab" aria-selected="true" data-c="${k}-seg">P</button><button class="tab" role="tab" aria-selected="false" data-c="${k}-seg2">Q</button></div>`;
+      host.innerHTML = `<div class="card" id="ft-card"><div class="media cc-fill" style="--media-fill: #808080; --media-h: 60"></div><div class="stack"><p class="t-h5"><a class="card-link" href="#fill-test" data-c="link">Words</a></p><div class="cluster">${controls('on')}</div><div class="cluster">${filled('on')}</div></div></div>`
+        + `<div class="cluster">${filled('off')}${controls('off')}</div>`
+        + `<div class="card"><div class="media cc-fill"></div><div class="stack"><div class="card"><div class="cluster">${controls('nest')}</div></div><div class="float options-card" style="position: static">${controls('float')}</div><div data-product="fill-test" data-theme="light">${controls('day')}</div></div></div>`
+        + `<div data-product="fill-test" data-theme="light">${controls('mood')}</div>`;
+      document.body.appendChild(host);
+      window.__fill = {
+        px: (...cs) => { const c = Object.assign(document.createElement('canvas'), { width: 1, height: 1 }), g = c.getContext('2d', { willReadFrequently: true }); cs.forEach(v => { g.fillStyle = v; g.fillRect(0, 0, 1, 1); }); return [...g.getImageData(0, 0, 1, 1).data]; },
+        ratio: (a, b) => { const l = p => { const f = p.slice(0, 3).map(v => { v /= 255; return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }); return .2126 * f[0] + .7152 * f[1] + .0722 * f[2]; }; const x = l(a), y = l(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); },
+        still: () => Promise.all(document.getAnimations().filter(a => a.effect && a.effect.target && a.effect.target.closest && a.effect.target.closest('#fill-test')).map(a => a.finished.catch(() => {}))),
+        el: k => document.querySelector(`[data-c="${k}"]`),
+        theme: document.documentElement.getAttribute('data-theme'),
+      };
+    });
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(async theme => { document.documentElement.setAttribute('data-theme', theme); scrollTo({ top: 0, left: 0, behavior: 'instant' }); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); await window.__fill.still(); }, theme);
+      await page.mouse.move(width - 2, height - 2);
+      // The ground alone: the card's words and controls hidden, so the pixels are the image and its scrim.
+      const hide = v => page.evaluate(v => { document.querySelector('#ft-card > .stack').style.visibility = v; }, v);
+      await hide('hidden');
+      const shot = (await page.locator('#ft-card').screenshot({ scale: 'css' })).toString('base64');
+      await hide('');
+      fails.push(...await page.evaluate(async ([theme, shot]) => {
+        const fails = [], { px, ratio, el } = window.__fill, say = m => fails.push(`full bleed, ${theme}: ${m}`), card = document.getElementById('ft-card').getBoundingClientRect();
+        const img = new Image(); img.src = 'data:image/png;base64,' + shot; await img.decode();
+        const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+        const g2 = c.getContext('2d', { willReadFrequently: true }); g2.drawImage(img, 0, 0);
+        const ground = e => { const b = e.getBoundingClientRect(); return [...g2.getImageData(Math.round((b.left + b.right) / 2 - card.left), Math.round((b.top + b.bottom) / 2 - card.top), 1, 1).data]; };
+        const css = p => `rgb(${p.slice(0, 3).join(' ')})`;
+        const UNFILLED = ['plain', 'ghost', 'icon', 'pressed', 'tag', 'outline', 'choice', 'switch', 'tab', 'tab2'];
+        for (const k of UNFILLED) {
+          const e = el('on-' + k), cs = getComputedStyle(e), g = ground(e), under = px(css(g), cs.backgroundColor), r = ratio(px(css(under), cs.color), under);
+          if (g[3] !== 255 || g[0] > 128) say(`the ground under ${k} is ${g}, not the scrim on the image`);
+          if (r < 4.5) say(`${k}'s ink is ${r.toFixed(2)}:1 on the scrim (${cs.color} on ${g.slice(0, 3)})`);
+        }
+        const edges = { plain: el('on-plain'), pressed: el('on-pressed'), choice: el('on-choice').querySelector('input') };
+        for (const [k, e] of Object.entries(edges)) { const g = ground(e), v = getComputedStyle(e).borderTopColor, r = ratio(px(css(g), v), g); if (r < 3) say(`${k}'s edge is ${r.toFixed(2)}:1 on the scrim (${v})`); }
+        if (!/^(transparent|rgba\(0, 0, 0, 0\))$/.test(getComputedStyle(el('on-ghost')).borderTopColor)) say('a ghost button draws an edge');
+        const same = (a, b, props, what) => props.forEach(p => { const x = getComputedStyle(el(a))[p], y = getComputedStyle(el(b))[p]; if (x !== y) say(`${what}: ${p} is ${x}, not ${y}`); });
+        for (const k of ['primary', 'disabled', 'solid', 'tagon', 'input', 'seg', 'seg2']) same('on-' + k, 'off-' + k, ['color', 'backgroundColor', 'borderTopColor'], `${k}, which has its own fill, is changed`);
+        for (const k of UNFILLED) {
+          for (const s of ['nest', 'float']) same(`${s}-${k}`, 'off-' + k, ['color', 'borderTopColor'], `${k} on a ${s === 'nest' ? 'card' : 'float'} in the card`);
+          same(`day-${k}`, `mood-${k}`, ['color', 'borderTopColor'], `${k} in a scope with a scheme in the card`);
+        }
+        return fails;
+      }, [theme, shot]));
+      // Hover and press on what draws no ground of its own.
+      for (const k of ['plain', 'ghost', 'icon', 'outline']) {
+        const p = await page.evaluate(k => { const b = window.__fill.el('on-' + k).getBoundingClientRect(); return { x: (b.left + b.right) / 2, y: (b.top + b.bottom) / 2 }; }, k);
+        const state = name => page.evaluate(async ([k, name]) => {
+          const { px, el, still } = window.__fill, e = el('on-' + k);
+          await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); await still();
+          const i = document.createElement('i'); i.style.background = `color-mix(in oklab, var(--white) var(--state-${name}), transparent)`; e.parentElement.appendChild(i);
+          const got = px('rgb(64 64 64)', getComputedStyle(e).backgroundColor), want = px('rgb(64 64 64)', getComputedStyle(i).backgroundColor); i.remove();
+          return got[0] > 66 && got.every((v, n) => Math.abs(v - want[n]) <= 1) ? '' : `${got.slice(0, 3)} over a gray of 64, not ${want.slice(0, 3)}`;
+        }, [k, name]);
+        await page.mouse.move(p.x, p.y);
+        if (await page.evaluate(() => matchMedia('(hover: hover)').matches)) { const bad = await state('hover'); if (bad) fails.push(`full bleed, ${theme}: ${k} hovered is ${bad}`); }
+        await page.mouse.down();
+        const bad = await state('press'); if (bad) fails.push(`full bleed, ${theme}: ${k} pressed is ${bad}`);
+        await page.mouse.move(width - 2, height - 2); await page.mouse.up();
+      }
+      await page.keyboard.press('Tab');   // from here on focus is the keyboard's, and draws its ring
+      fails.push(...await page.evaluate(theme => {
+        const fails = [], { px, el } = window.__fill;
+        for (const k of ['on-plain', 'on-ghost', 'on-icon', 'on-tag', 'on-choice', 'on-switch', 'on-tab', 'on-primary', 'on-tagon', 'on-input', 'off-plain', 'nest-plain', 'float-plain', 'link']) {
+          const e = el(k).querySelector('input') || el(k); e.focus({ preventScroll: true });
+          const cs = getComputedStyle(e, k === 'link' ? '::before' : null), i = document.createElement('i');
+          // The card's own ring is drawn on the page, and one on a surface on the surface: theirs is the page's.
+          i.style.color = k.startsWith('on-') ? 'var(--white)' : 'var(--focus)'; document.body.appendChild(i);
+          const want = getComputedStyle(i).color; i.remove();
+          if (document.activeElement !== e || !e.matches(':focus-visible')) fails.push(`full bleed, ${theme}: ${k} took no visible focus`);
+          else if (cs.outlineStyle !== 'solid' || String(px(cs.outlineColor)) !== String(px(want))) fails.push(`full bleed, ${theme}: ${k}'s ring is ${cs.outlineStyle} ${cs.outlineColor}, not ${want}`);
+        }
+        document.activeElement.blur();
+        return fails;
+      }, theme));
+    }
+    await page.evaluate(() => { const t = window.__fill.theme; if (t === null) document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t); document.getElementById('fill-test').remove(); delete window.__fill; });
+  }
+
+  // A member tile's cluster is no wider than its tile: a tag or a button too long
+  // for it truncates at the tile's padding, and one that fits keeps its width.
+  fails.push(...await page.evaluate(async () => {
+    const fails = [], u = Trellis.cell(), host = document.createElement('div');
+    host.style.cssText = 'position: absolute; inset-block-start: 0; inset-inline-start: 0; inline-size: calc(var(--u) * 12)';
+    const parts = '<span class="avatar" aria-hidden="true">A</span><div class="member-tile-body"><p class="t-h5">Ada</p></div><div class="cluster"><span class="tag cc-sm" data-long><span class="tag-label">A tag far longer than its tile can hold</span></span><button class="button cc-sm" data-long type="button"><span class="button-label">A button far longer than its tile</span></button><span class="tag cc-sm" data-short><span class="tag-label">Short</span></span></div>';
+    host.innerHTML = `<article class="card member-tile">${parts}</article><div class="member-tile">${parts}</div><span class="tag cc-sm" id="tile-alone"><span class="tag-label">Short</span></span>`;
+    document.body.appendChild(host); await Trellis.settled();
+    const r = e => e.getBoundingClientRect(), alone = r(document.getElementById('tile-alone')).width;
+    host.querySelectorAll('.member-tile').forEach(t => {
+      const what = t.className, end = r(t).right - parseFloat(getComputedStyle(t).paddingRight);
+      t.querySelectorAll('[data-long]').forEach(e => {
+        const kind = e.className.split(' ')[0], l = e.firstElementChild;
+        if (r(e).right > end + .5) fails.push(`tile: in a "${what}" of 12 cells a long ${kind} runs ${((r(e).right - end) / u).toFixed(2)} cells past its padding`);
+        else if (l.scrollWidth <= l.clientWidth) fails.push(`tile: a long ${kind} in a "${what}" is not truncated, so nothing was proved`);
+      });
+      const s = r(t.querySelector('[data-short]')).width; if (Math.abs(s - alone) > .5) fails.push(`tile: a short tag in a "${what}" is ${s.toFixed(1)}px wide, ${alone.toFixed(1)} on its own`);
+    });
+    host.remove();
+    return fails;
+  }));
+
   // A clamp (D105). Layout: the box is its lines' own, the first capitals at its
   // top and whole cells tall, so it sits where unclamped text would. Pixels:
   // black words on white, read row by row. Every line has descenders and tall
@@ -1343,6 +1466,56 @@ const ready = require('./ready');
       return fails;
     }));
     await ax.close();
+  }
+  // A choice past the cap: at 340% text its type is over three cells and the
+  // page's line two, so a wrapped label's lines ran into each other, were
+  // counted as one, and the row left the lines. Its line is never shorter than
+  // its type now: the label is marked and its row whole cells. At default sizes
+  // the line is the one it is in.
+  {
+    const ax = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: touch ? 3 : 1, isMobile: touch, hasTouch: touch });
+    await ax.addInitScript(font => {
+      const set = () => {
+        if (!document.documentElement) return false;
+        const s = document.documentElement.style; s.fontSize = '340%';
+        if (font) ['--font-sans', '--font-serif', '--font-heading', '--font-mono'].forEach(v => s.setProperty(v, font));
+        return true;
+      };
+      if (!set()) new MutationObserver((m, o) => { if (set()) o.disconnect(); }).observe(document, { childList: true });
+    }, process.env.FONT || '');
+    await ax.goto(url, { waitUntil: 'networkidle', timeout: 120000 });
+    await ready(ax);
+    const build = async at => {
+      const fails = [], u = Trellis.cell(), host = document.createElement('div');
+      const whole = v => { const m = ((v % u) + u) % u; return m < .5 || m > u - .5; };
+      host.className = 'stack';
+      host.style.cssText = 'position: absolute; inset-block-start: 0; inset-inline-start: 0; inline-size: calc(var(--u) * 10)';
+      host.innerHTML = ['', 'cc-sm', 'cc-lg'].map(k => `<label class="choice ${k}"><input type="checkbox"><span class="choice-label cap-center">Not yet, and not for a day</span></label>`).join('') + ['Not yet', 'A'].map(t => `<label class="choice"><input type="radio"><span class="choice-label cap-center">${t}</span></label>`).join('');
+      document.body.appendChild(host); await Trellis.settled();
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); await Trellis.settled();
+      let wrapped = 0;
+      for (const c of host.children) {
+        const l = c.querySelector('.choice-label'), h = c.getBoundingClientRect().height, name = `${at}: a "${c.className}"`, fs = parseFloat(getComputedStyle(l).fontSize), lh = parseFloat(getComputedStyle(l).lineHeight);
+        const range = document.createRange(); range.selectNodeContents(l);
+        const tops = [...new Set([...range.getClientRects()].filter(b => b.width > 0).map(b => Math.round(b.top)))].sort((a, b) => a - b);
+        if (tops.length > 1) wrapped++;
+        if (!whole(h)) fails.push(`${name} is ${(h / u).toFixed(3)} cells tall`);
+        if ((tops.length > 1) !== l.hasAttribute('data-trellis-wrap')) fails.push(`${name} of ${tops.length} lines is ${tops.length > 1 ? 'not ' : ''}marked as wrapped`);
+        if (tops.length > 1 && tops[1] - tops[0] < fs - 1) fails.push(`${name}'s lines are ${tops[1] - tops[0]}px apart, its type ${fs.toFixed(1)}px`);
+        if (lh < fs - .05 || !whole(lh)) fails.push(`${name}'s line is ${lh}px, not whole cells and at least its type's ${fs.toFixed(1)}px`);
+      }
+      if (wrapped < 3) fails.push(`${at}: only ${wrapped} of the choices wrapped, so nothing was proved`);
+      const line = getComputedStyle(host).lineHeight, choice = getComputedStyle(host.lastElementChild).lineHeight;
+      host.remove();
+      return { fails, line, choice };
+    };
+    const big = await ax.evaluate(build, '340%');
+    fails.push(...big.fails);
+    if (big.line === big.choice) fails.push(`340%: a choice's line is the page's, ${big.line}, so nothing was proved`);
+    await ax.close();
+    const usual = await page.evaluate(build, '100%');
+    fails.push(...usual.fails);
+    if (usual.line !== usual.choice) fails.push(`choice: at default sizes its line is ${usual.choice}, the page's ${usual.line}`);
   }
   await Promise.race([browser.close(), new Promise(r => setTimeout(r, 5000))]); // WebKit on Windows can hang on close
   console.log(`${engine} ${size}${touch ? ' touch' : ''}: layout ${fails.length ? fails.length + ' FAILED' : 'ok'}`);

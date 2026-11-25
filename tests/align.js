@@ -58,7 +58,7 @@ const { FLOORS } = require('../tools/product');
   await page.goto(target(url, product, theme), { waitUntil: 'networkidle', timeout: 120000 });
   await ready(page);
 
-  const r = await page.evaluate(() => {
+  const r = await page.evaluate(width => {
     const top = document.getElementById('top'), pr = top.getBoundingClientRect();
     const u = Trellis.cell();
     const TEXT = /\bt-(h\d|xl|lg|body|sm|xs|label|eyebrow)\b/, STANDS = /\bt-h[123]\b/;
@@ -143,7 +143,8 @@ const { FLOORS } = require('../tools/product');
     }
     // Keyboard reach: a region that scrolls sideways takes focus itself (an
     // explicit tab stop, since Chrome's automatic one isn't in Safari) or holds
-    // something that does.
+    // something that does. A textarea takes focus by itself, in every browser,
+    // unless it is disabled, inert or taken out of the tab order.
     const FOCUSABLE = 'a[href], button, input, select, textarea, summary, [contenteditable], [tabindex]:not([tabindex="-1"])';
     out.scrollers = 0; out.noReach = [];
     for (const e of document.querySelectorAll('body *')) {
@@ -151,11 +152,13 @@ const { FLOORS } = require('../tools/product');
       if (!/^(auto|scroll)$/.test(getComputedStyle(e).overflowX)) continue;
       if (e.closest('[popover]:not(:popover-open), dialog:not([open]), [hidden]')) continue;
       out.scrollers++;
-      if (!(e.hasAttribute('tabindex') && e.tabIndex >= 0) && !e.querySelector(FOCUSABLE)) out.noReach.push(desc(e));
+      const native = e.matches('textarea:not(:disabled)') && e.tabIndex >= 0 && !e.closest('[inert]');
+      if (!(e.hasAttribute('tabindex') && e.tabIndex >= 0) && !native && !e.querySelector(FOCUSABLE)) out.noReach.push(desc(e));
     }
     out.frame = +(pr.width / u).toFixed(3);
     out.gutter = +(parseFloat(getComputedStyle(top).paddingLeft) / u).toFixed(3);
-    out.scrollW = document.documentElement.scrollWidth; out.vw = innerWidth;
+    // Against the width asked for: on a phone Chrome's innerWidth grows to whatever overflows.
+    out.scrollW = document.documentElement.scrollWidth; out.vw = width;
     // What makes the page scroll sideways: whatever reaches past the screen with
     // no clipping ancestor to hold it.
     out.wide = [];
@@ -171,7 +174,7 @@ const { FLOORS } = require('../tools/product');
     out.trim = CSS.supports('text-box', 'trim-both cap alphabetic');
     out.calcSize = CSS.supports('height', 'calc-size(fit-content, size)');
     return out;
-  });
+  }, width);
   // A scheme on part of a page (D96): the specimen's band is in the scheme the
   // page isn't. Its roles must be the ones the page has in that theme, so the
   // page is put in it for a moment and read; it must paint its ground, read from
@@ -224,22 +227,29 @@ const { FLOORS } = require('../tools/product');
     const b = band.getBoundingClientRect(), pr = document.getElementById('top').getBoundingClientRect(), u = Trellis.cell();
     if (Math.abs(b.left - pr.left) > .5 || Math.abs(b.right - pr.right) > .5) fails.push(`it runs ${b.left.toFixed(1)} to ${b.right.toFixed(1)}, the frame ${pr.left.toFixed(1)} to ${pr.right.toFixed(1)}`);
     const spots = [[b.left + u / 2, b.top + u / 2], [b.right - u / 2, b.top + u / 2], [b.left + u / 2, b.top - u / 2]];
-    return { fails, low, n, ground: mine.bg, spots: spots.map(([x, y], i) => ({ x, y, inside: i < 2, clear: document.elementFromPoint(x, y) === (i < 2 ? band : document.getElementById('top')) })) };
+    // A screenshot shows the visual viewport. On a phone page that scrolls sideways Chrome's layout
+    // viewport is larger than that, and what is clicked or measured is in the layout viewport's points.
+    const v = window.visualViewport, view = { x: v.offsetLeft, y: v.offsetTop };
+    return { fails, low, n, view, ground: mine.bg, spots: spots.map(([x, y], i) => ({ x, y, inside: i < 2, clear: document.elementFromPoint(x, y) === (i < 2 ? band : document.getElementById('top')) })) };
   }, FLOORS);
   // Measure draws over the page, so its pixels say nothing here.
   if (band && band.spots && !flags.includes('measure')) {
     await page.waitForTimeout(100);
     const shot = (await page.screenshot({ scale: 'css' })).toString('base64');
-    const seen = await page.evaluate(async ([shot, spots]) => {
+    const seen = await page.evaluate(async ([shot, spots, view]) => {
       const img = new Image(); img.src = 'data:image/png;base64,' + shot; await img.decode();
       const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
       const g = c.getContext('2d'); g.drawImage(img, 0, 0);
-      return spots.map(s => [...g.getImageData(Math.floor(s.x), Math.floor(s.y), 1, 1).data]);
-    }, [shot, band.spots]);
+      return spots.map(s => {
+        const x = Math.floor(s.x - view.x), y = Math.floor(s.y - view.y);
+        return x >= 0 && y >= 0 && x < c.width && y < c.height ? [...g.getImageData(x, y, 1, 1).data] : null;
+      });
+    }, [shot, band.spots, band.view]);
     const near = (a, b) => a.every((v, i) => Math.abs(v - b[i]) <= 4);
     if (!band.spots.some(s => s.inside && s.clear)) band.fails.push('no clear point on its ground was found');
     band.spots.forEach((s, i) => {
       if (!s.clear) return;
+      if (!seen[i]) { band.fails.push(`the point at ${s.x.toFixed(0)},${s.y.toFixed(0)} is not on the screenshot`); return; }
       if (s.inside && !near(seen[i], band.ground)) band.fails.push(`at ${s.x.toFixed(0)},${s.y.toFixed(0)} the pixel is ${seen[i]}, its ground ${band.ground}`);
       if (!s.inside && near(seen[i], band.ground)) band.fails.push(`its ground is painted above it too, at ${s.x.toFixed(0)},${s.y.toFixed(0)}`);
     });
