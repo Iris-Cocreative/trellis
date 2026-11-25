@@ -367,7 +367,7 @@ for (let h = 0; h < 360; h += 30) for (const l of [.35, .55, .75, .95]) lit(`an 
         most[0] = Math.max(most[0], Math.abs(p['own-any-solid'][0] - p['own-any'][0])); most[1] = Math.max(most[1], over(p['own-any-solid']));
       }
     }
-    check(n > 3500, `own colors: only ${n} were checked`);
+    check(n > 6500, `own colors: only ${n} were checked`);
     for (const k of Object.keys(low)) check(low[k][0] >= 4.5, `own colors: ${k} is ${low[k][0].toFixed(2)}:1 at ${low[k].slice(1).join(' ')}, under 4.5`);
     check(most[0] <= 0.0401 && most[1] < 0.1, `own colors: a solid fill is ${most[0].toFixed(3)} of lightness from its fill, and ${most[1].toFixed(3)} outside sRGB`);
     // The layer check finds each one a layer names, on the root and carried into each scope, and holds it.
