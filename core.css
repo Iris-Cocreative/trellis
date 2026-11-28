@@ -440,6 +440,14 @@
     --shape-control: var(--r-round);
     --shape-input: var(--r-h);   /* a small corner: a pill suits a button's short label, but an input holds a sentence */
     --shape-float: var(--r-1);
+    /* Speech (D122): a bubble's own corner, its padding, and the faint grounds
+       of others' messages and your own, as shares of the text and the accent
+       over the surface. --chat-bubble-bg, --chat-own-bg, --chat-own-ink and
+       --chat-bubble-edge are unset: the chat item reads them with its defaults. */
+    --chat-shape: var(--r-1h);
+    --chat-bubble-pad: var(--sp-1);
+    --chat-bubble-wash: 7%;
+    --chat-own-wash: 20%;
     --density-card-pad: var(--sp-2);
     /* --density-card-pad-inline and --density-card-pad-block: its sides and its
        top and bottom, unset so they follow it (on every scope too, D96).
@@ -2916,31 +2924,43 @@
   }
   .cc-dense .tabs { --tab-h: var(--size-control-sm); --tab-fs: var(--fs-control-sm); --tab-pad: var(--sp-h); }
 
-  /* Chat item: an avatar and a body, for messages, walls and system lines. The
-     bubble hangs its text from a cell, and its corner on the speaker's side,
-     at the bottom, is tightened (--chat-tail): the tail. Your own message
-     (.cc-own) is a solid bubble at the end of the row (the accent and its ink,
-     or the product's --chat-own-bg and --chat-own-ink), with no avatar and its
-     meta after the bubble. A message that continues the one before it from the
-     same speaker (.cc-cont) shares its avatar and its meta: the avatar keeps its
-     place, unseen, the meta shows once (above the first of others' runs, under
-     the last of yours), and the run is --chat-run-gap apart, a cell. .cc-own,
-     .cc-cont, .cc-wall, .cc-system and .cc-removed only change variables.
-     Markup: .chat-item > .avatar + .chat-item-body > .chat-item-meta +
-     .chat-item-bubble; in a flat thread a continuing message may hold a
-     .chat-item-time before its body, and any message a .chat-item-actions. */
+  /* Chat item: an avatar and a body, for messages, walls and system lines. A
+     bubble is a shaped ground with no edge, so no message reads as a button
+     (D122): a faint wash of the text over the surface (--chat-bubble-wash),
+     a corner rounder than a control's (--chat-shape), and on the first message
+     of a run the top corner on the speaker's side square (--chat-head), under
+     the name. It hangs its text from a cell. Your own message (.cc-own) is at
+     the end of the row, on a faint wash of the accent (--chat-own-wash) in the
+     text's ink, with no avatar and its meta after the bubble. A product's
+     --chat-bubble-bg and --chat-own-bg are laid over the wash (an opaque color
+     replaces it), --chat-own-ink is your words' ink, and --chat-bubble-edge
+     draws an edge. Third ink on a bubble's ground reads as the second. A
+     message that continues the one before it from the same speaker (.cc-cont)
+     shares its avatar and its meta: the avatar keeps its place, unseen, the
+     meta shows once (above the first of others' runs, under the last of
+     yours), its corners are all round, and the run is --chat-run-gap apart, a
+     cell. .cc-own, .cc-cont, .cc-wall, .cc-system and .cc-removed only change
+     variables. Markup: .chat-item > .avatar + .chat-item-body >
+     .chat-item-meta + .chat-item-bubble; in a flat thread a continuing message
+     may hold a .chat-item-time before its body, and any message a
+     .chat-item-actions. */
   .chat-item {
     --chat-dir: row;
     --chat-align: flex-start;
     --chat-items: flex-start;
-    --chat-bg: var(--bg-raised);
+    --chat-bg: color-mix(in oklab, var(--text) var(--chat-bubble-wash), var(--surface));
+    --chat-over: var(--chat-bubble-bg, transparent);
     --chat-ink: currentColor;
-    --chat-edge: var(--chat-bubble-edge, var(--border-subtle));
+    --chat-tertiary: var(--text-secondary);
+    --chat-edge: var(--chat-bubble-edge, transparent);
     --chat-edge-style: solid;
     --chat-style: normal;
-    --chat-pad: var(--sp-1);
-    --chat-radius: var(--shape-card);
-    --chat-tail: var(--r-q);
+    --chat-pad: var(--chat-bubble-pad);
+    --chat-radius: var(--chat-shape);
+    --chat-head: 0px;
+    --chat-tail: var(--chat-radius);
+    --chat-head-start: var(--chat-head);
+    --chat-head-end: var(--chat-radius);
     --chat-tail-start: var(--chat-tail);
     --chat-tail-end: var(--chat-radius);
     --chat-measure: calc(var(--u) * 40);
@@ -2983,9 +3003,12 @@
     max-width: 100%;
     padding: var(--chat-pad);
     border-radius: var(--chat-radius);
+    border-start-start-radius: var(--chat-head-start);
+    border-start-end-radius: var(--chat-head-end);
     border-end-start-radius: var(--chat-tail-start);
     border-end-end-radius: var(--chat-tail-end);
-    background: var(--chat-bg);
+    background: linear-gradient(var(--chat-over), var(--chat-over)) var(--chat-bg);
+    --text-tertiary: var(--chat-tertiary);
     color: var(--chat-ink);
     font-style: var(--chat-style);
     outline: var(--line) var(--chat-edge-style) var(--chat-edge);
@@ -3035,18 +3058,22 @@
   .chat-item:focus-within { --chat-actions-seen: visible; }
   .chat-item.cc-own {
     --chat-dir: row-reverse; --chat-align: flex-end;
-    --chat-bg: var(--chat-own-bg, var(--accent)); --chat-ink: var(--chat-own-ink, var(--accent-ink)); --chat-edge: transparent;
+    --chat-bg: color-mix(in oklab, var(--accent) var(--chat-own-wash), var(--surface));
+    --chat-over: var(--chat-own-bg, transparent);
+    --chat-ink: var(--chat-own-ink, var(--text)); --chat-edge: transparent;
+    --chat-head-start: var(--chat-radius); --chat-head-end: var(--chat-head);
     --chat-tail-start: var(--chat-radius); --chat-tail-end: var(--chat-tail);
     --chat-avatar: none; --chat-meta-order: 1;
   }
-  /* A run from one speaker: --chat-run-gap apart, whatever the stack's gap, never less. */
-  .chat-item.cc-cont { --chat-avatar-seen: hidden; --chat-meta: none; margin-block-start: min(0px, calc(var(--chat-run-gap) - var(--stack-gap, var(--sp-1)))); }
+  /* A run from one speaker: --chat-run-gap apart, whatever the stack's gap, never
+     less. Only the first of a run has the square corner. */
+  .chat-item.cc-cont { --chat-head: var(--chat-radius); --chat-avatar-seen: hidden; --chat-meta: none; margin-block-start: min(0px, calc(var(--chat-run-gap) - var(--stack-gap, var(--sp-1)))); }
   .chat-item.cc-own.cc-cont:not(.cc-flat, .chat-thread.cc-flat > *) { --chat-meta: flex; }
   .chat-item.cc-own:not(.cc-flat, .chat-thread.cc-flat > *):has(+ .chat-item.cc-own.cc-cont) { --chat-meta: none; }
-  .chat-item.cc-wall { --chat-bg: transparent; --chat-edge: transparent; --chat-pad: 0px; --chat-measure: 100%; }
-  .chat-item.cc-system { --chat-bg: transparent; --chat-edge: transparent; --chat-pad: 0px; --chat-measure: 100%; color: var(--text-tertiary); }
+  .chat-item.cc-wall { --chat-bg: transparent; --chat-over: transparent; --chat-tertiary: var(--text-tertiary); --chat-edge: transparent; --chat-pad: 0px; --chat-measure: 100%; }
+  .chat-item.cc-system { --chat-bg: transparent; --chat-over: transparent; --chat-tertiary: var(--text-tertiary); --chat-edge: transparent; --chat-pad: 0px; --chat-measure: 100%; color: var(--text-tertiary); }
   .chat-item.cc-system .chat-item-body { align-items: center; }
-  .cc-dense .chat-item { --chat-pad: var(--sp-h); --chat-radius: var(--r-1); }
+  .cc-dense .chat-item { --chat-pad: var(--sp-h); --chat-radius: min(var(--chat-shape), var(--r-1)); }
 
   /* Chat thread: the column a conversation sits in. Messages, dividers and the
      typing line, a stack apart (two cells: a run is closer, --chat-run-gap).
@@ -3070,7 +3097,7 @@
   .chat-thread.cc-flat { --chat-inset: calc(var(--u) * 3 + var(--sp-1)); }
   :is(.chat-thread.cc-flat > .chat-item, .chat-item.cc-flat) {
     --chat-dir: row; --chat-align: stretch; --chat-items: baseline;
-    --chat-bg: transparent; --chat-ink: currentColor; --chat-edge: transparent;
+    --chat-bg: transparent; --chat-over: transparent; --chat-tertiary: var(--text-tertiary); --chat-ink: currentColor; --chat-edge: transparent;
     --chat-pad: 0px; --chat-measure: 100%;
     --chat-avatar: inline-grid; --chat-meta-order: 0;
     --chat-avatar-n: 3;
@@ -3084,9 +3111,9 @@
   .chat-item.cc-system:is(.cc-flat, .chat-thread.cc-flat > *) { --chat-row: 0%; }
   /* Removed: its words in the faint ink and italic, no actions. A bubble keeps
      its place as a dashed edge. */
-  .chat-item.cc-removed { --chat-actions: none; }
+  .chat-item.cc-removed { --chat-actions: none; --chat-tertiary: var(--text-tertiary); }
   .chat-item.cc-removed .chat-item-bubble { --chat-ink: var(--text-tertiary); --chat-style: italic; }
-  .chat-item.cc-removed:not(.cc-flat, .chat-thread.cc-flat > *) .chat-item-bubble { --chat-bg: transparent; --chat-edge: var(--border); --chat-edge-style: dashed; }
+  .chat-item.cc-removed:not(.cc-flat, .chat-thread.cc-flat > *) .chat-item-bubble { --chat-bg: transparent; --chat-over: transparent; --chat-edge: var(--border); --chat-edge-style: dashed; }
   /* "(edited)" after a message's words: a mark in running text, smaller and faint. */
   .chat-edited { color: var(--text-tertiary); font-size: var(--fs-control-xs); line-height: 0; white-space: nowrap; }
 
@@ -3127,8 +3154,22 @@
   @media (hover: hover) { :is(a, button).chat-quote:hover { --chat-quote-rule: var(--text-tertiary); color: var(--text); } }
   .chat-quote-author { color: var(--text); font-weight: var(--fw-label); }
   /* Two lines, and the third hidden. The box is held open by its letters'
-     reach (padding given back as margin), so the clip never cuts a descender. */
-  .chat-quote-text { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; padding-block: .3em; margin-block: -.3em; }
+     reach (padding given back as margin), as it was, so nothing moves; but the
+     clip is measured from the top, as .u-clamp's is (D105, D122), not from the
+     box, which a role rounds up to whole cells and so showed the top of the
+     third line. Where a clamp's box is trimmed (with calc-size, today), the
+     clip is two lines from the capitals' top and a descender's depth, no
+     nearer the hidden line than its tall letters; where it is not (Safari),
+     the text starts at the first line's top and the clip is two whole lines,
+     which hold their descenders. */
+  .chat-quote-text {
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2;
+    overflow: hidden; padding-block: .3em; margin-block: -.3em;
+    clip-path: inset(-1em -1em calc(100% - .3em - 2lh) -1em);
+  }
+  @supports (text-box: trim-both cap alphabetic) and (height: calc-size(fit-content, size)) {
+    .chat-quote-text { clip-path: inset(-1em -1em calc(100% - (.3em + 1lh + 1cap + max(0px, min(.24em, .5lh - 1cap + .33em)))) -1em); }
+  }
   /* A file: a mark tinted by its kind (--chat-file-tint), its name, its size
      and type. Four cells tall; the same shape as an attachment chip. Markup:
      a.chat-file > span.chat-file-mark > svg.icon, then .pair > .t-sm.u-truncate
