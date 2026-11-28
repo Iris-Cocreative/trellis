@@ -3,6 +3,11 @@
 //   list    a row is whole cells; its rule adds no height; it steps out a cell;
 //           a .list-mark centers its mark on the first line's capitals, one
 //           line or several; --list-align: center centers a row's parts
+//   rows    a row centers its words in the space it takes (D121): as far from
+//           its top to the first line's capitals as from the last baseline to
+//           its bottom, in a plain, a dense and a grouped list, in a card and
+//           in a board, with a mark, a face, an end, wrapped and selected; a
+//           dense row's lines half a cell apart; the mark on the first line
 //   shell   its nav is a column in a wide box and a tab bar in a narrow one,
 //           with the same markup, in the same window
 //   cover   its media reaches both screen edges and adds no sideways scroll
@@ -117,7 +122,7 @@ const chromium = require('./chromium');
     const list = $('#demo-list'), body = rows[0].querySelector('.list-body');
     expect(Math.abs(box(rows[0]).left - box(list.parentElement).left + u) < 1, 'a list does not step out one cell');
     expect(Math.abs(box(rows[0].firstElementChild).left - box(list.parentElement).left) < 1, "a row's content is not on the column's edge");
-    expect(body && whole(box(body).top - box(rows[0]).top), "a row's body does not start on a line");
+    expect(body && Math.abs(box(body).left - box(rows[0].firstElementChild).right - u) < .6, "a row's body is not a cell after its face");
     expect(getComputedStyle(rows[0]).alignItems === 'flex-start', `a list row's parts should hang from one line by default: align-items is ${getComputedStyle(rows[0]).alignItems}`);
     // A mark on the first line (D104): centered on its capitals, however many
     // lines the row runs to, at the row's start and in its end. The capital is
@@ -359,6 +364,62 @@ const chromium = require('./chromium');
     document.querySelectorAll('.skeleton:not(.cc-block)').forEach(e => expect(whole(box(e).height), 'a skeleton line is not whole cells'));
     return fails;
   });
+  // Rows (D121): a row centers its words in the space it takes. Built here, so
+  // every kind of row is measured the same way in each engine: from the row's
+  // top to the first line's capitals, and from the last baseline to its bottom.
+  const rowFails = await page.evaluate(async () => {
+    const fails = [], u = Trellis.cell(), box = e => e.getBoundingClientRect();
+    const whole = v => { const m = ((v % u) + u) % u; return m < .5 || m > u - .5; };
+    const base = el => { const s = document.createElement('span'); s.style.cssText = 'display: inline-block; width: 0; height: 0; vertical-align: baseline'; el.append(s); const y = box(s).top; s.remove(); return y; };
+    const long = 'Sort the bean seed by year, and set aside anything older than three seasons for the germination test, so nothing tired goes on the swap table';
+    const ROWS = [
+      ['one line', '<div class="list-body"><p class="t-sm">Book the hall</p></div>'],
+      ['two lines', '<div class="list-body"><p class="t-sm">Send the seed list</p><p class="t-xs">Spring gathering</p></div>'],
+      ['wrapped', `<div class="list-body"><p class="t-sm">${long}</p><p class="t-xs">Spring gathering</p></div>`],
+      ['an end', '<div class="list-body"><p class="t-sm">Evening tide</p><p class="t-xs">Tuesday</p></div><div class="list-end"><span class="t-xs">19:00</span></div>'],
+      ['marks', `<span class="list-mark t-sm"><span class="dot cc-accent"></span></span><div class="list-body"><p class="t-sm">${long}</p></div><div class="list-end"><span class="list-mark t-sm"><span class="avatar cc-plain" style="--av-n: 1.5">AO</span></span></div>`],
+      ['a mark, two lines', '<span class="list-mark t-sm"><span class="dot cc-ok"></span></span><div class="list-body"><p class="t-sm">Label the drying racks</p><p class="t-xs">One tag a tray</p></div>'],
+      ['a face', '<span class="avatar cc-sm">JB</span><div class="list-body"><p class="t-sm">Jonah Baptiste</p></div><div class="list-end"><span class="t-xs">Yesterday</span></div>'],
+      ['a face and a pair', '<span class="avatar cc-md cc-plain">FS</span><div class="list-body"><div class="pair"><p class="t-sm">Food Systems</p><p class="t-xs">You: Friday works</p></div></div><div class="list-end"><span class="t-xs">Mon</span></div>'],
+      ['a face, three lines', `<span class="avatar cc-sm">MV</span><div class="list-body"><p class="t-sm">Marisol Vega</p><p class="t-xs">${long}</p></div><div class="list-end"><span class="t-xs">2m</span></div>`],
+    ];
+    const list = cls => `<ul class="list ${cls}">` + ROWS.map(([k, h], i) => `<li class="list-item" data-k="${k}"${i === 1 ? ' aria-current="true"' : ''}>${h}</li>`).join('') + '</ul>';
+    const host = document.createElement('div');
+    host.className = 'stack'; host.id = 'rows-d121';
+    host.innerHTML = `<div style="--outset: 0; inline-size: calc(var(--u) * 32); max-inline-size: 100%">${list('')}${list('cc-dense')}${list('cc-group')}<div class="card">${list('')}</div></div>`
+      + `<div class="board" tabindex="0" role="group" aria-label="Rows"><div class="board-lane">${list('cc-group')}<article class="card">${list('cc-dense')}</article></div></div>`;
+    document.getElementById('demo-list').parentElement.appendChild(host);
+    await Trellis.settled();
+    const cap = (() => { const p = document.createElement('div'); p.className = 'row'; p.innerHTML = '<span class="t-sm cap-center">X</span>'; host.appendChild(p); const h = box(p.firstElementChild).height; p.remove(); return h; })();
+    let n = 0;
+    host.querySelectorAll('.list').forEach(l => {
+      const where = [l.className.replace('list', '').trim() || 'plain', l.closest('.board') ? 'in a board' : l.closest('.card') ? 'in a card' : ''].filter(Boolean).join(' ');
+      l.querySelectorAll(':scope > .list-item').forEach(r => {
+        n++;
+        const k = `${where}, ${r.dataset.k}`, R = box(r), words = [...r.querySelectorAll('.list-body p')];
+        const first = box(words[0]), last = words.at(-1), above = first.top - R.top, below = R.bottom - base(last);
+        if (!whole(R.height)) fails.push(`rows: ${k}: the row is ${R.height.toFixed(2)}px, not whole cells`);
+        // No taller than its tallest part rounded up once, between its padding.
+        const pad = parseFloat(getComputedStyle(r).paddingTop), tall = Math.max(...[...r.children].map(c => box(c).height));
+        if (Math.abs(R.height - 2 * pad - Math.ceil((tall - .04) / u) * u) > .5) fails.push(`rows: ${k}: the row is ${R.height.toFixed(2)}px, where its tallest part, ${tall.toFixed(2)}px, rounds up to ${(2 * pad + Math.ceil((tall - .04) / u) * u).toFixed(2)}px`);
+        if (Math.abs(above - below) > .5) fails.push(`rows: ${k}: ${above.toFixed(2)}px over its words and ${below.toFixed(2)}px under them, not centered`);
+        r.querySelectorAll('.list-mark').forEach(m => { const d = (box(m.firstElementChild).top + box(m.firstElementChild).bottom) / 2 - (first.top + cap / 2); if (Math.abs(d) > .6) fails.push(`rows: ${k}: a mark is ${d.toFixed(2)}px off its first line's capitals`); });
+        const end = r.querySelector('.list-end > .t-xs');
+        if (end && Math.abs(box(end).top - first.top) > .6) fails.push(`rows: ${k}: its end is ${(box(end).top - first.top).toFixed(2)}px off its first line`);
+        const face = r.querySelector(':scope > .avatar');
+        if (face && Math.abs(box(face).top - R.top - parseFloat(getComputedStyle(r).paddingTop)) > .6) fails.push(`rows: ${k}: its face is not at the row's top`);
+        if (r.dataset.k === 'two lines') {
+          const gap = box(words[1]).top - base(words[0]), want = l.matches('.cc-dense') ? u / 2 : u;
+          if (Math.abs(gap - want) > .6) fails.push(`rows: ${k}: its lines are ${gap.toFixed(2)}px apart, not ${want === u ? 'a cell' : 'half a cell'}`);
+        }
+      });
+    });
+    if (n !== 6 * ROWS.length) fails.push(`rows: measured ${n} rows, not ${6 * ROWS.length}`);
+    host.remove();
+    return fails;
+  });
+  fails.push(...rowFails);
+
   // Modal and tray: real interaction, the native dialog.
   const m = await page.evaluate(async () => {
     const fails = [], u = Trellis.cell(), wait = ms => new Promise(r => setTimeout(r, ms));
@@ -477,8 +538,10 @@ const chromium = require('./chromium');
     });
     const rows = [...document.querySelectorAll('#demo-group > .list-item')];
     rows.forEach((e, i) => { if (!whole(e.getBoundingClientRect().height)) fails.push(`grouped row ${i} is not whole cells`); });
-    if (getComputedStyle(rows[0].querySelector('.list-body')).borderImageSource === 'none') fails.push('a grouped row has no rule');
-    if (getComputedStyle(rows[rows.length - 1].querySelector('.list-body')).borderImageSource !== 'none') fails.push('the last grouped row has a rule');
+    // Its rule is the row's own, from the body's column to the surface's edge (D121).
+    const rule = e => getComputedStyle(e, '::after');
+    if (rule(rows[0]).content === 'none' || rule(rows[0]).gridColumnStart !== '1' || rule(rows[0]).position !== 'absolute') fails.push('a grouped row has no rule from its body');
+    if (rule(rows[rows.length - 1]).content !== 'none') fails.push('the last grouped row has a rule');
     // Trays over trays.
     const d = n => document.getElementById('demo-stack-' + n);
     const settle = async () => { await wait(50); await Promise.all([1, 2, 3, 4].flatMap(n => d(n).querySelector('.modal-inner').getAnimations()).map(a => a.finished.catch(() => {}))); await wait(50); };

@@ -111,11 +111,8 @@ const { FLOORS } = require('../tools/product');
       // What is in a field's box (D116) is centered in it, and its control runs on under it: the box is checked.
       // A continuing message's hover time sits on its text's baseline; its actions float over the run gap.
       if (e.closest('.chat-item-time,.chat-item-actions')) continue;
-      // A dense row is one thing: its edges are on lines, its contents keep a half-cell rhythm.
-      if (e.parentElement && e.parentElement.closest('.list.cc-dense .list-item,.cc-dense .list .list-item')) continue;
-      // A centered row (--list-align: center) is one thing too: its edges are on lines, its parts center on each other (D104).
-      const inRow = e.parentElement && e.parentElement.closest('.list-item');
-      if (inRow && getComputedStyle(inRow).alignItems === 'center') continue;
+      // A list row is one thing: its edges are on lines, and its words center in it (D121), checked below.
+      if (e.parentElement && e.parentElement.closest('.list-item')) { if (e.closest('[data-scheme-opposite]') && (TEXT.test(e.className) || BOX.test(e.className))) out.band++; continue; }
       // A scroller's contents move as it scrolls; the scroller itself is checked.
       if (e.parentElement && e.parentElement.closest('.demo-scroll,.scroll-pane,.board')) continue;
       // An annotation may align to the capitals it annotates (.cap-align) rather than a cell line.
@@ -143,6 +140,24 @@ const { FLOORS } = require('../tools/product');
         const freeLeft = e.closest('.list-end,.list-actions,.cover-media,.chat-item.cc-own,.chat-item.cc-system,.tabs');
         if (off(t) || (!freeLeft && off(l))) out.offBox.push(desc(e) + ' top@' + t.toFixed(1) + ' left@' + l.toFixed(1));
       }
+    }
+    // A list row centers its words in the space it takes (D121): from its top to
+    // the first line's capitals is what it is from the last baseline to its
+    // bottom. A row whose end or mark reaches lower than its words is set by
+    // that part, and its words hang from its top with it (D104).
+    out.rows = 0;
+    const baseline = el => { const s = document.createElement('span'); s.style.cssText = 'display: inline-block; width: 0; height: 0; vertical-align: baseline'; el.append(s); const y = s.getBoundingClientRect().top; s.remove(); return y; };
+    for (const row of top.querySelectorAll('.list-item')) {
+      if (row.closest(SKIP) || row.closest('.prose,dialog')) continue;
+      const R = row.getBoundingClientRect(), body = row.querySelector(':scope > .list-body');
+      if (R.height < 1 || !body) continue;
+      const words = [...body.querySelectorAll('*')].filter(t => TEXT.test(t.className) && t.getBoundingClientRect().height > 0);
+      if (!words.length) continue;
+      const B = body.getBoundingClientRect();
+      if ([...row.querySelectorAll(':scope > :is(.list-end, .list-mark)')].some(p => p.getBoundingClientRect().bottom > B.bottom + .5)) continue;
+      out.rows++;
+      const above = words[0].getBoundingClientRect().top - R.top, below = R.bottom - baseline(words[words.length - 1]);
+      if (Math.abs(above - below) > .5) out.offText.push(desc(row) + ` row: ${above.toFixed(2)} over its words, ${below.toFixed(2)} under`);
     }
     // Keyboard reach: a region that scrolls sideways takes focus itself (an
     // explicit tab stop, since Chrome's automatic one isn't in Safari) or holds
@@ -310,7 +325,7 @@ const { FLOORS } = require('../tools/product');
   await Promise.race([browser.close(), new Promise(r => setTimeout(r, 5000))]); // WebKit on Windows can hang on close
   const bad = r.offText.length + r.offBox.length + r.offProse.length + errors.length + r.noReach.length + (r.scrollW > r.vw ? 1 : 0) + (band ? band.fails.length : 0) + (small ? small.fails.length : 0);
   console.log(`${flags.includes('webkit') ? 'webkit' : 'chromium'} ${size} ${product} ${theme} ${flags.join(' ')} :: u=${r.u} frame=${r.frame} gutter=${r.gutter} ` +
-    `text ${r.offText.length}/${r.text} off · boxes ${r.offBox.length}/${r.box} off · prose ${r.offProse.length}/${r.prose} off · scroll ${r.scrollW}/${r.vw} · unreachable ${r.noReach.length}/${r.scrollers} · errors ${errors.length}` +
+    `text ${r.offText.length}/${r.text + r.rows} off (${r.rows} rows) · boxes ${r.offBox.length}/${r.box} off · prose ${r.offProse.length}/${r.prose} off · scroll ${r.scrollW}/${r.vw} · unreachable ${r.noReach.length}/${r.scrollers} · errors ${errors.length}` +
     (band && band.low ? ` · band ${r.band} blocks, ${band.fails.length} off, text from ${band.low.toFixed(1)}:1` : '') +
     (small ? ` · eyebrows ${small.n}, from ${small.low.toFixed(1)}:1` : '') +
     (r.calcSize ? '' : ' · (no calc-size: settle.js)'));

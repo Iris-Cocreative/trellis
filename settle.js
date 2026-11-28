@@ -13,7 +13,8 @@
    with calc-size(); where the browser lacks it this script does the same: it
    counts the cells each text block needs and writes the count to --settle-n,
    which core.css makes the block's least height. Clusters and .settle blocks
-   keep their own box and take the space as end margin, through --settle. Reads
+   keep their own box and take the space as end margin, through --settle. A
+   list row is counted as a whole, and nothing in it is (D121). Reads
    and writes are batched, so a pass lays out as little as it can. It watches the page and
    any text added later; mark an overlay that changes often with data-settle-skip
    so it isn't watched.
@@ -198,9 +199,10 @@
   var EMPTY = '.prose :is(h1, h2, h3, h4, h5, h6, p, blockquote, div:not([class]))';
   var MEDIA = 'img, video, iframe, audio, svg, canvas, hr, table, input, object, embed';
   var CAP = '.cap-center';   // centered on a control while it is one line; hangs once it wraps
+  var ROW = '.list-item';    // rounds as a whole, and what is in it doesn't (D121)
   var CLAMP = '.u-clamp', STANDS = '.t-h1, .t-h2, .t-h3, .prose :is(h1, h2, h3)';
   // What's settled: only what a browser needs. Chrome rounds in CSS, so there it's prose nesting and cap-centered text.
-  var SEL = (ROUNDS ? TEXT + ', ' + BLOCK + ', ' + INNER : INNER) + ', ' + CAP;
+  var SEL = (ROUNDS ? TEXT + ', ' + BLOCK + ', ' + INNER + ', ' + ROW : INNER) + ', ' + CAP;
 
   // A clamp is a -webkit-box. Does this browser trim one, as it does a block?
   // One probe, when the page starts: a clamped line in a box, trimmed, against
@@ -253,7 +255,7 @@
 
   // What an element is gets worked out once, when it's first seen. These
   // selectors are not cheap, and a pass visits every block.
-  var IS_INNER = 1, IS_TEXT = 2, IS_BLOCK = 4, IS_CLUSTER = 8, IS_HOLDER = 16, IS_CAP = 32, IS_CLAMP = 64, IS_STAND = 128, IS_ROLE = 256;
+  var IS_INNER = 1, IS_TEXT = 2, IS_BLOCK = 4, IS_CLUSTER = 8, IS_HOLDER = 16, IS_CAP = 32, IS_CLAMP = 64, IS_STAND = 128, IS_ROLE = 256, IS_INROW = 512, IS_ROW = 1024;
   // Text with blocks inside it: a blockquote of paragraphs, a list item with a list.
   var HOLDS = ':scope > :is(p, ul, ol, dl, h1, h2, h3, h4, h5, h6, blockquote, pre, figure, table, details, footer, cite, div)';
   var kinds = new WeakMap();
@@ -262,8 +264,10 @@
     if (k === undefined) {
       k = (el.matches(INNER) ? IS_INNER : 0) | (el.matches(CAP) ? IS_CAP : 0);
       // A clamp is settled as a clamp, whatever its role: its box is counted without what it trims.
-      if (CLAMPS && el.matches(CLAMP)) { k |= IS_CLAMP | (el.matches(STANDS) ? IS_STAND : el.matches(TEXT) ? IS_ROLE : 0); kinds.set(el, k); return k; }
-      if (ROUNDS) {
+      if (CLAMPS && el.matches(CLAMP)) { k |= IS_CLAMP | (el.matches(STANDS) ? IS_STAND : el.matches(TEXT) && !(el.parentElement && el.parentElement.closest(ROW)) ? IS_ROLE : 0); kinds.set(el, k); return k; }
+      if (ROUNDS && el.matches(ROW)) { k |= IS_TEXT | IS_ROW; if (el.querySelector(ROW)) k |= IS_HOLDER; }
+      else if (ROUNDS && el.parentElement && el.parentElement.closest(ROW)) k |= IS_INROW;
+      else if (ROUNDS) {
         if (el.matches(TEXT) || (k & IS_CAP)) { k |= IS_TEXT; if (el.querySelector(HOLDS)) k |= IS_HOLDER; }
         if (el.matches(BLOCK)) k |= IS_BLOCK;
         if (el.classList.contains('cluster')) k |= IS_CLUSTER;
@@ -323,6 +327,8 @@
     var cs = getComputedStyle(el);
     if (cs.display === 'inline' || cs.display === 'none' || cs.display === 'contents') return;
     var h = el.getBoundingClientRect().height;
+    // A row's outer tracks are each rounded up to 1/64px, as core.css allows.
+    if (kindOf(el) & IS_ROW) h -= 0.03125;
     if (h > 0) writes.push([el, '--settle-n', Math.ceil(h / unit - 1e-3)]);
   }
 
@@ -530,8 +536,9 @@
         }
         // Text changed inside a settled block. A block held at whole cells doesn't
         // resize when its text shrinks, so the observer can't be what notices.
+        // In a list row it is the row that rounds (D121).
         for (var e = at; e && e !== document.body; e = e.parentElement) {
-          if (watched.has(e)) { enqueue(e); break; }
+          if (watched.has(e)) { enqueue(e); var row = e.parentElement && e.parentElement.closest(ROW); if (row && watched.has(row)) enqueue(row); break; }
         }
       }
       if (added.size) schedule();
