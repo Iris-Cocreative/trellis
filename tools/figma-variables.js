@@ -174,14 +174,16 @@ const STAND_IN = {
   // Web fonts a layer names that Figma has: the scopes study's (Grove).
   Geist: 'Geist', Halant: 'Halant', 'Cormorant Garamond': 'Cormorant Garamond', 'Alegreya Sans': 'Alegreya Sans'
 };
-const family = (k, name, seen = []) => {
+const family = (k, name, seen = [], raw = false) => {
   const value = k.get(name) || '';
   const ref = value.match(/^var\((--[a-z-]+)\)$/);
-  if (ref && !seen.includes(ref[1])) return family(k, ref[1], seen.concat(name));
+  if (ref && !seen.includes(ref[1])) return family(k, ref[1], seen.concat(name), raw);
   const found = value.split(',').map((f) => f.trim().replace(/^["']|["']$/g, '')).find((f) => STAND_IN[f]);
   if (!found) throw new Error(`${name}: no family Figma has stands in for ${value}`);
-  return STAND_IN[found];
+  return raw ? found : STAND_IN[found];
 };
+// The family the code names first that Figma can stand in for, as the code writes it.
+const codeFamily = (k, name) => family(k, name, [], true);
 
 // The knobs a frame can hold: each is a length, an alias of the variable the
 // layer names (var(--r-q) is radius/r-q, at the frame's own screen), or a
@@ -192,7 +194,9 @@ const KNOBS = [
   ['density-control-h', 'WIDTH_HEIGHT'], ['density-control-fs', 'FONT_SIZE'],
   ['density-option-h', 'WIDTH_HEIGHT'], ['density-option-fs', 'FONT_SIZE'], ['density-options-pad', 'GAP'], ['density-seg-h', 'WIDTH_HEIGHT'],
   ['tag-default-h', 'WIDTH_HEIGHT'], ['tag-default-fs', 'FONT_SIZE'], ['tag-fs-sm', 'FONT_SIZE'], ['tag-fs-md', 'FONT_SIZE'], ['tag-fs-lg', 'FONT_SIZE'],
-  ['tag-r-fixed', 'CORNER_RADIUS']
+  ['tag-r-fixed', 'CORNER_RADIUS'],
+  // A bubble's own corner and its padding (D122).
+  ['chat-shape', 'CORNER_RADIUS'], ['chat-bubble-pad', 'GAP']
 ];
 const WEIGHTS = ['fw-body', 'fw-heading', 'fw-label', 'fw-label-text', 'fw-strong', 'fw-button'];
 const FAMILIES = ['font-sans', 'font-serif', 'font-heading', 'font-button'];   // a button's face (D100)
@@ -224,24 +228,48 @@ for (const theme of ['Light', 'Dark']) for (const k of SOLIDS) pv(`${theme.toLow
 const OUTLINES = ['accent', 'ok', 'alert'];
 const outlineInk = (p, theme, k) => M.hex(M.outlineInk(palettes.get(p.mode)[theme][k], theme.toLowerCase()));
 for (const theme of ['Light', 'Dark']) for (const k of OUTLINES) pv(`${theme.toLowerCase()}/btn-outline-${k}`, 'COLOR', [], (p) => outlineInk(p, theme, k));
+// What a filled kind's state layer mixes in (--state-tone, D120): on a fill between
+// STATE_BAND's lightnesses, black under a white label and white under a dark one;
+// anywhere else its label's own ink. A primary's label is the accent's ink, a
+// destructive or confirming button's the ink computed from its fill.
+const FILLED = { accent: 'accent-ink', alert: 'on-alert', ok: 'on-ok' };
+const stateTone = (p, theme, k) => {
+  const own = (n) => product.find((x) => x.name === `${theme.toLowerCase()}/${n}`).values[p.mode];
+  const f = M.parseColor(own(k)), inBand = f[0] >= M.STATE_BAND[0] && f[0] <= M.STATE_BAND[1];
+  return inBand ? (f[0] > seeds.get(p.mode).color.flip ? '#ffffff' : '#000000') : own(FILLED[k]);
+};
+for (const theme of ['Light', 'Dark']) for (const k of Object.keys(FILLED)) pv(`${theme.toLowerCase()}/state-tone-${k}`, 'COLOR', [], (p) => stateTone(p, theme, k));
 // Tints: a role at a share over nothing, as core mixes them with color-mix()
 // (a state over a control's fill, a tag's ground and edge, an avatar's wash).
 // Figma has no mix, and drops a paint's own opacity on an instance, so each
 // is a color with its alpha in it. [role, shares in percent]
 const HUES = SOLIDS;
 // 18% is a file's mark (D99), in the accent, a kind or the alert; 50% the unread line's rule.
-const TINTS = [['text', [6, 8, 10, 12, 20, 24, 32]], ['accent-ink', [6, 12]], ['accent', [8, 16, 18, 26, 50, 60]],
-  // A filled button's hover and press in its own ink, an outline's in its (D115); a chosen card's wash is the accent's 8% (D116).
-  ...['ok', 'alert'].map((k) => ['on-' + k, [6, 12]]), ...OUTLINES.map((k) => ['btn-outline-' + k, [6, 12]]),
+const TINTS = [['text', [6, 8, 10, 12, 20, 24, 32]], ['accent', [8, 16, 18, 26, 50, 60]],
+  // A filled button's hover and press in its state tone (D120), an outline's in its own ink (D115); a chosen card's wash is the accent's 8% (D116).
+  ...Object.keys(FILLED).map((k) => ['state-tone-' + k, [6, 12]]), ...OUTLINES.map((k) => ['btn-outline-' + k, [6, 12]]),
   // A translucent bar's ground, at the least that reads over anything (D115).
   ['bg', [85]],
   ...HUES.map((k) => [k, [14, ...(/^kind-|^alert$/.test(k) ? [18] : []), ...(/^kind-(person|group)$/.test(k) ? [26] : []), 42]])];
 const alpha = (pct) => Math.round(pct * 2.55).toString(16).padStart(2, '0');
 for (const theme of ['Light', 'Dark']) for (const [k, shares] of TINTS) for (const pct of shares)
   pv(`${theme.toLowerCase()}/tint/${k}/${pct}`, 'COLOR', [], (p) => product.find((x) => x.name === `${theme.toLowerCase()}/${k}`).values[p.mode] + alpha(pct));
-// A product's color knobs (the bubble's, D99): each the role the layer names,
-// in each theme, or a color written out. A mix is not carried.
-const COLOR_KNOBS = { 'chat-own-bg': ['FRAME_FILL', 'SHAPE_FILL'], 'chat-own-ink': ['TEXT_FILL', 'SHAPE_FILL'], 'chat-bubble-edge': ['STROKE_COLOR'] };
+// A product's color knobs (the bubble's, D99, D122): each the role the layer names,
+// in each theme, or a color written out. A mix is not carried. The two grounds are
+// laid over their wash, transparent unless a product sets one.
+const COLOR_KNOBS = { 'chat-bubble-bg': ['FRAME_FILL', 'SHAPE_FILL'], 'chat-own-bg': ['FRAME_FILL', 'SHAPE_FILL'], 'chat-own-ink': ['TEXT_FILL', 'SHAPE_FILL'], 'chat-bubble-edge': ['STROKE_COLOR'] };
+// A bubble's ground (D122): a share of the text (others') or the accent (your own)
+// mixed into the surface in OKLab, as core draws it. A mix can't be carried, so each
+// is resolved over each surface a bubble can stand on, as a card's ground is.
+const CHAT_GROUNDS = ['bg', 'bg-raised', 'bg-raised-2', 'bg-raised-3'];
+const CHAT_WASHES = { 'chat-wash': ['text', '--chat-bubble-wash'], 'chat-own-wash': ['accent', '--chat-own-wash'] };
+const share = (p, k) => { const m = (p.knobs.get(k) || '').match(/^(\d+(?:\.\d+)?)%$/); if (!m) throw new Error(`${p.mode}: ${k} is not a plain percentage`); return m[1] / 100; };
+const toLab = (c) => [c[0], c[1] * Math.cos(c[2] * Math.PI / 180), c[1] * Math.sin(c[2] * Math.PI / 180)];
+const mixLab = (a, s, b) => { const x = toLab(M.parseColor(a)), y = toLab(M.parseColor(b)), m = x.map((q, i) => q * s + y[i] * (1 - s)); return [m[0], Math.hypot(m[1], m[2]), ((Math.atan2(m[2], m[1]) * 180 / Math.PI) + 360) % 360]; };
+for (const theme of ['light', 'dark']) for (const [k, [ink, knob]] of Object.entries(CHAT_WASHES)) for (const g of CHAT_GROUNDS)
+  pv(`${theme}/${k}/${g}`, 'COLOR', [], (p) => { const own = palettes.get(p.mode)[theme === 'light' ? 'Light' : 'Dark']; return M.hex(mixLab(own[ink], share(p, knob), own[g])); });
+// The washes' shares, as numbers: nothing binds them, they say what the grounds were worked out from.
+for (const k of ['chat-bubble-wash', 'chat-own-wash']) pv('knob/' + k, 'FLOAT', [], (p) => round(share(p, '--' + k) * 100), `var(--${k})`);
 for (const theme of ['light', 'dark']) for (const k of Object.keys(COLOR_KNOBS)) pv(`${theme}/${k}`, 'COLOR', [], (p) => {
   const value = p.knobs.get('--' + k), ref = value && value.match(/^var\(--([a-z0-9-]+)\)$/);
   if (ref && roles.includes(ref[1])) return { alias: `${theme}/${ref[1]}` };
@@ -326,6 +354,30 @@ for (const [name, f] of Object.entries(DERIVED)) {
   const x = { name: 'derived/' + name, type: 'FLOAT', scopes: scope, values: Object.fromEntries(Object.keys(SCREENS).map((m) => [m, at0(`${SCREEN_KEY[m]}/${name}`)])), aliases: Object.fromEntries(Object.keys(SCREENS).map((m) => [m, `${SCREEN_KEY[m]}/${name}`])) };
   derived.push(x);
 }
+// A row centers its words in whole cells (D121): its title (the body role) and the
+// line under it (sm), a cell apart, half a cell in a dense list, round up to whole
+// cells with their padding once, and what that adds is shared above and below. A
+// frame can't round, so the padding is worked out here, at each product's sizes:
+// the row as many cells as the code's family makes it (a system sans's capitals are
+// 0.7 of its size, Segoe UI's and SF's within half a percent; a family the layer
+// names, its stand-in's), and the file's words, in the family standing in for it
+// (each family's capitals as Figma trims them, measured in the file 2026-11-28),
+// centered in it. Inter's capitals are 4% taller than a system sans's: without this
+// a row could take a cell more in the file than in the code.
+const CAP = { Inter: 0.727, Lato: 0.717, 'Hanken Grotesk': 0.697, Geist: 0.71, Gelasio: 0.693, 'Source Serif 4': 0.67, Halant: 0.66, 'Cormorant Garamond': 0.625, 'Alegreya Sans': 0.641 };
+const SYSTEM_SANS = ['ui-sans-serif', 'system-ui', 'sans-serif'];
+const rowPad = (p, m, cells) => {
+  const own = (n) => product.find((x) => x.name === n).values[p.mode], u = CELL[m], fileCap = CAP[own('font/font-sans')];
+  if (!fileCap) throw new Error(`${p.mode}: no capital height for ${own('font/font-sans')}`);
+  const codeCap = SYSTEM_SANS.includes(codeFamily(p.knobs, '--font-sans')) ? 0.7 : fileCap;
+  const words = (cap) => (own(`${SCREEN_KEY[m]}/body/size`) + own(`${SCREEN_KEY[m]}/sm/size`)) * cap + cells * u;
+  return (Math.ceil((words(codeCap) + 2 * cells * u - 1 / 32) / u - 1e-9) * u - words(fileCap)) / 2;
+};
+for (const [name, cells] of [['list-pad', 1], ['list-pad-dense', 0.5]]) {
+  for (const m of Object.keys(SCREENS)) pv(`${SCREEN_KEY[m]}/${name}`, 'FLOAT', [], (p) => round(rowPad(p, m, cells)));
+  derived.push({ name: 'derived/' + name, type: 'FLOAT', scopes: ['GAP'], codeSyntax: { WEB: name === 'list-pad' ? '.list-item' : '.cc-dense .list-item' },
+    values: Object.fromEntries(Object.keys(SCREENS).map((m) => [m, at0(`${SCREEN_KEY[m]}/${name}`)])), aliases: Object.fromEntries(Object.keys(SCREENS).map((m) => [m, `${SCREEN_KEY[m]}/${name}`])) });
+}
 space.push(...derived);
 
 /* ---- Type ------------------------------------------------------------------- */
@@ -351,10 +403,12 @@ const color = roles.map((k) => Object.assign(
   v('color/' + k, { type: 'COLOR', values: { Light: at('light/' + k), Dark: at('dark/' + k) } }, colorScopes(k)),
   { aliases: { Light: 'light/' + k, Dark: 'dark/' + k } }));
 // What the code writes for a tint: a stage's own role, a filled or outline button's state layer, or the mix.
-const tintSyntax = (k, pct) => /^stage-\d+$/.test(k) && pct === 14 ? `var(--${k}-tint)` : /^(on|btn-outline)-/.test(k) ? `color-mix(in oklab, var(--btn-ink) ${pct}%, transparent)` : `color-mix(in oklab, var(--${k}) ${pct}%, transparent)`;
+const tintSyntax = (k, pct) => /^stage-\d+$/.test(k) && pct === 14 ? `var(--${k}-tint)` : /^state-tone-/.test(k) ? `color-mix(in oklab, var(--state-tone) ${pct}%, transparent)` : /^(on|btn-outline)-/.test(k) ? `color-mix(in oklab, var(--btn-ink) ${pct}%, transparent)` : `color-mix(in oklab, var(--${k}) ${pct}%, transparent)`;
 for (const [k, shares] of TINTS) for (const pct of shares) color.push({ name: k === 'bg' ? 'color/shell-nav-bg' : `color/tint/${k}/${pct}`, type: 'COLOR', scopes: ['FRAME_FILL', 'SHAPE_FILL', 'STROKE_COLOR'],
   codeSyntax: { WEB: k === 'bg' ? 'var(--shell-nav-bg)' : tintSyntax(k, pct) },
   values: { Light: at(`light/tint/${k}/${pct}`), Dark: at(`dark/tint/${k}/${pct}`) }, aliases: { Light: `light/tint/${k}/${pct}`, Dark: `dark/tint/${k}/${pct}` } });
+for (const [k, [ink, knob]] of Object.entries(CHAT_WASHES)) for (const g of CHAT_GROUNDS) color.push({ name: `color/${k}/${g}`, type: 'COLOR', scopes: ['FRAME_FILL', 'SHAPE_FILL'],
+  codeSyntax: { WEB: `color-mix(in oklab, var(--${ink}) var(${knob}), var(--${g}))` }, values: { Light: at(`light/${k}/${g}`), Dark: at(`dark/${k}/${g}`) }, aliases: { Light: `light/${k}/${g}`, Dark: `dark/${k}/${g}` } });
 for (const [k, scopes] of Object.entries(COLOR_KNOBS)) color.push(Object.assign(v('color/' + k, { type: 'COLOR', values: { Light: at('light/' + k), Dark: at('dark/' + k) } }, scopes), { aliases: { Light: 'light/' + k, Dark: 'dark/' + k } }));
 // The shadow under a float or a modal (--lift): its color in each theme.
 // White, for words on a full-bleed image (D108), as on a .cover.

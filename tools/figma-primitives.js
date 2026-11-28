@@ -27,6 +27,8 @@ const KINDS = { default: { bg: null, edge: 'border-strong', ink: 'text' }, 'cc-p
 // Outline (D115): the fill taken away, its edge and label one ink, the kind's color where it reads; with no kind, the text's.
 const LINES = { default: 'text', 'cc-primary': 'btn-outline-accent', 'cc-alert': 'btn-outline-alert', 'cc-ok': 'btn-outline-ok' };
 const faceOf = (p) => (p.emphasis === 'cc-outline' ? { bg: null, edge: LINES[p.kind], ink: LINES[p.kind] } : KINDS[p.kind]);
+// What a state mixes into a fill (D120): a filled kind's tone, black under a white label and white under a dark one near the flip, else its ink; a control with no fill, its ink.
+const toneOf = (k) => (k.bg ? 'state-tone-' + k.bg : k.ink);
 const EMPHASES = ['default', 'cc-outline'], noGhost = (p) => p.kind === 'cc-ghost' && p.emphasis === 'cc-outline';
 const buttonFace = (c, p) => {
   const k = faceOf(p), off = p.state === 'disabled';
@@ -35,7 +37,7 @@ const buttonFace = (c, p) => {
   c.itemSpacing = 0; bind(c, 'itemSpacing', 'space/sp-h'); c.primaryAxisAlignItems = 'CENTER';
   const fills = [];
   if (off) fills.push(paint('bg-sunken'));
-  else { if (k.bg) fills.push(paint(k.bg)); if (share[p.state || 'rest']) fills.push(paint(k.ink, share[p.state])); }
+  else { if (k.bg) fills.push(paint(k.bg)); if (share[p.state || 'rest']) fills.push(paint(toneOf(k), share[p.state])); }
   fill(c, fills);
   if (off) edge(c, 'border-subtle'); else if (k.edge) edge(c, k.edge);
   return off ? 'text-faint' : k.ink;
@@ -46,7 +48,7 @@ await set('button', { kind: Object.keys(KINDS), emphasis: EMPHASES, size: Object
   c.appendChild(await words('Button', { fs: SIZES[p.size][1], ink, family: 'type/font-button', weight: 'type/fw-button' }));
   return c;
 }, { skip: noGhost, text: ['label', 'Button'], parts: [['icon', false]], swap: [['drawing', 'icon', 'ph-plus']], caption: 'button · kind × emphasis × size × state', width: 1600,
-  description: 'Trellis .button. <button class="button cc-primary cc-sm">Save</button>. Height, padding and corner follow the product (--density-control-h, --shape-control). Its family and weight follow the product (--font-button, --fw-button); its case and spacing (--button-case, --button-tracking) are for the code alone. Hover is 6% of its ink over its fill, press 12%; disabled is :disabled or aria-disabled. .cc-block fills its row: set an instance\'s width to Fill. .cc-alert is destructive and .cc-ok confirms (D115), filled with the status. .cc-outline takes a kind\'s fill away: its edge and label are the kind\'s color moved to where it reads as text; --btn-tint, a share of it in the ground, is the code\'s. Properties show an icon before the label and swap its drawing. On touch the hit area is 44pt whatever it draws.' });
+  description: 'Trellis .button. <button class="button cc-primary cc-sm">Save</button>. Height, padding and corner follow the product (--density-control-h, --shape-control). Its family and weight follow the product (--font-button, --fw-button); its case and spacing (--button-case, --button-tracking) are for the code alone. Hover is 6% of a tone over its fill, press 12% (D120): on a filled kind near the flip the tone moves away from the label, black under a white one and white under a dark one (color/tint/state-tone-…), elsewhere it is the label\'s ink; disabled is :disabled or aria-disabled. .cc-block fills its row: set an instance\'s width to Fill. .cc-alert is destructive and .cc-ok confirms (D115), filled with the status. .cc-outline takes a kind\'s fill away: its edge and label are the kind\'s color moved to where it reads as text; --btn-tint, a share of it in the ground, is the code\'s. Properties show an icon before the label and swap its drawing. On touch the hit area is 44pt whatever it draws.' });
 
 // A count on its corner (D115): how far past the corner it stands, at each size, at the wide screen.
 const PAST = { default: 3, 'cc-sm': 9, 'cc-md': 6, 'cc-lg': 3 };

@@ -52,7 +52,7 @@ async function scopeCard(name, scope, dark) {
   head.appendChild(await words(dark ? 'A scope, at night' : 'A scope', { style: 'eyebrow', ink: 'text-tertiary' }));
   head.appendChild(await words(name, { style: 'h3' }));
   const list = col('list'); card.appendChild(list); list.layoutSizingHorizontal = 'FILL';
-  for (const [t, m, u] of [['Morning sit', 'dot', 'true'], ['Study circle', 'face', 'false']]) { const i = variant(listSet, { mark: m, unread: u, state: 'rest' }).createInstance(); list.appendChild(i); i.layoutSizingHorizontal = 'FILL'; label(i, 'title', t); }
+  for (const [t, m, u] of [['Morning sit', 'dot', 'true'], ['Study circle', 'face', 'false']]) { const i = variant(listSet, { mark: m, unread: u, state: 'rest', density: 'default' }).createInstance(); list.appendChild(i); i.layoutSizingHorizontal = 'FILL'; label(i, 'title', t); }
   card.appendChild(btn('cc-primary', 'default', 'Join'));
   return card;
 }

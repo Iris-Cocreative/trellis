@@ -15,7 +15,7 @@ const groupSet = await set('list cc-group', { mark: Object.keys(TEXT_AT) }, asyn
   fill(c, [paint('bg-raised')]); corners(c, 'knob/shape-card'); edge(c, 'border-subtle');
   const titles = ['Morning sit', 'Study circle', 'Work period'];
   for (const [i, t] of titles.entries()) {
-    const r = inst(listSet, { mark: p.mark, unread: 'false', state: 'rest' }, 'title', t); c.appendChild(r); r.layoutSizingHorizontal = 'FILL';
+    const r = inst(listSet, { mark: p.mark, unread: 'false', state: 'rest', density: 'default' }, 'title', t); c.appendChild(r); r.layoutSizingHorizontal = 'FILL';
     if (i === titles.length - 1) break;
     // The rule is drawn, not laid out: a box with no height, its hairline hanging out of it.
     const h = row('rule', { counterAxisAlignItems: 'MIN' }); c.appendChild(h); bind(h, 'paddingLeft', TEXT_AT[p.mark]);
@@ -23,12 +23,12 @@ const groupSet = await set('list cc-group', { mark: Object.keys(TEXT_AT) }, asyn
     h.resize(360, 0.01); h.layoutSizingHorizontal = 'FILL'; line.layoutSizingHorizontal = 'FILL';
   }
   return c;
-}, { caption: 'list cc-group · mark', width: 1200, description: 'Trellis .list.cc-group: the rows share one surface, with a card\'s ground, edge and corner (a level-1 surface; a level 2 in a card). The hairline between rows (--list-rule, one device pixel) starts at the row\'s text, past its mark, and runs to the surface\'s edge; it adds no height.' });
+}, { caption: 'list cc-group · mark', width: 1200, description: 'Trellis .list.cc-group: the rows share one surface, with a card\'s ground, edge and corner (a level-1 surface; a level 2 in a card). The hairline between rows (--list-rule, one device pixel) starts at the row\'s text, past its mark, and runs to the surface\'s edge; it adds no height. Its rows are list-item instances, whole cells tall, their words centered (D121).' });
 
 {
   // A row slid toward its start, its actions at its end (the swipe preset).
   const c = component(); c.name = 'list-item[data-trellis-swipe]'; c.primaryAxisSizingMode = 'FIXED'; width(c, 360); c.clipsContent = true; c.primaryAxisAlignItems = 'MAX'; c.counterAxisAlignItems = 'MAX';
-  const r = inst(listSet, { mark: 'face', unread: 'true', state: 'rest' }, 'title', 'Study circle'); c.appendChild(r); r.resize(360, r.height);
+  const r = inst(listSet, { mark: 'face', unread: 'true', state: 'rest', density: 'default' }, 'title', 'Study circle'); c.appendChild(r); width(r, 360);
   const a = row('list-actions'); c.appendChild(a); a.layoutSizingVertical = 'FILL';
   for (const [k, t] of [['cc-ghost', 'Archive'], ['cc-primary', 'Reply']]) { const b = btn(k, 'default', t); a.appendChild(b); b.layoutSizingVertical = 'FILL'; for (const f of RADII) b[f] = 0; }
   c.description = 'Trellis .list-item[data-trellis-swipe] > … + .list-actions: on touch a row slides toward its start to show its actions, buttons as tall as the row with square corners, clipped at its end until then. Drawn open; the slide is presets.js.';
@@ -144,10 +144,10 @@ const coverSet = await set('card:has(.card-link)', { media: MEDIA, state: ['rest
 const linkRowSet = await set('list-item:has(.list-link)', { state: ['rest', 'hover', 'press', 'selected'] }, async (p) => {
   const c = component(); c.primaryAxisSizingMode = 'FIXED'; width(c, 380); bind(c, 'paddingRight', 'space/sp-1');
   fill(c, share[p.state] ? [paint('text', share[p.state])] : []); if (p.state === 'selected') side(c, 'accent', 'Left', 2);
-  const r = inst(listSet, { mark: 'face', unread: 'false', state: 'rest' }, 'title', 'Study circle'); c.appendChild(r); r.layoutGrow = 1;
+  const r = inst(listSet, { mark: 'face', unread: 'false', state: 'rest', density: 'default' }, 'title', 'Study circle'); c.appendChild(r); r.layoutGrow = 1;
   c.appendChild(icon());
   return c;
-}, { caption: 'list-item:has(.list-link) · state', width: 900, description: 'Trellis .list-item with an a.list-link title (D108): its ::before covers the row, and a button in the row\'s end is raised above it. Hover and press mix the ink into the row; selected (aria-current on the link) is 10% with the accent mark at its start.' });
+}, { caption: 'list-item:has(.list-link) · state', width: 900, description: 'Trellis .list-item with an a.list-link title (D108): its ::before covers the row, and a button in the row\'s end is raised above it. Hover and press mix the ink into the row; selected (aria-current on the link) is 10% with the accent mark at its start. The row is a list-item, whole cells tall with its words centered (D121); its button stands on the row\'s middle, as the code\'s does when it is about the words\' height.' });
 
 // ---- the shell and its navigation (D80) -------------------------------------
 const LINKS = ['Home', 'People', 'Field', 'Messages'];

@@ -121,13 +121,15 @@ const itemSet = await set('options-card-item', { kind: ['default', 'switch'], st
 }
 
 // ---- list-item, composer (D99, D104) -------------------------------------------
-const listSet = await set('list-item', { mark: ['none', 'dot', 'face'], unread: ['false', 'true'], state: ['rest', 'selected'] }, async (p) => {
-  const c = component(); c.counterAxisAlignItems = 'MIN'; c.primaryAxisSizingMode = 'FIXED'; width(c, 320);
-  padY(c, 'space/sp-1'); padX(c, 'space/sp-1'); bind(c, 'itemSpacing', 'space/sp-1');
+// A row centers its words in whole cells (D121): its padding, worked out per product and screen, is a cell
+// and half of what rounding up to whole cells adds (derived/list-pad); its lines are a cell apart, half in a dense list.
+const listSet = await set('list-item', { mark: ['none', 'dot', 'face'], unread: ['false', 'true'], state: ['rest', 'selected'], density: ['default', 'cc-dense'] }, async (p) => {
+  const c = component(), dense = p.density === 'cc-dense'; c.counterAxisAlignItems = 'MIN'; c.primaryAxisSizingMode = 'FIXED'; width(c, 320);
+  padY(c, dense ? 'derived/list-pad-dense' : 'derived/list-pad'); padX(c, 'space/sp-1'); bind(c, 'itemSpacing', 'space/sp-1');
   const on = p.state === 'selected', bold = p.unread === 'true';
   fill(c, on ? [paint('text', share.selected)] : []);
   if (on) { stroke(c, [paint('accent')]); c.strokeAlign = 'INSIDE'; c.strokeTopWeight = c.strokeRightWeight = c.strokeBottomWeight = 0; c.strokeLeftWeight = 2; }
-  const body = col('list-body'); c.appendChild(body); body.layoutGrow = 1; bind(body, 'itemSpacing', 'space/sp-1');
+  const body = col('list-body'); c.appendChild(body); body.layoutGrow = 1; bind(body, 'itemSpacing', dense ? 'space/sp-h' : 'space/sp-1');
   const first = row('first line'); body.appendChild(first); bind(first, 'itemSpacing', 'space/sp-1');
   if (p.mark !== 'none') {
     const m = row('list-mark', { primaryAxisSizingMode: 'FIXED' }); bind(m, 'width', 'space/sp-1'); first.appendChild(m);
@@ -140,8 +142,8 @@ const listSet = await set('list-item', { mark: ['none', 'dot', 'face'], unread: 
   end.appendChild(await words('2m', { style: 'xs', ink: 'text-tertiary', name: 'time' }));
   if (bold) end.appendChild(variant(dotSet, { kind: 'cc-accent', fill: 'default' }).createInstance());
   return c;
-}, { text: ['title', 'A row\'s title'], caption: 'list-item · mark × unread × state', width: 1100,
-  description: 'Trellis .list > .list-item: a leading .list-mark, .list-body (.list-title, .list-sub), .list-end. A mark sits on the first line\'s capitals (D104), here by centering it on a one-line title: wrap the title and the code keeps it on the first line, the file does not. .cc-unread weighs the title, inks the line under it and shows a .dot.cc-accent. Selected is aria-current on the row. The list draws a hairline between rows that stops at the text\'s edges; a row here has none.' });
+}, { text: ['title', 'A row\'s title'], caption: 'list-item · mark × unread × state × density', width: 1400,
+  description: 'Trellis .list > .list-item: a leading .list-mark, .list-body (.list-title, .list-sub), .list-end. A row centers its words in the space it takes (D121): it is whole cells tall, and what rounding up adds is shared above and below its words; its padding here (derived/list-pad) is worked out for a title in the body role and a line under it in sm, so a row of other words is not held to whole cells: give it a fixed height of the next whole cell and center its body. Its lines are a cell apart, half a cell in a dense list (density cc-dense, .cc-dense on the list or around it). The mark and the end stay on the first line. A mark sits on the first line\'s capitals (D104), here by centering it on a one-line title: wrap the title and the code keeps it on the first line, the file does not. .cc-unread weighs the title, inks the line under it and shows a .dot.cc-accent. Selected is aria-current on the row. The list draws a hairline between rows that stops at the text\'s edges; a row here has none.' });
 
 await set('composer', { state: ['empty', 'ready'] }, async (p) => {
   const c = component(), ready = p.state === 'ready'; c.counterAxisAlignItems = 'MAX'; c.primaryAxisSizingMode = 'FIXED'; width(c, 360);

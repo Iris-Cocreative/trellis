@@ -99,17 +99,19 @@ await set('chat-item', { from: ['default', 'cc-own'], run: ['first', 'cc-cont'],
   else { const a = av('default'); c.appendChild(a); a.opacity = cont ? 0 : 1; }
   const body = col('chat-item-body', { counterAxisAlignItems: own ? 'MAX' : 'MIN' }); c.appendChild(body);
   bind(body, 'itemSpacing', 'space/sp-1'); bind(body, 'maxWidth', 'size/chat-measure');
-  const bub = row('chat-item-bubble', { counterAxisAlignItems: 'MAX' }); padX(bub, 'space/sp-1'); padY(bub, 'space/sp-1'); bind(bub, 'itemSpacing', 'space/sp-q');
-  cornersBut(bub, 'knob/shape-card', [own ? 'bottomRightRadius' : 'bottomLeftRadius']);
-  bind(bub, own ? 'bottomRightRadius' : 'bottomLeftRadius', 'radius/r-q');
-  if (gone) { edge(bub, 'border'); bub.dashPattern = [4, 2]; } else { fill(bub, [paint(own ? 'chat-own-bg' : 'bg-raised')]); if (!own) edge(bub, 'chat-bubble-edge'); }
+  // A shaped ground with no edge (D122): its own corner, the top one on the speaker's side square on a run's first message.
+  const bub = row('chat-item-bubble', { counterAxisAlignItems: 'MAX' }); padX(bub, 'knob/chat-bubble-pad'); padY(bub, 'knob/chat-bubble-pad'); bind(bub, 'itemSpacing', 'space/sp-q');
+  const head = own ? 'topRightRadius' : 'topLeftRadius';
+  cornersBut(bub, 'knob/chat-shape', cont ? [] : [head]); if (!cont) bub[head] = 0;
+  // A wash of the text or the accent over the surface, here the page's (color/chat-wash/bg-raised and the rest on a card); the product's own ground laid over it.
+  if (gone) { edge(bub, 'border'); bub.dashPattern = [4, 2]; } else { fill(bub, own ? [paint('chat-own-wash/bg'), paint('chat-own-bg')] : [paint('chat-wash/bg'), paint('chat-bubble-bg')]); if (!own) edge(bub, 'chat-bubble-edge'); }
   const t = await words('A message', { style: 'body', ink: gone ? 'text-tertiary' : own ? 'chat-own-ink' : 'text', name: 'text' }); bub.appendChild(t); t.maxWidth = 456;
-  bub.appendChild(await edited());
+  const e = await edited(); bub.appendChild(e); if (!gone) fill(e, [paint('text-secondary')]);
   if (!own && !cont) body.appendChild(await meta(false));
   await carry(body, bub, false);
   if (own) body.appendChild(await meta(null));
   return c;
-}, { text: ['text', 'A bubble hangs its text from a cell.'], parts: CARRIED, caption: 'chat-item · from × run × state', width: 1250, description: 'Trellis .chat-item in a bubble thread: .avatar + .chat-item-body > .chat-item-meta + .chat-item-bubble. The bubble pads a cell, at most --chat-measure (40 cells) wide, its corner --shape-card and the speaker\'s bottom corner --chat-tail (a quarter cell). Others\' bubbles take the raised ground and the product\'s --chat-bubble-edge; your own (.cc-own) sits at the row\'s end with no avatar, in --chat-own-bg and --chat-own-ink, its meta under it. .cc-cont continues a run a cell apart: the avatar keeps its place, unseen, and the meta shows once. .cc-removed keeps the bubble\'s place as a dashed edge, its words tertiary and (in the code) italic.' + CARRIES });
+}, { text: ['text', 'A bubble hangs its text from a cell.'], parts: CARRIED, caption: 'chat-item · from × run × state', width: 1250, description: 'Trellis .chat-item in a bubble thread: .avatar + .chat-item-body > .chat-item-meta + .chat-item-bubble. A bubble is a shaped ground with no edge (D122), padded --chat-bubble-pad (a cell), at most --chat-measure (40 cells) wide, its corner --chat-shape (a cell and a half, its own, not a card\'s); on the first message of a run the top corner on the speaker\'s side is square (--chat-head), at the start for others and the end for yours, and a continuing message is round all round. Others\' ground is 7% of the text over the surface (--chat-bubble-wash), yours 20% of the accent (--chat-own-wash), at the row\'s end with no avatar, its meta under it, its words --chat-own-ink. Each ground is drawn over the page (color/chat-wash/bg, color/chat-own-wash/bg): on a card, set it to the card\'s (bg-raised, -2, -3). --chat-bubble-bg and --chat-own-bg are laid over it, transparent unless a product sets one; --chat-bubble-edge draws an edge, none by default. On a bubble the third ink reads as the second: (edited) is text-secondary. .cc-cont continues a run a cell apart: the avatar keeps its place, unseen, and the meta shows once. .cc-removed keeps the bubble\'s place as a dashed edge, its words tertiary and (in the code) italic. In .cc-dense the corner is the smaller of --chat-shape and a cell, and the padding half a cell: the code\'s.' + CARRIES });
 
 // ---- chat-item cc-flat: flat rows, their actions on hover ---------------------
 await set('chat-item cc-flat', { run: ['first', 'cc-cont'], state: ['rest', 'hover', 'cc-removed'] }, async (p) => {
