@@ -914,6 +914,37 @@ const chromium = require('./chromium');
     return bad;
   }));
 
+  // Speech in forced colors (D122). The system draws every outline in its text
+  // color, a transparent one too. A bubble with a ground keeps its edge there, so
+  // it is still a shape; a bubble that is no bubble (a wall post, a system line,
+  // a flat row, removed or not, and a wall's quote) draws none, since its box is
+  // trimmed to its capitals and an edge on it runs through its words.
+  await page.emulateMedia({ forcedColors: 'active' });
+  fails.push(...await page.evaluate(async () => {
+    if (!matchMedia('(forced-colors: active)').matches) return [];
+    const bad = [], host = document.createElement('div');
+    host.style.cssText = 'position: absolute; inset: 0 auto auto 0; width: calc(var(--u) * 30);';
+    const item = (cls, inner = '<div class="chat-item-bubble t-sm">Yes, with a note, judging the gypsy beans.</div>') => `<div class="chat-item ${cls}"><span class="avatar cc-sm" aria-hidden="true">A</span><div class="chat-item-body"><p class="chat-item-meta t-xs"><span>Ada</span><time>9:41</time></p>${inner}</div></div>`;
+    const quote = '<a class="chat-quote" href="#"><span class="chat-quote-author t-xs">Ada</span><span class="chat-quote-text t-xs">Is the swap table on?</span></a>';
+    host.innerHTML = `<div class="chat-thread">${item('', '')}${['', 'cc-own', 'cc-cont', 'cc-removed', 'cc-own cc-removed'].map((c) => item(c)).join('')}</div>`
+      + `<div class="chat-thread">${['cc-wall', 'cc-system', 'cc-wall cc-removed'].map((c) => item(c)).join('')}${item('cc-wall', quote + '<div class="chat-item-bubble t-sm">Yes.</div>')}</div>`
+      + `<div class="chat-thread cc-flat">${['', 'cc-own', 'cc-cont', 'cc-removed', 'cc-system'].map((c) => item(c)).join('')}</div>`;
+    document.body.appendChild(host);
+    await Trellis.settled();
+    for (const b of host.querySelectorAll('.chat-item-bubble, .chat-quote, .chat-quote-text')) {
+      const s = getComputedStyle(b), it = b.closest('.chat-item'), what = `${it.className.replace('chat-item', '').trim() || 'a plain'}${it.closest('.cc-flat') ? ' flat' : ''} ${b.className.split(' ')[0]}`;
+      const drawn = s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0;
+      const r = document.createRange(); r.selectNodeContents(b); const ink = r.getBoundingClientRect(), box = b.getBoundingClientRect(), off = parseFloat(s.outlineOffset) || 0;
+      const lines = [box.top - off - parseFloat(s.outlineWidth), box.bottom + off];
+      if (drawn && lines.some((y) => y > ink.top + 2 && y < ink.bottom - 2)) bad.push(`speech: in forced colors ${what} draws an edge through its words (${s.outlineStyle} at ${lines.map((y) => (y - ink.top).toFixed(1)).join(' and ')}px into ${ink.height.toFixed(1)}px of text)`);
+      const ground = b.classList.contains('chat-item-bubble') && !it.closest('.cc-flat') && !/cc-(wall|system)/.test(it.className);
+      if (ground && !drawn) bad.push(`speech: in forced colors ${what} lost its edge: ${s.outlineStyle} ${s.outlineWidth}`);
+    }
+    host.remove();
+    return bad;
+  }));
+  await page.emulateMedia({ forcedColors: 'none' });
+
   // Stages (D107): seven of them, each a dot in its fill, a ring in its ink and
   // a tag tinted from its fill; a product's own seed reaches all three.
   fails.push(...await page.evaluate(() => {

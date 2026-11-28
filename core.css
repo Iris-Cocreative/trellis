@@ -3047,9 +3047,12 @@
   .chat-item.cc-cont { --chat-head: var(--chat-radius); --chat-avatar-seen: hidden; --chat-meta: none; margin-block-start: min(0px, calc(var(--chat-run-gap) - var(--stack-gap, var(--sp-1)))); }
   .chat-item.cc-own.cc-cont:not(.cc-flat, .chat-thread.cc-flat > *) { --chat-meta: flex; }
   .chat-item.cc-own:not(.cc-flat, .chat-thread.cc-flat > *):has(+ .chat-item.cc-own.cc-cont) { --chat-meta: none; }
-  .chat-item.cc-wall { --chat-bg: transparent; --chat-over: transparent; --chat-tertiary: var(--text-tertiary); --chat-edge: transparent; --chat-pad: 0px; --chat-measure: 100%; }
-  .chat-item.cc-system { --chat-bg: transparent; --chat-over: transparent; --chat-tertiary: var(--text-tertiary); --chat-edge: transparent; --chat-pad: 0px; --chat-measure: 100%; color: var(--text-tertiary); }
+  .chat-item.cc-wall { --chat-bg: transparent; --chat-over: transparent; --chat-tertiary: var(--text-tertiary); --chat-edge: transparent; --chat-edge-style: none; --chat-pad: 0px; --chat-measure: 100%; }
+  .chat-item.cc-system { --chat-bg: transparent; --chat-over: transparent; --chat-tertiary: var(--text-tertiary); --chat-edge: transparent; --chat-edge-style: none; --chat-pad: 0px; --chat-measure: 100%; color: var(--text-tertiary); }
   .chat-item.cc-system .chat-item-body { align-items: center; }
+  /* A wall, a system line and a flat row have no bubble, and no edge (--chat-edge-style: none):
+     in forced colors the system draws a transparent outline in its text color, and
+     round a box trimmed to its capitals it runs through the words. */
   .cc-dense .chat-item { --chat-pad: var(--sp-h); --chat-radius: min(var(--chat-shape), var(--r-1)); }
 
   /* Chat thread: the column a conversation sits in. Messages, dividers and the
@@ -3074,7 +3077,7 @@
   .chat-thread.cc-flat { --chat-inset: calc(var(--u) * 3 + var(--sp-1)); }
   :is(.chat-thread.cc-flat > .chat-item, .chat-item.cc-flat) {
     --chat-dir: row; --chat-align: stretch; --chat-items: baseline;
-    --chat-bg: transparent; --chat-over: transparent; --chat-tertiary: var(--text-tertiary); --chat-ink: currentColor; --chat-edge: transparent;
+    --chat-bg: transparent; --chat-over: transparent; --chat-tertiary: var(--text-tertiary); --chat-ink: currentColor; --chat-edge: transparent; --chat-edge-style: none;
     --chat-pad: 0px; --chat-measure: 100%;
     --chat-avatar: inline-grid; --chat-meta-order: 0;
     --chat-avatar-n: 3;
@@ -3087,10 +3090,10 @@
   :is(.chat-thread.cc-flat > .chat-item, .chat-item.cc-flat):focus-within { --chat-row: var(--state-hover); --chat-time-seen: visible; }
   .chat-item.cc-system:is(.cc-flat, .chat-thread.cc-flat > *) { --chat-row: 0%; }
   /* Removed: its words in the faint ink and italic, no actions. A bubble keeps
-     its place as a dashed edge. */
+     its place as a dashed edge; a wall post and a system line have none. */
   .chat-item.cc-removed { --chat-actions: none; --chat-tertiary: var(--text-tertiary); }
   .chat-item.cc-removed .chat-item-bubble { --chat-ink: var(--text-tertiary); --chat-style: italic; }
-  .chat-item.cc-removed:not(.cc-flat, .chat-thread.cc-flat > *) .chat-item-bubble { --chat-bg: transparent; --chat-over: transparent; --chat-edge: var(--border); --chat-edge-style: dashed; }
+  .chat-item.cc-removed:not(.cc-flat, .cc-wall, .cc-system, .chat-thread.cc-flat > *) .chat-item-bubble { --chat-bg: transparent; --chat-over: transparent; --chat-edge: var(--border); --chat-edge-style: dashed; }
   /* "(edited)" after a message's words: a mark in running text, smaller and faint. */
   .chat-edited { color: var(--text-tertiary); font-size: var(--fs-control-xs); line-height: 0; white-space: nowrap; }
 
