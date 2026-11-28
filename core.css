@@ -3652,6 +3652,11 @@
     /* A translucent bar is opaque here: the words on it are the system's (D115). */
     .shell-nav { background: Canvas; backdrop-filter: none; }
     .avatar { outline: var(--av-ring) solid CanvasText; outline-offset: var(--av-gap); }
+    /* The conversation's parts drawn with a fill or a shadow alone (D122): a
+       divider's rules (the unread line's in Highlight), the typing dots, a file's edge. */
+    .chat-divider::before, .chat-divider::after, .chat-typing-dots > * { forced-color-adjust: none; background: CanvasText; }
+    .chat-divider.cc-new::before, .chat-divider.cc-new::after { background: Highlight; }
+    .chat-file { outline: var(--line) solid CanvasText; outline-offset: calc(var(--line) * -1); }
     /* A nested surface has no edge of its own (D88), and here its ground is gone too. */
     :is(.card, .list.cc-group, .modal-inner, .float) .card { --card-border: CanvasText; }
   }

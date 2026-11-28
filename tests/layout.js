@@ -1003,6 +1003,25 @@ const chromium = require('./chromium');
       const ground = b.classList.contains('chat-item-bubble') && !it.closest('.cc-flat') && !/cc-(wall|system)/.test(it.className);
       if (ground && !drawn) bad.push(`speech: in forced colors ${what} lost its edge: ${s.outlineStyle} ${s.outlineWidth}`);
     }
+    // What is drawn with a fill or a shadow alone is drawn again in a system color:
+    // a divider's rules, the typing dots, a file's edge.
+    const parts = document.createElement('div');
+    parts.innerHTML = '<div class="chat-divider"><span class="t-xs">Today</span></div><div class="chat-divider cc-new"><span class="t-xs">New</span></div>'
+      + '<div class="chat-typing"><span class="chat-typing-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="t-xs">Ada is typing</span></div>'
+      + '<a class="chat-file" href="#"><span class="chat-file-mark"></span><span class="pair"><span class="t-sm u-truncate">seed-log.pdf</span><span class="t-xs">PDF</span></span></a>';
+    host.appendChild(parts); document.body.appendChild(host);
+    const sys = (c) => { const i = document.createElement('i'); i.style.cssText = `forced-color-adjust: none; color: ${c}`; parts.appendChild(i); const v = getComputedStyle(i).color; i.remove(); return v; };
+    const canvas = sys('Canvas'), seen = (c) => c && !/rgba\(0, 0, 0, 0\)|transparent/.test(c) && c !== canvas;
+    for (const d of parts.querySelectorAll('.chat-divider')) for (const pe of ['::before', '::after']) {
+      const c = getComputedStyle(d, pe).backgroundColor;
+      if (!seen(c)) bad.push(`speech: in forced colors ${d.className}'s rule (${pe}) is not drawn: ${c}`);
+    }
+    for (const [k, dot] of [...parts.querySelectorAll('.chat-typing-dots > *')].entries()) {
+      const s = getComputedStyle(dot);
+      if (!seen(s.backgroundColor) || parseFloat(s.opacity) < .3) bad.push(`speech: in forced colors typing dot ${k + 1} is not drawn: ${s.backgroundColor} at ${s.opacity}`);
+    }
+    const f = getComputedStyle(parts.querySelector('.chat-file')), edged = (f.outlineStyle !== 'none' && parseFloat(f.outlineWidth) > 0 && seen(f.outlineColor)) || (parseFloat(f.borderTopWidth) > 0 && f.borderTopStyle !== 'none' && seen(f.borderTopColor));
+    if (!edged) bad.push(`speech: in forced colors a file has no edge: outline ${f.outlineStyle} ${f.outlineWidth} ${f.outlineColor}, border ${f.borderTopStyle} ${f.borderTopWidth}`);
     host.remove();
     return bad;
   }));
