@@ -49,11 +49,11 @@
 }
 /* settle.js writes these per element, so they're registered with inherits:
    false. Unregistered, they would inherit, and a blockquote's cell count would
-   hold open every paragraph inside it too. */
+   hold open every paragraph inside it too. The count has no initial value, so
+   where it isn't written a list row's height is left to its content (D121). */
 @property --settle-n {
-  syntax: "<number>";
+  syntax: "*";
   inherits: false;
-  initial-value: 0;
 }
 @property --settle {
   syntax: "<length>";
@@ -752,6 +752,12 @@
     :is(.card, .modal-body, .member-tile) > .cluster:last-child { height: calc-size(fit-content, round(up, size, var(--u))); align-content: end; }
     :where(.t-h1, .t-h2, .t-h3, .prose :is(h1, h2, h3)) { height: calc-size(fit-content, round(nearest, size, var(--u))); }
     .cap-center[data-trellis-wrap] { height: calc-size(fit-content, round(up, size, var(--u))); }
+    /* A list row rounds once, as a whole, and what is in it doesn't (D121).
+       Layout rounds each of its outer tracks up to 1/64px, so the two may
+       come to 1/32px over the line they share out; that isn't a cell more. */
+    .list-item { height: calc-size(fit-content, round(up, size - 0.03125px, var(--u))); }
+    .list-item :where(.t-h4, .t-h5, .t-h6, .t-xl, .t-lg, .t-body, .t-sm, .t-xs, .t-label, .t-eyebrow, .snap, .snap-x, .settle, .field, .pair, .cluster),
+    .list-item .cap-center[data-trellis-wrap] { height: auto; }
   }
   /* Without calc-size (Safari today) settle.js counts the cells each text block
      needs and writes the count, and the block's min-height is exactly that many
@@ -762,6 +768,11 @@
     :where(.t-h4, .t-h5, .t-h6, .t-xl, .t-lg, .t-body, .t-sm, .t-xs, .t-label, .t-eyebrow, .snap, .snap-x,
            .prose :is(h4, h5, h6), .prose :is(p, li, dt, dd, summary, blockquote, figcaption, caption), .prose blockquote > :is(footer, cite), .prose div:not([class], :has(> :is(p, div, ul, ol, dl, h1, h2, h3, h4, h5, h6, blockquote, pre, table, figure, hr, details, img, video, iframe)))) { min-height: calc(var(--u) * var(--settle-n, 0)); }
     .cap-center[data-trellis-wrap] { min-height: calc(var(--u) * var(--settle-n, 0)); }
+    /* A row is held at its count, not grown to it: its outer tracks take what
+       the count adds, and the 1/32px layout may round them over (D121). */
+    .list-item { height: calc(var(--u) * var(--settle-n)); }
+    .list-item :where(.t-h4, .t-h5, .t-h6, .t-xl, .t-lg, .t-body, .t-sm, .t-xs, .t-label, .t-eyebrow, .snap, .snap-x),
+    .list-item .cap-center[data-trellis-wrap] { min-height: 0; }
   }
 }
 
@@ -1160,7 +1171,14 @@
      icon, a small face, sits in a .list-mark, which centers it on the first
      line's capitals however many lines the row runs to. A row that is one line
      and its controls centers them all with --list-align: center, its words
-     cap-centered (rule 8). */
+     cap-centered (rule 8).
+     A row centers its words in the space it takes (D121): its words, its marks
+     and its end make one line of the row, the middle of three tracks, and the
+     row rounds up to whole cells once, so what rounding adds is shared evenly
+     above and below. Text in a row is not rounded on its own. A face or an
+     image beside the words spans the three tracks at the row's top, so words
+     shorter than it center on it. The body is the one column that gives way;
+     what comes before it takes columns before, what comes after, columns after. */
   .list {
     --list-pad-y: var(--sp-1);
     --list-gap: var(--sp-1);
@@ -1176,7 +1194,9 @@
   }
   .list-item {
     position: relative;
-    display: flex; align-items: var(--list-align, flex-start); gap: var(--list-gap);
+    display: grid; align-items: var(--list-align, flex-start); column-gap: var(--list-gap);
+    grid-template-columns: minmax(0, 1fr); grid-auto-columns: max-content;
+    grid-template-rows: 1fr auto 1fr;
     padding-block: var(--list-pad-y);
     padding-inline: var(--list-outset);
     min-width: 0;
@@ -1201,7 +1221,12 @@
   /* A row that links rings the whole row, not the words in it. */
   .list-link:focus-visible { outline: none; }
   .list-item:has(.list-link:focus-visible) { outline: calc(var(--line) * 2) solid var(--focus); outline-offset: calc(var(--line) * -2); }
-  .list-body { --stack-gap: var(--sp-1); flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--stack-gap); }
+  .list-item > :not(.list-actions) { grid-row: 1 / -1; }
+  .list-item > :is(.list-body, .list-end, .list-mark) { grid-row: 2; }
+  .list-body { --stack-gap: var(--sp-1); grid-column: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--stack-gap); }
+  .list-item > :has(+ .list-body) { grid-column: -3; }
+  .list-item > :has(+ * + .list-body) { grid-column: -4; }
+  .list-item > :has(+ * + * + .list-body) { grid-column: -5; }
   .list-end { flex: none; display: flex; align-items: var(--list-align, flex-start); gap: var(--sp-h); }
   /* A mark on the first line (.list-mark, at the row's start or in its end): a
      box as tall as a capital, at the row's top, where the first line's capitals
@@ -1251,14 +1276,12 @@
   .list.cc-group > .list-item { overflow-x: clip; }
   .list.cc-group > .list-item:first-child { border-start-start-radius: inherit; border-start-end-radius: inherit; }
   .list.cc-group > .list-item:last-child { border-end-start-radius: inherit; border-end-end-radius: inherit; }
-  .list.cc-group > .list-item::after { content: none; }
-  .list.cc-group > .list-item > .list-body { align-self: stretch; justify-content: var(--list-align, flex-start); }
-  .list.cc-group > .list-item:not(:last-child) > .list-body {
-    border-image: linear-gradient(to top, var(--list-rule) var(--hair), transparent var(--hair)) fill 0 // 0 100vw calc(var(--list-pad-y) + var(--hair)) 0;
-  }
+  .list.cc-group > .list-item:not(:last-child)::after { grid-column: 1 / auto; inset-inline: 0; }
   /* A dense row is treated as one control: its edges stay on cell lines and
      its contents are spaced in half cells, as in a button or a cluster. */
   .cc-dense .list, .list.cc-dense { --list-pad-y: var(--sp-h); --list-gap: var(--sp-h); }
+  /* ...and the gap between its lines is halved with its padding (D121). */
+  :is(.cc-dense .list, .list.cc-dense) .list-body { --stack-gap: var(--sp-h); }
 
   /* SHELL: navigation, main, an aside, and a foot. It lays out by its own
      width rather than the window's: three columns, then the aside under main, then a

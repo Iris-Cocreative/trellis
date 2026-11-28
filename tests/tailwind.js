@@ -104,7 +104,7 @@ const SHARED = ['--font-sans', '--font-serif', '--font-mono', '--ease-in', '--ea
       utility: Math.abs(r.margin - 2 * r.u) < .01,
       role: r.h1 > r.body,
       theme: SHARED.every(t => r.fonts[t] === alone.fonts[t]),
-      classes: r.row === 'flex' && r.outline === 'none',
+      classes: r.row === 'grid' && r.outline === 'none',   // a row is a grid of three tracks (D121)
     };
     const wrong = Object.keys(got).filter(k => got[k] !== c.expect[k]);
     if (wrong.length) bad++;
