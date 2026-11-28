@@ -2,7 +2,7 @@
 
 > **Pre-1.0.** Trellis will break between minor versions, and the [changelog](CHANGELOG.md) says when it does. It isn't taking contributions yet. The repo is public, but there's no release: no npm package, and no 1.0 until two apps run on it.
 
-**v0.10 · 2026-11-15.** Trellis is a CSS framework built on two values: a spacing unit (the cell) and a type ratio. Every space and type size comes from those two and from the box it sits in. A product gets its own look by changing variables (knobs) rather than writing new CSS for the components. From [Iris Cocreative](https://iriscocreative.com). Live specimen: <https://iris-cocreative.github.io/trellis/>. What changed: [CHANGELOG.md](CHANGELOG.md). License: [MIT](LICENSE).
+**v0.11 · 2026-11-28.** Trellis is a CSS framework built on two values: a spacing unit (the cell) and a type ratio. Every space and type size comes from those two and from the box it sits in. A product gets its own look by changing variables (knobs) rather than writing new CSS for the components. From [Iris Cocreative](https://iriscocreative.com). Live specimen: <https://iris-cocreative.github.io/trellis/>. What changed: [CHANGELOG.md](CHANGELOG.md). License: [MIT](LICENSE).
 
 **It's CSS plus a small runtime.** Load `core.css`, a product layer and `settle.js`, once. Safari needs the script to keep text on the cells, every browser needs it for exact device pixels and the fit width, and `.prose` needs it everywhere for the few things CSS can't round.
 

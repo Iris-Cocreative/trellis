@@ -1,6 +1,6 @@
 {
   "name": "@iris-cocreative/trellis",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "A CSS framework from a cell and a ratio, in context: core.css plus a small runtime.",
   "license": "MIT",
   "private": true,
