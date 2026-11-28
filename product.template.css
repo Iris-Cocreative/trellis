@@ -139,8 +139,13 @@
     --button-tracking: 0;                                /* a button's letter spacing; its label stays centered */
 
     /* ---- Conversation ---------------------------------------------------- */
-    --chat-own-bg: var(--accent);                        /* your own bubble's fill: a tint such as color-mix(in oklab, var(--accent) 22%, var(--surface)) */
-    --chat-own-ink: var(--accent-ink);                   /* its words; set to var(--text) with a tint */
-    --chat-bubble-edge: var(--border-subtle);            /* a bubble's outline; transparent for a fill alone */
+    --chat-shape: var(--r-1h);                           /* a bubble's corner, its own: speech stays round when cards are square (D122) */
+    --chat-bubble-pad: var(--sp-1);                      /* a bubble's padding; 0px with no ground puts the words on the page */
+    --chat-bubble-wash: 7%;                              /* others' bubble: this share of the text mixed into the surface; 0% for none */
+    --chat-own-wash: 20%;                                /* your own bubble: this share of the accent mixed into the surface */
+    --chat-bubble-bg: transparent;                       /* laid over others' wash: an opaque color replaces it, a translucent one tints it */
+    --chat-own-bg: transparent;                          /* laid over your own wash, the same way; var(--accent) with --chat-own-ink: var(--accent-ink) is a solid bubble, which reads as a button */
+    --chat-own-ink: var(--text);                         /* your own words */
+    --chat-bubble-edge: transparent;                     /* a bubble's outline, e.g. var(--border-subtle); none, so no bubble reads as a button */
   }
 }

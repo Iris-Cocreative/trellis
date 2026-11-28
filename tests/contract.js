@@ -276,6 +276,39 @@ const lit = (label, seed, themes = ['light', 'dark']) => {
 for (const [, f, seed, themes] of layersToCheck) lit(f, seed, themes);
 for (let h = 0; h < 360; h += 30) for (const l of [.35, .55, .75, .95]) lit(`an accent of ${l} .2 ${h}`, M.scope(M.SEED, { accent: [l, .2, h] }));
 
+// Speech (D122). tools/product.js holds a bubble's words on its ground for core and
+// every layer and scope above; here, that core draws the ground it checks, and that
+// the ground holds for any accent, and that a layer's bubble knobs are checked.
+{
+  const css = core.replace(/\s+/g, ' ');
+  for (const [what, re] of [
+    ["others' ground: --chat-bubble-wash of the text in the surface", /\.chat-item \{[^}]*--chat-bg: color-mix\(in oklab, var\(--text\) var\(--chat-bubble-wash\), var\(--surface\)\); --chat-over: var\(--chat-bubble-bg, transparent\);/],
+    ["your own: --chat-own-wash of the accent in the surface, in --chat-own-ink", /\.chat-item\.cc-own \{[^}]*--chat-bg: color-mix\(in oklab, var\(--accent\) var\(--chat-own-wash\), var\(--surface\)\); --chat-over: var\(--chat-own-bg, transparent\); --chat-ink: var\(--chat-own-ink, var\(--text\)\);/],
+    ['the knob laid over the wash', /\.chat-item-bubble \{[^}]*background: linear-gradient\(var\(--chat-over\), var\(--chat-over\)\) var\(--chat-bg\);/],
+    ['the third ink on a ground read as the second', /\.chat-item \{[^}]*--chat-tertiary: var\(--text-secondary\);[^}]*\}.*\.chat-item-bubble \{[^}]*--text-tertiary: var\(--chat-tertiary\);/],
+    ['no edge unless the product draws one', /\.chat-item \{[^}]*--chat-edge: var\(--chat-bubble-edge, transparent\);/]])
+    check(re.test(css), `core.css: a bubble's ground is not what tools/product.js checks (D122): ${what}`);
+  const t = P.template();
+  for (const [k, v] of [['--chat-bubble-wash', '7%'], ['--chat-own-wash', '20%'], ['--chat-bubble-bg', 'transparent'], ['--chat-own-bg', 'transparent'], ['--chat-own-ink', 'var(--text)'], ['--chat-bubble-edge', 'transparent']])
+    check(t.get(k) === v, `product.template.css: ${k} is "${t.get(k)}", where core draws ${v} (D122)`);
+  // Any accent, as a chosen card's ground is held.
+  for (let h = 0; h < 360; h += 30) for (const l of [.35, .55, .75, .95]) for (const theme of ['light', 'dark'])
+    fails.push(...P.speech(`an accent of ${l} .2 ${h}`, theme, M.palette(theme, M.scope(M.SEED, { accent: [l, .2, h] })), {}));
+  // A layer's bubble knobs are read and held (product.js).
+  const layer = (knobs) => `@layer trellis.product { :root[data-product="p"] { ${knobs} } }`;
+  const said = (knobs, re) => P.validate(layer(knobs), 'p').fails.some((f) => re.test(f));
+  check(!P.validate(layer('--chat-own-bg: var(--accent); --chat-own-ink: var(--accent-ink);'), 'p').fails.length, 'product.js: a solid bubble of the accent in its ink, as D99 allowed, must still pass');
+  check(said('--chat-own-bg: var(--accent);', /--chat-own-ink on your own bubble/), 'product.js: the text on a solid accent bubble must be held');
+  check(said('--chat-bubble-wash: 70%;', /--text on others' bubble/), "product.js: a wash too deep for the text must fail");
+  check(said('--chat-bubble-wash: 30%;', /--text-secondary on others' bubble/) && !said('--chat-bubble-wash: 30%;', /--text on others' bubble/), "product.js: a wash the text reads on and the second ink doesn't must fail");
+  check(said('--chat-own-wash: calc(10% * 2);', /--chat-own-wash is "calc/), 'product.js: a wash that is not a plain percentage must be refused');
+  check(said('--chat-bubble-bg: light-dark(#fff, #000);', /--chat-bubble-bg is "light-dark/), "product.js: a bubble's color it can't read must be refused");
+  check(said('--chat-bubble-bg: color-mix(in oklab, var(--text) 60%, transparent);', /others' bubble/), 'product.js: a translucent color laid over the wash must be held');
+  check(!said('--chat-own-bg: color-mix(in oklab, var(--accent) 22%, var(--surface)); --chat-own-ink: var(--text);', /bubble/), "product.js: the template's old tint must pass");
+  const scoped = P.validate(`@layer trellis.product { :root[data-product="p"] { --chat-own-ink: var(--text); } [data-product="x"] { --chat-own-wash: 90%; } }`, 'p').fails;
+  check(scoped.some((f) => f.includes('[data-product="x"]') && /your own bubble/.test(f)) && !scoped.some((f) => /^contrast: p (light|dark)/.test(f)), "product.js: a scope's own wash must be held on the scope, and not on the root");
+}
+
 // A scope that is always dark says so in its selector, and only then is the day skipped (D114).
 {
   // A night scope's colors: a status, as a line, is under its floor by day and over it at night.

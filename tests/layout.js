@@ -831,6 +831,89 @@ const chromium = require('./chromium');
     return bad;
   }));
 
+  // Speech (D122): a bubble is a shaped ground with no edge, so no message reads as
+  // a button. Rounder than a control, the top corner on the speaker's side square
+  // on the first of a run and round after it, in both directions of writing; a
+  // faint ground, everyone's and your own, under which the text, its second ink
+  // and its third read at 4.5:1 as drawn, in both themes, on the page and on a
+  // card and a card in a card; nothing on a wall, a system line, a flat row or a
+  // removed message's ground. The product's knobs reach it: the corner, the
+  // padding, the washes, and the three a product may have set before (D99).
+  fails.push(...await page.evaluate(async () => {
+    const bad = [], expect = (ok, msg) => { if (!ok) bad.push(msg); };
+    const px = (...cs) => { const c = Object.assign(document.createElement('canvas'), { width: 1, height: 1 }), g = c.getContext('2d', { willReadFrequently: true }); cs.forEach(v => { g.fillStyle = v; g.fillRect(0, 0, 1, 1); }); return [...g.getImageData(0, 0, 1, 1).data]; };
+    const lum = p => { const f = p.slice(0, 3).map(v => { v /= 255; return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }); return .2126 * f[0] + .7152 * f[1] + .0722 * f[2]; };
+    const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
+    const item = (id, cls, inner = 'Yes, with a note.') => `<div class="chat-item ${cls}" id="${id}"><span class="avatar cc-sm" aria-hidden="true">A</span><div class="chat-item-body"><p class="chat-item-meta t-xs"><span>Ada</span><time>9:41</time></p><div class="chat-item-bubble t-sm">${inner} <span class="chat-edited">(edited)</span> <span class="u-text-secondary">second</span></div></div></div>`;
+    const thread = (p) => `<div class="chat-thread">${item(p + 'first', '')}${item(p + 'cont', 'cc-cont')}${item(p + 'own', 'cc-own')}${item(p + 'own-cont', 'cc-own cc-cont')}${item(p + 'wall', 'cc-wall')}${item(p + 'system', 'cc-system')}${item(p + 'flat', 'cc-flat')}${item(p + 'gone', 'cc-removed')}</div>`;
+    const host = document.createElement('div');
+    host.style.cssText = 'position: absolute; inset: 0 auto auto 0; width: calc(var(--u) * 40);';
+    host.innerHTML = ['light', 'dark'].map(t => `<div data-product="speech-${t}" data-theme="${t}" style="background: var(--bg)">${thread(t + '-page-')}<div class="card">${thread(t + '-card-')}<div class="card">${thread(t + '-nest-')}</div></div></div>`).join('')
+      + `<div dir="rtl">${thread('rtl-')}</div><div class="cc-dense">${thread('dense-')}</div>`
+      + `<div class="knobs-old" style="--chat-own-bg: var(--accent); --chat-own-ink: var(--accent-ink); --chat-bubble-edge: var(--border)">${thread('old-')}</div>`
+      + `<div style="--chat-shape: 0px; --chat-bubble-pad: var(--sp-2); --chat-bubble-wash: 0%; --chat-own-wash: 0%">${thread('knob-')}</div>`
+      + `<div style="--chat-bubble-bg: var(--ok); --chat-own-bg: color-mix(in oklab, var(--alert) 50%, transparent)">${thread('over-')}</div>`;
+    document.body.appendChild(host);
+    await Trellis.settled();
+    const b = id => document.querySelector(`#${id} .chat-item-bubble`), cs = id => getComputedStyle(b(id));
+    const probe = document.createElement('i'); host.appendChild(probe);
+    const len = v => { probe.style.width = v; const w = getComputedStyle(probe).width; return parseFloat(w); };
+    const R = len('var(--r-1h)'), R1 = len('var(--r-1)'), PAD = len('var(--sp-1)'), PAD2 = len('var(--sp-2)');
+    const corners = id => { const s = cs(id); return [s.borderStartStartRadius, s.borderStartEndRadius, s.borderEndEndRadius, s.borderEndStartRadius].map(parseFloat); };
+    const want = (id, c, what) => { const got = corners(id); expect(got.every((v, i) => Math.abs(v - c[i]) < .5), `speech: ${what} has corners ${got.join(', ')} (start-start, start-end, end-end, end-start), not ${c.join(', ')}`); };
+    want('light-page-first', [0, R, R, R], 'the first of others\' run');
+    want('light-page-cont', [R, R, R, R], 'a later message in others\' run');
+    want('light-page-own', [R, 0, R, R], 'the first of your run');
+    want('light-page-own-cont', [R, R, R, R], 'a later message in your run');
+    const phys = s => [s.borderTopLeftRadius, s.borderTopRightRadius].map(parseFloat);
+    expect(phys(cs('rtl-first'))[1] < .5 && phys(cs('rtl-first'))[0] > R - .5, `speech: right to left, the first of others' run squares its top ${phys(cs('rtl-first'))[1] < .5 ? '' : 'right '}corner wrongly: top-left ${phys(cs('rtl-first'))[0]}, top-right ${phys(cs('rtl-first'))[1]}`);
+    expect(phys(cs('rtl-own'))[0] < .5 && phys(cs('rtl-own'))[1] > R - .5, `speech: right to left, your own first message squares the wrong top corner: top-left ${phys(cs('rtl-own'))[0]}, top-right ${phys(cs('rtl-own'))[1]}`);
+    want('dense-cont', [R1, R1, R1, R1], 'a bubble in .cc-dense');
+    want('knob-cont', [0, 0, 0, 0], 'a bubble with --chat-shape at 0');
+    for (const id of ['light-page-first', 'light-page-own', 'dark-page-first', 'dark-page-own']) {
+      const s = cs(id);
+      expect(s.outlineStyle === 'none' || px(s.outlineColor)[3] === 0 || parseFloat(s.outlineWidth) === 0, `speech: ${id} draws an edge, ${s.outlineColor}`);
+      expect(Math.abs(parseFloat(s.paddingTop) - PAD) < .5 && Math.abs(parseFloat(s.paddingInlineStart) - PAD) < .5, `speech: ${id}'s padding is ${s.paddingTop}, not a cell`);
+    }
+    // The ground as drawn: its color under the (transparent) layer laid over it, over its surface.
+    const ground = (id) => { const s = cs(id), img = s.backgroundImage, m = img.match(/(?:rgba?|oklab|oklch|color)\([^()]*(?:\([^()]*\)[^()]*)*\)/), under = getComputedStyle(b(id).closest('.card, [data-product], body')).backgroundColor; return px(under, s.backgroundColor, m ? m[0] : 'transparent'); };
+    const ink = (id, sel) => px(getComputedStyle(sel ? b(id).querySelector(sel) : b(id)).color);
+    for (const t of ['light', 'dark']) for (const where of ['page', 'card', 'nest']) for (const who of ['first', 'own']) {
+      const id = `${t}-${where}-${who}`, g = ground(id), under = px(getComputedStyle(b(id).closest('.card, [data-product]')).backgroundColor);
+      expect(px(cs(id).backgroundColor)[3] === 255, `speech: ${id}'s ground is not opaque: ${cs(id).backgroundColor}`);
+      for (const [what, sel] of [['its words', null], ['its second ink', '.u-text-secondary'], ['its third ink', '.chat-edited']]) {
+        const r = ratio(ink(id, sel), g);
+        expect(r >= 4.5, `speech: ${what} on ${id}'s ground read at ${r.toFixed(2)}:1, under 4.5`);
+      }
+      // Faint: a ground, not a fill. Against what it stands on it is under 1.6:1, where a solid accent is far over.
+      const r = ratio(g, under);
+      expect(r > 1.02 && r < 1.6, `speech: ${id}'s ground is ${r.toFixed(2)}:1 against what it stands on: ${r <= 1.02 ? 'no ground' : 'a fill, not a faint ground'}`);
+    }
+    expect(px(cs('light-page-own').backgroundColor).join() !== px(cs('light-page-first').backgroundColor).join(), 'speech: your own ground is the same as others\'');
+    for (const id of ['light-page-wall', 'light-page-system', 'light-page-flat', 'light-page-gone']) {
+      const under = px(getComputedStyle(b(id).closest('.card, [data-product]')).backgroundColor);
+      expect(ground(id).join() === under.join(), `speech: ${id} has a ground: ${cs(id).backgroundColor} ${cs(id).backgroundImage}`);
+    }
+    expect(cs('light-page-gone').outlineStyle === 'dashed', `speech: a removed message lost its dashed edge: ${cs('light-page-gone').outlineStyle}`);
+    // A removed message's words, and the third ink on a ground of no bubble, stay the third.
+    const roleIn = (el, v) => { const i = document.createElement('i'); i.style.color = `var(--${v})`; el.appendChild(i); const c = px(getComputedStyle(i).color); i.remove(); return c; };
+    const thread0 = b('light-page-gone').closest('.chat-thread');
+    expect(ink('light-page-gone').join() === roleIn(thread0, 'text-tertiary').join(), `speech: a removed message's words are ${ink('light-page-gone')}, not the third ink`);
+    expect(ink('light-page-flat', '.chat-edited').join() === roleIn(thread0, 'text-tertiary').join(), 'speech: "(edited)" in a flat row is not the third ink');
+    // The knobs a product may have set before (D99) still reach the bubble.
+    const oldOwn = document.querySelector('.knobs-old');
+    expect(ground('old-own').join() === roleIn(oldOwn, 'accent').join(), `speech: --chat-own-bg set to the accent paints ${ground('old-own')}, not the accent ${roleIn(oldOwn, 'accent')}`);
+    expect(ink('old-own').join() === roleIn(oldOwn, 'accent-ink').join(), `speech: --chat-own-ink no longer reaches your own words`);
+    expect(px(cs('old-first').outlineColor).join() === roleIn(oldOwn, 'border').join() && cs('old-first').outlineStyle === 'solid', `speech: --chat-bubble-edge draws ${cs('old-first').outlineColor}, not the edge it names`);
+    expect(Math.abs(parseFloat(cs('knob-first').paddingTop) - PAD2) < .5, `speech: --chat-bubble-pad does not reach the bubble: ${cs('knob-first').paddingTop}`);
+    for (const id of ['knob-first', 'knob-own']) expect(ratio(ground(id), px(getComputedStyle(document.body).backgroundColor)) < 1.01, `speech: with its wash at 0% ${id} still has a ground`);
+    expect(ground('over-first').join() === roleIn(b('over-first'), 'ok').join(), `speech: --chat-bubble-bg does not replace others' ground: ${ground('over-first')}`);
+    const half = ground('over-own'), wash = (() => { const s = cs('over-own'); return px(getComputedStyle(document.body).backgroundColor, s.backgroundColor); })();
+    expect(half.join() !== wash.join(), 'speech: a translucent --chat-own-bg is not laid over your own wash');
+    host.remove();
+    return bad;
+  }));
+
   // Stages (D107): seven of them, each a dot in its fill, a ring in its ink and
   // a tag tinted from its fill; a product's own seed reaches all three.
   fails.push(...await page.evaluate(() => {
@@ -1878,6 +1961,43 @@ const chromium = require('./chromium');
       const stray = r.slice(from + last + 1, from + last + 1 + Math.round(m.u * D)).findIndex(l => l < CLEAR);
       if (stray >= 0) fails.push(`clamp: ${m.role}: ink ${((last + 1 + stray) / D).toFixed(1)}px under the last baseline, past its descenders: the hidden line shows`);
     });
+  }
+  // A reply's quote (D122): two lines of the message it answers, in a narrow
+  // column. Read from a screenshot, black on white: its words are two bands of
+  // ink, the second as deep as the first (its descenders kept), and nothing
+  // under them to a cell past the quote (no top of a third line).
+  {
+    const D = touch ? 3 : 1;
+    const q = await page.evaluate(async () => {
+      const words = 'Lazy gypsy typing by a quay, judging hefty jugs of pygmy hog quality; '.repeat(6);
+      const host = document.createElement('div'); host.id = 'quote-test';
+      host.style.cssText = 'position: absolute; inset-block-start: 0; inset-inline-start: 0; z-index: 2147483647; box-sizing: content-box; inline-size: calc(var(--u) * 24); padding: var(--sp-2); background: #fff; color: #000; --text: #000; --text-secondary: #000; --border-strong: #fff;';
+      host.innerHTML = `<a class="chat-quote" href="#quote-test"><span class="chat-quote-author t-xs" style="color: #fff">Ada</span><span class="chat-quote-text t-xs">${words}</span></a>`;
+      document.body.appendChild(host);
+      await Trellis.settled(); await new Promise(r => setTimeout(r, 100)); await Trellis.settled();
+      const hb = host.getBoundingClientRect(), t = host.querySelector('.chat-quote-text').getBoundingClientRect(), qb = host.querySelector('.chat-quote').getBoundingClientRect();
+      return { x: t.left - hb.left, y: t.top - hb.top, w: t.width, end: qb.bottom - hb.top, u: Trellis.cell() };
+    });
+    const png = (await page.locator('#quote-test').screenshot()).toString('base64');
+    const decoder = await browser.newPage();
+    const rows = await decoder.evaluate(async ([png, q, D]) => {
+      const img = new Image(); img.src = 'data:image/png;base64,' + png; await img.decode();
+      const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+      const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0);
+      const x0 = Math.floor(q.x * D), w = Math.min(img.width - x0, Math.ceil(q.w * D)), y0 = Math.max(0, Math.floor((q.y - q.u) * D)), n = Math.min(img.height - y0, Math.ceil((q.end + q.u - q.y + q.u) * D));
+      const d = g.getImageData(x0, y0, w, n).data, out = [];
+      for (let y = 0; y < n; y++) { let low = 255; for (let x = 0; x < w; x++) { const i = (y * w + x) * 4, l = .2126 * d[i] + .7152 * d[i + 1] + .0722 * d[i + 2]; if (l < low) low = l; } out.push(low); }
+      return out;
+    }, [png, q, D]);
+    await decoder.close();
+    await page.evaluate(() => document.getElementById('quote-test').remove());
+    // Bands of ink: runs of rows with any ink in them.
+    const bands = []; let at = -1;
+    rows.forEach((l, y) => { const inked = l < 225; if (inked && at < 0) at = y; if (!inked && at >= 0) { bands.push([at, y]); at = -1; } });
+    if (at >= 0) bands.push([at, rows.length]);
+    const tall = bands.map(([a, z]) => z - a);
+    if (bands.length !== 2) fails.push(`quote: a two-line quote draws ${bands.length} bands of ink (${tall.map(h => (h / D).toFixed(1) + 'px').join(', ')}): ${bands.length > 2 ? 'the top of the hidden line shows' : 'its lines run together or are gone'} (at ${D}x)`);
+    else if (Math.abs(tall[1] - tall[0]) > D + 1) fails.push(`quote: its second line is ${(tall[1] / D).toFixed(1)}px of ink, its first ${(tall[0] / D).toFixed(1)}px: ${tall[1] < tall[0] ? 'its descenders are cut' : 'the hidden line shows under it'} (at ${D}x)`);
   }
   // Floats past the cap (D111): at the reader's largest text size (312%) the
   // specimen's options cards grow with their type, in whole cells, up to the

@@ -131,3 +131,4 @@ A new choice gets the next number. A decision is not done until it is applied: t
 | [D117](D117.md) | A product's own colors, named by it and derived where they are used; and a night deeper than core's | 2026-11-24 | accepted |
 | [D118](D118.md) | Phosphor is the default set, and a weight is a stroke on its raw drawing | 2026-11-24 | accepted |
 | [D120](D120.md) | A fill's state moves away from its label | 2026-11-27 | accepted |
+| [D122](D122.md) | A bubble is a shaped ground, with no edge | 2026-11-28 | accepted |

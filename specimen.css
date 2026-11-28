@@ -179,7 +179,7 @@
   .demo-convo { --stack-gap: var(--sp-2); display: flex; flex-direction: column; gap: var(--stack-gap); }
   .demo-convo .icon, .demo-convo-head .icon { --icon-size: var(--size-icon-md); }
   .demo-convo-head { --cluster-gap: var(--sp-1); }
-  .demo-tint { --chat-own-bg: color-mix(in oklab, var(--accent) 22%, var(--surface)); --chat-own-ink: var(--text); --chat-bubble-edge: transparent; }
+  .demo-tint { --chat-shape: var(--r-1); --chat-own-wash: 12%; --chat-bubble-wash: 4%; }
   .demo-agent-mark {
     position: absolute; right: calc(var(--sp-q) * -1); bottom: calc(var(--sp-q) * -1);
     width: var(--sp-1); height: var(--sp-1); border-radius: 50%;

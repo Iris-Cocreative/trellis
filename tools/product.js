@@ -124,13 +124,14 @@ function scopesOf(css, label, fails = []) {
     }
   };
   numbers(rootBody, base.color);
+  chatKnobs(rootBody, base, label, fails);
   const rootSeeds = rootBlock ? seedsOf(rootBody) : {}, out = [];
   if (rootBlock) out.push([label, null, M.scope(base, rootSeeds), THEMES]);
   for (const b of blocks.filter((x) => x !== rootBlock)) {
     const under = b[3] ? blocks.filter((x) => x !== rootBlock && !x[3] && x[2] === b[2]).map((x) => x[4]) : [];
     const bodies = [...under, b[4]];
     const sc = M.scope(base, rootSeeds, ...bodies.map(seedsOf));
-    for (const body of bodies) numbers(body, sc.color);
+    for (const body of bodies) { numbers(body, sc.color); chatKnobs(body, sc, `${label} ${b[1]}`, fails); }
     out.push([`${label} ${b[1]}`, b[2], sc, b[3] ? ['dark'] : THEMES]);
   }
   return out;
@@ -192,8 +193,83 @@ function contrast(label, seed, themes = THEMES, shares = stateShares()) {
       const r = M.contrast(p[k + '-solid-ink'], p[k + '-solid']);
       if (!(r >= 4.5)) fails.push(`contrast: ${label} ${theme}: ink on the solid fill of --seed-${k} is ${r.toFixed(2)}:1, under 4.5`);
     }
+    fails.push(...speech(label, theme, p, seed.chat || {}));
   }
   return fails;
+}
+
+// Speech (D122): a bubble's ground is a share of the text (others') or the accent
+// (your own) mixed into the surface in OKLab, with the product's --chat-bubble-bg or
+// --chat-own-bg laid over it. The words, and the second ink (the third reads as
+// the second on a bubble), hold 4.5:1 on it over every surface; your own words
+// are --chat-own-ink, and the second ink is held there while that is the text.
+const lab = (c) => [c[0], c[1] * Math.cos(c[2] * Math.PI / 180), c[1] * Math.sin(c[2] * Math.PI / 180)];
+const mixLab = (a, share, b) => { const x = lab(a), y = lab(b), m = x.map((v, i) => v * share + y[i] * (1 - share)); return [m[0], Math.hypot(m[1], m[2]), ((Math.atan2(m[2], m[1]) * 180 / Math.PI) + 360) % 360]; };
+const rgb8 = (c) => [1, 3, 5].map((i) => parseInt(M.hex(c).substr(i, 2), 16));
+const overRgb = (c, share, g) => { const x = rgb8(c), y = rgb8(g); return M.parseColor('#' + x.map((v, i) => ('0' + Math.round(v * share + y[i] * (1 - share)).toString(16)).slice(-2)).join('')); };
+// A knob's color, as a layer can write it: transparent, a role, a color, or a role's share
+// mixed in OKLab into another role, the surface or nothing. null where it can't be read.
+const ROLE = /^var\(--([a-z0-9-]+)\)$/;
+function chatColor(v) {
+  v = v.replace(/\s+/g, ' ').trim();
+  if (v === 'transparent') return { clear: true };
+  if (v === 'currentColor' || v === 'currentcolor') return { role: 'text' };
+  let m = ROLE.exec(v);
+  if (m) return { role: m[1] };
+  m = /^color-mix\(in oklab, (var\(--[a-z0-9-]+\)|#[0-9a-f]{6}|oklch\([^)]*\)) (\d+(?:\.\d+)?)%, (transparent|var\(--[a-z0-9-]+\)|#[0-9a-f]{6}|oklch\([^)]*\))\)$/i.exec(v);
+  if (m) {
+    const side = (s) => (ROLE.test(s) ? { role: ROLE.exec(s)[1] } : s === 'transparent' ? { clear: true } : { color: M.parseColor(s) });
+    try { return { mix: [side(m[1]), m[2] / 100, side(m[3])] }; } catch (e) { return null; }
+  }
+  try { return { color: M.parseColor(v) }; } catch (e) { return null; }
+}
+// A parsed color on a surface: [color, alpha].
+function chatPaint(spec, p, g) {
+  const one = (s) => (s.clear ? null : s.color ? s.color : s.role === 'surface' ? p[g] : p[s.role]);
+  if (spec.clear) return [p[g], 0];
+  if (spec.mix) { const [a, share, b] = spec.mix, x = one(a); if (b.clear) return [x, share]; return [mixLab(x, share, one(b)), 1]; }
+  return [one(spec), 1];
+}
+function speech(label, theme, p, chat) {
+  const fails = [], t = chatDefaults(), wash = chat.wash ?? t.wash, ownWash = chat.ownWash ?? t.ownWash;
+  const known = (s) => !s || s.clear || s.color || (s.role && (s.role === 'surface' || p[s.role])) || (s.mix && s.mix.every((x) => typeof x === 'number' || known(x)));
+  for (const k of ['bg', 'ownBg', 'ownInk']) if (chat[k] && !known(chat[k])) return [`contrast: ${label}: a bubble's knob names a color that isn't a role; it can't be checked`];
+  for (const g of GROUNDS) {
+    const lay = (base, spec) => { if (!spec) return base; const [c, a] = chatPaint(spec, p, g); return a >= 1 ? c : a <= 0 ? base : overRgb(c, a, base); };
+    const others = lay(mixLab(p.text, wash, p[g]), chat.bg), own = lay(mixLab(p.accent, ownWash, p[g]), chat.ownBg);
+    const ownInk = chat.ownInk ? chatPaint(chat.ownInk, p, g)[0] : p.text;
+    const checks = [['--text', p.text, others, "others' bubble"], ['--text-secondary', p['text-secondary'], others, "others' bubble"], ['--chat-own-ink', ownInk, own, 'your own bubble']];
+    if (!chat.ownInk || chat.ownInk.role === 'text') checks.push(['--text-secondary', p['text-secondary'], own, 'your own bubble']);
+    for (const [what, ink, ground, where] of checks) {
+      const r = M.contrast(ink, ground);
+      if (!(r >= 4.5)) fails.push(`contrast: ${label} ${theme}: ${what} on ${where} on --${g} is ${r.toFixed(2)}:1, under 4.5`);
+    }
+  }
+  return fails;
+}
+// The washes core draws (the template's), as shares.
+let templateChat;
+function chatDefaults() {
+  if (templateChat) return templateChat;
+  const t = template(), share = (k) => parseFloat(t.get(k)) / 100;
+  return (templateChat = { wash: share('--chat-bubble-wash'), ownWash: share('--chat-own-wash') });
+}
+// A layer's bubble knobs, on the seed a scope is checked with. A wash must be a plain
+// percentage, and a color one the check can read, or it is refused.
+function chatKnobs(body, seed, label, fails) {
+  const chat = seed.chat = Object.assign({}, seed.chat);
+  for (const [k, v] of decl(body)) {
+    const share = { '--chat-bubble-wash': 'wash', '--chat-own-wash': 'ownWash' }[k], color = { '--chat-bubble-bg': 'bg', '--chat-own-bg': 'ownBg', '--chat-own-ink': 'ownInk' }[k];
+    if (share) {
+      const m = /^(\d+(?:\.\d+)?)%$/.exec(v);
+      if (m && +m[1] <= 100) chat[share] = m[1] / 100;
+      else fails.push(`${label}: ${k} is "${v}": it must be a plain percentage, as 7% is, or a bubble's contrast can't be checked`);
+    } else if (color) {
+      const spec = chatColor(v);
+      if (spec) chat[color] = spec;
+      else fails.push(`${label}: ${k} is "${v}": a bubble's color is transparent, a role, a color, or color-mix(in oklab, …) of a role and a role, the surface or transparent; anything else can't be checked`);
+    }
+  }
 }
 
 // The state layer's shares (D58): the template's, or the layer's own where it sets them.
@@ -221,7 +297,7 @@ function validate(css, label = 'product layer', knobs = template()) {
   return { fails, sets };
 }
 
-module.exports = { validate, shape, scopesOf, contrast, stateShares, ownOf, template, FLOORS, SOLIDS, OUTLINES, BAR, GROUNDS, THEMES };
+module.exports = { validate, shape, scopesOf, contrast, stateShares, speech, chatColor, ownOf, template, FLOORS, SOLIDS, OUTLINES, BAR, GROUNDS, THEMES };
 
 if (require.main === module) {
   const files = process.argv.slice(2);
