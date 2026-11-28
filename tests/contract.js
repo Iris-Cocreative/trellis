@@ -212,11 +212,24 @@ for (const f of PRODUCTS) for (const [label, , seed, themes] of scopesOf(f)) lay
   }
 }
 for (const [, f, seed, themes] of layersToCheck) fails.push(...P.contrast(f, seed, themes));
+// Those numbers hold for what core.css draws (D120): the state layer moves away from the
+// label in the band math.js has, from the flip, and every control with a fill of its own
+// mixes its tone, not its ink.
+{
+  const band = /clamp\(0, \(l - var\(--ink-flip\)\) \* 1000, 1\) 0 0 \/ calc\(clamp\(0, \(alpha - \.999\) \* 100000, 1\) \* clamp\(0, \(l - ([\d.]+)\) \* 1000, 1\) \* clamp\(0, \(([\d.]+) - l\) \* 1000, 1\)\)\) 99\.99%,\s*var\(--state-ink, currentColor\)\) l a b \/ calc\(alpha \* 10000\)\)/.exec(core);
+  check(band && +band[1] === M.STATE_BAND[0] && +band[2] === M.STATE_BAND[1], `core.css: the state layer's tone should move away from the label on an opaque fill between ${M.STATE_BAND.join(' and ')} of lightness, as math.js has it${band ? `; core.css has ${band[1]} and ${band[2]}` : ''}`);
+  check(/:is\(\.button, \.tag, \.tab, \.chat-reaction, \.u-state\) \{\s*--state-tone:/.test(core), 'core.css: the state tone should be worked out on every control that names its fill');
+  for (const [what, sel] of [['a button', /\.button \{[^}]*--state-ink: var\(--btn-ink\); --state-fill: var\(--btn-bg\);[^}]*background: color-mix\(in oklab, var\(--state-tone\) calc\(var\(--state-on\) \+ var\(--state-act\)\), var\(--btn-bg\)\)/],
+    ['a tag', /\.tag \{[^}]*--state-ink: var\(--tag-ink\); --state-fill: color-mix\(in oklab, var\(--tag-color\) var\(--tag-fill\), transparent\);[^}]*background: color-mix\(in oklab, var\(--state-tone\) var\(--state-act\), var\(--state-fill\)\)/],
+    ['a tab', /\.tab \{ --state-ink: var\(--text\); --state-fill: var\(--tab-bg, transparent\); background: color-mix\(in oklab, var\(--state-tone\) var\(--state-act\), var\(--state-fill\)\); \}/],
+    ['a reaction', /\.chat-reaction \{[^}]*--state-ink: var\(--reaction-ink\); --state-fill: var\(--reaction-bg\);[^}]*background: color-mix\(in oklab, var\(--state-tone\) var\(--state-act\), var\(--reaction-bg\)\)/],
+    ['.u-state', /\.u-state \{[^}]*background-color: color-mix\(in oklab, var\(--state-tone\) calc\(var\(--state-on\) \+ var\(--state-act\)\), var\(--state-fill, transparent\)\)/]])
+    check(sel.test(core), `core.css: ${what} should name its ink and fill and mix --state-tone into its fill (D120)`);
+}
 // What a control's words keep as the ground under them moves (D115), for core, every
-// layer and every scope: an outline button's and a quiet tag's hovered and pressed, a
-// solid kind's while pressed (3:1: the shared state layer mixes its ink into its fill,
-// as a primary button's does), and the words on a translucent bar, over black and over
-// white, at rest and pressed.
+// layer and every scope: an outline button's and a quiet tag's hovered and pressed, and
+// the words on a translucent bar, over black and over white, at rest and pressed. A
+// control with a fill of its own is held in every state by tools/product.js above (D120).
 {
   const rgb8 = c => [1, 3, 5].map(i => parseInt(M.hex(c).substr(i, 2), 16));
   const over = (c, share, g) => { const x = rgb8(c), y = rgb8(g); return M.parseColor('#' + x.map((v, i) => ('0' + Math.round(v * share + y[i] * (1 - share)).toString(16)).slice(-2)).join('')); };
@@ -234,7 +247,6 @@ for (const [, f, seed, themes] of layersToCheck) fails.push(...P.contrast(f, see
       const tint = over(p['text-tertiary'], .14, p[g]);
       for (const s of [0, HOVER, PRESS]) hold(p['text-secondary'], over(p['text-secondary'], s, tint), 4.5, `a quiet tag's ink on --${g} with ${s * 100}% of it mixed in`);
     }
-    for (const k of ['ok', 'alert']) { const ink = M.ink(p[k], seed); hold(ink, over(ink, PRESS, p[k]), 3, `the ink of a ${k} button, pressed,`); }
     for (const g of P.BAR.grounds) for (const behind of [[0, 0, 0], [1, 0, 0]]) {
       const bar = over(p[g], P.BAR.share, behind), where = `on a bar of ${P.BAR.share * 100}% --${g} over ${behind[0] ? 'white' : 'black'}`;
       for (const k of P.BAR.inks) hold(p[k], bar, 4.5, `--${k} ${where}`);
@@ -300,12 +312,16 @@ for (let h = 0; h < 360; h += 30) for (const l of [.35, .55, .75, .95]) lit(`an 
     for (const k of Object.keys(d)) {
       if (k === 'neutral') continue;
       n++;
-      for (const theme of ['light', 'dark']) { const fill = M.hue(d[k], theme, seed), r = M.contrast(M.ink(fill, seed), fill); if (r < low[0]) low = [r, k, theme, l, c, h]; }
+      for (const theme of ['light', 'dark']) {
+        const fill = M.hue(d[k], theme, seed), ink = M.ink(fill, seed);
+        // At rest, and with every share of the state layer a filled button can take (D120).
+        for (const s of [0, .06, .12, .10, .16, .22]) { const r = M.contrast(ink, s ? M.stateOver(fill, ink, s, seed) : fill); if (r < low[0]) low = [r, k, theme, l, c, h, s]; }
+      }
       if (d[k][0] < seed.color.flip && !inside(d[k]) && !out) out = [k, l, c, h, d[k]];
     }
   }
   check(n > 10000, `one seed: only ${n} derived seeds were checked`);
-  check(low[0] >= 4.5, `one seed: ink on the ${low[1]} seed derived from oklch(${low.slice(3).map(x => +x.toFixed(2)).join(' ')}) is ${low[0].toFixed(2)}:1 in ${low[2]}, under 4.5`);
+  check(low[0] >= 4.5, `one seed: ink on the ${low[1]} seed derived from oklch(${low.slice(3, 6).map(x => +x.toFixed(2)).join(' ')}) is ${low[0].toFixed(2)}:1 in ${low[2]}${low[6] ? ` with ${low[6] * 100}% of the state layer` : ''}, under 4.5`);
   check(!out, out ? `one seed: the ${out[0]} seed derived from oklch(${out.slice(1, 4).map(x => +x.toFixed(2)).join(' ')}) is outside sRGB: oklch(${out[4].map(x => +x.toFixed(3)).join(' ')})` : '');
   // core.css states the same rule: every seed but the accent is read as itself if set, and as its
   // derived token if not, and has no default, so one a layer leaves follows on every scope (D96).

@@ -1383,10 +1383,19 @@ const chromium = require('./chromium');
         + `<select class="input" id="iv-select" ${bad}>${sel}</select><textarea class="input" id="iv-lines" ${bad}></textarea>`
         + `<div class="input cc-slots" id="iv-slots"><input class="input-control" ${bad}></div><div class="input cc-slots" id="iv-slots-select"><select class="input-control" ${bad}>${sel}</select></div>`
         + `<label class="choice" id="iv-choice"><input type="checkbox" ${bad}><span class="choice-label">A choice</span></label>`
+        // Checked and invalid, and invalid by the browser once touched (:user-invalid), checked or not.
+        + `<label class="choice" id="iv-choice-on"><input type="checkbox" checked ${bad}><span class="choice-label">A choice</span></label>`
+        + `<label class="choice" id="iv-choice-user"><input type="checkbox" required aria-label="Asked"><span class="choice-label">A choice</span></label>`
+        + `<label class="choice" id="iv-choice-user-on"><input type="checkbox" aria-label="Asked"><span class="choice-label">A choice</span></label>`
         + `<input class="input" id="iv-ok" aria-label="Fine"><input class="input" id="iv-not" aria-invalid="false" aria-label="Fine"><i id="iv-alert" style="color: var(--alert)"></i>`;
       document.body.appendChild(host);
+      host.querySelector('#iv-choice-user-on input').setCustomValidity('Not this one');
       window.__iv = document.documentElement.getAttribute('data-theme');
     });
+    // Touched: the required box checked and unchecked again, the other checked.
+    for (const s of ['#iv-choice-user input', '#iv-choice-user input', '#iv-choice-user-on input']) await page.locator(s).click();
+    if (!(await page.evaluate(() => ['#iv-choice-user input', '#iv-choice-user-on input'].every(s => document.querySelector(s).matches(':user-invalid')) && document.querySelector('#iv-choice-user-on input').checked)))
+      fails.push('invalid: a touched box is not :user-invalid here, so nothing was proved');
     const edge = async id => page.evaluate(async id => {
       await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
       const e = document.getElementById(id), t = e.matches('.choice') ? e.querySelector('input') : e;
@@ -1396,7 +1405,7 @@ const chromium = require('./chromium');
     if (!hovers) fails.push('invalid: this browser says it has no pointer that hovers, so nothing was proved');
     for (const theme of ['light', 'dark']) {
       await page.evaluate(theme => document.documentElement.setAttribute('data-theme', theme), theme);
-      for (const id of ['iv-input', 'iv-small', 'iv-ro', 'iv-off', 'iv-select', 'iv-lines', 'iv-slots', 'iv-slots-select', 'iv-choice', 'iv-ok', 'iv-not']) {
+      for (const id of ['iv-input', 'iv-small', 'iv-ro', 'iv-off', 'iv-select', 'iv-lines', 'iv-slots', 'iv-slots-select', 'iv-choice', 'iv-choice-on', 'iv-choice-user', 'iv-choice-user-on', 'iv-ok', 'iv-not']) {
         await page.mouse.move(width - 2, height - 2);
         const rest = await edge(id), b = await page.locator('#' + id).boundingBox();
         await page.mouse.move(b.x + 10, b.y + b.height / 2);
@@ -1407,6 +1416,21 @@ const chromium = require('./chromium');
       }
     }
     await page.mouse.move(width - 2, height - 2);
+    // Forced colors (D83): an invalid edge is the system's Mark, whatever else the box is,
+    // checked included; a valid one is not. Where the browser can emulate it.
+    await page.emulateMedia({ forcedColors: 'active' });
+    fails.push(...await page.evaluate(async () => {
+      const fails = [];
+      if (!matchMedia('(forced-colors: active)').matches) return fails;
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const sys = v => { const i = document.createElement('i'); i.style.color = v; i.style.forcedColorAdjust = 'none'; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c; }, mark = sys('Mark');
+      const edge = id => { const e = document.getElementById(id); return getComputedStyle(e.matches('.choice') ? e.querySelector('input') : e).borderTopColor; };
+      for (const id of ['iv-input', 'iv-small', 'iv-ro', 'iv-select', 'iv-lines', 'iv-slots', 'iv-slots-select', 'iv-choice', 'iv-choice-on', 'iv-choice-user', 'iv-choice-user-on'])
+        if (edge(id) !== mark) fails.push(`invalid, forced colors: ${id}'s edge is ${edge(id)}, not Mark (${mark})`);
+      for (const id of ['iv-ok', 'iv-not']) if (edge(id) === mark) fails.push(`invalid, forced colors: ${id} is valid and its edge is Mark`);
+      return fails;
+    }));
+    await page.emulateMedia({ forcedColors: 'none' });
     await page.evaluate(() => { if (window.__iv === null) document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', window.__iv); document.getElementById('invalid-test').remove(); });
   }
 
@@ -2005,6 +2029,16 @@ const chromium = require('./chromium');
       host.innerHTML = ['--bg', '--bg-raised', '--bg-raised-2', '--bg-raised-3'].map(g => `<div data-g="${g}" style="background: var(${g})">${set}</div>`).join('')
         + `<div class="cluster" id="ctl-more">${b('plain', '')}${b('plain-off', '', 'disabled')}${['cc-alert', 'cc-ok', 'cc-alert cc-outline', 'cc-outline'].map((c, i) => b('off-' + i, c, i % 2 ? 'aria-disabled="true"' : 'disabled') + b('size-' + i, c)).join('')}${b('o-on', 'cc-alert cc-outline', 'aria-pressed="true"')}${b('o-on-off', 'cc-alert cc-outline', 'aria-pressed="true" disabled')}`
         + `${b('o-tint', 'cc-alert cc-outline', 'style="--btn-tint: 10%; --btn-border: transparent"')}${b('own', '', 'style="--btn-bg: rgb(0 60 0); --btn-ink: rgb(200 255 200); --btn-border: rgb(1 2 3)"')}${b('own-kind', 'cc-alert', 'style="--btn-bg: rgb(0 60 0); --btn-ink: rgb(200 255 200); --btn-border: rgb(1 2 3)"')}</div>`
+        // Every control with a fill of its own, to hover and press (D120): each filled kind, alone
+        // and selected, a button in a product's own color, and a solid tag in every kind, status,
+        // stage and the neutral, and a selected one.
+        + `<div class="cluster" id="ctl-press">${b('primary', 'cc-primary')}${b('primary-on', 'cc-primary', 'aria-pressed="true"')}${b('alert-on', 'cc-alert', 'aria-pressed="true"')}${b('ok-on', 'cc-ok', 'aria-pressed="true"')}`
+        + `${b('seeded', 'u-seed', 'style="--seed: var(--kind-event); --btn-bg: var(--seeded-solid); --btn-ink: var(--seeded-solid-ink); --btn-border: var(--seeded-solid)"')}`
+        + ['', 'cc-person', 'cc-group', 'cc-event', 'cc-course', 'cc-ok', 'cc-warn', 'cc-alert', 'cc-quiet', ...[1, 2, 3, 4, 5, 6, 7].map(n => 'cc-stage-' + n)].map(c => `<button class="tag cc-solid ${c}" type="button" data-k="solid${c ? '-' + c.slice(3) : ''}"><span class="tag-label">A</span></button>`).join('')
+        + `<button class="tag cc-alert" type="button" aria-pressed="true" data-k="alert-tag-on"><span class="tag-label">A</span></button>`
+        // And fills far from the flip, white or nearly, which keep their ink's state and must still show it.
+        + `<div class="tabs cc-seg" role="tablist" aria-label="A"><button class="tab" role="tab" type="button" aria-selected="true" data-k="seg-on">A</button><button class="tab" role="tab" type="button" aria-selected="false">B</button></div>`
+        + `<button class="chat-reaction" type="button" data-k="reaction"><span>3</span></button><button class="chat-reaction" type="button" aria-pressed="true" data-k="reaction-on"><span>3</span></button></div>`
         + `<div class="card" id="ctl-fill"><div class="media cc-fill"></div><div class="cluster">${b('f-alert', 'cc-alert cc-outline')}${b('f-none', 'cc-outline')}<div class="card">${b('f-nest', 'cc-alert cc-outline')}</div></div></div>`;
       document.body.appendChild(host);
       window.__ctl = {
@@ -2061,15 +2095,31 @@ const chromium = require('./chromium');
         if (cs('f-nest').color !== cs('o-alert').color) say(`an outline on a card in a full bleed is ${cs('f-nest').color}, not ${cs('o-alert').color}`);
         return fails;
       }, theme));
-      // Hovered, pressed and focused, on the ground where they read worst.
-      for (const k of ['alert', 'ok', 'o-accent', 'o-alert', 'o-ok', 'o-none', 'quiet']) {
-        const sel = `#ctl [data-g="--bg-raised-3"] [data-k="${k}"]`, p = await page.evaluate(s => { const b = document.querySelector(s).getBoundingClientRect(); return { x: (b.left + b.right) / 2, y: (b.top + b.bottom) / 2 }; }, sel);
-        const state = () => page.evaluate(async s => { await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); await window.__ctl.still(); const e = document.querySelector(s); return { r: window.__ctl.read(e).r, act: getComputedStyle(e).getPropertyValue('--state-act').trim() }; }, sel);
-        const floor = /^(alert|ok)$/.test(k) ? 3 : 4.5;   // a filled kind's ink is mixed into its fill, as a primary button's is
+      // Hovered, pressed and focused, on the ground where they read worst. Every label holds
+      // 4.5:1 in every state, and each state is a step from the one before it, a hundredth
+      // of OKLab at least, read from the drawn ground (D120).
+      const pressable = await page.evaluate(() => [...document.querySelectorAll('#ctl-press [data-k]')].map(e => e.dataset.k));
+      const apart = (a, b) => page.evaluate(([a, b]) => {
+        const M = window.TrellisMath, lab = c => { const o = M.parseColor('#' + c.map(x => ('0' + x.toString(16)).slice(-2)).join('')); return [o[0], o[1] * Math.cos(o[2] * Math.PI / 180), o[1] * Math.sin(o[2] * Math.PI / 180)]; };
+        const x = lab(a), y = lab(b); return Math.hypot(x[0] - y[0], x[1] - y[1], x[2] - y[2]);
+      }, [a, b]);
+      for (const k of ['alert', 'ok', 'o-accent', 'o-alert', 'o-ok', 'o-none', 'quiet', ...pressable]) {
+        const sel = pressable.includes(k) ? `#ctl-press [data-k="${k}"]` : `#ctl [data-g="--bg-raised-3"] [data-k="${k}"]`, p = await page.evaluate(s => { const b = document.querySelector(s).getBoundingClientRect(); return { x: (b.left + b.right) / 2, y: (b.top + b.bottom) / 2 }; }, sel);
+        const state = () => page.evaluate(async s => { await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); await window.__ctl.still(); const e = document.querySelector(s), { r, under } = window.__ctl.read(e); return { r, under, act: getComputedStyle(e).getPropertyValue('--state-act').trim() }; }, sel);
+        const rest = await state();
+        if (rest.r < 4.5) fails.push(`controls, ${theme}: ${k} at rest is ${rest.r.toFixed(2)}:1`);
+        let before = rest;
         await page.mouse.move(p.x, p.y);
-        if (await page.evaluate(() => matchMedia('(hover: hover)').matches)) { const s = await state(); if (s.act !== '6%' || s.r < floor) fails.push(`controls, ${theme}: ${k} hovered is ${s.r.toFixed(2)}:1 (${s.act})`); }
+        if (await page.evaluate(() => matchMedia('(hover: hover)').matches)) {
+          const s = await state(), d = await apart(rest.under, s.under);
+          if (s.act !== '6%' || s.r < 4.5) fails.push(`controls, ${theme}: ${k} hovered is ${s.r.toFixed(2)}:1 (${s.act})`);
+          if (d < .01) fails.push(`controls, ${theme}: ${k} hovered is ${d.toFixed(4)} from rest in OKLab, too near to tell apart`);
+          before = s;
+        }
         await page.mouse.down();
-        const s = await state(); if (s.act !== '12%' || s.r < floor) fails.push(`controls, ${theme}: ${k} pressed is ${s.r.toFixed(2)}:1 (${s.act})`);
+        const s = await state(), d = await apart(before.under, s.under);
+        if (s.act !== '12%' || s.r < 4.5) fails.push(`controls, ${theme}: ${k} pressed is ${s.r.toFixed(2)}:1 (${s.act})`);
+        if (d < .01) fails.push(`controls, ${theme}: ${k} pressed is ${d.toFixed(4)} from ${before === rest ? 'rest' : 'hovered'} in OKLab, too near to tell apart`);
         await page.mouse.move(width - 2, height - 2); await page.mouse.up();
       }
       await page.keyboard.press('Tab');

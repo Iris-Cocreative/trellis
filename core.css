@@ -86,6 +86,10 @@
   inherits: false;
   initial-value: 0%;
 }
+/* The label's ink and the fill a control's state is mixed from (D120): each
+   control's own, so a control inside another doesn't take its parent's. */
+@property --state-ink { syntax: "*"; inherits: false; }
+@property --state-fill { syntax: "*"; inherits: false; }
 
 /* --------------------------------------------------------------------------
    RESET
@@ -1706,13 +1710,14 @@
        the button then adds whole cells until it fits. Choices, tags, inputs,
        tabs and badges do the same. */
     --btn-draw: calc(var(--btn-h) + max(0px, round(up, calc(1em - var(--btn-h)), var(--u))));
+    --state-ink: var(--btn-ink); --state-fill: var(--btn-bg);
     display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-h);
     max-width: 100%;
     height: var(--btn-draw);
     padding-inline: calc(round(down, var(--btn-draw) / 2, var(--sp-h)) - var(--line));   /* half its height, in half cells: 30px gets 12 */
     border: var(--line) solid var(--btn-border);
     border-radius: var(--btn-radius);
-    background: color-mix(in oklab, var(--btn-ink) calc(var(--state-on) + var(--state-act)), var(--btn-bg));
+    background: color-mix(in oklab, var(--state-tone) calc(var(--state-on) + var(--state-act)), var(--btn-bg));
     color: var(--btn-ink); text-decoration: none;
     font-family: var(--font-button, var(--font-sans));
     font-size: var(--btn-fs);
@@ -1912,7 +1917,9 @@
   .choice > input[type="checkbox"]:indeterminate::before { inline-size: calc(var(--choice-box) / 2); block-size: calc(var(--line) * 2); clip-path: none; }
   .choice > input:is(:checked, [type="checkbox"]:indeterminate) { --choice-fill: var(--choice-on); --choice-edge: var(--choice-on); }
   .choice > input:is(:checked, [type="checkbox"]:indeterminate)::before { transform: scale(1); }
-  .choice > input:is([aria-invalid="true"], :user-invalid) { --choice-edge: var(--alert); }
+  /* Invalid wins over checked: a checked box that is invalid keeps the alert's edge. */
+  .choice > input:is([aria-invalid="true"], :user-invalid),
+  .choice > input:is([aria-invalid="true"], :user-invalid):is(:checked, [type="checkbox"]:indeterminate) { --choice-edge: var(--alert); }
   .choice > input:disabled { --choice-edge: color-mix(in oklab, var(--text) 20%, transparent); --choice-fill: var(--bg-sunken); --choice-ink: var(--text-faint); }
   .choice > input:disabled:is(:checked, [type="checkbox"]:indeterminate) { --choice-fill: color-mix(in oklab, var(--text) 20%, transparent); --choice-edge: transparent; --choice-ink: var(--bg); }
   .choice:has(> input:disabled) { color: var(--text-faint); cursor: not-allowed; }
@@ -1926,7 +1933,8 @@
     .choice > input:is(:checked, [type="checkbox"]:indeterminate) { border-color: Highlight; background: Highlight; }
     .choice > input:disabled { border-color: GrayText; }
     .choice > input:disabled:is(:checked, [type="checkbox"]:indeterminate) { background: GrayText; }
-    .choice > input[aria-invalid="true"] { border-color: Mark; }
+    .choice > input:is([aria-invalid="true"], :user-invalid),
+    .choice > input:is([aria-invalid="true"], :user-invalid):is(:checked, [type="checkbox"]:indeterminate) { border-color: Mark; }
   }
   /* A task list in prose (Markdown's li > input, an editor's li > label >
      input + div): the same box, a cell and a half, centered on the first
@@ -2126,13 +2134,14 @@
     --tag-edge-style: solid;     /* dashed for what isn't here yet */
     --tag-ink: var(--text);
     --tag-gap: var(--sp-h);
+    --state-ink: var(--tag-ink); --state-fill: color-mix(in oklab, var(--tag-color) var(--tag-fill), transparent);
     display: inline-flex; align-items: center; gap: var(--tag-gap);
     max-width: 100%;
     height: var(--tag-draw);
     padding-inline: calc(var(--tag-pad) - var(--line));
     border: var(--line) var(--tag-edge-style) color-mix(in oklab, var(--tag-color) var(--tag-edge), transparent);
     border-radius: var(--tag-radius);
-    background: color-mix(in oklab, var(--tag-ink) var(--state-act), color-mix(in oklab, var(--tag-color) var(--tag-fill), transparent));
+    background: color-mix(in oklab, var(--state-tone) var(--state-act), var(--state-fill));
     color: var(--tag-ink);
     font-size: var(--tag-fs);
     font-weight: var(--fw-label);
@@ -2743,7 +2752,12 @@
   .input-control:has(+ .button)::-webkit-search-cancel-button { display: none; }
   .input-control:has(+ .button)::-ms-reveal { display: none; }
   .input-control:has(+ .button)::-ms-clear { display: none; }
-  @media (forced-colors: active) { .input.cc-slots:has(> .input-control:disabled) { border-color: GrayText; } }
+  @media (forced-colors: active) {
+    /* An invalid field's edge is the system's Mark, as a choice's is (D83): the alert is gone
+       here. A box whose control is disabled is GrayText, as it is quiet, not alert, by day. */
+    .input:is([aria-invalid="true"], .cc-slots:has(> .input-control[aria-invalid="true"])) { border-color: Mark; }
+    .input.cc-slots:has(> .input-control:disabled) { border-color: GrayText; }
+  }
 
   /* Composer: one box for writing a message. Leading controls (attach), the
      text, trailing controls (emoji), then the send button, all inside one edge
@@ -2848,7 +2862,7 @@
     font-size: var(--tab-fs); font-weight: var(--fw-label);
     white-space: nowrap;
   }
-  .tab { background: color-mix(in oklab, var(--text) var(--state-act), var(--tab-bg, transparent)); }
+  .tab { --state-ink: var(--text); --state-fill: var(--tab-bg, transparent); background: color-mix(in oklab, var(--state-tone) var(--state-act), var(--state-fill)); }
   @media (hover: hover) { .tab:hover { color: var(--text); } }
   /* A tab that is a link (a view, a filter, a page) is the current one by aria-current, and
      carries no underline: its mark says it is a control (D101). A segmented
@@ -3139,12 +3153,13 @@
     --reaction-bg: var(--surface);
     --reaction-edge: var(--border-subtle);
     --reaction-ink: var(--text-secondary);
+    --state-ink: var(--reaction-ink); --state-fill: var(--reaction-bg);
     display: inline-flex; align-items: center; gap: var(--sp-q);
     height: var(--size-control-sm);
     padding-inline: calc(var(--sp-h) - var(--line));
     border: var(--line) solid var(--reaction-edge);
     border-radius: var(--r-round);
-    background: color-mix(in oklab, var(--reaction-ink) var(--state-act), var(--reaction-bg));
+    background: color-mix(in oklab, var(--state-tone) var(--state-act), var(--reaction-bg));
     color: var(--reaction-ink);
     font-size: var(--fs-control-sm); font-weight: var(--fw-label); font-variant-numeric: tabular-nums;
     line-height: 1;
@@ -3440,7 +3455,28 @@
      check, a solid tag, a tab's line), so it doesn't look merely hovered.
      Disabled drops hover and press. Focus uses one shared ring everywhere.
      A control of your own takes the same layer with .u-state: set
-     --state-fill and --state-ink on it, and every state follows. */
+     --state-fill and --state-ink on it, and every state follows.
+     Which way the share goes follows the ink (D120). Each control names its
+     label's ink and its fill (--state-ink, --state-fill), and what it mixes in
+     is --state-tone: the ink, unless the fill is opaque and near the flip,
+     between .4 and .75 of lightness, where the label has least to spare. There
+     the tone moves away from the label: black under a white label (a primary,
+     destructive or confirm button, a solid tag), white under a dark one. So
+     the label gains contrast as the state deepens, in both themes. A fill far
+     from the flip (a white surface, a night's raised ground) and a tint or no
+     fill keep the ink: their label has room, and white over white would show
+     nothing. Picked with one color each step: the fill gives black or white,
+     at full alpha where it is in the band and none elsewhere, and mixing that
+     99.99% into the ink keeps whichever is there; the alpha is then restored.
+     At rest the tone is the ink itself, so nothing at rest is drawn otherwise. */
+  :is(.button, .tag, .tab, .chat-reaction, .u-state) { --state-tone: var(--state-ink, currentColor); }
+  @supports (color: oklch(from red l c h)) {
+    :is(.button, .tag, .tab, .chat-reaction, .u-state):is(:hover, :active, [aria-pressed="true"], [aria-checked="true"], [aria-current]:not([aria-current="false"]), [aria-selected="true"]) {
+      --state-tone: oklab(from color-mix(in oklab,
+          oklch(from var(--state-fill, transparent) clamp(0, (l - var(--ink-flip)) * 1000, 1) 0 0 / calc(clamp(0, (alpha - .999) * 100000, 1) * clamp(0, (l - .4) * 1000, 1) * clamp(0, (.75 - l) * 1000, 1))) 99.99%,
+          var(--state-ink, currentColor)) l a b / calc(alpha * 10000));
+    }
+  }
   @media (hover: hover) {
     :is(.button, .icon-button, .tag:is(button, a), .tag-remove, .tab, .shell-link, .outline-link, .list-item:is(a, button), .options-card-item, .u-state, .switch, .prose summary, button.chat-reaction):hover { --state-act: var(--state-hover); }
   }
@@ -3503,7 +3539,7 @@
   /* The state layer for a control of your own (see States, in the primitives). */
   .u-state {
     cursor: pointer;
-    background-color: color-mix(in oklab, var(--state-ink, currentColor) calc(var(--state-on) + var(--state-act)), var(--state-fill, transparent));
+    background-color: color-mix(in oklab, var(--state-tone) calc(var(--state-on) + var(--state-act)), var(--state-fill, transparent));
     transition: background-color var(--dur-out) var(--ease-in);
   }
   /* Half and quarter gaps are for clusters only. Between stacked blocks, space

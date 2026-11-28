@@ -150,7 +150,7 @@ function ranges(label, seed) {
 
 // Contrast for one seed, in both themes, or in the ones scopesOf() says it is seen in;
 // first that the numbers it stands on are ones core can draw.
-function contrast(label, seed, themes = THEMES) {
+function contrast(label, seed, themes = THEMES, shares = stateShares()) {
   const fails = ranges(label, seed);
   if (fails.length) return fails;
   for (const theme of themes) {
@@ -171,6 +171,18 @@ function contrast(label, seed, themes = THEMES) {
     // A solid or selected quiet tag: ink computed from the neutral it fills with.
     const q = M.contrast(M.ink(p['text-tertiary'], seed), p['text-tertiary']);
     if (!(q >= 4.5)) fails.push(`contrast: ${label} ${theme}: ink on a solid quiet tag is ${q.toFixed(2)}:1, under 4.5`);
+    // Every state of a control with a fill of its own (D120): hovered, pressed, and for a
+    // button selected, selected and hovered, selected and pressed. A primary, destructive or
+    // confirm button, a button in a color of the product's own, and a solid or selected tag
+    // in every kind, status, stage and the neutral.
+    const { hover, press, selected } = shares, sh = { button: [hover, press, selected, selected + hover, selected + press], tag: [hover, press] };
+    const filled = ![hover, press, selected].every(Number.isFinite) ? [] :[['accent', p['accent-ink'], 'button', 'a primary button'], ...['ok', 'alert'].map((k) => [k, M.ink(p[k], seed), 'button', `a ${k} button`]),
+      ...ownOf(seed).map((k) => [k + '-solid', p[k + '-solid-ink'], 'button', `a button in --seed-${k}`]),
+      ...[...SOLIDS, 'text-tertiary', ...[1, 2, 3, 4, 5, 6, 7].map((n) => `stage-${n}`)].map((k) => [k, M.ink(p[k], seed), 'tag', `a solid --${k} tag`])];
+    for (const [k, ink, kind, what] of filled) for (const s of sh[kind]) {
+      const r = M.contrast(ink, M.stateOver(p[k], ink, s, seed));
+      if (!(r >= 4.5)) fails.push(`contrast: ${label} ${theme}: the label of ${what} with ${Math.round(s * 100)}% of the state layer is ${r.toFixed(2)}:1, under 4.5`);
+    }
     // Each color of the product's own (D117): its ink is text, and a label stands on its solid fill.
     for (const k of ownOf(seed)) {
       for (const g of GROUNDS) {
@@ -184,17 +196,32 @@ function contrast(label, seed, themes = THEMES) {
   return fails;
 }
 
+// The state layer's shares (D58): the template's, or the layer's own where it sets them.
+// One that isn't a plain percentage can't be checked, so it is refused.
+let templateShares;
+function stateShares(sets = null, fails = [], label = 'product layer') {
+  if (!sets && templateShares) return templateShares;
+  const t = template(), out = {};
+  for (const k of ['hover', 'press', 'selected']) {
+    const v = ((sets && sets.get(`--state-${k}`)) || t.get(`--state-${k}`) || '').trim(), m = /^(\d+(?:\.\d+)?)%$/.exec(v);
+    if (m) out[k] = m[1] / 100;
+    else { out[k] = NaN; fails.push(`${label}: --state-${k} is "${v}": it must be a plain percentage, as 6% is, or a control's states can't be checked`); }
+  }
+  if (!sets) templateShares = out;
+  return out;
+}
+
 // The colors of the product's own a seed holds: own-gold, own-inner, … (D117).
 function ownOf(seed) { return Object.keys(seed.color.seeds).filter((k) => OWN.test('--seed-' + k)); }
 
 // Everything a product owns: shape, knobs, and contrast on every scope.
 function validate(css, label = 'product layer', knobs = template()) {
-  const { fails, sets } = shape(css, label, knobs);
-  for (const [scope, , seed, themes] of scopesOf(css, label, fails)) fails.push(...contrast(scope, seed, themes));
+  const { fails, sets } = shape(css, label, knobs), shares = stateShares(sets, fails, label);
+  for (const [scope, , seed, themes] of scopesOf(css, label, fails)) fails.push(...contrast(scope, seed, themes, shares));
   return { fails, sets };
 }
 
-module.exports = { validate, shape, scopesOf, contrast, ownOf, template, FLOORS, SOLIDS, OUTLINES, BAR, GROUNDS, THEMES };
+module.exports = { validate, shape, scopesOf, contrast, stateShares, ownOf, template, FLOORS, SOLIDS, OUTLINES, BAR, GROUNDS, THEMES };
 
 if (require.main === module) {
   const files = process.argv.slice(2);

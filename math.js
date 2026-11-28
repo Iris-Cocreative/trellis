@@ -323,6 +323,21 @@
     var f = parseColor(fill), flip = (seed || SEED).color.flip;
     return f[0] < flip ? [1, 0, f[2]] : [0.16, f[1] * 0.3, f[2]];
   }
+  // The ground under a label while hovered, pressed or selected (D120). The state
+  // layer mixes a share of a tone into the fill, in OKLab. On an opaque fill near
+  // the flip, between STATE_BAND's two lightnesses, the tone moves away from the
+  // label: black under a white one, white under a dark one, so the label gains
+  // where it has least to spare. Anywhere else it is the label's own ink, as it
+  // was: far from the flip the label has room, and white over white would show
+  // nothing. A translucent fill is not this function's: it takes the ink.
+  var STATE_BAND = [0.4, 0.75];
+  function stateOver(fill, ink, share, seed) {
+    var f = parseColor(fill), flip = (seed || SEED).color.flip;
+    var tone = f[0] >= STATE_BAND[0] && f[0] <= STATE_BAND[1] ? [f[0] > flip ? 1 : 0, 0, 0] : parseColor(ink);
+    var lab = function (c) { return [c[0], c[1] * Math.cos(c[2] * Math.PI / 180), c[1] * Math.sin(c[2] * Math.PI / 180)]; };
+    var x = lab(tone), y = lab(f), m = [0, 1, 2].map(function (i) { return x[i] * share + y[i] * (1 - share); });
+    return [m[0], Math.sqrt(m[1] * m[1] + m[2] * m[2]), mod(Math.atan2(m[2], m[1]) * 180 / Math.PI, 360)];
+  }
   // The label and the edge of an outline button (D115): its kind's color in this
   // theme, moved to where it reads as text, hovered and pressed too.
   function outlineInk(color, theme) {
@@ -461,7 +476,7 @@
     typeFrom: typeFrom, typeSteps: typeSteps, typeEnds: typeEnds, typeSize: typeSize, lineRatio: lineRatio, lineHeight: lineHeight,
     standPad: standPad, hang: hang, settleCluster: settleCluster, spaceAfter: spaceAfter, spaceAfterInStack: spaceAfterInStack,
     stands: stands, isHeading: isHeading, seedFromTokens: seedFromTokens,
-    parseColor: parseColor, hex: hex, inGamut: inGamut, contrast: contrast, hue: hue, ink: ink, shade: shade, stage: stage, stageInk: stageInk, ownSolid: ownSolid, outlineInk: outlineInk, palette: palette,
+    parseColor: parseColor, hex: hex, inGamut: inGamut, contrast: contrast, hue: hue, ink: ink, shade: shade, stage: stage, stageInk: stageInk, ownSolid: ownSolid, outlineInk: outlineInk, stateOver: stateOver, STATE_BAND: STATE_BAND, palette: palette,
     clear: clear, chromaLimit: chromaLimit, follow: follow, derived: derived, seeds: seeds, scope: scope
   };
 });
